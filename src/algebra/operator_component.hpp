@@ -52,6 +52,11 @@ public:
                       const std::string&     target = "none",
                       const int              center = -1);
     
+    /// Retrieves axial value along requested axis.
+    /// @param axis The axis to retrieve axial value.
+    /// @return The axial value of operator component along axis.
+    int operator[](const char axis) const;
+    
     /// Compares this operator component with other operator component.
     /// @param other The other operator component to compare.
     /// @return true if operator components are equal, false otherwise.
@@ -93,13 +98,11 @@ public:
     
     /// Creates an optional operator component from this operator component by shifting axial value
     /// along the selected axis.
-    /// @param center The tensorial center to shift.
     /// @param axis The axis to shift axial value.
     /// @param value The value to shift axial value.
     /// @param noscalar The flag for scalar component: false  to keep,  true otherwise.
     /// @return The optional operator component.
-    std::optional<OperatorComponent> shift(const int  center,
-                                           const char axis,
+    std::optional<OperatorComponent> shift(const char axis,
                                            const int  value,
                                            const bool noscalar = false) const;
 };

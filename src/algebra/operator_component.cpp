@@ -44,6 +44,12 @@ OperatorComponent::OperatorComponent(const std::string&     name,
     
 }
 
+int
+OperatorComponent::operator[](const char axis) const
+{
+    return _shape[axis];
+}
+
 bool
 OperatorComponent::operator==(const OperatorComponent& other) const
 {
@@ -53,9 +59,17 @@ OperatorComponent::operator==(const OperatorComponent& other) const
     {
         return false;
     }
+    else if (_shape != other._shape)
+    {
+        return false;
+    }
+    else if (_target != other._target)
+    {
+        return false;
+    }
     else
     {
-        return _shape == other._shape;
+        return _center == other._center;
     }
 }
 
@@ -72,9 +86,17 @@ OperatorComponent::operator<(const OperatorComponent& other) const
     {
         return _name < other._name;
     }
-    else
+    else if (_shape != other._shape)
     {
         return _shape < other._shape;
+    }
+    else if (_target != other._target)
+    {
+        return _target < other._target;
+    }
+    else
+    {
+        return _center < other._center;
     }
 }
 
@@ -105,50 +127,35 @@ OperatorComponent::center() const
 std::string
 OperatorComponent::to_string() const
 {
-    std::string str = "{" + _name + ":";
+    return "{" + _name + ":" + _shape.to_string() + "}" +
     
-    //for (const auto& tcomp : _shapes) str += tcomp.to_string();
-
-    return str + "}";
+           "[" + _target + ":" + std::to_string(_center) + "]";
 }
 
 std::string
 OperatorComponent::label() const
 {
-    std::string str;
-    
-    //for (const auto& tcomp : _shapes) str += tcomp.label();
-    
-    return str;
+    return _shape.label();
 }
 
 std::optional<OperatorComponent>
-OperatorComponent::shift(const int  center,
-                         const char axis,
+OperatorComponent::shift(const char axis,
                          const int  value,
                          const bool noscalar) const
 {
     if (const auto tcomp = _shape.shift(axis, value))
     {
-//        auto new_shapes = _shapes;
-//
-//        if (noscalar && (tcomp->order() == 0))
-//        {
-//            new_shapes.erase(new_shapes.begin() + center);
-//
-//            if (new_shapes.empty()) return std::nullopt;
-//        }
-//        else
-//        {
-//            new_shapes[center] = *tcomp;
-//        }
-//
-//        return OperatorComponent(_name, new_shapes);
+        if (noscalar && (tcomp->order() == 0))
+        {
+            return std::nullopt;
+        }
+        else
+        {
+            return OperatorComponent(_name, *tcomp, _target, _center);
+        }
     }
     else
     {
         return std::nullopt;
     }
-    
-    return std::nullopt;
 }

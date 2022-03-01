@@ -46,19 +46,18 @@ Operator::Operator(const std::string& name,
     
 }
 
-//Operator::Operator(const OperatorComponent& opcomp)
-//
-//    : _name(opcomp.name())
-//
-//    , _shape(Tensor(opcomp.shape()))
-//
-//    , _target(opcomp.target())
-//{
-//    for (const auto& tcomp : opcomp.shapes())
-//    {
-//        _shapes.push_back(tcomp.order());
-//    }
-//}
+Operator::Operator(const OperatorComponent& opcomp)
+
+    : _name(opcomp.name())
+
+    , _shape(Tensor(opcomp.shape()))
+
+    , _target(opcomp.target())
+
+    , _center(opcomp.center())
+{
+ 
+}
 
 bool
 Operator::operator==(const Operator& other) const
@@ -113,11 +112,9 @@ Operator::operator<(const Operator& other) const
 std::string
 Operator::to_string() const
 {
-    std::string str = "{" + _name + ":" + _shape.to_string() + "}";
+    return "{" + _name + ":" + _shape.to_string() + "}" +
     
-    str += "[" + _target + ":" + std::to_string(_center) + "]";
-    
-    return str;
+           "[" + _target + ":" + std::to_string(_center) + "]";
 }
 
 std::string
