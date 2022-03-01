@@ -23,7 +23,7 @@ Operator::Operator()
 
     , _shape(Tensor(0))
 
-    , _target("")
+    , _target("none")
 
     , _center(-1)
 {
@@ -113,21 +113,17 @@ Operator::operator<(const Operator& other) const
 std::string
 Operator::to_string() const
 {
-    std::string str = "{" + _name + ":";
+    std::string str = "{" + _name + ":" + _shape.to_string() + "}";
     
-    //for (const auto& tcomp : _shapes) str += tcomp.to_string();
-
-    return str + "}";
+    str += "[" + _target + ":" + std::to_string(_center) + "]";
+    
+    return str;
 }
 
 std::string
 Operator::label() const
 {
-    std::string str;
-    
-    //for (const auto& tcomp : _shapes) str += tcomp.label();
-    
-    return str;
+    return _shape.label();
 }
 
 VOperatorComponents
@@ -135,10 +131,10 @@ Operator::components() const
 {
     VOperatorComponents opcomps;
     
-//    for (const auto& tcomps : make_components<TensorComponent>(_shapes))
-//    {
-//        opcomps.push_back(OperatorComponent(_name, tcomps));
-//    }
+    for (const auto& tcomp : _shape.components())
+    {
+        opcomps.push_back(OperatorComponent(_name, tcomp, _target, _center));
+    }
     
     return opcomps;
 }

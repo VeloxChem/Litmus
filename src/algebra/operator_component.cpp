@@ -20,16 +20,26 @@ OperatorComponent::OperatorComponent()
 
     : _name("")
 
-    , _shapes({})
+    , _shape(TensorComponent(0, 0, 0))
+
+    , _target("none")
+
+    , _center(-1)
 {
 }
 
-OperatorComponent::OperatorComponent(const std::string&       name,
-                                     const VTensorComponents& shapes)
+OperatorComponent::OperatorComponent(const std::string&     name,
+                                     const TensorComponent& shape,
+                                     const std::string&     target,
+                                     const int              center)
 
     : _name(name)
     
-    , _shapes(shapes)
+    , _shape(shape)
+
+    , _target(target)
+
+    , _center(center)
 {
     
 }
@@ -45,7 +55,7 @@ OperatorComponent::operator==(const OperatorComponent& other) const
     }
     else
     {
-        return _shapes == other._shapes;
+        return _shape == other._shape;
     }
 }
 
@@ -64,7 +74,7 @@ OperatorComponent::operator<(const OperatorComponent& other) const
     }
     else
     {
-        return _shapes < other._shapes;
+        return _shape < other._shape;
     }
 }
 
@@ -74,10 +84,22 @@ OperatorComponent::name() const
     return _name;
 }
 
-VTensorComponents
-OperatorComponent::shapes() const
+TensorComponent
+OperatorComponent::shape() const
 {
-    return _shapes;
+    return _shape;
+}
+
+std::string
+OperatorComponent::target() const
+{
+    return _target;
+}
+
+int
+OperatorComponent::center() const
+{
+    return _center;
 }
 
 std::string
@@ -85,7 +107,7 @@ OperatorComponent::to_string() const
 {
     std::string str = "{" + _name + ":";
     
-    for (const auto& tcomp : _shapes) str += tcomp.to_string();
+    //for (const auto& tcomp : _shapes) str += tcomp.to_string();
 
     return str + "}";
 }
@@ -95,7 +117,7 @@ OperatorComponent::label() const
 {
     std::string str;
     
-    for (const auto& tcomp : _shapes) str += tcomp.label();
+    //for (const auto& tcomp : _shapes) str += tcomp.label();
     
     return str;
 }
@@ -106,25 +128,27 @@ OperatorComponent::shift(const int  center,
                          const int  value,
                          const bool noscalar) const
 {
-    if (const auto tcomp = _shapes[center].shift(axis, value))
+    if (const auto tcomp = _shape.shift(axis, value))
     {
-        auto new_shapes = _shapes;
-        
-        if (noscalar && (tcomp->order() == 0))
-        {
-            new_shapes.erase(new_shapes.begin() + center);
-            
-            if (new_shapes.empty()) return std::nullopt;
-        }
-        else
-        {
-            new_shapes[center] = *tcomp;
-        }
-        
-        return OperatorComponent(_name, new_shapes);
+//        auto new_shapes = _shapes;
+//
+//        if (noscalar && (tcomp->order() == 0))
+//        {
+//            new_shapes.erase(new_shapes.begin() + center);
+//
+//            if (new_shapes.empty()) return std::nullopt;
+//        }
+//        else
+//        {
+//            new_shapes[center] = *tcomp;
+//        }
+//
+//        return OperatorComponent(_name, new_shapes);
     }
     else
     {
         return std::nullopt;
     }
+    
+    return std::nullopt;
 }

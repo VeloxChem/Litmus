@@ -30,7 +30,13 @@ class OperatorComponent
     std::string _name;
     
     /// Tensorial shape of operator component.
-    VTensorComponents _shapes;
+    TensorComponent _shape;
+    
+    /// The target of operator component.
+    std::string _target;
+    
+    /// The targeted center of operator component.
+    int _center;
     
 public:
     /// Creates an empty operator component.
@@ -38,9 +44,13 @@ public:
     
     /// Creates an operator component  from the given name and tensorial shapes.
     /// @param name The name to create operator component.
-    /// @param shapes The tensorial shape to create operator component.
-    OperatorComponent(const std::string&       name,
-                      const VTensorComponents& shapes = {TensorComponent(0, 0, 0)});
+    /// @param shape The tensorial shape to create operator component.
+    /// @param target The target of operator component action.
+    /// @param center The targeted center of operator component action.
+    OperatorComponent(const std::string&     name,
+                      const TensorComponent& shape  = TensorComponent(0, 0, 0),
+                      const std::string&     target = "none",
+                      const int              center = -1);
     
     /// Compares this operator component with other operator component.
     /// @param other The other operator component to compare.
@@ -63,7 +73,15 @@ public:
     
     /// Gets tensorial shape of operator component.
     /// @return The tensorial shape of operator component.
-    VTensorComponents shapes() const;
+    TensorComponent shape() const;
+    
+    /// Gets target of operator component action.
+    /// @return The target of operator component action.
+    std::string target() const;
+    
+    /// Gets center of target of operator component action.
+    /// @return The center of target of operator component action.
+    int center() const;
     
     /// Creates primitive textual representation of this operator component.
     /// @return The string with primitive textual representation of operator component.

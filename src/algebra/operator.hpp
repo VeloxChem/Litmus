@@ -49,8 +49,8 @@ public:
     /// @param center The targeted center of operator action.
     Operator(const std::string& name,
              const Tensor&      shape  = Tensor(0),
-             const std::string& target = std::string("self"),
-             const int          center = 0);
+             const std::string& target = std::string("none"),
+             const int          center = -1);
     
     /// Creates an operator from the given operator component.
     /// @param opcomp The operator component to create operator.
