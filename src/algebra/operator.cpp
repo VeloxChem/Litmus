@@ -16,7 +16,6 @@
 
 #include "operator.hpp"
 
-
 Operator::Operator()
 
     : _name("")

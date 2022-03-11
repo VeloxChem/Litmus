@@ -69,7 +69,7 @@ TEST_F(OperatorTest, ToString)
     EXPECT_EQ(opval.to_string(), "{X:(3)}[bra:2]");
 }
 
-TEST_F(OperatorTest, ToLabel)
+TEST_F(OperatorTest, Label)
 {
     const auto opval = Operator("X", Tensor(3), "bra", 2);
     
