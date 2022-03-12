@@ -22,6 +22,7 @@
 
 #include "tensor.hpp"
 #include "tensor_component.hpp"
+#include "two_center_pair_component.hpp"
 
 namespace gset
 {
@@ -31,6 +32,18 @@ namespace gset
 /// @return: A vector of tensor components.
 VTensorComponents
 tensor_components(const int order);
+
+/// Creates vector of two center pair components for two center pair.
+/// @param f_name The name of first expansion center.
+/// @param f_angmom The angular momentum of first expansion centers.
+/// @param s_name The name of second expansion center.
+/// @param s_angmom The angular momentum of second expansion centers.
+/// @return: A vector of two center pair components.
+VTwoCenterPairComponents
+two_center_pair_components(const std::string& f_name,
+                           const int          f_angmom,
+                           const std::string& s_name,
+                           const int          s_angmom);
 
 }
 

@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "tensor.hpp"
+#include "two_center_pair_component.hpp"
 
 /// Two centers  pair.
 class TwoCenterPair
@@ -53,8 +54,8 @@ public:
                   const int          s_angmom);
     
     /// Creates a two center pair from the given two center pair component.
-    /// @param t2pcomp The operator component to create operator.
-    //TwoCenterPair(const TwoCenterPairComponent& t2pcomp);
+    /// @param t2pcomp The two center pair component to create two center pair.
+    TwoCenterPair(const TwoCenterPairComponent& t2pcomp);
     
     /// Compares this two center pair  with other two center pair.
     /// @param other The other two center pair to compare.
@@ -81,7 +82,7 @@ public:
     
     /// Creates a vector with two center pair components of this two center pair.
     /// @return The vector of two center pair components.
-    //VTwoCenterPairComponent components() const;
+    VTwoCenterPairComponents components() const;
 };
 
 #endif /* two_center_pair_hpp */

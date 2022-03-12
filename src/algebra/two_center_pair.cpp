@@ -47,6 +47,19 @@ TwoCenterPair::TwoCenterPair(const std::string& f_name,
     
 }
 
+TwoCenterPair::TwoCenterPair(const TwoCenterPairComponent& t2pcomp)
+
+    : _names(t2pcomp.names())
+
+    , _shapes(std::array<Tensor, 2>({Tensor(0), Tensor(0)}))
+{
+    const auto tcomps = t2pcomp.shapes();
+        
+    _shapes[0] = Tensor(tcomps[0].order());
+    
+    _shapes[1] = Tensor(tcomps[1].order());
+}
+
 bool
 TwoCenterPair::operator==(const TwoCenterPair& other) const
 {
@@ -92,4 +105,20 @@ std::string
 TwoCenterPair::label() const
 {
     return _shapes[0].label() + _shapes[1].label();
+}
+
+VTwoCenterPairComponents
+TwoCenterPair::components() const
+{
+    VTwoCenterPairComponents t2pcomps;
+    
+    for (const auto& fcomp : _shapes[0].components())
+    {
+        for (const auto& scomp : _shapes[1].components())
+        {
+            t2pcomps.push_back(TwoCenterPairComponent(_names, {fcomp, scomp})); 
+        }
+    }
+    
+    return t2pcomps;
 }

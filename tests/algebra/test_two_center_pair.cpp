@@ -17,6 +17,7 @@
 #include "test_two_center_pair.hpp"
 
 #include "two_center_pair.hpp"
+#include "setters.hpp"
 
 TEST_F(TwoCenterPairTest, Constructor)
 {
@@ -25,12 +26,12 @@ TEST_F(TwoCenterPairTest, Constructor)
     EXPECT_EQ(TwoCenterPair("GA", 2, "GB", 1),
               TwoCenterPair({"GA", "GB"}, {Tensor(2), Tensor(1)}));
     
-//    const auto opval = Operator("rxr", Tensor(2), "bra", 2);
-//
-//    for (const auto& tcomp : gset::tensor_components(2))
-//    {
-//        EXPECT_EQ(opval, Operator(OperatorComponent("rxr", tcomp, "bra", 2)));
-//    }
+    const auto tpair = TwoCenterPair("GA", 2, "GB", 1);
+
+    for (const auto& t2pcomp : gset::two_center_pair_components("GA", 2, "GB", 1))
+    {
+        EXPECT_EQ(tpair, TwoCenterPair(t2pcomp));
+    }
 }
 
 TEST_F(TwoCenterPairTest, OperatorEqual)
@@ -76,4 +77,20 @@ TEST_F(TwoCenterPairTest, Label)
     const auto tpair = TwoCenterPair("GA", 2, "GB", 1);
     
     EXPECT_EQ(tpair.label(), "DP");
+}
+
+TEST_F(TwoCenterPairTest, Components)
+{
+    const auto tpair = TwoCenterPair("GA", 2, "GB", 1);
+
+    const auto t2pcomps = tpair.components();
+    
+    const auto dpcomps = gset::two_center_pair_components("GA", 2, "GB", 1);
+    
+    EXPECT_EQ(t2pcomps.size(), 18);
+    
+    for (size_t i = 0; i < 18; i++)
+    {
+        EXPECT_EQ(dpcomps[i], t2pcomps[i]);
+    }
 }

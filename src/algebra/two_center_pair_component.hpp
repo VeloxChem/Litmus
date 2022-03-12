@@ -88,4 +88,6 @@ public:
                                                 const int  center) const;
 };
 
+using VTwoCenterPairComponents = std::vector<TwoCenterPairComponent>;
+
 #endif /* two_center_pair_component_hpp */

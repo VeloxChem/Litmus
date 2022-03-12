@@ -95,4 +95,23 @@ tensor_components(const int order)
     return tcomps;
 }
 
+VTwoCenterPairComponents
+two_center_pair_components(const std::string& f_name,
+                           const int          f_angmom,
+                           const std::string& s_name,
+                           const int          s_angmom)
+{
+    VTwoCenterPairComponents t2pcomps;
+    
+    for (const auto& fcomp : gset::tensor_components(f_angmom))
+    {
+        for (const auto& scomp : gset::tensor_components(s_angmom))
+        {
+            t2pcomps.push_back(TwoCenterPairComponent({f_name, s_name}, {fcomp, scomp}));
+        }
+    }
+    
+    return t2pcomps;
+}
+
 }
