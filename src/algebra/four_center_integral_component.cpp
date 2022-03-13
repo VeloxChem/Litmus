@@ -108,33 +108,36 @@ FourCenterIntegralComponent::operator<(const FourCenterIntegralComponent& other)
     }
 }
 
-std::string
-FourCenterIntegralComponent::to_string() const
+TwoCenterPairComponent
+FourCenterIntegralComponent::bra_pair() const
 {
-    std::string intstr;
-    
-    if (!_prefixes.empty())
-    {
-        intstr.append("[");
-        
-        for (const auto& prefix : _prefixes)
-        {
-            intstr.append(prefix.to_string() + ";");
-        }
-        
-        intstr.append("]");
-    }
-    
-    intstr.append(_bra_pair.to_string());
-    
-    intstr.append(_integrand.to_string());
-    
-    intstr.append(_ket_pair.to_string());
-    
-    intstr.append("^(" + std::to_string(_order) + ")");
-
-    return intstr;
+    return _bra_pair;
 }
+
+TwoCenterPairComponent
+FourCenterIntegralComponent::ket_pair() const
+{
+    return _ket_pair;
+}
+
+OperatorComponent
+FourCenterIntegralComponent::integrand() const
+{
+    return _integrand;
+}
+
+int
+FourCenterIntegralComponent::order() const
+{
+    return _order;
+}
+
+VOperatorComponents
+FourCenterIntegralComponent::prefixes() const
+{
+    return _prefixes;
+}
+
 
 std::string
 FourCenterIntegralComponent::label(const bool use_order) const
@@ -164,4 +167,37 @@ FourCenterIntegralComponent::label(const bool use_order) const
     }
 
     return intstr;
+}
+
+std::optional<FourCenterIntegralComponent>
+FourCenterIntegralComponent::shift(const char axis,
+                                   const int  value,
+                                   const int  center) const
+{
+    if (center < 2)
+    {
+        if (const auto tpair = _bra_pair.shift(axis, value, center))
+        {
+            return FourCenterIntegralComponent(*tpair, _ket_pair,
+                                               _integrand, _order,
+                                               _prefixes);
+        }
+        else
+        {
+            return std::nullopt;
+        }
+    }
+    else
+    {
+        if (const auto tpair = _ket_pair.shift(axis, value, center - 2))
+        {
+            return FourCenterIntegralComponent(_bra_pair, *tpair,
+                                               _integrand, _order,
+                                               _prefixes);
+        }
+        else
+        {
+            return std::nullopt;
+        }
+    }
 }

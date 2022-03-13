@@ -139,19 +139,33 @@ TEST_F(OperatorComponentTest, Label)
 
 TEST_F(OperatorComponentTest, Shift)
 {
-    const auto rxxy = OperatorComponent("r^n", TensorComponent(2, 1, 0), "ket", 2);
+    const auto rxxy = OperatorComponent("r^n",
+                                        TensorComponent(2, 1, 0),
+                                        "ket", 2);
     
-    const auto rxyz = OperatorComponent("r^n", TensorComponent(1, 1, 1), "ket", 2);
+    const auto rxyz = OperatorComponent("r^n",
+                                        TensorComponent(1, 1, 1),
+                                        "ket", 2);
     
-    const auto rxx = OperatorComponent("r^n", TensorComponent(2, 0, 0), "ket", 2);
+    const auto rxx = OperatorComponent("r^n",
+                                       TensorComponent(2, 0, 0),
+                                       "ket", 2);
     
-    const auto rxy = OperatorComponent("r^n", TensorComponent(1, 1, 0), "ket", 2);
+    const auto rxy = OperatorComponent("r^n",
+                                       TensorComponent(1, 1, 0),
+                                       "ket", 2);
     
-    const auto rxz = OperatorComponent("r^n", TensorComponent(1, 0, 1), "ket", 2);
+    const auto rxz = OperatorComponent("r^n",
+                                       TensorComponent(1, 0, 1),
+                                       "ket", 2);
     
-    const auto ryz = OperatorComponent("r^n", TensorComponent(0, 1, 1), "ket", 2);
+    const auto ryz = OperatorComponent("r^n",
+                                       TensorComponent(0, 1, 1),
+                                       "ket", 2);
     
-    const auto r0 = OperatorComponent("r^n", TensorComponent(0, 0, 0), "ket", 2);
+    const auto r0 = OperatorComponent("r^n",
+                                      TensorComponent(0, 0, 0),
+                                      "ket", 2);
     
     // without no scalar
     

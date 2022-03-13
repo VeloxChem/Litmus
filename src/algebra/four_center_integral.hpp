@@ -91,10 +91,6 @@ public:
     /// @return true if this integral is less than other integral, false otherwise.
     bool operator<(const FourCenterIntegral& other) const;
     
-    /// Creates primitive textual representation of this integral.
-    /// @return The string with primitive textual representation of integral.
-    std::string to_string() const;
-    
     /// Creates primitive textual label of this integral.
     /// @return The string with primitive textual label of integral.
     std::string label(const bool use_order = false) const;

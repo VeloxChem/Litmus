@@ -21,22 +21,31 @@
 
 TEST_F(TwoCenterPairTest, Constructor)
 {
-    EXPECT_EQ(TwoCenterPair(), TwoCenterPair({"", ""}, {Tensor(0), Tensor(0)}));
+    auto lhspair = TwoCenterPair();
     
-    EXPECT_EQ(TwoCenterPair("GA", 2, "GB", 1),
-              TwoCenterPair({"GA", "GB"}, {Tensor(2), Tensor(1)}));
+    auto rhspair = TwoCenterPair({"", ""}, {Tensor(0), Tensor(0)});
     
-    const auto tpair = TwoCenterPair("GA", 2, "GB", 1);
-
+    EXPECT_EQ(lhspair, rhspair);
+    
+    lhspair = TwoCenterPair("GA", 2, "GB", 1);
+    
+    rhspair = TwoCenterPair({"GA", "GB"}, {Tensor(2), Tensor(1)});
+    
+    EXPECT_EQ(lhspair, rhspair);
+    
     for (const auto& t2pcomp : gset::two_center_pair_components("GA", 2, "GB", 1))
     {
-        EXPECT_EQ(tpair, TwoCenterPair(t2pcomp));
+        EXPECT_EQ(lhspair, TwoCenterPair(t2pcomp));
     }
 }
 
 TEST_F(TwoCenterPairTest, OperatorEqual)
 {
-    EXPECT_TRUE(TwoCenterPair("GA", 2, "GB", 1) == TwoCenterPair({"GA", "GB"}, {Tensor(2), Tensor(1)}));
+    const auto lhspair = TwoCenterPair("GA", 2, "GB", 1);
+    
+    const auto rhspair = TwoCenterPair({"GA", "GB"}, {Tensor(2), Tensor(1)});
+    
+    EXPECT_TRUE( rhspair == lhspair);
 }
 
 TEST_F(TwoCenterPairTest, OperatorNotEqual)

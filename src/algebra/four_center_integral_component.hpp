@@ -69,14 +69,40 @@ public:
     /// @return true if this integral  component is less than other integral component, false otherwise.
     bool operator<(const FourCenterIntegralComponent& other) const;
     
-    /// Creates primitive textual representation of this integral component.
-    /// @return The string with primitive textual representation of integral component.
-    std::string to_string() const;
+    /// Gets bra pair component of integral component.
+    /// @return The bra pair component of integral component.
+    TwoCenterPairComponent bra_pair() const;
+    
+    /// Gets ket pair component of integral component.
+    /// @return The ket pair component of integral component.
+    TwoCenterPairComponent ket_pair() const;
+    
+    /// Gets integrand of integral component.
+    /// @return The integrand of integral component.
+    OperatorComponent integrand() const;
+
+    /// Gets order of integral component.
+    /// @return The order of integral component.
+    int order() const;
+    
+    /// Gets vector of prefix operator components  of integral component.
+    /// @return The vector of prefix operator components of integral component.
+    VOperatorComponents prefixes() const;
     
     /// Creates primitive textual label of this integral component.
     /// @param use_order The flag to include order of integral into its label.
     /// @return The string with primitive textual label of integral component.
     std::string label(const bool use_order = false) const;
+    
+    /// Creates an optional integral component from this integral component by shifting axial value
+    /// along the selected axis on targeted center.
+    /// @param axis The axis to shift axial value.
+    /// @param value The value to shift axial value.
+    /// @param center The targeted shift center.
+    /// @return The optional integral component.
+    std::optional<FourCenterIntegralComponent> shift(const char axis,
+                                                     const int  value,
+                                                     const int  center) const;
 };
 
 #endif /* four_center_integral_component_hpp */

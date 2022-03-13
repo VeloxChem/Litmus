@@ -22,7 +22,11 @@ TEST_F(TwoCenterPairComponentTest, Constructor)
 {
     const auto scomp = TensorComponent(0, 0, 0);
     
-    EXPECT_EQ(TwoCenterPairComponent(), TwoCenterPairComponent({"", ""}, {scomp, scomp}));
+    const auto lhspair = TwoCenterPairComponent();
+    
+    const auto rhspair = TwoCenterPairComponent({"", ""}, {scomp, scomp});
+    
+    EXPECT_EQ(lhspair, rhspair);
 }
 
 TEST_F(TwoCenterPairComponentTest, OperatorBrackets)
@@ -42,7 +46,11 @@ TEST_F(TwoCenterPairComponentTest, OperatorEqual)
 {
     const auto scomp = TensorComponent(0, 0, 0);
     
-    EXPECT_TRUE(TwoCenterPairComponent() == TwoCenterPairComponent({"", ""}, {scomp, scomp}));
+    const auto lhspair = TwoCenterPairComponent();
+    
+    const auto rhspair = TwoCenterPairComponent({"", ""}, {scomp, scomp});
+    
+    EXPECT_TRUE(lhspair == rhspair);
 }
 
 TEST_F(TwoCenterPairComponentTest, OperatorNotEqual)
@@ -51,9 +59,15 @@ TEST_F(TwoCenterPairComponentTest, OperatorNotEqual)
     
     const auto d_yz = TensorComponent(0, 1, 1);
     
-    EXPECT_TRUE(TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz}) != TwoCenterPairComponent({"LA", "GB"}, {p_x, d_yz}));
+    const auto lhspair = TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz});
     
-    EXPECT_TRUE(TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz}) != TwoCenterPairComponent({"GA", "GB"}, {p_x, p_x}));
+    auto rhspair = TwoCenterPairComponent({"LA", "GB"}, {p_x, d_yz});
+    
+    EXPECT_TRUE(lhspair != rhspair);
+    
+    rhspair = TwoCenterPairComponent({"GA", "GB"}, {p_x, p_x});
+    
+    EXPECT_TRUE(lhspair != rhspair);
 }
 
 TEST_F(TwoCenterPairComponentTest, OperatorLess)
@@ -62,17 +76,29 @@ TEST_F(TwoCenterPairComponentTest, OperatorLess)
     
     const auto d_yz = TensorComponent(0, 1, 1);
     
-    EXPECT_FALSE(TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz}) < TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz}));
+    const auto lhspair = TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz});
     
-    EXPECT_TRUE(TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz}) < TwoCenterPairComponent({"LA", "GB"}, {p_x, d_yz}));
+    EXPECT_FALSE(lhspair < lhspair);
+   
+    auto rhspair = TwoCenterPairComponent({"LA", "GB"}, {p_x, d_yz});
     
-    EXPECT_TRUE(TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz}) < TwoCenterPairComponent({"GA", "LA"}, {p_x, d_yz}));
+    EXPECT_TRUE(lhspair < rhspair);
     
-    EXPECT_FALSE(TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz}) < TwoCenterPairComponent({"GA", "GB"}, {d_yz, p_x}));
+    rhspair = TwoCenterPairComponent({"GA", "LA"}, {p_x, d_yz});
     
-    EXPECT_TRUE(TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz}) < TwoCenterPairComponent({"GA", "GB"}, {p_x, p_x}));
+    EXPECT_TRUE(lhspair < rhspair);
     
-    EXPECT_FALSE(TwoCenterPairComponent({"GA", "GB"}, {p_x, p_x}) < TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz}));
+    rhspair = TwoCenterPairComponent({"GA", "GB"}, {d_yz, p_x});
+    
+    EXPECT_FALSE(lhspair < rhspair);
+    
+    rhspair = TwoCenterPairComponent({"GA", "GB"}, {p_x, p_x});
+    
+    EXPECT_TRUE(lhspair < rhspair);
+    
+    rhspair = TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz}); 
+    
+    EXPECT_FALSE(lhspair < rhspair);
 }
 
 TEST_F(TwoCenterPairComponentTest, Names)

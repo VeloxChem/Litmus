@@ -130,52 +130,9 @@ FourCenterIntegral::operator<(const FourCenterIntegral& other) const
 }
 
 std::string
-FourCenterIntegral::to_string() const
-{
-    std::string intstr;
-    
-    if (!_prefixes.empty())
-    {
-        intstr.append("[");
-        
-        for (const auto& prefix : _prefixes)
-        {
-            intstr.append(prefix.to_string() + ";");
-        }
-        
-        intstr.append("]");
-    }
-    
-    intstr.append(_bra_pair.to_string());
-    
-    intstr.append(_integrand.to_string());
-    
-    intstr.append(_ket_pair.to_string());
-    
-    intstr.append("^(" + std::to_string(_order) + ")");
-
-    return intstr;
-}
-
-std::string
 FourCenterIntegral::label(const bool use_order) const
 {
     std::string intstr;
-    
-    if (!_prefixes.empty())
-    {
-        for (const auto& prefix : _prefixes)
-        {
-            intstr.append(prefix.label());
-        }
-        
-        intstr.append("_");
-    }
-    
-    if (const auto lblstr = _integrand.label(); lblstr != "S")
-    {
-        intstr.append("_" + lblstr + "_");
-    }
     
     intstr.append(_bra_pair.label());
     
