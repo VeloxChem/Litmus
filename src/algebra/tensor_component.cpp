@@ -98,11 +98,18 @@ TensorComponent::to_string() const
 std::string
 TensorComponent::label() const
 {
-    return std::string(_ax, 'x') +
+    if (order() == 0)
+    {
+        return std::string("0");
+    }
+    else
+    {
+        return std::string(_ax, 'x') +
+        
+               std::string(_ay, 'y') +
     
-           std::string(_ay, 'y') +
-    
-           std::string(_az, 'z');
+               std::string(_az, 'z');
+    }
 }
 
 int

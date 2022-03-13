@@ -14,15 +14,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "four_center_integral.hpp"
+#include "four_center_integral_component.hpp"
 
-FourCenterIntegral::FourCenterIntegral()
+FourCenterIntegralComponent::FourCenterIntegralComponent()
 
-    : _bra_pair(TwoCenterPair())
+    : _bra_pair(TwoCenterPairComponent())
 
-    , _ket_pair(TwoCenterPair())
+    , _ket_pair(TwoCenterPairComponent())
 
-    , _integrand(Operator())
+    , _integrand(OperatorComponent())
 
     , _order(0)
 
@@ -31,11 +31,11 @@ FourCenterIntegral::FourCenterIntegral()
     
 }
 
-FourCenterIntegral::FourCenterIntegral(const TwoCenterPair& bra_pair,
-                                       const TwoCenterPair& ket_pair,
-                                       const Operator&      integrand,
-                                       const int            order,
-                                       const VOperators&    prefixes)
+FourCenterIntegralComponent::FourCenterIntegralComponent(const TwoCenterPairComponent& bra_pair,
+                                                         const TwoCenterPairComponent& ket_pair,
+                                                         const OperatorComponent&      integrand,
+                                                         const int                     order,
+                                                         const VOperatorComponents&    prefixes)
 
     : _bra_pair(bra_pair)
 
@@ -50,29 +50,8 @@ FourCenterIntegral::FourCenterIntegral(const TwoCenterPair& bra_pair,
     
 }
 
-FourCenterIntegral::FourCenterIntegral(const int          a_angmom,
-                                       const int          b_angmom,
-                                       const int          c_angmom,
-                                       const int          d_angmom,
-                                       const Operator&    integrand,
-                                       const int          order,
-                                       const VOperators&  prefixes)
-
-    : _bra_pair(TwoCenterPair("GA", a_angmom, "GB", b_angmom))
-
-    , _ket_pair(TwoCenterPair("GC", c_angmom, "GD", d_angmom))
-
-    , _integrand(integrand)
-
-    , _order(order)
-
-    , _prefixes(prefixes)
-{
-    
-}
-
 bool
-FourCenterIntegral::operator==(const FourCenterIntegral& other) const
+FourCenterIntegralComponent::operator==(const FourCenterIntegralComponent& other) const
 {
     if (this == &other) return true;
 
@@ -90,7 +69,7 @@ FourCenterIntegral::operator==(const FourCenterIntegral& other) const
     }
     if (_order != other._order)
     {
-        return false; 
+        return false;
     }
     else
     {
@@ -99,13 +78,13 @@ FourCenterIntegral::operator==(const FourCenterIntegral& other) const
 }
 
 bool
-FourCenterIntegral::operator!=(const FourCenterIntegral& other) const
+FourCenterIntegralComponent::operator!=(const FourCenterIntegralComponent& other) const
 {
     return !((*this) == other);
 }
 
 bool
-FourCenterIntegral::operator<(const FourCenterIntegral& other) const
+FourCenterIntegralComponent::operator<(const FourCenterIntegralComponent& other) const
 {
     if (_bra_pair != other._bra_pair)
     {
@@ -130,7 +109,7 @@ FourCenterIntegral::operator<(const FourCenterIntegral& other) const
 }
 
 std::string
-FourCenterIntegral::to_string() const
+FourCenterIntegralComponent::to_string() const
 {
     std::string intstr;
     
@@ -158,7 +137,7 @@ FourCenterIntegral::to_string() const
 }
 
 std::string
-FourCenterIntegral::label(const bool use_order) const
+FourCenterIntegralComponent::label(const bool use_order) const
 {
     std::string intstr;
     
@@ -166,18 +145,16 @@ FourCenterIntegral::label(const bool use_order) const
     {
         for (const auto& prefix : _prefixes)
         {
-            intstr.append(prefix.label());
+            intstr.append(prefix.label() + "_");
         }
-        
-        intstr.append("_");
     }
     
-    if (const auto lblstr = _integrand.label(); lblstr != "S")
+    if (const auto lblstr = _integrand.label(); lblstr != "0")
     {
-        intstr.append("_" + lblstr + "_");
+        intstr.append(lblstr + "_");
     }
     
-    intstr.append(_bra_pair.label());
+    intstr.append(_bra_pair.label() + "_");
     
     intstr.append(_ket_pair.label());
     
@@ -188,4 +165,3 @@ FourCenterIntegral::label(const bool use_order) const
 
     return intstr;
 }
-

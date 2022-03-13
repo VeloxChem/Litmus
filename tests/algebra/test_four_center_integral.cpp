@@ -121,7 +121,8 @@ TEST_F(FourCenterIntegralTest, ToString)
         
     auto t4cint = FourCenterIntegral(1, 2, 3, 4, operi);
     
-    EXPECT_EQ(t4cint.to_string(), "{GA:(1);GB:(2)}{1/|r-r'|:(0)}[none:-1]{GC:(3);GD:(4)}^(0)");
+    EXPECT_EQ(t4cint.to_string(),
+              "{GA:(1);GB:(2)}{1/|r-r'|:(0)}[none:-1]{GC:(3);GD:(4)}^(0)");
     
     const auto opddr = Operator("d/dr", Tensor(1), "bra", 1);
     
@@ -141,9 +142,13 @@ TEST_F(FourCenterIntegralTest, Label)
     
     EXPECT_EQ(t4cint.label(), "PDFG");
     
+    EXPECT_EQ(t4cint.label(true), "PDFG_0");
+    
     t4cint = FourCenterIntegral(1, 2, 3, 4, operi, 2);
     
-    EXPECT_EQ(t4cint.label(), "PDFG_2");
+    EXPECT_EQ(t4cint.label(), "PDFG");
+    
+    EXPECT_EQ(t4cint.label(true), "PDFG_2");
     
     const auto opddr = Operator("d/dr", Tensor(1), "bra", 1);
     
@@ -151,6 +156,8 @@ TEST_F(FourCenterIntegralTest, Label)
     
     t4cint = FourCenterIntegral(1, 2, 3, 4, operi, 1, {opddr, opddc});
     
-    EXPECT_EQ(t4cint.label(), "PP_PDFG_1");
+    EXPECT_EQ(t4cint.label(), "PP_PDFG");
+    
+    EXPECT_EQ(t4cint.label(true), "PP_PDFG_1");
 }
 

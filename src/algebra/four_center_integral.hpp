@@ -44,7 +44,7 @@ public:
     /// Creates an empty four center integral.
     FourCenterIntegral();
     
-    /// Creates a integral from the given names and tensorial shapes.
+    /// Creates a integral from the given operator and two center pairs.
     /// @param bra_pair The two center pair on bra side of integral.
     /// @param ket_pair The two center pair on ket side of integral.
     /// @param integrand The integrand operator of integral.
@@ -56,7 +56,7 @@ public:
                        const int            order,
                        const VOperators&    prefixes);
     
-    /// Creates a four center Gaussian integral with given oeprator and angular momentum values.
+    /// Creates a four center Gaussian integral with given operator and angular momentum values.
     /// @param a_angmom The angular momentum of center GA in integral.
     /// @param b_angmom The angular momentum of center GB in integral.
     /// @param c_angmom The angular momentum of center GC in integral.
@@ -97,9 +97,10 @@ public:
     
     /// Creates primitive textual label of this integral.
     /// @return The string with primitive textual label of integral.
-    std::string label() const;
+    std::string label(const bool use_order = false) const;
     
     /// Creates a vector with integral components of this integral.
+    /// @param The flag to include order of integral into its label.
     /// @return The vector of integral components.
     //VTwoCenterPairComponents components() const;
 };
