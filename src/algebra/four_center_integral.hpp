@@ -84,12 +84,12 @@ public:
     /// Compares this integral with other integral.
     /// @param other The other integral to compare.
     /// @return true if integrals are not equal, false otherwise.
-    bool operator!=(const TwoCenterPair& other) const;
+    bool operator!=(const FourCenterIntegral& other) const;
     
     /// Compares this integral with other integral.
     /// @param other The other integral to compare.
     /// @return true if this integral is less than other integral, false otherwise.
-    bool operator<(const TwoCenterPair& other) const;
+    bool operator<(const FourCenterIntegral& other) const;
     
     /// Creates primitive textual representation of this integral.
     /// @return The string with primitive textual representation of integral.

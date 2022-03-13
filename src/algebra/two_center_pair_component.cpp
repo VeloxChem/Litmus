@@ -69,6 +69,7 @@ TwoCenterPairComponent::operator<(const TwoCenterPairComponent& other) const
     {
         return _names < other._names;
     }
+    else 
     {
         return _shapes < other._shapes;
     }

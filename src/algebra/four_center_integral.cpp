@@ -15,3 +15,177 @@
 // limitations under the License.
 
 #include "four_center_integral.hpp"
+
+FourCenterIntegral::FourCenterIntegral()
+
+    : _bra_pair(TwoCenterPair())
+
+    , _ket_pair(TwoCenterPair())
+
+    , _integrand(Operator())
+
+    , _order(0)
+
+    , _prefixes({})
+{
+    
+}
+
+FourCenterIntegral::FourCenterIntegral(const TwoCenterPair& bra_pair,
+                                       const TwoCenterPair& ket_pair,
+                                       const Operator&      integrand,
+                                       const int            order,
+                                       const VOperators&    prefixes)
+
+    : _bra_pair(bra_pair)
+
+    , _ket_pair(ket_pair)
+
+    , _integrand(integrand)
+
+    , _order(order)
+
+    , _prefixes(prefixes)
+{
+    
+}
+
+FourCenterIntegral::FourCenterIntegral(const int          a_angmom,
+                                       const int          b_angmom,
+                                       const int          c_angmom,
+                                       const int          d_angmom,
+                                       const Operator&    integrand,
+                                       const int          order,
+                                       const VOperators&  prefixes)
+
+    : _bra_pair(TwoCenterPair("GA", a_angmom, "GB", b_angmom))
+
+    , _ket_pair(TwoCenterPair("GC", c_angmom, "GD", d_angmom))
+
+    , _integrand(integrand)
+
+    , _order(order)
+
+    , _prefixes(prefixes)
+{
+    
+}
+
+bool
+FourCenterIntegral::operator==(const FourCenterIntegral& other) const
+{
+    if (this == &other) return true;
+
+    if (_bra_pair != other._bra_pair)
+    {
+        return false;
+    }
+    else if (_ket_pair != other._ket_pair)
+    {
+        return false;
+    }
+    else if (_integrand != other._integrand)
+    {
+        return false;
+    }
+    if (_order != other._order)
+    {
+        return false; 
+    }
+    else
+    {
+        return _prefixes == other._prefixes;
+    }
+}
+
+bool
+FourCenterIntegral::operator!=(const FourCenterIntegral& other) const
+{
+    return !((*this) == other);
+}
+
+bool
+FourCenterIntegral::operator<(const FourCenterIntegral& other) const
+{
+    if (_bra_pair != other._bra_pair)
+    {
+        return _bra_pair < other._bra_pair;
+    }
+    else if (_ket_pair != other._ket_pair)
+    {
+        return _ket_pair < other._ket_pair;
+    }
+    else if (_integrand != other._integrand)
+    {
+        return _integrand < other._integrand;
+    }
+    if (_order != other._order)
+    {
+        return _order < other._order;
+    }
+    else
+    {
+        return _prefixes < other._prefixes;
+    }
+}
+
+std::string
+FourCenterIntegral::to_string() const
+{
+    std::string intstr;
+    
+    if (!_prefixes.empty())
+    {
+        intstr.append("[");
+        
+        for (const auto& prefix : _prefixes)
+        {
+            intstr.append(prefix.to_string() + ";");
+        }
+        
+        intstr.append("]");
+    }
+    
+    intstr.append(_bra_pair.to_string());
+    
+    intstr.append(_integrand.to_string());
+    
+    intstr.append(_ket_pair.to_string());
+    
+    intstr.append("^(" + std::to_string(_order) + ")");
+
+    return intstr;
+}
+
+std::string
+FourCenterIntegral::label() const
+{
+    std::string intstr;
+    
+    if (!_prefixes.empty())
+    {
+        for (const auto& prefix : _prefixes)
+        {
+            intstr.append(prefix.label());
+        }
+        
+        intstr.append("_");
+    }
+    
+    if (const auto lblstr = _integrand.label(); lblstr != "S")
+    {
+        intstr.append("_" + lblstr + "_");
+    }
+    
+    intstr.append(_bra_pair.label());
+    
+    intstr.append(_ket_pair.label());
+    
+    if (_order > 0)
+    {
+        intstr.append("_" + std::to_string(_order));
+    }
+
+    return intstr;
+}
+

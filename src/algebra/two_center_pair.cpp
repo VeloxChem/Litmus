@@ -88,6 +88,7 @@ TwoCenterPair::operator<(const TwoCenterPair& other) const
     {
         return _names < other._names;
     }
+    else 
     {
         return _shapes < other._shapes;
     }
