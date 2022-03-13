@@ -60,6 +60,39 @@ TEST_F(FourCenterIntegralComponentTest, Constructor)
     EXPECT_EQ(lhsint, rhsint);
 }
 
+TEST_F(FourCenterIntegralComponentTest, OperatorBracket)
+{
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto opddr = OperatorComponent("d/dr", p_y, "bra", 1);
+    
+    const auto opddc = OperatorComponent("d/dC", p_x, "ket", 0);
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto f_yzz = TensorComponent(0, 1, 2);
+    
+    const auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    
+    const auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+
+    const auto t4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    EXPECT_EQ(t4cint[0], p_x);
+    
+    EXPECT_EQ(t4cint[1], f_yzz);
+    
+    EXPECT_EQ(t4cint[2], s_0);
+    
+    EXPECT_EQ(t4cint[3], d_xy);
+}
+
 TEST_F(FourCenterIntegralComponentTest, OperatorEqual)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
@@ -397,15 +430,44 @@ TEST_F(FourCenterIntegralComponentTest, Label)
     EXPECT_EQ(t4cint.label(true), "y_x_y_x_yzz_0_xy_2");
 }
 
-TEST_F(FourCenterIntegralComponentTest, Shift)
+TEST_F(FourCenterIntegralComponentTest, Replace)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
     
     const auto p_x = TensorComponent(1, 0, 0);
     
     const auto p_y = TensorComponent(0, 1, 0);
     
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto f_yzz = TensorComponent(0, 1, 2);
+    
+    const auto opddr = OperatorComponent("d/dr", p_y, "bra", 1);
+    
+    const auto opddc = OperatorComponent("d/dC", p_x, "ket", 0);
+    
+    auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    
+    auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+
+    const auto t4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    const auto r4cint = FourCenterIntegralComponent(bpair, kpair, opddr, 2, {opddr, opddc});
+    
+    EXPECT_EQ(t4cint.replace(opddr), r4cint);
+}
+
+TEST_F(FourCenterIntegralComponentTest, Shift)
+{
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
     const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
     
     const auto d_xy = TensorComponent(1, 1, 0);
     
@@ -476,5 +538,74 @@ TEST_F(FourCenterIntegralComponentTest, Shift)
     EXPECT_FALSE(t4cint.shift('y', -2, 3));
     
     EXPECT_FALSE(t4cint.shift('z', -1, 3));
+}
+
+TEST_F(FourCenterIntegralComponentTest, ShiftPrefix)
+{
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto f_yzz = TensorComponent(0, 1, 2);
+    
+    const auto opddr = OperatorComponent("d/dr", p_y, "bra", 1);
+    
+    const auto opddc = OperatorComponent("d/dC", p_x, "ket", 0);
+    
+    const auto opddr0 = OperatorComponent("d/dr", s_0, "bra", 1);
+    
+    const auto opddc0 = OperatorComponent("d/dC", s_0, "ket", 0);
+    
+    auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    
+    auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+
+    const auto t4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    auto r4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr0, opddc});
+    
+    EXPECT_EQ(t4cint.shift_prefix('y', -1, 0), r4cint);
+    
+    r4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddc});
+    
+    EXPECT_EQ(t4cint.shift_prefix('y', -1, 0, true), r4cint);
+    
+    r4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc0});
+    
+    EXPECT_EQ(t4cint.shift_prefix('x', -1, 1), r4cint);
+    
+    r4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr});
+    
+    EXPECT_EQ(t4cint.shift_prefix('x', -1, 1, true), r4cint);
+    
+    EXPECT_FALSE(t4cint.shift_prefix('x', -1, 0));
+    
+    EXPECT_FALSE(t4cint.shift_prefix('y', -2, 0));
+    
+    EXPECT_FALSE(t4cint.shift_prefix('z', -1, 0));
+    
+    EXPECT_FALSE(t4cint.shift_prefix('x', -1, 0, true));
+    
+    EXPECT_FALSE(t4cint.shift_prefix('y', -2, 0, true));
+    
+    EXPECT_FALSE(t4cint.shift_prefix('z', -1, 0, true));
+    
+    EXPECT_FALSE(t4cint.shift_prefix('x', -2, 1));
+    
+    EXPECT_FALSE(t4cint.shift_prefix('y', -1, 1));
+    
+    EXPECT_FALSE(t4cint.shift_prefix('z', -1, 1));
+    
+    EXPECT_FALSE(t4cint.shift_prefix('x', -2, 1, true));
+    
+    EXPECT_FALSE(t4cint.shift_prefix('y', -1, 1, true));
+    
+    EXPECT_FALSE(t4cint.shift_prefix('z', -1, 1, true));
 }
 

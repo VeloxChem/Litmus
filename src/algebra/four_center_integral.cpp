@@ -16,6 +16,8 @@
 
 #include "four_center_integral.hpp"
 
+#include "components.hpp"
+
 FourCenterIntegral::FourCenterIntegral()
 
     : _bra_pair(TwoCenterPair())
@@ -69,6 +71,24 @@ FourCenterIntegral::FourCenterIntegral(const int          a_angmom,
     , _prefixes(prefixes)
 {
     
+}
+
+FourCenterIntegral::FourCenterIntegral(const FourCenterIntegralComponent& t4ccomp)
+
+    : _bra_pair(t4ccomp.bra_pair())
+
+    , _ket_pair(t4ccomp.ket_pair())
+
+    , _integrand(t4ccomp.integrand())
+
+    , _order(t4ccomp.order())
+
+    , _prefixes({})
+{
+    for (const auto& opcomp : t4ccomp.prefixes())
+    {
+        _prefixes.push_back(Operator(opcomp));
+    }
 }
 
 bool
@@ -146,3 +166,40 @@ FourCenterIntegral::label(const bool use_order) const
     return intstr;
 }
 
+VFourCenterIntegralComponents
+FourCenterIntegral::components(const bool only_diag) const
+{
+    VFourCenterIntegralComponents vintcomps;
+    
+    if (!_prefixes.empty())
+    {
+        for (const auto& prefix : make_components<OperatorComponent>(_prefixes))
+        {
+            for (const auto& opcomp : _integrand.components())
+            {
+                for (const auto& bpair : _bra_pair.components())
+                {
+                    for (const auto& kpair : _ket_pair.components())
+                    {
+                        vintcomps.push_back(FourCenterIntegralComponent(bpair, kpair, opcomp, _order, prefix));
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        for (const auto& opcomp : _integrand.components())
+        {
+            for (const auto& bpair : _bra_pair.components())
+            {
+                for (const auto& kpair : _ket_pair.components())
+                {
+                    vintcomps.push_back(FourCenterIntegralComponent(bpair, kpair, opcomp, _order));
+                }
+            }
+        }
+    }
+    
+    return vintcomps;
+}

@@ -54,6 +54,11 @@ public:
                                 const int                     order = 0,
                                 const VOperatorComponents&    prefixes = VOperatorComponents({}));
     
+    /// Retrieves axial value along requested center of integral.
+    /// @param center The index of center to retrieve axial value.
+    /// @return The  tensorial shape of requested center in two center pair component.
+    const TensorComponent& operator[](const int center) const;
+    
     /// Compares this integral component with other integral component.
     /// @param other The other integral component to compare.
     /// @return true if integral components, false otherwise.
@@ -94,6 +99,12 @@ public:
     /// @return The string with primitive textual label of integral component.
     std::string label(const bool use_order = false) const;
     
+    /// Creates an  integral component from this integral component by replacing
+    /// integrand with given operator component.
+    /// @param integrand The integrand operator component of integral component.
+    /// @return The created integral component.
+    FourCenterIntegralComponent replace(const OperatorComponent& integrand) const;
+    
     /// Creates an optional integral component from this integral component by shifting axial value
     /// along the selected axis on targeted center.
     /// @param axis The axis to shift axial value.
@@ -103,6 +114,20 @@ public:
     std::optional<FourCenterIntegralComponent> shift(const char axis,
                                                      const int  value,
                                                      const int  center) const;
+    
+    /// Creates an optional integral component from this integral component by shifting axial value
+    /// along the selected axis in selected prefix operator.
+    /// @param axis The axis to shift axial value.
+    /// @param value The value to shift axial value.
+    /// @param index The index of targeted operator.
+    /// @param noscalar The flag for scalar component: false  to keep,  true otherwise.
+    /// @return The optional operator component.
+    std::optional<FourCenterIntegralComponent> shift_prefix(const char axis,
+                                                            const int  value,
+                                                            const int  index,
+                                                            const bool noscalar = false) const;
 };
+
+using VFourCenterIntegralComponents = std::vector<FourCenterIntegralComponent>; 
 
 #endif /* four_center_integral_component_hpp */

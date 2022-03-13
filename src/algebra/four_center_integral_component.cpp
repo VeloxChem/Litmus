@@ -50,6 +50,19 @@ FourCenterIntegralComponent::FourCenterIntegralComponent(const TwoCenterPairComp
     
 }
 
+const TensorComponent&
+FourCenterIntegralComponent::operator[](const int center) const
+{
+    if (center < 2)
+    {
+        return _bra_pair[center];
+    }
+    else
+    {
+        return _ket_pair[center - 2];
+    }
+}
+
 bool
 FourCenterIntegralComponent::operator==(const FourCenterIntegralComponent& other) const
 {
@@ -169,6 +182,12 @@ FourCenterIntegralComponent::label(const bool use_order) const
     return intstr;
 }
 
+FourCenterIntegralComponent
+FourCenterIntegralComponent::replace(const OperatorComponent& integrand) const
+{
+    return FourCenterIntegralComponent(_bra_pair, _ket_pair, integrand, _order, _prefixes);
+}
+
 std::optional<FourCenterIntegralComponent>
 FourCenterIntegralComponent::shift(const char axis,
                                    const int  value,
@@ -178,9 +197,7 @@ FourCenterIntegralComponent::shift(const char axis,
     {
         if (const auto tpair = _bra_pair.shift(axis, value, center))
         {
-            return FourCenterIntegralComponent(*tpair, _ket_pair,
-                                               _integrand, _order,
-                                               _prefixes);
+            return FourCenterIntegralComponent(*tpair, _ket_pair, _integrand, _order, _prefixes);
         }
         else
         {
@@ -191,13 +208,40 @@ FourCenterIntegralComponent::shift(const char axis,
     {
         if (const auto tpair = _ket_pair.shift(axis, value, center - 2))
         {
-            return FourCenterIntegralComponent(_bra_pair, *tpair,
-                                               _integrand, _order,
-                                               _prefixes);
+            return FourCenterIntegralComponent(_bra_pair, *tpair, _integrand, _order, _prefixes);
         }
         else
         {
             return std::nullopt;
         }
+    }
+}
+
+std::optional<FourCenterIntegralComponent>
+FourCenterIntegralComponent::shift_prefix(const char axis,
+                                          const int  value,
+                                          const int  index,
+                                          const bool noscalar) const
+{
+    if (const auto opcomp = _prefixes[index].shift(axis, value, noscalar))
+    {
+        auto new_prefixes = _prefixes;
+        
+        new_prefixes[index] = *opcomp;
+        
+        return FourCenterIntegralComponent(_bra_pair, _ket_pair, _integrand, _order, new_prefixes);
+    }
+    else
+    {
+        if (const auto opcomp = _prefixes[index].shift(axis, value))
+        {
+            auto new_prefixes = _prefixes;
+            
+            new_prefixes.erase(new_prefixes.begin() + index);
+            
+            return FourCenterIntegralComponent(_bra_pair, _ket_pair, _integrand, _order, new_prefixes);
+        }
+        
+        return std::nullopt;
     }
 }

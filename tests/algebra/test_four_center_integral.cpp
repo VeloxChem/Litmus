@@ -142,3 +142,44 @@ TEST_F(FourCenterIntegralTest, Label)
     EXPECT_EQ(t4cint.label(true), "PDFG_1");
 }
 
+TEST_F(FourCenterIntegralTest, Components)
+{
+    const auto operi = Operator("1/|r-r'|");
+    
+    const auto opddr = Operator("d/dr", Tensor(1), "bra", 1);
+    
+    const auto opddc = Operator("d/dC", Tensor(1), "ket", 0);
+    
+    const auto bpair = TwoCenterPair("GA", 1, "GB", 2);
+    
+    const auto kpair = TwoCenterPair("GC", 0, "GD", 3);
+    
+    const auto t4cint = FourCenterIntegral(bpair, kpair, operi, 1, {opddr, opddc});
+    
+    const auto vt4comps = t4cint.components();
+    
+    EXPECT_EQ(vt4comps.size(), 1620);
+    
+    int idx = 0;
+    
+    for (const auto& drcomp : opddr.components())
+    {
+        for (const auto& dccomp : opddc.components())
+        {
+            for (const auto& opcomp : operi.components())
+            {
+                for (const auto& bcomp : bpair.components())
+                {
+                    for (const auto& kcomp : kpair.components())
+                    {
+                        const auto rhsint = FourCenterIntegralComponent(bcomp, kcomp, opcomp, 1, {drcomp, dccomp});
+                        
+                        EXPECT_EQ(vt4comps[idx], rhsint);
+                        
+                        idx++;
+                    }
+                }
+            }
+        }
+    }
+}

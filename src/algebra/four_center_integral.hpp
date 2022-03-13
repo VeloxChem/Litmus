@@ -21,6 +21,7 @@
 
 #include "operator.hpp"
 #include "two_center_pair.hpp"
+#include "four_center_integral_component.hpp"
 
 /// Four center integral.
 class FourCenterIntegral
@@ -73,8 +74,8 @@ public:
                        const VOperators&  prefixes = VOperators({}));
     
     /// Creates a integral from the given integral component.
-    /// @param t2pcomp The integral component to create integral.
-    /// TwoCenterPair(const TwoCenterPairComponent& t2pcomp);
+    /// @param t4ccomp The integral component to create integral.
+    FourCenterIntegral(const FourCenterIntegralComponent& t4ccomp);
     
     /// Compares this integral with other integral.
     /// @param other The other integral to compare.
@@ -96,9 +97,9 @@ public:
     std::string label(const bool use_order = false) const;
     
     /// Creates a vector with integral components of this integral.
-    /// @param The flag to include order of integral into its label.
+    /// @param only_diag The flag to indicate generation of only diagonal integral components.
     /// @return The vector of integral components.
-    //VTwoCenterPairComponents components() const;
+    VFourCenterIntegralComponents components(const bool only_diag = false) const;
 };
 
 #endif /* four_center_integral_hpp */
