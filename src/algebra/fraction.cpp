@@ -164,3 +164,16 @@ Fraction::to_string() const
 {
     return std::to_string(_numerator) + "/" + std::to_string(_denominator);
 }
+
+std::string
+Fraction::label() const
+{
+    if (_denominator == 1)
+    {
+        return std::to_string(_numerator) + ".0";
+    }
+    else
+    {
+        return std::to_string(_numerator) + ".0 / " + std::to_string(_denominator) + ".0";
+    }
+}

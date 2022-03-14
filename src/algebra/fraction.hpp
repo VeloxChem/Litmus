@@ -52,7 +52,7 @@ public:
     
     /// Compares this fraction with other fraction.
     /// @param other The other fraction to compare.
-    /// @return true if fractionss are not equal, false otherwise.
+    /// @return true if fractions are not equal, false otherwise.
     bool operator!=(const Fraction& other) const;
     
     /// Compares this fraction with other fraction.
@@ -99,6 +99,10 @@ public:
     /// Creates primitive textual representation of this fraction.
     /// @return The string with primitive textual representation of fraction.
     std::string to_string() const;
+    
+    /// Creates label of this fraction.
+    /// @return The string with label of fraction.
+    std::string label() const;
 };
 
 #endif /* Fraction_hpp */
