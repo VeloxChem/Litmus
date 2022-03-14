@@ -160,3 +160,21 @@ TEST_F(FractionTest, ToString)
     EXPECT_EQ(frac.to_string(), "2/3");
 }
 
+TEST_F(FractionTest, Label)
+{
+    auto frac = Fraction(-2);
+    
+    EXPECT_EQ(frac.label(), "-2.0");
+    
+    frac = Fraction(2);
+    
+    EXPECT_EQ(frac.label(), "2.0");
+    
+    frac = Fraction(2, 3);
+    
+    EXPECT_EQ(frac.label(), "2.0 / 3.0");
+    
+    frac = Fraction(2, -3);
+    
+    EXPECT_EQ(frac.label(), "-2.0 / 3.0");
+}

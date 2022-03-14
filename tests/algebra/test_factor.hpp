@@ -1,13 +1,31 @@
+// LITMUS: An Automated Molecular Integrals Generator
+// Copyright 2022 Z. Rinkevicius, KTH, Sweden.
+// E-mail: rinkevic@kth.se
 //
-//  test_factor.hpp
-//  LitmusTests
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-//  Created by Zilvinas Rinkevicius on 2022-03-14.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef test_factor_hpp
 #define test_factor_hpp
 
-#include <stdio.h>
+#include "gtest/gtest.h"
+
+class FactorTest : public ::testing::Test
+{
+protected:
+  
+    FactorTest() {};
+
+    ~FactorTest() {};
+};
 
 #endif /* test_factor_hpp */
