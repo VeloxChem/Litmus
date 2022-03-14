@@ -16,7 +16,6 @@
 
 #include "test_four_center_integral.hpp"
 
-#include "four_center_integral.hpp"
 #include "setters.hpp"
 
 TEST_F(FourCenterIntegralTest, Constructor)
@@ -154,9 +153,9 @@ TEST_F(FourCenterIntegralTest, Components)
     
     const auto kpair = TwoCenterPair("GC", 0, "GD", 3);
     
-    const auto t4cint = FourCenterIntegral(bpair, kpair, operi, 1, {opddr, opddc});
+    auto t4cint = FourCenterIntegral(bpair, kpair, operi, 1, {opddr, opddc});
     
-    const auto vt4comps = t4cint.components();
+    auto vt4comps = t4cint.components();
     
     EXPECT_EQ(vt4comps.size(), 1620);
     
@@ -178,6 +177,32 @@ TEST_F(FourCenterIntegralTest, Components)
                         
                         idx++;
                     }
+                }
+            }
+        }
+    }
+    
+    t4cint = FourCenterIntegral(bpair, bpair, operi, 1, {opddr, opddc});
+    
+    vt4comps = t4cint.components(true);
+    
+    EXPECT_EQ(vt4comps.size(), 162);
+    
+    idx = 0; 
+    
+    for (const auto& drcomp : opddr.components())
+    {
+        for (const auto& dccomp : opddc.components())
+        {
+            for (const auto& opcomp : operi.components())
+            {
+                for (const auto& bcomp : bpair.components())
+                {
+                    const auto rhsint = FourCenterIntegralComponent(bcomp, bcomp, opcomp, 1, {drcomp, dccomp});
+                        
+                    EXPECT_EQ(vt4comps[idx], rhsint);
+                        
+                    idx++;
                 }
             }
         }
