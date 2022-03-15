@@ -72,7 +72,7 @@ public:
     /// Compares this integral component with other integral component.
     /// @param other The other integral component to compare.
     /// @return true if this integral  component is less than other integral component, false otherwise.
-    bool operator<(constIntegralComponent& other) const;
+    bool operator<(const IntegralComponent& other) const;
     
     /// Gets bra side of integral component.
     /// @return The bra side of integral component.
@@ -129,7 +129,7 @@ public:
 };
 
 template <class T, class U>
-IntegralComponent::IntegralComponent()
+IntegralComponent<T,U>::IntegralComponent()
 
     : _bra(T())
 
@@ -145,7 +145,7 @@ IntegralComponent::IntegralComponent()
 }
 
 template <class T, class U>
-IntegralComponent::IntegralComponent(const T&                   bra,
+IntegralComponent<T,U>::IntegralComponent(const T&                   bra,
                                      const U&                   ket,
                                      const OperatorComponent&   integrand,
                                      const int                  order,
@@ -166,7 +166,7 @@ IntegralComponent::IntegralComponent(const T&                   bra,
 
 template <class T, class U>
 const TensorComponent&
-IntegralComponent::operator[](const int center) const
+IntegralComponent<T,U>::operator[](const int center) const
 {
     const auto bcenters = _bra.centers();
     
@@ -182,7 +182,7 @@ IntegralComponent::operator[](const int center) const
 
 template <class T, class U>
 bool
-IntegralComponent::operator==(const IntegralComponent& other) const
+IntegralComponent<T,U>::operator==(const IntegralComponent& other) const
 {
     if (this == &other) return true;
 
@@ -210,14 +210,14 @@ IntegralComponent::operator==(const IntegralComponent& other) const
 
 template <class T, class U>
 bool
-IntegralComponent::operator!=(const IntegralComponent& other) const
+IntegralComponent<T,U>::operator!=(const IntegralComponent& other) const
 {
     return !((*this) == other);
 }
 
 template <class T, class U>
 bool
-IntegralComponent::operator<(const IntegralComponent& other) const
+IntegralComponent<T,U>::operator<(const IntegralComponent& other) const
 {
     if (_bra != other._bra)
     {
@@ -242,42 +242,42 @@ IntegralComponent::operator<(const IntegralComponent& other) const
 }
 template <class T, class U>
 T
-IntegralComponent::bra() const
+IntegralComponent<T,U>::bra() const
 {
     return _bra;
 }
 
 template <class T, class U>
 U
-IntegralComponent::ket() const
+IntegralComponent<T,U>::ket() const
 {
     return _ket;
 }
 
 template <class T, class U>
 OperatorComponent
-IntegralComponent::integrand() const
+IntegralComponent<T,U>::integrand() const
 {
     return _integrand;
 }
 
 template <class T, class U>
 int
-IntegralComponent::order() const
+IntegralComponent<T,U>::order() const
 {
     return _order;
 }
 
 template <class T, class U>
 VOperatorComponents
-IntegralComponent::prefixes() const
+IntegralComponent<T,U>::prefixes() const
 {
     return _prefixes;
 }
 
 template <class T, class U>
 std::string
-IntegralComponent::label(const bool use_order) const
+IntegralComponent<T,U>::label(const bool use_order) const
 {
     std::string intstr;
     
@@ -294,9 +294,9 @@ IntegralComponent::label(const bool use_order) const
         intstr.append(lblstr + "_");
     }
     
-    intstr.append(_bra_pair.label() + "_");
+    intstr.append(_bra.label() + "_");
     
-    intstr.append(_ket_pair.label());
+    intstr.append(_ket.label());
     
     if (use_order)
     {
@@ -308,7 +308,7 @@ IntegralComponent::label(const bool use_order) const
 
 template <class T, class U>
 IntegralComponent<T, U>
-IntegralComponent::replace(const OperatorComponent& integrand) const
+IntegralComponent<T,U>::replace(const OperatorComponent& integrand) const
 {
     return IntegralComponent<T, U>(_bra, _ket, integrand, _order, _prefixes);
 }
@@ -316,9 +316,9 @@ IntegralComponent::replace(const OperatorComponent& integrand) const
 
 template <class T, class U>
 std::optional<IntegralComponent<T, U>>
-IntegralComponent::shift(const char axis,
-                         const int  value,
-                         const int  center) const
+IntegralComponent<T,U>::shift(const char axis,
+                              const int  value,
+                              const int  center) const
 {
     const auto bcenters = _bra.centers();
     
@@ -348,10 +348,10 @@ IntegralComponent::shift(const char axis,
 
 template <class T, class U>
 std::optional<IntegralComponent<T, U>>
-IntegralComponent::shift_prefix(const char axis,
-                                const int  value,
-                                const int  index,
-                                const bool noscalar) const
+IntegralComponent<T,U>::shift_prefix(const char axis,
+                                     const int  value,
+                                     const int  index,
+                                     const bool noscalar) const
 {
     if (const auto opcomp = _prefixes[index].shift(axis, value, noscalar))
     {

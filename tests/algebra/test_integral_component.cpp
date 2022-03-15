@@ -14,22 +14,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "test_four_center_integral_component.hpp"
+#include "test_integral_component.hpp"
 
-#include "four_center_integral_component.hpp"
+#include "integral_component.hpp"
+#include "two_center_pair_component.hpp"
 #include "setters.hpp"
 
-TEST_F(FourCenterIntegralComponentTest, Constructor)
+using T2CPair = TwoCenterPairComponent;
+
+using T4CIntegral = IntegralComponent<T2CPair, T2CPair>;
+
+TEST_F(IntegralComponentTest, Constructor)
 {
-    auto lhsint = FourCenterIntegralComponent();
+    auto lhsint = T4CIntegral();
     
-    auto bpair = TwoCenterPairComponent();
+    auto bpair = T2CPair();
     
-    auto kpair = TwoCenterPairComponent();
+    auto kpair = T2CPair();
     
     auto operi = OperatorComponent();
     
-    auto rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 0, {});
+    auto rhsint = T4CIntegral(bpair, kpair, operi, 0, {});
     
     EXPECT_EQ(lhsint, rhsint);
     
@@ -43,24 +48,24 @@ TEST_F(FourCenterIntegralComponentTest, Constructor)
     
     const auto f_yzz = TensorComponent(0, 1, 2);
     
-    bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+    kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
     
-    lhsint = FourCenterIntegralComponent(bpair, kpair, operi, 0, {});
+    lhsint = T4CIntegral(bpair, kpair, operi, 0, {});
     
-    rhsint = FourCenterIntegralComponent(bpair, kpair, operi);
+    rhsint = T4CIntegral(bpair, kpair, operi);
     
     EXPECT_EQ(lhsint, rhsint);
     
-    lhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {});
+    lhsint = T4CIntegral(bpair, kpair, operi, 2, {});
     
-    rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2);
+    rhsint = T4CIntegral(bpair, kpair, operi, 2);
     
     EXPECT_EQ(lhsint, rhsint);
 }
 
-TEST_F(FourCenterIntegralComponentTest, OperatorBracket)
+TEST_F(IntegralComponentTest, OperatorBracket)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
     
@@ -78,11 +83,11 @@ TEST_F(FourCenterIntegralComponentTest, OperatorBracket)
     
     const auto f_yzz = TensorComponent(0, 1, 2);
     
-    const auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    const auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    const auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+    const auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
 
-    const auto t4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    const auto t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
     EXPECT_EQ(t4cint[0], p_x);
     
@@ -93,7 +98,7 @@ TEST_F(FourCenterIntegralComponentTest, OperatorBracket)
     EXPECT_EQ(t4cint[3], d_xy);
 }
 
-TEST_F(FourCenterIntegralComponentTest, OperatorEqual)
+TEST_F(IntegralComponentTest, OperatorEqual)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
     
@@ -111,18 +116,18 @@ TEST_F(FourCenterIntegralComponentTest, OperatorEqual)
     
     const auto f_yzz = TensorComponent(0, 1, 2);
     
-    const auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    const auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    const auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+    const auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
 
-    const auto lhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    const auto lhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
-    const auto rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    const auto rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
         
     EXPECT_TRUE(lhsint == rhsint);
 }
 
-TEST_F(FourCenterIntegralComponentTest, OperatorNotEqual)
+TEST_F(IntegralComponentTest, OperatorNotEqual)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
     
@@ -140,54 +145,54 @@ TEST_F(FourCenterIntegralComponentTest, OperatorNotEqual)
     
     const auto f_yzz = TensorComponent(0, 1, 2);
     
-    auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+    auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
 
-    const auto lhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    const auto lhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
-    bpair = TwoCenterPairComponent({"GB", "GB"}, {p_x, f_yzz});
+    bpair = T2CPair({"GB", "GB"}, {p_x, f_yzz});
     
-    auto rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
-    
-    EXPECT_TRUE(lhsint != rhsint);
-    
-    bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, p_x});
-    
-    rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    auto rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
     EXPECT_TRUE(lhsint != rhsint);
     
-    bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    bpair = T2CPair({"GA", "GB"}, {p_x, p_x});
     
-    kpair = TwoCenterPairComponent({"GC", "LA"}, {s_0, d_xy});
-    
-    rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
     EXPECT_TRUE(lhsint != rhsint);
     
-    kpair = TwoCenterPairComponent({"GC", "GD"}, {p_x, d_xy});
+    bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    kpair = T2CPair({"GC", "LA"}, {s_0, d_xy});
     
-    EXPECT_TRUE(lhsint != rhsint);
-    
-    kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
-    
-    rhsint = FourCenterIntegralComponent(bpair, kpair, opddr, 2, {opddr, opddc});
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
     EXPECT_TRUE(lhsint != rhsint);
     
-    rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 1, {opddr, opddc});
+    kpair = T2CPair({"GC", "GD"}, {p_x, d_xy});
+    
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
     EXPECT_TRUE(lhsint != rhsint);
     
-    rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr});
+    kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
+    
+    rhsint = T4CIntegral(bpair, kpair, opddr, 2, {opddr, opddc});
+    
+    EXPECT_TRUE(lhsint != rhsint);
+    
+    rhsint = T4CIntegral(bpair, kpair, operi, 1, {opddr, opddc});
+    
+    EXPECT_TRUE(lhsint != rhsint);
+    
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr});
     
     EXPECT_TRUE(lhsint != rhsint);
 }
 
-TEST_F(FourCenterIntegralComponentTest, OperatorLess)
+TEST_F(IntegralComponentTest, OperatorLess)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
     
@@ -205,56 +210,56 @@ TEST_F(FourCenterIntegralComponentTest, OperatorLess)
     
     const auto f_yzz = TensorComponent(0, 1, 2);
     
-    auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+    auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
 
-    const auto lhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    const auto lhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
     EXPECT_FALSE(lhsint < lhsint);
     
-    bpair = TwoCenterPairComponent({"GB", "GB"}, {p_x, f_yzz});
+    bpair = T2CPair({"GB", "GB"}, {p_x, f_yzz});
     
-    auto rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
-    
-    EXPECT_TRUE(lhsint < rhsint);
-    
-    bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, p_x});
-    
-    rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    auto rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
     EXPECT_TRUE(lhsint < rhsint);
     
-    bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    bpair = T2CPair({"GA", "GB"}, {p_x, p_x});
     
-    kpair = TwoCenterPairComponent({"GC", "LA"}, {s_0, d_xy});
-    
-    rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
     EXPECT_TRUE(lhsint < rhsint);
     
-    kpair = TwoCenterPairComponent({"GC", "GD"}, {p_x, d_xy});
+    bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    kpair = T2CPair({"GC", "LA"}, {s_0, d_xy});
     
-    EXPECT_TRUE(lhsint < rhsint);
-    
-    kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
-    
-    rhsint = FourCenterIntegralComponent(bpair, kpair, opddr, 2, {opddr, opddc});
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
     EXPECT_TRUE(lhsint < rhsint);
     
-    rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 1, {opddr, opddc});
+    kpair = T2CPair({"GC", "GD"}, {p_x, d_xy});
+    
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    EXPECT_TRUE(lhsint < rhsint);
+    
+    kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
+    
+    rhsint = T4CIntegral(bpair, kpair, opddr, 2, {opddr, opddc});
+    
+    EXPECT_TRUE(lhsint < rhsint);
+    
+    rhsint = T4CIntegral(bpair, kpair, operi, 1, {opddr, opddc});
     
     EXPECT_FALSE(lhsint < rhsint);
     
-    rhsint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr});
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr});
     
     EXPECT_FALSE(lhsint < rhsint);
 }
 
-TEST_F(FourCenterIntegralComponentTest, BraPair)
+TEST_F(IntegralComponentTest, Bra)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
     
@@ -272,16 +277,16 @@ TEST_F(FourCenterIntegralComponentTest, BraPair)
     
     const auto f_yzz = TensorComponent(0, 1, 2);
     
-    const auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    const auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    const auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+    const auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
 
-    const auto t4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    const auto t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
-    EXPECT_EQ(t4cint.bra_pair(), bpair);
+    EXPECT_EQ(t4cint.bra(), bpair);
 }
 
-TEST_F(FourCenterIntegralComponentTest, KetPair)
+TEST_F(IntegralComponentTest, Ket)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
     
@@ -299,16 +304,16 @@ TEST_F(FourCenterIntegralComponentTest, KetPair)
     
     const auto f_yzz = TensorComponent(0, 1, 2);
     
-    const auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    const auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    const auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+    const auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
 
-    const auto t4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    const auto t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
-    EXPECT_EQ(t4cint.ket_pair(), kpair);
+    EXPECT_EQ(t4cint.ket(), kpair);
 }
 
-TEST_F(FourCenterIntegralComponentTest, Integrand)
+TEST_F(IntegralComponentTest, Integrand)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
     
@@ -326,16 +331,16 @@ TEST_F(FourCenterIntegralComponentTest, Integrand)
     
     const auto f_yzz = TensorComponent(0, 1, 2);
     
-    const auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    const auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    const auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+    const auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
 
-    const auto t4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    const auto t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
     EXPECT_EQ(t4cint.integrand(), operi);
 }
 
-TEST_F(FourCenterIntegralComponentTest, Order)
+TEST_F(IntegralComponentTest, Order)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
     
@@ -353,16 +358,16 @@ TEST_F(FourCenterIntegralComponentTest, Order)
     
     const auto f_yzz = TensorComponent(0, 1, 2);
     
-    const auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    const auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    const auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+    const auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
 
-    const auto t4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    const auto t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
     EXPECT_EQ(t4cint.order(), 2);
 }
 
-TEST_F(FourCenterIntegralComponentTest, Prefixes)
+TEST_F(IntegralComponentTest, Prefixes)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
     
@@ -380,16 +385,16 @@ TEST_F(FourCenterIntegralComponentTest, Prefixes)
     
     const auto f_yzz = TensorComponent(0, 1, 2);
     
-    const auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    const auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    const auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+    const auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
 
-    const auto t4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    const auto t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
     EXPECT_EQ(t4cint.prefixes(), VOperatorComponents({opddr, opddc}));
 }
 
-TEST_F(FourCenterIntegralComponentTest, Label)
+TEST_F(IntegralComponentTest, Label)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
     
@@ -407,30 +412,30 @@ TEST_F(FourCenterIntegralComponentTest, Label)
     
     const auto f_yzz = TensorComponent(0, 1, 2);
     
-    const auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    const auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    const auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+    const auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
 
-    auto t4cint = FourCenterIntegralComponent(bpair, kpair, operi);
+    auto t4cint = T4CIntegral(bpair, kpair, operi);
     
     EXPECT_EQ(t4cint.label(), "x_yzz_0_xy");
     
     EXPECT_EQ(t4cint.label(true), "x_yzz_0_xy_0");
     
-    t4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
     EXPECT_EQ(t4cint.label(), "y_x_x_yzz_0_xy");
     
     EXPECT_EQ(t4cint.label(true), "y_x_x_yzz_0_xy_2");
     
-    t4cint = FourCenterIntegralComponent(bpair, kpair, opddr, 2, {opddr, opddc});
+    t4cint = T4CIntegral(bpair, kpair, opddr, 2, {opddr, opddc});
      
     EXPECT_EQ(t4cint.label(), "y_x_y_x_yzz_0_xy");
     
     EXPECT_EQ(t4cint.label(true), "y_x_y_x_yzz_0_xy_2");
 }
 
-TEST_F(FourCenterIntegralComponentTest, Replace)
+TEST_F(IntegralComponentTest, Replace)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
     
@@ -448,18 +453,18 @@ TEST_F(FourCenterIntegralComponentTest, Replace)
     
     const auto opddc = OperatorComponent("d/dC", p_x, "ket", 0);
     
-    auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+    auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
 
-    const auto t4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    const auto t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
-    const auto r4cint = FourCenterIntegralComponent(bpair, kpair, opddr, 2, {opddr, opddc});
+    const auto r4cint = T4CIntegral(bpair, kpair, opddr, 2, {opddr, opddc});
     
     EXPECT_EQ(t4cint.replace(opddr), r4cint);
 }
 
-TEST_F(FourCenterIntegralComponentTest, Shift)
+TEST_F(IntegralComponentTest, Shift)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
     
@@ -477,41 +482,41 @@ TEST_F(FourCenterIntegralComponentTest, Shift)
     
     const auto f_yzz = TensorComponent(0, 1, 2);
     
-    auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+    auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
 
-    const auto t4cint = FourCenterIntegralComponent(bpair, kpair, operi);
+    const auto t4cint = T4CIntegral(bpair, kpair, operi);
     
-    bpair = TwoCenterPairComponent({"GA", "GB"}, {s_0, f_yzz});
+    bpair = T2CPair({"GA", "GB"}, {s_0, f_yzz});
     
-    auto r4cint = FourCenterIntegralComponent(bpair, kpair, operi);
+    auto r4cint = T4CIntegral(bpair, kpair, operi);
     
     EXPECT_EQ(t4cint.shift('x', -1, 0), r4cint);
     
-    bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz});
+    bpair = T2CPair({"GA", "GB"}, {p_x, d_yz});
     
-    r4cint = FourCenterIntegralComponent(bpair, kpair, operi);
+    r4cint = T4CIntegral(bpair, kpair, operi);
     
     EXPECT_EQ(t4cint.shift('z', -1, 1), r4cint);
     
-    bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, d_zz});
+    bpair = T2CPair({"GA", "GB"}, {p_x, d_zz});
     
-    r4cint = FourCenterIntegralComponent(bpair, kpair, operi);
+    r4cint = T4CIntegral(bpair, kpair, operi);
     
     EXPECT_EQ(t4cint.shift('y', -1, 1), r4cint);
     
-    bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, p_x});
+    kpair = T2CPair({"GC", "GD"}, {s_0, p_x});
     
-    r4cint = FourCenterIntegralComponent(bpair, kpair, operi);
+    r4cint = T4CIntegral(bpair, kpair, operi);
     
     EXPECT_EQ(t4cint.shift('y', -1, 3), r4cint);
     
-    kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, p_y});
+    kpair = T2CPair({"GC", "GD"}, {s_0, p_y});
     
-    r4cint = FourCenterIntegralComponent(bpair, kpair, operi);
+    r4cint = T4CIntegral(bpair, kpair, operi);
     
     EXPECT_EQ(t4cint.shift('x', -1, 3), r4cint);
     
@@ -540,7 +545,7 @@ TEST_F(FourCenterIntegralComponentTest, Shift)
     EXPECT_FALSE(t4cint.shift('z', -1, 3));
 }
 
-TEST_F(FourCenterIntegralComponentTest, ShiftPrefix)
+TEST_F(IntegralComponentTest, ShiftPrefix)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
     
@@ -562,25 +567,25 @@ TEST_F(FourCenterIntegralComponentTest, ShiftPrefix)
     
     const auto opddc0 = OperatorComponent("d/dC", s_0, "ket", 0);
     
-    auto bpair = TwoCenterPairComponent({"GA", "GB"}, {p_x, f_yzz});
+    auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
     
-    auto kpair = TwoCenterPairComponent({"GC", "GD"}, {s_0, d_xy});
+    auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
 
-    const auto t4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc});
+    const auto t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
     
-    auto r4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr0, opddc});
+    auto r4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr0, opddc});
     
     EXPECT_EQ(t4cint.shift_prefix('y', -1, 0), r4cint);
     
-    r4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddc});
+    r4cint = T4CIntegral(bpair, kpair, operi, 2, {opddc});
     
     EXPECT_EQ(t4cint.shift_prefix('y', -1, 0, true), r4cint);
     
-    r4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr, opddc0});
+    r4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc0});
     
     EXPECT_EQ(t4cint.shift_prefix('x', -1, 1), r4cint);
     
-    r4cint = FourCenterIntegralComponent(bpair, kpair, operi, 2, {opddr});
+    r4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr});
     
     EXPECT_EQ(t4cint.shift_prefix('x', -1, 1, true), r4cint);
     

@@ -69,6 +69,10 @@ public:
     /// @return The shapes of centers.
     std::array<TensorComponent, 2> shapes() const;
     
+    /// Gets number of centers  in two center pair component.
+    /// @return The number of centers in two center pair component.
+    int centers() const {return 2;};
+    
     /// Creates primitive textual representation of this two center pair component.
     /// @return The string with primitive textual representation of two center pair component.
     std::string to_string() const;

@@ -14,18 +14,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef test_four_center_integral_component_hpp
-#define test_four_center_integral_component_hpp
+#ifndef test_integral_component_hpp
+#define test_integral_component_hpp
 
 #include "gtest/gtest.h"
 
-class FourCenterIntegralComponentTest : public ::testing::Test
+class IntegralComponentTest : public ::testing::Test
 {
 protected:
   
-    FourCenterIntegralComponentTest() {};
+    IntegralComponentTest() {};
 
-    ~FourCenterIntegralComponentTest() {};
+    ~IntegralComponentTest() {};
 };
 
-#endif /* test_four_center_integral_component_hpp */
+#endif /* test_integral_component_hpp */

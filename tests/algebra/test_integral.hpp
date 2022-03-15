@@ -14,18 +14,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef test_four_center_integral_hpp
-#define test_four_center_integral_hpp
+#ifndef test_integral_hpp
+#define test_integral_hpp
 
 #include "gtest/gtest.h"
 
-class FourCenterIntegralTest : public ::testing::Test
+class IntegralTest : public ::testing::Test
 {
 protected:
   
-    FourCenterIntegralTest() {};
+    IntegralTest() {};
 
-    ~FourCenterIntegralTest() {};
+    ~IntegralTest() {};
 };
 
-#endif /* test_four_center_integral_hpp */
+#endif /* test_integral_hpp */

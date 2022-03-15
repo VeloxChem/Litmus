@@ -21,6 +21,7 @@
 
 #include "operator.hpp"
 #include "integral_component.hpp"
+#include "components.hpp"
 
 /// Integral class.
 template <class T, class U>
@@ -30,7 +31,7 @@ class Integral
     T _bra;
     
     /// Ket side of integral.
-    U _ket_pair;
+    U _ket;
     
     /// Integrand operator of integral.
     Operator _integrand;
@@ -51,8 +52,8 @@ public:
     /// @param integrand The integrand operator of integral.
     /// @param order The order of integral.
     /// @param prefixes The vector of prefix operators acting on integral.
-    Integral(const T&          bra_pair,
-             const U&          ket_pair,
+    Integral(const T&          bra,
+             const U&          ket,
              const Operator&   integrand,
              const int         order = 0,
              const VOperators& prefixes = VOperators({}));
@@ -215,9 +216,9 @@ Integral<T, U>::label(const bool use_order) const
 {
     std::string intstr;
     
-    intstr.append(_bra_pair.label());
+    intstr.append(_bra.label());
     
-    intstr.append(_ket_pair.label());
+    intstr.append(_ket.label());
     
     if (use_order)
     {
