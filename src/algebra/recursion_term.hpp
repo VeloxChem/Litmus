@@ -289,5 +289,4 @@ RecursionTerm<T>::shift_prefix(const char axis,
     }
 }
 
-
 #endif /* recursion_term_hpp */
