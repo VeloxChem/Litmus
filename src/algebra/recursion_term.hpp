@@ -264,7 +264,7 @@ RecursionTerm<T>::shift(const char axis,
 {
     if (const auto tint = _integral.shift(axis, value, center))
     {
-        return RecursionTerm<T>(tint, _factors, _prefactor);
+        return RecursionTerm<T>(*tint, _factors, _prefactor);
     }
     else
     {
@@ -281,7 +281,7 @@ RecursionTerm<T>::shift_prefix(const char axis,
 {
     if (const auto tint = _integral.shift_prefix(axis, value, index, noscalar))
     {
-        return RecursionTerm<T>(tint, _factors, _prefactor);
+        return RecursionTerm<T>(*tint, _factors, _prefactor);
     }
     else
     {

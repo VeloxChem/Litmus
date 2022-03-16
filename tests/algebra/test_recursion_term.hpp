@@ -19,7 +19,7 @@
 
 #include "gtest/gtest.h"
 
-class RecursiontermTest : public ::testing::Test
+class RecursionTermTest : public ::testing::Test
 {
 protected:
   
