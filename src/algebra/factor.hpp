@@ -21,7 +21,7 @@
 
 #include "tensor_component.hpp"
 
-/// Fraction class.
+/// Factor class.
 class Factor
 {
     /// Name of factor.

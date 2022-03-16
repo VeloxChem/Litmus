@@ -20,12 +20,13 @@
 #include <map>
 #include <string>
 #include <set>
+#include <vector>
 
 #include "factor.hpp"
 #include "fraction.hpp"
 #include "operator_component.hpp"
 
-/// Recursion term.
+/// Recursion term class.
 template <class T>
 class RecursionTerm
 {
@@ -137,7 +138,13 @@ public:
                                               const int  index,
                                               const bool noscalar = false) const;
     
-    /// Scales prefacxtor of this recursion term with the given factor.
+    /// Adds new factor or updates order of existing factor in this recursion term.
+    /// @param factor The factor to scale recurion term.
+    /// @param multiplier The fractional multiplier accompanying factor to add.
+    void add(const Factor&   factor,
+             const Fraction& multiplier = Fraction(1));
+    
+    /// Scales prefactor of this recursion term with the given factor.
     /// @param factor The fractional factor to scale recurion term.
     void scale(const Fraction& factor);
 };
@@ -181,7 +188,7 @@ RecursionTerm<T>::operator==(const RecursionTerm<T>& other) const
 {
     if (this == &other) return true;
 
-    if (_integral!= other._integral)
+    if (_integral != other._integral)
     {
         return false;
     }
@@ -343,9 +350,29 @@ RecursionTerm<T>::shift_prefix(const char axis,
 
 template <class T>
 void
+RecursionTerm<T>::add(const Factor&   factor,
+                      const Fraction& multiplier)
+{
+    if (const auto tkval = _factors.find(factor); tkval != _factors.cend())
+    {
+        _factors[tkval->first] = tkval->second + 1;
+    }
+    else
+    {
+        _factors[factor] = 1;
+    }
+    
+    _prefactor = _prefactor * multiplier;
+}
+
+template <class T>
+void
 RecursionTerm<T>::scale(const Fraction& factor)
 {
     _prefactor = _prefactor * factor;
 }
+
+template <class T>
+using VRecursionTerms = std::vector<RecursionTerm<T>>;
 
 #endif /* recursion_term_hpp */
