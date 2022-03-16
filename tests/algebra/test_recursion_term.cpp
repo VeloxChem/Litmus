@@ -367,6 +367,111 @@ TEST_F(RecursionTermTest, Prefixes)
     EXPECT_EQ(t4crt.prefixes(), VOperatorComponents({opddr, opddc}));
 }
 
+TEST_F(RecursionTermTest, Prefactor)
+{
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto opddr = OperatorComponent("d/dr", p_y, "bra", 1);
+    
+    const auto opddc = OperatorComponent("d/dC", p_x, "ket", 0);
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto f_yzz = TensorComponent(0, 1, 2);
+    
+    const auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
+    
+    const auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
+
+    const auto t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    const auto pbx = Factor("(P-B)", "pb", p_x);
+    
+    const auto wpy = Factor("(W-P)", "wp", p_y);
+
+    const auto t4crt = R4CTerm(t4cint, {{pbx, 1}, {wpy, 2},}, Fraction(1, 3));
+    
+    EXPECT_EQ(t4crt.prefactor(), Fraction(1, 3));
+}
+
+TEST_F(RecursionTermTest, Factors)
+{
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto opddr = OperatorComponent("d/dr", p_y, "bra", 1);
+    
+    const auto opddc = OperatorComponent("d/dC", p_x, "ket", 0);
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto f_yzz = TensorComponent(0, 1, 2);
+    
+    const auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
+    
+    const auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
+
+    const auto t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    const auto pbx = Factor("(P-B)", "pb", p_x);
+    
+    const auto wpy = Factor("(W-P)", "wp", p_y);
+
+    const auto t4crt = R4CTerm(t4cint, {{pbx, 1}, {wpy, 2},}, Fraction(1, 3));
+    
+    EXPECT_EQ(t4crt.factors(), std::set<Factor>({pbx, wpy}));
+}
+
+TEST_F(RecursionTermTest, FactorOrder)
+{
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto opddr = OperatorComponent("d/dr", p_y, "bra", 1);
+    
+    const auto opddc = OperatorComponent("d/dC", p_x, "ket", 0);
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto f_yzz = TensorComponent(0, 1, 2);
+    
+    const auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
+    
+    const auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
+
+    const auto t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    const auto pbx = Factor("(P-B)", "pb", p_x);
+    
+    const auto wpy = Factor("(W-P)", "wp", p_y);
+
+    const auto t4crt = R4CTerm(t4cint, {{pbx, 1}, {wpy, 2},}, Fraction(1, 3));
+    
+    EXPECT_EQ(t4crt.factor_order(pbx), 1);
+    
+    EXPECT_EQ(t4crt.factor_order(wpy), 2);
+    
+    const auto eta = Factor("1/eta", "fxi", TensorComponent(0, 0, 0));
+    
+    EXPECT_EQ(t4crt.factor_order(eta), 0);
+}
+
 TEST_F(RecursionTermTest, Label)
 {
     const auto operi = OperatorComponent("1/|r-r'|");
@@ -617,4 +722,41 @@ TEST_F(RecursionTermTest, ShiftPrefix)
     EXPECT_FALSE(t4crt.shift_prefix('y', -1, 1, true));
     
     EXPECT_FALSE(t4crt.shift_prefix('z', -1, 1, true));
+}
+
+TEST_F(RecursionTermTest, Scale)
+{
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto opddr = OperatorComponent("d/dr", p_y, "bra", 1);
+    
+    const auto opddc = OperatorComponent("d/dC", p_x, "ket", 0);
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto f_yzz = TensorComponent(0, 1, 2);
+    
+    const auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
+    
+    const auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
+
+    const auto t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    const auto pbx = Factor("(P-B)", "pb", p_x);
+    
+    const auto wpy = Factor("(W-P)", "wp", p_y);
+
+    auto t4crt = R4CTerm(t4cint, {{pbx, 1}, {wpy, 2},}, Fraction(1, 3));
+    
+    const auto r4crt = R4CTerm(t4cint, {{pbx, 1}, {wpy, 2},}, Fraction(1, 2));
+    
+    t4crt.scale(Fraction(3, 2));
+    
+    EXPECT_EQ(t4crt, r4crt);
 }

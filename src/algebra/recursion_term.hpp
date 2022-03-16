@@ -19,6 +19,7 @@
 
 #include <map>
 #include <string>
+#include <set>
 
 #include "factor.hpp"
 #include "fraction.hpp"
@@ -91,6 +92,18 @@ public:
     /// @return The vector of prefix operator components of recursion term.
     VOperatorComponents prefixes() const;
     
+    /// Gets fractional prefactor of recursion term.
+    /// @return The fractional prefactor of recursion term.
+    Fraction prefactor() const;
+    
+    /// Gets set of factors in recursion term.
+    /// @return The set of factors in recursion term.
+    std::set<Factor> factors() const;
+    
+    /// Gets order of specific factors in recursion term.
+    /// @return The order of specific factors in recursion term.
+    int factor_order(const Factor& factor) const;
+    
     /// Creates primitive textual label of this recursion term.
     /// @param use_order The flag to include order of integral into its label.
     /// @return The string with primitive textual label of recursion term.
@@ -123,6 +136,10 @@ public:
                                               const int  value,
                                               const int  index,
                                               const bool noscalar = false) const;
+    
+    /// Scales prefacxtor of this recursion term with the given factor.
+    /// @param factor The fractional factor to scale recurion term.
+    void scale(const Fraction& factor);
 };
 
 template <class T>
@@ -241,6 +258,41 @@ RecursionTerm<T>::prefixes() const
 }
 
 template <class T>
+Fraction
+RecursionTerm<T>::prefactor() const
+{
+    return _prefactor;
+}
+
+template <class T>
+std::set<Factor>
+RecursionTerm<T>::factors() const
+{
+    std::set<Factor> facts;
+    
+    for (const auto& tkval : _factors)
+    {
+        facts.insert(tkval.first);
+    }
+    
+    return facts; 
+}
+
+template <class T>
+int
+RecursionTerm<T>::factor_order(const Factor& factor) const
+{
+    if (const auto tkval = _factors.find(factor); tkval != _factors.cend())
+    {
+        return tkval->second;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+template <class T>
 std::string
 RecursionTerm<T>::label(const bool use_order) const
 {
@@ -287,6 +339,13 @@ RecursionTerm<T>::shift_prefix(const char axis,
     {
         return std::nullopt;
     }
+}
+
+template <class T>
+void
+RecursionTerm<T>::scale(const Fraction& factor)
+{
+    _prefactor = _prefactor * factor;
 }
 
 #endif /* recursion_term_hpp */
