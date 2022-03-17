@@ -27,7 +27,7 @@ template <class T>
 class RecursionExpansion
 {
     /// Root recursion term.
-    T _root;
+    RecursionTerm<T> _root;
     
     /// Vector of recursion terms in expansion of root recursion term..
     VRecursionTerms<T> _expansion;
@@ -39,8 +39,13 @@ public:
     /// Creates a  recursion expansion from the given recursion term and vector of recursion terms.
     /// @param root The root recursion term of recursion expansion.
     /// @param expansion The vector of recursion terms to expand root recursion term.
-    RecursionExpansion(const T&                  root,
+    RecursionExpansion(const RecursionTerm<T>&   root,
                        const VRecursionTerms<T>& expansion = VRecursionTerms<T>({}));
+    
+    /// Retrieves requested recursion term from recursion terms expansion of root recursion term.
+    /// @param index The index of recursion term.
+    /// @return The  requested recursion term.
+    const RecursionTerm<T>& operator[](const int index) const;
     
     /// Compares this recursion expansion with other recursion expansion.
     /// @param other The other recursion expansion to compare.
@@ -55,7 +60,15 @@ public:
     /// Compares this recursion expansion with other recursion expansion.
     /// @param other The other recursion expansion to compare.
     /// @return true if this recursion expansion is less than other recursion expansion, false otherwise.
-    bool operator<(const RecursionTerm& other) const;
+    bool operator<(const RecursionExpansion& other) const;
+    
+    /// Gets root recursion term of this recursion expansion.
+    /// @return The root recursion term.
+    RecursionTerm<T> root() const;
+    
+    /// Gets number of recursion terms in expansion of root recursion term.
+    /// @return The number of recursion terms in expansion of root recursion term.
+    int terms() const;
 };
 
 template <class T>
@@ -69,14 +82,21 @@ RecursionExpansion<T>::RecursionExpansion()
 }
 
 template <class T>
-RecursionExpansion<T>::RecursionExpansion(const T&                  root,
+RecursionExpansion<T>::RecursionExpansion(const RecursionTerm<T>&   root,
                                           const VRecursionTerms<T>& expansion)
 
-    : _root()
+    : _root(root)
 
     , _expansion(expansion)
 {
     
+}
+
+template <class T>
+const RecursionTerm<T>&
+RecursionExpansion<T>::operator[](const int index) const
+{
+    return _expansion[index]; 
 }
 
 template <class T>
@@ -112,8 +132,22 @@ RecursionExpansion<T>::operator<(const RecursionExpansion<T>& other) const
     }
     else
     {
-        return _expasion < other._expansion;
+        return _expansion < other._expansion;
     }
+}
+
+template <class T>
+RecursionTerm<T>
+RecursionExpansion<T>::root() const
+{
+    return _root; 
+}
+
+template <class T>
+int
+RecursionExpansion<T>::terms() const
+{
+    return static_cast<int>(_expansion.size());
 }
 
 #endif /* recursion_expansion_hpp */
