@@ -59,17 +59,17 @@ public:
     /// Compares this recursion term with other recursion term.
     /// @param other The other recursion term to compare.
     /// @return true if recursion terms are equal, false otherwise.
-    bool operator==(const RecursionTerm& other) const;
+    bool operator==(const RecursionTerm<T>& other) const;
     
     /// Compares this recursion term with other recursion term.
     /// @param other The other recursion term to compare.
     /// @return true if recursion terms are not equal, false otherwise.
-    bool operator!=(const RecursionTerm& other) const;
+    bool operator!=(const RecursionTerm<T>& other) const;
     
     /// Compares this recursion term with other recursion term.
     /// @param other The other recursion term to compare.
     /// @return true if this recursion term is less than other recursion term, false otherwise.
-    bool operator<(const RecursionTerm& other) const;
+    bool operator<(const RecursionTerm<T>& other) const;
     
     /// Gets bra side of recursion term.
     /// @return The bra side of recursion term.

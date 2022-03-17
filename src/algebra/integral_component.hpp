@@ -62,17 +62,17 @@ public:
     /// Compares this integral component with other integral component.
     /// @param other The other integral component to compare.
     /// @return true if integral components, false otherwise.
-    bool operator==(const IntegralComponent& other) const;
+    bool operator==(const IntegralComponent<T, U>& other) const;
     
     /// Compares this integral component with other integral component.
     /// @param other The other integral  component to compare.
     /// @return true if integral components are not equal, false otherwise.
-    bool operator!=(const IntegralComponent& other) const;
+    bool operator!=(const IntegralComponent<T, U>& other) const;
     
     /// Compares this integral component with other integral component.
     /// @param other The other integral component to compare.
     /// @return true if this integral  component is less than other integral component, false otherwise.
-    bool operator<(const IntegralComponent& other) const;
+    bool operator<(const IntegralComponent<T, U>& other) const;
     
     /// Gets bra side of integral component.
     /// @return The bra side of integral component.
@@ -146,10 +146,10 @@ IntegralComponent<T,U>::IntegralComponent()
 
 template <class T, class U>
 IntegralComponent<T,U>::IntegralComponent(const T&                   bra,
-                                     const U&                   ket,
-                                     const OperatorComponent&   integrand,
-                                     const int                  order,
-                                     const VOperatorComponents& prefixes)
+                                          const U&                   ket,
+                                          const OperatorComponent&   integrand,
+                                          const int                  order,
+                                          const VOperatorComponents& prefixes)
 
     : _bra(bra)
 
@@ -182,7 +182,7 @@ IntegralComponent<T,U>::operator[](const int center) const
 
 template <class T, class U>
 bool
-IntegralComponent<T,U>::operator==(const IntegralComponent& other) const
+IntegralComponent<T,U>::operator==(const IntegralComponent<T, U>& other) const
 {
     if (this == &other) return true;
 
@@ -210,14 +210,14 @@ IntegralComponent<T,U>::operator==(const IntegralComponent& other) const
 
 template <class T, class U>
 bool
-IntegralComponent<T,U>::operator!=(const IntegralComponent& other) const
+IntegralComponent<T,U>::operator!=(const IntegralComponent<T, U>& other) const
 {
     return !((*this) == other);
 }
 
 template <class T, class U>
 bool
-IntegralComponent<T,U>::operator<(const IntegralComponent& other) const
+IntegralComponent<T,U>::operator<(const IntegralComponent<T, U>& other) const
 {
     if (_bra != other._bra)
     {
