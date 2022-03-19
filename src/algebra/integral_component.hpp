@@ -19,6 +19,9 @@
 
 #include "operator_component.hpp"
 
+#include <vector>
+#include <set>
+
 /// Integral component.
 template <class T, class U>
 class IntegralComponent
@@ -378,5 +381,8 @@ IntegralComponent<T,U>::shift_prefix(const char axis,
 
 template <class T, class U>
 using VIntegralComponents = std::vector<IntegralComponent<T, U>>;
+
+template <class T, class U>
+using SIntegralComponents = std::set<IntegralComponent<T, U>>;
 
 #endif /* four_center_integral_component_hpp */

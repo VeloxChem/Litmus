@@ -18,6 +18,7 @@
 #define recursion_expansion_hpp
 
 #include <vector>
+#include <set>
 
 #include <recursion_term.hpp>
 
@@ -72,6 +73,8 @@ public:
     /// Gets number of recursion terms in expansion of root recursion term.
     /// @return The number of recursion terms in expansion of root recursion term.
     int terms() const;
+    
+    std::set<T> unique_integrals() const;
 };
 
 template <class T>
@@ -158,6 +161,20 @@ int
 RecursionExpansion<T>::terms() const
 {
     return static_cast<int>(_expansion.size());
+}
+
+template <class T>
+std::set<T>
+RecursionExpansion<T>::unique_integrals() const
+{
+    std::set<T> sints;
+    
+    for (const auto& rterm : _expansion)
+    {
+        sints.insert(rterm.integral()); 
+    }
+    
+    return sints;
 }
 
 template <class T>

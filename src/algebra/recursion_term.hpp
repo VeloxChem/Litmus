@@ -93,6 +93,10 @@ public:
     /// @return The vector of prefix operator components of recursion term.
     VOperatorComponents prefixes() const;
     
+    /// Gets integral of recursion term.
+    /// @return The integral of recursion term.
+    T integral() const;
+
     /// Gets fractional prefactor of recursion term.
     /// @return The fractional prefactor of recursion term.
     Fraction prefactor() const;
@@ -262,6 +266,13 @@ VOperatorComponents
 RecursionTerm<T>::prefixes() const
 {
     return _integral.prefixes();
+}
+
+template <class T>
+T
+RecursionTerm<T>::integral() const
+{
+    return _integral;
 }
 
 template <class T>

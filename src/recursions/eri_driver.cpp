@@ -22,7 +22,8 @@
 
 EriDriver::EriDriver()
 {
-    _rxyz = {TensorComponent(1, 0, 0), TensorComponent(0, 1, 0),
+    _rxyz = {TensorComponent(1, 0, 0),
+             TensorComponent(0, 1, 0),
              TensorComponent(0, 0, 1)};
 }
 
@@ -62,8 +63,8 @@ EriDriver::bra_hrr(const R4CTerm& rterm,
 }
 
 R4CDist
-EriDriver::apply_bra_hrr(const R4CTerm&               rterm,
-                               std::set<T4CIntegral>& vints) const
+EriDriver::apply_bra_hrr(const R4CTerm&       rterm,
+                               ST4CIntegrals& sints) const
 {
     R4CDist t4crt;
     
@@ -74,7 +75,7 @@ EriDriver::apply_bra_hrr(const R4CTerm&               rterm,
 //            const auto nterms = tval->unique_terms(vints);
 //        }
 //    }
-//    
+//
 //    std::array<R4CDist, 3> vdists({t4crt, t4crt, t4crt});
 //
 //    for (int i = 0; i < 3; i++)

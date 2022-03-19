@@ -29,6 +29,8 @@ using T2CPair = TwoCenterPairComponent;
 
 using T4CIntegral = IntegralComponent<T2CPair, T2CPair>;
 
+using ST4CIntegrals = SIntegralComponents<T2CPair, T2CPair>;
+
 using R4CTerm = RecursionTerm<T4CIntegral>;
 
 using R4CDist = RecursionExpansion<T4CIntegral>;
@@ -53,10 +55,10 @@ public:
     /// Applies horizontal recursion to bra side recursion term containing electron repulsion
     /// integral.
     /// @param rterm The recursion term with electron repulsion integral.
-    /// @param vints The set of electron repulsion integrals (updated by selecting recursion).
+    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
     /// @return The recursion expansion of given recursion term.
-    R4CDist apply_bra_hrr(const R4CTerm&         rterm,
-                          std::set<T4CIntegral>& vints) const;
+    R4CDist apply_bra_hrr(const R4CTerm&       rterm,
+                                ST4CIntegrals& sints) const;
 };
 
 #endif /* eri_driver_hpp */
