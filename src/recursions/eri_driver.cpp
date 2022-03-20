@@ -62,53 +62,67 @@ EriDriver::bra_hrr(const R4CTerm& rterm,
     }
 }
 
+std::optional<R4CDist>
+EriDriver::ket_hrr(const R4CTerm& rterm,
+                   const char     axis) const
+{
+    if (const auto tval = rterm.shift(axis, -1, 2))
+    {
+        R4CDist t4crt(rterm);
+        
+        // first recursion term
+        
+        if (const auto r1val = tval->shift(axis, 1, 3))
+        {
+            t4crt.add(*r1val);
+        }
+        
+        // second recursion term
+        
+        auto r2val = *tval;
+        
+        const auto coord = _rxyz[axes::to_index(axis)];
+    
+        r2val.add(Factor("CD", "rcd", coord), Fraction(-1));
+        
+        t4crt.add(r2val);
+        
+        // done with recursion terms
+        
+        return t4crt;
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
 R4CDist
 EriDriver::apply_bra_hrr(const R4CTerm&       rterm,
                                ST4CIntegrals& sints) const
 {
     R4CDist t4crt;
     
-//    for (const auto axis : "xyz")
-//    {
-//        if (const auto tval = bra_hrr(rterm, axis))
-//        {
-//            const auto nterms = tval->unique_terms(vints);
-//        }
-//    }
-//
-//    std::array<R4CDist, 3> vdists({t4crt, t4crt, t4crt});
-//
-//    for (int i = 0; i < 3; i++)
-//    {
-//        if (const auto taux = rterm.shift(axes[i], -1, 0))
-//        {
-//            // first term
-//
-//            if (const auto r1val = taux->shift(axes[i], 1, 1))
-//            {
-//                vdists[i].add(*r1val);
-//            }
-//
-//            // second term
-//
-//            auto r2val = taux.value();
-//
-//            r2val.add(Factor("AB", "rab", rxyz[i]), Fraction(-1));
-//
-//            vdists[i].add(r2val);
-//        }
-//    }
+    int nints = 3;
     
-    // select recurion variant
+    for (const auto axis : "xyz")
+    {
+        if (const auto trec = bra_hrr(rterm, axis))
+        {
+            const auto nterms = trec->count_new_integrals(sints);
+            
+            if (nterms < nints)
+            {
+                t4crt = *trec;
+                
+                nints = nterms;
+            }
+        }
+    }
     
-    //t4crt = vdists[0];
+    const auto vints = t4crt.unique_integrals();
     
-//    auto mints = vdists[i].unique_terms(vin)
-//
-//    for (int i = 1; i < 3; i++)
-//    {
-//
-//    }
-    
-   return t4crt;
+    sints.insert(vints.cbegin(), vints.cend());
+
+    return t4crt;
 }

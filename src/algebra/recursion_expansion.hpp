@@ -74,7 +74,14 @@ public:
     /// @return The number of recursion terms in expansion of root recursion term.
     int terms() const;
     
+    /// Gets unique integrals in recursion expansion.
+    /// @return The set of unique integrals in recursion expansion.
     std::set<T> unique_integrals() const;
+    
+    /// Counts number of new integrals in recursion expansion with respect to given integral set.
+    /// @param integrals The set of integrals used to count new integrals.
+    /// @return The number of new integrals in recursion expansion.
+    int count_new_integrals(const std::set<T>& integrals) const;
 };
 
 template <class T>
@@ -175,6 +182,20 @@ RecursionExpansion<T>::unique_integrals() const
     }
     
     return sints;
+}
+
+template <class T>
+int
+RecursionExpansion<T>::count_new_integrals(const std::set<T>& integrals) const
+{
+    int nints = 0;
+    
+    for (const auto& tint : unique_integrals())
+    {
+        if (integrals.find(tint) == integrals.cend()) nints++;
+    }
+    
+    return nints;
 }
 
 template <class T>

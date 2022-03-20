@@ -52,6 +52,13 @@ public:
     std::optional<R4CDist> bra_hrr(const R4CTerm& rterm,
                                    const char     axis) const;
     
+    /// Applies horizontal recursion to ket side of given recursion term.
+    /// @param rterm The recursion term.
+    /// @param axis The axis of horizontal recursion.
+    /// @return The recursion expansion of given recursion term.
+    std::optional<R4CDist> ket_hrr(const R4CTerm& rterm,
+                                   const char     axis) const;
+    
     /// Applies horizontal recursion to bra side recursion term containing electron repulsion
     /// integral.
     /// @param rterm The recursion term with electron repulsion integral.

@@ -406,3 +406,60 @@ TEST_F(RecursionExpansionTest, UniqueIntegrals)
     
     EXPECT_EQ(t4cdist.unique_integrals(), S4CInts({t4cint}));
 }
+
+TEST_F(RecursionExpansionTest, CountNewIntegrals)
+{
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto opddr = OperatorComponent("d/dr", p_y, "bra", 1);
+    
+    const auto opddc = OperatorComponent("d/dC", p_x, "ket", 0);
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto f_yzz = TensorComponent(0, 1, 2);
+    
+    auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
+    
+    auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
+
+    auto t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    auto r4cint = T4CIntegral(bpair, kpair, opddr, 1, {opddr, opddc});
+    
+    const auto pbx = Factor("(P-B)", "pb", p_x);
+    
+    const auto wpy = Factor("(W-P)", "wp", p_y);
+    
+    const auto t4crt = R4CTerm(t4cint, {{pbx, 1}, {wpy, 2},}, Fraction(3, 7));
+    
+    const auto r4crta = R4CTerm(r4cint, {{pbx, 1},}, Fraction(1, 3));
+    
+    const auto r4crtb = R4CTerm(t4cint, {{wpy, 3},}, Fraction(1, 3));
+    
+    auto t4cdist = R4CDist(t4crt, {r4crta, r4crtb});
+    
+    EXPECT_EQ(t4cdist.count_new_integrals({}), 2);
+    
+    EXPECT_EQ(t4cdist.count_new_integrals({t4cint,}), 1);
+    
+    EXPECT_EQ(t4cdist.count_new_integrals({r4cint,}), 1);
+    
+    EXPECT_EQ(t4cdist.count_new_integrals({r4cint, t4cint}), 0);
+    
+    EXPECT_EQ(t4cdist.count_new_integrals({t4cint, r4cint}), 0);
+    
+    t4cdist = R4CDist(r4crta, {t4crt, r4crtb});
+    
+    EXPECT_EQ(t4cdist.count_new_integrals({}), 1);
+    
+    EXPECT_EQ(t4cdist.count_new_integrals({t4cint,}), 0);
+    
+    EXPECT_EQ(t4cdist.count_new_integrals({r4cint,}), 1);
+}
