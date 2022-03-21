@@ -352,3 +352,71 @@ EriDriver::apply_ket_vrr(const R4CTerm&       rterm,
 
     return t4crt;
 }
+
+R4Group
+EriDriver::apply_bra_hrr(const V4CTerms&      rterms,
+                               ST4CIntegrals& sints) const
+{
+    R4Group rgroup;
+    
+    for (const auto& rterm : rterms)
+    {
+        if (const auto tval = apply_bra_hrr(rterm, sints); tval.terms() > 0)
+        {
+            rgroup.add(tval);
+        }
+    }
+    
+    return rgroup;
+}
+
+R4Group
+EriDriver::apply_ket_hrr(const V4CTerms&      rterms,
+                               ST4CIntegrals& sints) const
+{
+    R4Group rgroup;
+    
+    for (const auto& rterm : rterms)
+    {
+        if (const auto tval = apply_ket_hrr(rterm, sints); tval.terms() > 0)
+        {
+            rgroup.add(tval);
+        }
+    }
+    
+    return rgroup;
+}
+
+R4Group
+EriDriver::apply_bra_vrr(const V4CTerms&      rterms,
+                               ST4CIntegrals& sints) const
+{
+    R4Group rgroup;
+    
+    for (const auto& rterm : rterms)
+    {
+        if (const auto tval = apply_bra_vrr(rterm, sints); tval.terms() > 0)
+        {
+            rgroup.add(tval);
+        }
+    }
+    
+    return rgroup;
+}
+
+R4Group
+EriDriver::apply_ket_vrr(const V4CTerms&      rterms,
+                               ST4CIntegrals& sints) const
+{
+    R4Group rgroup;
+    
+    for (const auto& rterm : rterms)
+    {
+        if (const auto tval = apply_ket_vrr(rterm, sints); tval.terms() > 0)
+        {
+            rgroup.add(tval);
+        }
+    }
+    
+    return rgroup;
+}

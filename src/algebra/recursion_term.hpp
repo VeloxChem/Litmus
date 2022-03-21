@@ -406,4 +406,7 @@ RecursionTerm<T>::scale(const Fraction& factor)
 template <class T>
 using VRecursionTerms = std::vector<RecursionTerm<T>>;
 
+template <class T>
+using MRecursionTerms = std::vector<std::vector<RecursionTerm<T>>>;
+
 #endif /* recursion_term_hpp */

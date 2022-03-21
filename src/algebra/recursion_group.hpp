@@ -61,6 +61,12 @@ public:
     /// Gets number of recursion expansions in recursion group.
     /// @return The number of recursion expansions in recursion group.
     int expansions() const;
+    
+    /// Splits expansions in recursion group into 2D vector of unique recursion
+    /// terms according to integral type.
+    /// @return The vector of integral groups.
+    template <class U>
+    MRecursionTerms<T> split_terms() const;
 };
 
 template <class T>
@@ -121,6 +127,53 @@ int
 RecursionGroup<T>::expansions() const
 {
     return static_cast<int>(_expansions.size());
+}
+
+template <class T>
+template <class U>
+MRecursionTerms<T>
+RecursionGroup<T>::split_terms() const
+{
+    // collect unique integral components
+    
+    std::set<T> sints;
+    
+    for (const auto& tval : _expansions)
+    {
+        const auto rints = tval.unique_integrals();
+        
+        sints.insert(rints.cbegin(), rints.cend());
+    }
+    
+    // collect unique integrals
+    
+    std::set<U> tints;
+   
+    for(const auto& tval: sints)
+    {
+        tints.insert(U(tval));
+    }
+   
+    // create matrix of recursion terms
+    
+    MRecursionTerms<T> mrterms(tints.size(), VRecursionTerms<T>());
+    
+    int idx = 0;
+    
+    for (const auto& tint : tints)
+    {
+        for (const auto tval : sints)
+        {
+            if (tint == U(tval))
+            {
+                mrterms[idx].push_back(RecursionTerm<T>(tval));
+            }
+        }
+        
+        idx++;
+    }
+    
+    return mrterms;
 }
 
 #endif /* recursion_group_hpp */

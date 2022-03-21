@@ -20,6 +20,7 @@
 #include <optional>
 #include <set>
 
+#include "recursion_group.hpp"
 #include "recursion_expansion.hpp"
 #include "recursion_term.hpp"
 #include "integral_component.hpp"
@@ -33,7 +34,11 @@ using ST4CIntegrals = SIntegralComponents<T2CPair, T2CPair>;
 
 using R4CTerm = RecursionTerm<T4CIntegral>;
 
+using V4CTerms = VRecursionTerms<T4CIntegral>;
+
 using R4CDist = RecursionExpansion<T4CIntegral>;
+
+using R4Group = RecursionGroup<T4CIntegral>; 
 
 /// Electron repulsion integrals driver class.
 class EriDriver
@@ -106,6 +111,38 @@ public:
     /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
     /// @return The recursion expansion of given recursion term.
     R4CDist apply_ket_vrr(const R4CTerm&       rterm,
+                                ST4CIntegrals& sints) const;
+    
+    /// Applies horizontal recursion to bra side of given vector of recursion terms containing
+    /// electron repulsion integral.
+    /// @param rterms The vector of recursion terms with electron repulsion integral.
+    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
+    /// @return The recursion group.
+    R4Group apply_bra_hrr(const V4CTerms&      rterms,
+                                ST4CIntegrals& sints) const;
+    
+    /// Applies horizontal recursion to ket side of given vector of recursion terms containing
+    /// electron repulsion integral.
+    /// @param rterms The vector of recursion terms with electron repulsion integral.
+    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
+    /// @return The recursion group.
+    R4Group apply_ket_hrr(const V4CTerms&      rterms,
+                                ST4CIntegrals& sints) const;
+    
+    /// Applies vertical recursion to bra side of given vector of recursion terms containing
+    /// electron repulsion integral.
+    /// @param rterms The vector of recursion terms with electron repulsion integral.
+    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
+    /// @return The recursion group.
+    R4Group apply_bra_vrr(const V4CTerms&      rterms,
+                                ST4CIntegrals& sints) const;
+    
+    /// Applies vertical recursion to ket side of given vector of recursion terms containing
+    /// electron repulsion integral.
+    /// @param rterms The vector of recursion terms with electron repulsion integral.
+    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
+    /// @return The recursion group.
+    R4Group apply_ket_vrr(const V4CTerms&      rterms,
                                 ST4CIntegrals& sints) const;
 };
 
