@@ -41,6 +41,9 @@ class EriDriver
     /// Cartesian coordinate tensor components.
     std::array<TensorComponent, 3> _rxyz;
     
+    /// Scalar tensor components.
+    TensorComponent _scalar;
+    
 public:
     /// Creates an electron repulsion integrals driver.
     EriDriver();
@@ -59,12 +62,50 @@ public:
     std::optional<R4CDist> ket_hrr(const R4CTerm& rterm,
                                    const char     axis) const;
     
+    /// Applies vertical recursion to bra side of given recursion term.
+    /// @param rterm The recursion term.
+    /// @param axis The axis of vertical recursion.
+    /// @return The recursion expansion of given recursion term.
+    std::optional<R4CDist> bra_vrr(const R4CTerm& rterm,
+                                   const char     axis) const;
+    
+    /// Applies vertical recursion to ket side of given recursion term.
+    /// @param rterm The recursion term.
+    /// @param axis The axis of vertical recursion.
+    /// @return The recursion expansion of given recursion term.
+    std::optional<R4CDist> ket_vrr(const R4CTerm& rterm,
+                                   const char     axis) const;
+    
     /// Applies horizontal recursion to bra side recursion term containing electron repulsion
     /// integral.
     /// @param rterm The recursion term with electron repulsion integral.
     /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
     /// @return The recursion expansion of given recursion term.
     R4CDist apply_bra_hrr(const R4CTerm&       rterm,
+                                ST4CIntegrals& sints) const;
+    
+    /// Applies horizontal recursion to ket side recursion term containing electron repulsion
+    /// integral.
+    /// @param rterm The recursion term with electron repulsion integral.
+    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
+    /// @return The recursion expansion of given recursion term.
+    R4CDist apply_ket_hrr(const R4CTerm&       rterm,
+                                ST4CIntegrals& sints) const;
+    
+    /// Applies vertical recursion to bra side recursion term containing electron repulsion
+    /// integral.
+    /// @param rterm The recursion term with electron repulsion integral.
+    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
+    /// @return The recursion expansion of given recursion term.
+    R4CDist apply_bra_vrr(const R4CTerm&       rterm,
+                                ST4CIntegrals& sints) const;
+    
+    /// Applies vertical recursion to ket side recursion term containing electron repulsion
+    /// integral.
+    /// @param rterm The recursion term with electron repulsion integral.
+    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
+    /// @return The recursion expansion of given recursion term.
+    R4CDist apply_ket_vrr(const R4CTerm&       rterm,
                                 ST4CIntegrals& sints) const;
 };
 

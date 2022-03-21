@@ -101,6 +101,229 @@ TEST_F(EriDriverTest, BraHrr)
     EXPECT_FALSE(eri_drv.bra_hrr(t4crec, 'z'));
 }
 
+TEST_F(EriDriverTest, KetHrr)
+{
+    EriDriver eri_drv;
+    
+    // recursion data
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto d_zz = TensorComponent(0, 0, 2);
+    
+    const auto f_xzz = TensorComponent(1, 0, 2);
+    
+    const auto f_yzz = TensorComponent(0, 1, 2);
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto b_0_0 = T2CPair({"GA", "GB"}, {s_0, s_0});
+    
+    const auto k_xy_zz = T2CPair({"GC", "GD"}, {d_xy, d_zz});
+    
+    const auto tint = T4CIntegral(b_0_0, k_xy_zz, operi);
+    
+    const auto t4crec = R4CTerm(tint);
+    
+    // check recursion along x axis
+    
+    const auto k_y_xzz = T2CPair({"GC", "GD"}, {p_y, f_xzz});
+    
+    const auto r1aint = T4CIntegral(b_0_0, k_y_xzz, operi);
+    
+    const auto t1arec = R4CTerm(r1aint);
+    
+    const auto k_y_zz = T2CPair({"GC", "GD"}, {p_y, d_zz});
+    
+    const auto r2aint = T4CIntegral(b_0_0, k_y_zz, operi);
+    
+    const auto cdx = Factor("CD", "rcd", TensorComponent(1, 0, 0));
+    
+    const auto t2arec = R4CTerm(r2aint, {{cdx, 1}, }, Fraction(-1));
+    
+    EXPECT_EQ(eri_drv.ket_hrr(t4crec, 'x'), R4CDist(t4crec, {t1arec, t2arec}));
+    
+    // check recursion along y axis
+    
+    const auto k_x_yzz = T2CPair({"GC", "GD"}, {p_x, f_yzz});
+
+    const auto r1bint = T4CIntegral(b_0_0, k_x_yzz, operi);
+    
+    const auto t1brec = R4CTerm(r1bint);
+
+    const auto k_x_zz = T2CPair({"GC", "GD"}, {p_x, d_zz});
+
+    const auto r2bint = T4CIntegral(b_0_0, k_x_zz, operi);
+    
+    const auto cdy = Factor("CD", "rcd", TensorComponent(0, 1, 0));
+    
+    const auto t2brec = R4CTerm(r2bint, {{cdy, 1}, }, Fraction(-1));
+    
+    EXPECT_EQ(eri_drv.ket_hrr(t4crec, 'y'), R4CDist(t4crec, {t1brec, t2brec}));
+    
+    // check recursion along z axis
+    
+    EXPECT_FALSE(eri_drv.ket_hrr(t4crec, 'z'));
+}
+
+TEST_F(EriDriverTest, BraVrr)
+{
+    EriDriver eri_drv;
+    
+    // recursion data
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto d_xx = TensorComponent(2, 0, 0);
+
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto d_yy = TensorComponent(0, 2, 0);
+    
+    const auto f_xxx = TensorComponent(3, 0, 0);
+    
+    const auto f_xyy = TensorComponent(1, 2, 0);
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto b_0_xyy = T2CPair({"GA", "GB"}, {s_0, f_xyy});
+    
+    const auto k_0_xxx = T2CPair({"GC", "GD"}, {s_0, f_xxx});
+    
+    const auto tint = T4CIntegral(b_0_xyy, k_0_xxx, operi);
+    
+    const auto t4crec = R4CTerm(tint);
+    
+    // check recursion along x axis
+    
+    const auto b_0_yy = T2CPair({"GA", "GB"}, {s_0, d_yy});
+    
+    const auto r1aint = T4CIntegral(b_0_yy, k_0_xxx, operi);
+    
+    const auto pbx = Factor("PB", "rpb", TensorComponent(1, 0, 0));
+    
+    const auto t1arec = R4CTerm(r1aint, {{pbx, 1},}, Fraction(1));
+    
+    const auto r2aint = T4CIntegral(b_0_yy, k_0_xxx, operi, 1);
+    
+    const auto wpx = Factor("WP", "rwp", TensorComponent(1, 0, 0));
+    
+    const auto t2arec = R4CTerm(r2aint, {{wpx, 1},}, Fraction(1));
+    
+    const auto k_0_xx = T2CPair({"GC", "GD"}, {s_0, d_xx});
+    
+    const auto r3aint = T4CIntegral(b_0_yy, k_0_xx, operi, 1);
+    
+    const auto fze = Factor("1/(zeta+eta)", "fze", TensorComponent(0, 0, 0));
+    
+    const auto t3arec = R4CTerm(r3aint, {{fze, 1},}, Fraction(3, 2));
+    
+    EXPECT_EQ(eri_drv.bra_vrr(t4crec, 'x'), R4CDist(t4crec, {t1arec, t2arec, t3arec}));
+    
+    // check recursion along y axis
+    
+    const auto b_0_xy = T2CPair({"GA", "GB"}, {s_0, d_xy});
+    
+    const auto r1bint = T4CIntegral(b_0_xy, k_0_xxx, operi);
+    
+    const auto pby = Factor("PB", "rpb", TensorComponent(0, 1, 0));
+    
+    const auto t1brec = R4CTerm(r1bint, {{pby, 1},}, Fraction(1));
+    
+    const auto r2bint = T4CIntegral(b_0_xy, k_0_xxx, operi, 1);
+    
+    const auto wpy = Factor("WP", "rwp", TensorComponent(0, 1, 0));
+    
+    const auto t2brec = R4CTerm(r2bint, {{wpy, 1},}, Fraction(1));
+    
+    const auto b_0_x = T2CPair({"GA", "GB"}, {s_0, p_x});
+    
+    const auto r3bint = T4CIntegral(b_0_x, k_0_xxx, operi);
+    
+    const auto fz = Factor("1/zeta", "fz", TensorComponent(0, 0, 0));
+    
+    const auto t3brec = R4CTerm(r3bint, {{fz, 1},}, Fraction(1, 2));
+    
+    const auto r4bint = T4CIntegral(b_0_x, k_0_xxx, operi, 1);
+    
+    const auto frz2 = Factor("rho/zeta^2", "frz2", TensorComponent(0, 0, 0));
+    
+    const auto t4brec = R4CTerm(r4bint, {{frz2, 1},}, Fraction(-1, 2));
+    
+    EXPECT_EQ(eri_drv.bra_vrr(t4crec, 'y'), R4CDist(t4crec, {t1brec, t2brec, t3brec, t4brec}));
+    
+    EXPECT_FALSE(eri_drv.bra_vrr(t4crec, 'z'));
+}
+
+TEST_F(EriDriverTest, KetVrr)
+{
+    EriDriver eri_drv;
+    
+    // recursion data
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto d_xx = TensorComponent(2, 0, 0);
+    
+    const auto f_xxx = TensorComponent(3, 0, 0);
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto b_0_0 = T2CPair({"GA", "GB"}, {s_0, s_0});
+    
+    const auto k_0_xxx = T2CPair({"GC", "GD"}, {s_0, f_xxx});
+    
+    const auto tint = T4CIntegral(b_0_0, k_0_xxx, operi);
+    
+    const auto t4crec = R4CTerm(tint);
+    
+    // check recursion along x axis
+    
+    const auto k_0_xx = T2CPair({"GC", "GD"}, {s_0, d_xx});
+    
+    const auto r1aint = T4CIntegral(b_0_0, k_0_xx, operi);
+    
+    const auto qdx = Factor("QD", "rqd", TensorComponent(1, 0, 0));
+    
+    const auto t1arec = R4CTerm(r1aint, {{qdx, 1},}, Fraction(1));
+    
+    const auto r2aint = T4CIntegral(b_0_0, k_0_xx, operi, 1);
+    
+    const auto wqx = Factor("WQ", "rwq", TensorComponent(1, 0, 0));
+    
+    const auto t2arec = R4CTerm(r2aint, {{wqx, 1},}, Fraction(1));
+    
+    const auto k_0_x = T2CPair({"GC", "GD"}, {s_0, p_x});
+    
+    const auto r3aint = T4CIntegral(b_0_0, k_0_x, operi);
+    
+    const auto fe = Factor("1/eta", "fe", TensorComponent(0, 0, 0));
+    
+    const auto t3arec = R4CTerm(r3aint, {{fe, 1},}, Fraction(1));
+    
+    const auto r4aint = T4CIntegral(b_0_0, k_0_x, operi, 1);
+    
+    const auto fre2 = Factor("rho/eta^2", "fre2", TensorComponent(0, 0, 0));
+    
+    const auto t4arec = R4CTerm(r4aint, {{fre2, 1},}, Fraction(-1));
+    
+    EXPECT_EQ(eri_drv.ket_vrr(t4crec, 'x'), R4CDist(t4crec, {t1arec, t2arec, t3arec, t4arec}));
+    
+    EXPECT_FALSE(eri_drv.ket_vrr(t4crec, 'y'));
+    
+    EXPECT_FALSE(eri_drv.ket_vrr(t4crec, 'z'));
+}
+
 TEST_F(EriDriverTest, ApplyBraHrr)
 {
     EriDriver eri_drv;
@@ -178,4 +401,257 @@ TEST_F(EriDriverTest, ApplyBraHrr)
     EXPECT_EQ(r4cdist, R4CDist(t4crec, {t1brec, t2brec}));
     
     EXPECT_EQ(sints, std::set<T4CIntegral>({r1bint, r2bint}));
+}
+
+TEST_F(EriDriverTest, ApplyKetHrr)
+{
+    EriDriver eri_drv;
+    
+    // recursion data
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto d_zz = TensorComponent(0, 0, 2);
+    
+    const auto f_xzz = TensorComponent(1, 0, 2);
+    
+    const auto f_yzz = TensorComponent(0, 1, 2);
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto b_0_0 = T2CPair({"GA", "GB"}, {s_0, s_0});
+    
+    const auto k_xy_zz = T2CPair({"GC", "GD"}, {d_xy, d_zz});
+    
+    const auto tint = T4CIntegral(b_0_0, k_xy_zz, operi);
+    
+    const auto t4crec = R4CTerm(tint);
+    
+    // witout initial set of integrals
+    
+    const auto k_y_xzz = T2CPair({"GC", "GD"}, {p_y, f_xzz});
+    
+    const auto r1aint = T4CIntegral(b_0_0, k_y_xzz, operi);
+    
+    const auto t1arec = R4CTerm(r1aint);
+    
+    const auto k_y_zz = T2CPair({"GC", "GD"}, {p_y, d_zz});
+    
+    const auto r2aint = T4CIntegral(b_0_0, k_y_zz, operi);
+    
+    const auto cdx = Factor("CD", "rcd", TensorComponent(1, 0, 0));
+    
+    const auto t2arec = R4CTerm(r2aint, {{cdx, 1}, }, Fraction(-1));
+    
+    std::set<T4CIntegral> sints;
+    
+    auto r4cdist = eri_drv.apply_ket_hrr(t4crec, sints);
+    
+    EXPECT_EQ(r4cdist, R4CDist(t4crec, {t1arec, t2arec}));
+    
+    EXPECT_EQ(sints, std::set<T4CIntegral>({r1aint, r2aint}));
+    
+    // with initial set of integrals
+    
+    const auto k_x_yzz = T2CPair({"GC", "GD"}, {p_x, f_yzz});
+
+    const auto r1bint = T4CIntegral(b_0_0, k_x_yzz, operi);
+    
+    const auto t1brec = R4CTerm(r1bint);
+
+    const auto k_x_zz = T2CPair({"GC", "GD"}, {p_x, d_zz});
+
+    const auto r2bint = T4CIntegral(b_0_0, k_x_zz, operi);
+    
+    const auto cdy = Factor("CD", "rcd", TensorComponent(0, 1, 0));
+    
+    const auto t2brec = R4CTerm(r2bint, {{cdy, 1}, }, Fraction(-1));
+    
+    sints = {r2bint,};
+    
+    r4cdist = eri_drv.apply_ket_hrr(t4crec, sints);
+
+    EXPECT_EQ(r4cdist, R4CDist(t4crec, {t1brec, t2brec}));
+    
+    EXPECT_EQ(sints, std::set<T4CIntegral>({r1bint, r2bint}));
+}
+
+TEST_F(EriDriverTest, ApplyBraVrr)
+{
+    EriDriver eri_drv;
+    
+    // recursion data
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto d_xx = TensorComponent(2, 0, 0);
+
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto d_yy = TensorComponent(0, 2, 0);
+    
+    const auto f_xxx = TensorComponent(3, 0, 0);
+    
+    const auto f_xyy = TensorComponent(1, 2, 0);
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto b_0_xyy = T2CPair({"GA", "GB"}, {s_0, f_xyy});
+    
+    const auto k_0_xxx = T2CPair({"GC", "GD"}, {s_0, f_xxx});
+    
+    const auto tint = T4CIntegral(b_0_xyy, k_0_xxx, operi);
+    
+    const auto t4crec = R4CTerm(tint);
+    
+    // witout initial set of integrals
+    
+    const auto b_0_yy = T2CPair({"GA", "GB"}, {s_0, d_yy});
+    
+    const auto r1aint = T4CIntegral(b_0_yy, k_0_xxx, operi);
+    
+    const auto pbx = Factor("PB", "rpb", TensorComponent(1, 0, 0));
+    
+    const auto t1arec = R4CTerm(r1aint, {{pbx, 1},}, Fraction(1));
+    
+    const auto r2aint = T4CIntegral(b_0_yy, k_0_xxx, operi, 1);
+    
+    const auto wpx = Factor("WP", "rwp", TensorComponent(1, 0, 0));
+    
+    const auto t2arec = R4CTerm(r2aint, {{wpx, 1},}, Fraction(1));
+    
+    const auto k_0_xx = T2CPair({"GC", "GD"}, {s_0, d_xx});
+    
+    const auto r3aint = T4CIntegral(b_0_yy, k_0_xx, operi, 1);
+    
+    const auto fze = Factor("1/(zeta+eta)", "fze", TensorComponent(0, 0, 0));
+    
+    const auto t3arec = R4CTerm(r3aint, {{fze, 1},}, Fraction(3, 2));
+    
+    std::set<T4CIntegral> sints;
+    
+    auto r4cdist = eri_drv.apply_bra_vrr(t4crec, sints);
+    
+    EXPECT_EQ(r4cdist, R4CDist(t4crec, {t1arec, t2arec, t3arec}));
+    
+    EXPECT_EQ(sints, std::set<T4CIntegral>({r1aint, r2aint, r3aint}));
+    
+    // with initial set of integrals
+    
+    const auto b_0_xy = T2CPair({"GA", "GB"}, {s_0, d_xy});
+    
+    const auto r1bint = T4CIntegral(b_0_xy, k_0_xxx, operi);
+    
+    const auto pby = Factor("PB", "rpb", TensorComponent(0, 1, 0));
+    
+    const auto t1brec = R4CTerm(r1bint, {{pby, 1},}, Fraction(1));
+    
+    const auto r2bint = T4CIntegral(b_0_xy, k_0_xxx, operi, 1);
+    
+    const auto wpy = Factor("WP", "rwp", TensorComponent(0, 1, 0));
+    
+    const auto t2brec = R4CTerm(r2bint, {{wpy, 1},}, Fraction(1));
+    
+    const auto b_0_x = T2CPair({"GA", "GB"}, {s_0, p_x});
+    
+    const auto r3bint = T4CIntegral(b_0_x, k_0_xxx, operi);
+    
+    const auto fz = Factor("1/zeta", "fz", TensorComponent(0, 0, 0));
+    
+    const auto t3brec = R4CTerm(r3bint, {{fz, 1},}, Fraction(1, 2));
+    
+    const auto r4bint = T4CIntegral(b_0_x, k_0_xxx, operi, 1);
+    
+    const auto frz2 = Factor("rho/zeta^2", "frz2", TensorComponent(0, 0, 0));
+    
+    const auto t4brec = R4CTerm(r4bint, {{frz2, 1},}, Fraction(-1, 2));
+    
+    sints = {r1bint, r2bint, r4bint};
+    
+    r4cdist = eri_drv.apply_bra_vrr(t4crec, sints);
+
+    EXPECT_EQ(r4cdist, R4CDist(t4crec, {t1brec, t2brec, t3brec, t4brec}));
+    
+    EXPECT_EQ(sints, std::set<T4CIntegral>({r1bint, r2bint, r3bint, r4bint}));
+}
+
+TEST_F(EriDriverTest, AppyKetVrr)
+{
+    EriDriver eri_drv;
+    
+    // recursion data
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto d_xx = TensorComponent(2, 0, 0);
+    
+    const auto f_xxx = TensorComponent(3, 0, 0);
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto b_0_0 = T2CPair({"GA", "GB"}, {s_0, s_0});
+    
+    const auto k_0_xxx = T2CPair({"GC", "GD"}, {s_0, f_xxx});
+    
+    const auto tint = T4CIntegral(b_0_0, k_0_xxx, operi);
+    
+    const auto t4crec = R4CTerm(tint);
+    
+    // witout initial set of integrals
+    
+    const auto k_0_xx = T2CPair({"GC", "GD"}, {s_0, d_xx});
+    
+    const auto r1aint = T4CIntegral(b_0_0, k_0_xx, operi);
+    
+    const auto qdx = Factor("QD", "rqd", TensorComponent(1, 0, 0));
+    
+    const auto t1arec = R4CTerm(r1aint, {{qdx, 1},}, Fraction(1));
+    
+    const auto r2aint = T4CIntegral(b_0_0, k_0_xx, operi, 1);
+    
+    const auto wqx = Factor("WQ", "rwq", TensorComponent(1, 0, 0));
+    
+    const auto t2arec = R4CTerm(r2aint, {{wqx, 1},}, Fraction(1));
+    
+    const auto k_0_x = T2CPair({"GC", "GD"}, {s_0, p_x});
+    
+    const auto r3aint = T4CIntegral(b_0_0, k_0_x, operi);
+    
+    const auto fe = Factor("1/eta", "fe", TensorComponent(0, 0, 0));
+    
+    const auto t3arec = R4CTerm(r3aint, {{fe, 1},}, Fraction(1));
+    
+    const auto r4aint = T4CIntegral(b_0_0, k_0_x, operi, 1);
+    
+    const auto fre2 = Factor("rho/eta^2", "fre2", TensorComponent(0, 0, 0));
+    
+    const auto t4arec = R4CTerm(r4aint, {{fre2, 1},}, Fraction(-1));
+    
+    std::set<T4CIntegral> sints;
+    
+    auto r4cdist = eri_drv.apply_ket_vrr(t4crec, sints);
+    
+    EXPECT_EQ(r4cdist, R4CDist(t4crec, {t1arec, t2arec, t3arec, t4arec}));
+    
+    EXPECT_EQ(sints, std::set<T4CIntegral>({r1aint, r2aint, r3aint, r4aint}));
+    
+    // with initial set of integrals
+    
+    sints = {r3aint, r4aint};
+    
+    r4cdist = eri_drv.apply_ket_vrr(t4crec, sints);
+
+    EXPECT_EQ(r4cdist, R4CDist(t4crec, {t1arec, t2arec, t3arec, t4arec}));
+    
+    EXPECT_EQ(sints, std::set<T4CIntegral>({r1aint, r2aint, r3aint, r4aint}));
 }

@@ -127,8 +127,8 @@ public:
     /// @param center The targeted shift center.
     /// @return The optional recursion term.
     std::optional<RecursionTerm> shift(const char axis,
-                                        const int  value,
-                                        const int  center) const;
+                                       const int  value,
+                                       const int  center) const;
     
     /// Creates an optional recursion term from this recursion term by shifting axial value
     /// along the selected axis in selected prefix operator.
@@ -141,6 +141,12 @@ public:
                                               const int  value,
                                               const int  index,
                                               const bool noscalar = false) const;
+    
+    /// Creates an optional recursion term from this recursion term by shifting order of
+    /// recursion term..
+    /// @param value The value to shift order of recursion term.
+    /// @return The optional recursion term.
+    std::optional<RecursionTerm> shift_order(const int value) const;
     
     /// Adds new factor or updates order of existing factor in this recursion term.
     /// @param factor The factor to scale recurion term.
@@ -350,6 +356,20 @@ RecursionTerm<T>::shift_prefix(const char axis,
                                const bool noscalar) const
 {
     if (const auto tint = _integral.shift_prefix(axis, value, index, noscalar))
+    {
+        return RecursionTerm<T>(*tint, _factors, _prefactor);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template <class T>
+std::optional<RecursionTerm<T>>
+RecursionTerm<T>::shift_order(const int value) const
+{
+    if (const auto tint = _integral.shift_order(value))
     {
         return RecursionTerm<T>(*tint, _factors, _prefactor);
     }

@@ -124,11 +124,17 @@ public:
     /// @param value The value to shift axial value.
     /// @param index The index of targeted operator.
     /// @param noscalar The flag for scalar component: false  to keep,  true otherwise.
-    /// @return The optional operator component.
+    /// @return The optional integral component.
     std::optional<IntegralComponent> shift_prefix(const char axis,
                                                   const int  value,
                                                   const int  index,
                                                   const bool noscalar = false) const;
+    
+    /// Creates an optional integral component from this integral component by shifting order
+    /// of integral.
+    /// @param value The value to shift axial value.
+    /// @return The optional integral component.
+    std::optional<IntegralComponent> shift_order(const int value) const;
 };
 
 template <class T, class U>
@@ -375,6 +381,22 @@ IntegralComponent<T,U>::shift_prefix(const char axis,
             return IntegralComponent<T, U>(_bra, _ket, _integrand, _order, new_prefixes);
         }
         
+        return std::nullopt;
+    }
+}
+
+template <class T, class U>
+std::optional<IntegralComponent<T, U>>
+IntegralComponent<T,U>::shift_order(const int value) const
+{
+    const auto new_order = _order + value;
+    
+    if (new_order >= 0)
+    {
+        return IntegralComponent<T, U>(_bra, _ket, _integrand, new_order, _prefixes);
+    }
+    else
+    {
         return std::nullopt;
     }
 }

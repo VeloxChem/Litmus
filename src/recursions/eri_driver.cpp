@@ -25,6 +25,8 @@ EriDriver::EriDriver()
     _rxyz = {TensorComponent(1, 0, 0),
              TensorComponent(0, 1, 0),
              TensorComponent(0, 0, 1)};
+    
+    _scalar = TensorComponent(0, 0, 0);
 }
 
 std::optional<R4CDist>
@@ -97,6 +99,140 @@ EriDriver::ket_hrr(const R4CTerm& rterm,
     }
 }
 
+std::optional<R4CDist>
+EriDriver::bra_vrr(const R4CTerm& rterm,
+                   const char     axis) const
+{
+    if (const auto tval = rterm.shift(axis, -1, 1))
+    {
+        R4CDist t4crt(rterm);
+        
+        // first recursion term
+        
+        auto r1val = *tval;
+        
+        const auto coord = _rxyz[axes::to_index(axis)];
+        
+        r1val.add(Factor("PB", "rpb", coord), Fraction(1));
+        
+        t4crt.add(r1val);
+        
+        // second recursion term
+        
+        if (const auto r2val = tval->shift_order(1))
+        {
+            auto x2val = *r2val;
+            
+            x2val.add(Factor("WP", "rwp", coord), Fraction(1));
+            
+            t4crt.add(x2val);
+        }
+        
+        // third and fourth recursion terms
+        
+        if (const auto r3val = tval->shift(axis, -1, 1))
+        {
+            auto x3val = *r3val;
+            
+            const auto nb = r1val[1][axis];
+            
+            x3val.add(Factor("1/zeta", "fz", _scalar), Fraction(nb, 2));
+            
+            t4crt.add(x3val);
+            
+            if (const auto r4val = r3val->shift_order(1))
+            {
+                auto x4val = *r4val;
+                
+                x4val.add(Factor("rho/zeta^2", "frz2", _scalar), Fraction(-nb, 2));
+                
+                t4crt.add(x4val);
+            }
+        }
+        
+        // fifth recursion term
+        
+        if (const auto xval = tval->shift(axis, -1, 3))
+        {
+            if (const auto r5val = xval->shift_order(1))
+            {
+                auto x5val = *r5val;
+               
+                const auto nd = r1val[3][axis];
+               
+                x5val.add(Factor("1/(zeta+eta)", "fze", _scalar), Fraction(nd, 2));
+               
+                t4crt.add(x5val);
+            }
+        }
+        
+        return t4crt;
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+std::optional<R4CDist>
+EriDriver::ket_vrr(const R4CTerm& rterm,
+                   const char     axis) const
+{
+    if (const auto tval = rterm.shift(axis, -1, 3))
+    {
+        R4CDist t4crt(rterm);
+        
+        // first recursion term
+        
+        auto r1val = *tval;
+        
+        const auto coord = _rxyz[axes::to_index(axis)];
+        
+        r1val.add(Factor("QD", "rqd", coord), Fraction(1));
+        
+        t4crt.add(r1val);
+        
+        // second recursion term
+        
+        if (const auto r2val = tval->shift_order(1))
+        {
+            auto x2val = *r2val;
+            
+            x2val.add(Factor("WQ", "rwq", coord), Fraction(1));
+            
+            t4crt.add(x2val);
+        }
+        
+        // third and fourth recursion terms
+        
+        if (const auto r3val = tval->shift(axis, -1, 3))
+        {
+            auto x3val = *r3val;
+            
+            const auto nd = r1val[3][axis];
+            
+            x3val.add(Factor("1/eta", "fe", _scalar), Fraction(nd, 2));
+            
+            t4crt.add(x3val);
+            
+            if (const auto r4val = r3val->shift_order(1))
+            {
+                auto x4val = *r4val;
+                
+                x4val.add(Factor("rho/eta^2", "fre2", _scalar), Fraction(-nd, 2));
+                
+                t4crt.add(x4val);
+            }
+        }
+        
+        return t4crt;
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
 R4CDist
 EriDriver::apply_bra_hrr(const R4CTerm&       rterm,
                                ST4CIntegrals& sints) const
@@ -108,6 +244,96 @@ EriDriver::apply_bra_hrr(const R4CTerm&       rterm,
     for (const auto axis : "xyz")
     {
         if (const auto trec = bra_hrr(rterm, axis))
+        {
+            const auto nterms = trec->count_new_integrals(sints);
+            
+            if (nterms < nints)
+            {
+                t4crt = *trec;
+                
+                nints = nterms;
+            }
+        }
+    }
+    
+    const auto vints = t4crt.unique_integrals();
+    
+    sints.insert(vints.cbegin(), vints.cend());
+
+    return t4crt;
+}
+
+R4CDist
+EriDriver::apply_ket_hrr(const R4CTerm&       rterm,
+                               ST4CIntegrals& sints) const
+{
+    R4CDist t4crt;
+    
+    int nints = 3;
+    
+    for (const auto axis : "xyz")
+    {
+        if (const auto trec = ket_hrr(rterm, axis))
+        {
+            const auto nterms = trec->count_new_integrals(sints);
+            
+            if (nterms < nints)
+            {
+                t4crt = *trec;
+                
+                nints = nterms;
+            }
+        }
+    }
+    
+    const auto vints = t4crt.unique_integrals();
+    
+    sints.insert(vints.cbegin(), vints.cend());
+
+    return t4crt;
+}
+
+R4CDist
+EriDriver::apply_bra_vrr(const R4CTerm&       rterm,
+                                ST4CIntegrals& sints) const
+{
+    R4CDist t4crt;
+    
+    int nints = 6;
+    
+    for (const auto axis : "xyz")
+    {
+        if (const auto trec = bra_vrr(rterm, axis))
+        {
+            const auto nterms = trec->count_new_integrals(sints);
+            
+            if (nterms < nints)
+            {
+                t4crt = *trec;
+                
+                nints = nterms;
+            }
+        }
+    }
+    
+    const auto vints = t4crt.unique_integrals();
+    
+    sints.insert(vints.cbegin(), vints.cend());
+
+    return t4crt;
+}
+
+R4CDist
+EriDriver::apply_ket_vrr(const R4CTerm&       rterm,
+                                ST4CIntegrals& sints) const
+{
+    R4CDist t4crt;
+    
+    int nints = 6;
+    
+    for (const auto axis : "xyz")
+    {
+        if (const auto trec = ket_vrr(rterm, axis))
         {
             const auto nterms = trec->count_new_integrals(sints);
             

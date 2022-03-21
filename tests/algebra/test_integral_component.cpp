@@ -614,3 +614,37 @@ TEST_F(IntegralComponentTest, ShiftPrefix)
     EXPECT_FALSE(t4cint.shift_prefix('z', -1, 1, true));
 }
 
+TEST_F(IntegralComponentTest, ShiftOrder)
+{
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto f_yzz = TensorComponent(0, 1, 2);
+    
+    const auto opddr = OperatorComponent("d/dr", p_y, "bra", 1);
+    
+    const auto opddc = OperatorComponent("d/dC", p_x, "ket", 0);
+        
+    auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
+    
+    auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
+
+    const auto t4cint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    auto r4cint = T4CIntegral(bpair, kpair, operi, 0, {opddr, opddc});
+    
+    EXPECT_EQ(t4cint.shift_order(-2), r4cint);
+    
+    r4cint = T4CIntegral(bpair, kpair, operi, 3, {opddr, opddc});
+    
+    EXPECT_EQ(t4cint.shift_order(1), r4cint);
+    
+    EXPECT_FALSE(t4cint.shift_order(-3));
+}
