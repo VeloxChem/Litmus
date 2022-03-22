@@ -655,3 +655,197 @@ TEST_F(EriDriverTest, AppyKetVrr)
     
     EXPECT_EQ(sints, std::set<T4CIntegral>({r1aint, r2aint, r3aint, r4aint}));
 }
+
+TEST_F(EriDriverTest, ApplyBraHrrForGroup)
+{
+    EriDriver eri_drv;
+    
+    // recursion data
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto b_x_x = T2CPair({"GA", "GB"}, {p_x, p_x});
+    
+    const auto b_y_x = T2CPair({"GA", "GB"}, {p_y, p_x});
+    
+    const auto k_0_0 = T2CPair({"GC", "GD"}, {s_0, s_0});
+    
+    const auto taint = T4CIntegral(b_x_x, k_0_0, operi);
+    
+    const auto tbint = T4CIntegral(b_y_x, k_0_0, operi);
+    
+    const auto t4arec = R4CTerm(taint);
+    
+    const auto t4brec = R4CTerm(tbint);
+    
+    // generate recursion group
+    
+    std::set<T4CIntegral> sints;
+    
+    const auto t4g = eri_drv.apply_bra_hrr({t4arec, t4brec}, sints);
+    
+    // witout initial set of integrals
+    
+    std::set<T4CIntegral> rints;
+    
+    const auto r4adist = eri_drv.apply_bra_hrr(t4arec, rints);
+    
+    const auto r4bdist = eri_drv.apply_bra_hrr(t4brec, rints);
+    
+    EXPECT_EQ(t4g, R4Group({r4adist, r4bdist}));
+    
+    EXPECT_EQ(sints, rints);
+}
+
+TEST_F(EriDriverTest, ApplyKetHrrForGroup)
+{
+    EriDriver eri_drv;
+    
+    // recursion data
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+   
+    const auto b_0_0 = T2CPair({"GA", "GB"}, {s_0, s_0});
+    
+    const auto k_x_x = T2CPair({"GC", "GD"}, {p_x, p_x});
+    
+    const auto k_y_x = T2CPair({"GC", "GD"}, {p_y, p_x});
+    
+    const auto taint = T4CIntegral(b_0_0, k_x_x, operi);
+    
+    const auto tbint = T4CIntegral(b_0_0, k_y_x, operi);
+    
+    const auto t4arec = R4CTerm(taint);
+    
+    const auto t4brec = R4CTerm(tbint);
+    
+    // generate recursion group
+    
+    std::set<T4CIntegral> sints;
+    
+    const auto t4g = eri_drv.apply_ket_hrr({t4arec, t4brec}, sints);
+    
+    // witout initial set of integrals
+    
+    std::set<T4CIntegral> rints;
+    
+    const auto r4adist = eri_drv.apply_ket_hrr(t4arec, rints);
+    
+    const auto r4bdist = eri_drv.apply_ket_hrr(t4brec, rints);
+    
+    EXPECT_EQ(t4g, R4Group({r4adist, r4bdist}));
+    
+    EXPECT_EQ(sints, rints);
+}
+
+TEST_F(EriDriverTest, ApplyBraVrrForGroup)
+{
+    EriDriver eri_drv;
+    
+    // recursion data
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto d_yy = TensorComponent(0, 2, 0);
+    
+    const auto f_xyy = TensorComponent(1, 3, 0);
+    
+    const auto f_xyz = TensorComponent(1, 1, 1);
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto b_0_xy = T2CPair({"GA", "GB"}, {s_0, d_xy});
+    
+    const auto b_0_yy = T2CPair({"GA", "GB"}, {s_0, d_yy});
+    
+    const auto k_0_xyy = T2CPair({"GC", "GD"}, {s_0, f_xyy});
+                                       
+    const auto k_0_xyz = T2CPair({"GC", "GD"}, {s_0, f_xyz});
+                                       
+    const auto taint = T4CIntegral(b_0_xy, k_0_xyy, operi);
+    
+    const auto tbint = T4CIntegral(b_0_yy, k_0_xyz, operi);
+    
+    const auto t4arec = R4CTerm(taint);
+    
+    const auto t4brec = R4CTerm(tbint);
+    
+    // generate recursion group
+    
+    std::set<T4CIntegral> sints;
+    
+    const auto t4g = eri_drv.apply_bra_vrr({t4arec, t4brec}, sints);
+    
+    // witout initial set of integrals
+    
+    std::set<T4CIntegral> rints;
+    
+    const auto r4adist = eri_drv.apply_bra_vrr(t4arec, rints);
+    
+    const auto r4bdist = eri_drv.apply_bra_vrr(t4brec, rints);
+    
+    EXPECT_EQ(t4g, R4Group({r4adist, r4bdist}));
+    
+    EXPECT_EQ(sints, rints);
+}
+
+TEST_F(EriDriverTest, ApplyKetVrrForGroup)
+{
+    EriDriver eri_drv;
+    
+    // recursion data
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto f_xyy = TensorComponent(1, 3, 0);
+    
+    const auto f_xyz = TensorComponent(1, 1, 1);
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto b_0_0 = T2CPair({"GA", "GB"}, {s_0, s_0});
+    
+    const auto k_0_xyy = T2CPair({"GC", "GD"}, {s_0, f_xyy});
+                                       
+    const auto k_0_xyz = T2CPair({"GC", "GD"}, {s_0, f_xyz});
+                                       
+    const auto taint = T4CIntegral(b_0_0, k_0_xyy, operi);
+    
+    const auto tbint = T4CIntegral(b_0_0, k_0_xyz, operi);
+    
+    const auto t4arec = R4CTerm(taint);
+    
+    const auto t4brec = R4CTerm(tbint);
+    
+    // generate recursion group
+    
+    std::set<T4CIntegral> sints;
+    
+    const auto t4g = eri_drv.apply_ket_vrr({t4arec, t4brec}, sints);
+    
+    // witout initial set of integrals
+    
+    std::set<T4CIntegral> rints;
+    
+    const auto r4adist = eri_drv.apply_ket_vrr(t4arec, rints);
+    
+    const auto r4bdist = eri_drv.apply_ket_vrr(t4brec, rints);
+    
+    EXPECT_EQ(t4g, R4Group({r4adist, r4bdist}));
+    
+    EXPECT_EQ(sints, rints);
+}
