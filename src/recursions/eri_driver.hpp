@@ -20,6 +20,7 @@
 #include <optional>
 #include <set>
 
+#include "graph.hpp"
 #include "recursion_group.hpp"
 #include "recursion_expansion.hpp"
 #include "recursion_term.hpp"
@@ -38,7 +39,9 @@ using V4CTerms = VRecursionTerms<T4CIntegral>;
 
 using R4CDist = RecursionExpansion<T4CIntegral>;
 
-using R4Group = RecursionGroup<T4CIntegral>; 
+using R4Group = RecursionGroup<T4CIntegral>;
+
+using R4Graph = Graph<R4Group>;
 
 /// Electron repulsion integrals driver class.
 class EriDriver
@@ -144,6 +147,12 @@ public:
     /// @return The recursion group.
     R4Group apply_ket_vrr(const V4CTerms&      rterms,
                                 ST4CIntegrals& sints) const;
+    
+    /// Recursively applies horizontal recursion to bra side of given graph.
+    /// @param rgraph The recursion graph.
+    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
+    void apply_bra_hrr(R4Graph&       rgraph,
+                       ST4CIntegrals& sints) const;
 };
 
 #endif /* eri_driver_hpp */

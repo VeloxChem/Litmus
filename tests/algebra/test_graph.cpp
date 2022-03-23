@@ -31,6 +31,22 @@ TEST_F(GraphTest, Constructor)
     EXPECT_EQ(lhsg, rhsg);
 }
 
+TEST_F(GraphTest, OperatorBrackets)
+{
+    const auto tg = Graph<std::string>({"A",    "B",    "C", "D", "E",},
+                                       {{1, 2}, {3, 4}, {4},  {},  {},});
+    
+    EXPECT_EQ(tg[0], "A");
+    
+    EXPECT_EQ(tg[1], "B");
+    
+    EXPECT_EQ(tg[2], "C");
+    
+    EXPECT_EQ(tg[3], "D");
+    
+    EXPECT_EQ(tg[4], "E");
+}
+
 TEST_F(GraphTest, OperatorEqual)
 {
     const auto lhsg = Graph<int>({1, 7, }, {{2, 1}, {7, 3}, });

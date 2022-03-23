@@ -45,6 +45,11 @@ public:
     /// @param vertice The vertice to create graph.
     Graph(const T& vertice);
     
+    /// Retrieves requested vertice from graph.
+    /// @param index The index of vertice.
+    /// @return The  requested vertice.
+    const T& operator[](const int index) const;
+    
     /// Compares this graph with other graph.
     /// @param other The other graph to compare.
     /// @return true if graphs are equal, false otherwise.
@@ -110,6 +115,13 @@ Graph<T>::Graph(const T& vertice)
 , _edges(std::vector<std::set<int>>({{}, }))
 {
     
+}
+
+template <class T>
+const T&
+Graph<T>::operator[](const int index) const
+{
+    return _vertices[index]; 
 }
 
 template <class T>

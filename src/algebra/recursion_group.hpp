@@ -64,9 +64,18 @@ public:
     
     /// Splits expansions in recursion group into 2D vector of unique recursion
     /// terms according to integral type.
-    /// @return The vector of integral groups.
+    /// @return The 2D vector of unique recursion terms.
     template <class U>
     MRecursionTerms<T> split_terms() const;
+    
+    /// Generates vector of recursions terms from roots of expansions.
+    /// @return The vector of recursion terms.
+    VRecursionTerms<T> roots() const;
+    
+    /// Checks if recursion group contains only empty recursion expansions.
+    /// @return True if recursion group contains only empty recursion expansions,
+    /// false otherwise.
+    bool empty() const;
 };
 
 template <class T>
@@ -130,6 +139,22 @@ RecursionGroup<T>::expansions() const
 }
 
 template <class T>
+VRecursionTerms<T>
+RecursionGroup<T>::roots() const
+{
+    VRecursionTerms<T> vrterms;
+    
+    for (const auto& tval : _expansions)
+    {
+        const auto rterm = tval.root();
+        
+        vrterms.push_back(RecursionTerm<T>(rterm.integral()));
+    }
+    
+    return vrterms;
+}
+
+template <class T>
 template <class U>
 MRecursionTerms<T>
 RecursionGroup<T>::split_terms() const
@@ -174,6 +199,21 @@ RecursionGroup<T>::split_terms() const
     }
     
     return mrterms;
+}
+
+template <class T>
+bool
+RecursionGroup<T>::empty() const
+{
+    for (const auto& tval : _expansions)
+    {
+        if (tval.terms() >  0)
+        {
+            return false;
+        }
+    }
+    
+    return true; 
 }
 
 #endif /* recursion_group_hpp */

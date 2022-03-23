@@ -420,3 +420,21 @@ EriDriver::apply_ket_vrr(const V4CTerms&      rterms,
     
     return rgroup;
 }
+
+void
+EriDriver::apply_bra_hrr(R4Graph&       rgraph,
+                         ST4CIntegrals& sints) const
+{
+    // special case: single vertice without expansion terms
+    
+    if (rgraph.vertices() == 1)
+    {
+        if (rgraph[0].empty())
+        {
+            rgraph.add(apply_bra_hrr(rgraph[0].roots(), sints), rgraph[0]);
+        }
+    }
+    
+    //
+    
+}
