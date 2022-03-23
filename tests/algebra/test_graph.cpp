@@ -176,6 +176,21 @@ TEST_F(GraphTest, AddWithoutIndex)
     EXPECT_EQ(tg, rg);
 }
 
+TEST_F(GraphTest, Replace)
+{
+    auto tg = Graph<std::string>({"A", "B", "C", "D", "E",},
+                                 {{1, 2}, {3, 4}, {4}, {}, {},});
+
+    tg.replace("F", 0);
+    
+    tg.replace("X", 2);
+    
+    const auto rg = Graph<std::string>({"F", "B", "X", "D", "E",},
+                                       {{1, 2}, {3, 4}, {4}, {}, {},});
+    
+    EXPECT_EQ(tg, rg);
+}
+
 TEST_F(GraphTest, Invert)
 {
     const auto tg = Graph<std::string>({"A", "B", "C", "D", "E",},
@@ -189,3 +204,40 @@ TEST_F(GraphTest, Invert)
     EXPECT_EQ(rg.invert(), tg);
 }
 
+TEST_F(GraphTest, Vertices)
+{
+    const auto tg = Graph<std::string>({"A", "B", "C", "D", "E",},
+                                       {{1, 2}, {3, 4}, {4}, {}, {},});
+
+    EXPECT_EQ(tg.vertices(), 5);
+}
+
+TEST_F(GraphTest, Edge)
+{
+    const auto tg = Graph<std::string>({"A", "B", "C", "D", "E",},
+                                       {{1, 2}, {3, 4}, {4}, {}, {},});
+
+    EXPECT_EQ(tg.edge(0), std::set<int>({1, 2}));
+    
+    EXPECT_EQ(tg.edge(1), std::set<int>({3, 4}));
+    
+    EXPECT_EQ(tg.edge(2), std::set<int>({4}));
+    
+    EXPECT_EQ(tg.edge(3), std::set<int>({}));
+    
+    EXPECT_EQ(tg.edge(4), std::set<int>({}));
+    
+}
+
+TEST_F(GraphTest, Orpahns)
+{
+    const auto tg = Graph<std::string>({"A", "B", "C", "D", "E",},
+                                       {{1, 2}, {3, 4}, {4}, {}, {},});
+    
+    const auto rg = Graph<std::string>({"E", "D", "C", "B", "A",},
+                                       {{2, 3}, {3}, {4}, {4}, {},});
+
+    EXPECT_EQ(tg.orphans(), std::vector<int>({3, 4,}));
+    
+    EXPECT_EQ(rg.orphans(), std::vector<int>({4,}));
+}

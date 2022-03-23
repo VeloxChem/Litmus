@@ -157,6 +157,12 @@ public:
     /// Scales prefactor of this recursion term with the given factor.
     /// @param factor The fractional factor to scale recurion term.
     void scale(const Fraction& factor);
+    
+    /// Checks if recursion term is auxilary at specific
+    /// angular center.
+    /// @param center The angular center to check.
+    /// @return True if recursion term is auxilary, false otherwise.
+    bool auxilary(const int center) const;
 };
 
 template <class T>
@@ -401,6 +407,20 @@ void
 RecursionTerm<T>::scale(const Fraction& factor)
 {
     _prefactor = _prefactor * factor;
+}
+
+template <class T>
+bool
+RecursionTerm<T>::auxilary(const int center) const
+{
+    if (_integral[center].order() == 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false; 
+    }
 }
 
 template <class T>

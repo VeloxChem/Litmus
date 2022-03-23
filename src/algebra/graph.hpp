@@ -77,6 +77,12 @@ public:
     void add(const T& vertice,
              const T& root);
     
+    /// Replaces selected vertice with given vertice.
+    /// @param vertice The replacement vertice.
+    /// @param index The index of vertice to be replaced.
+    void replace(const T&  vertice,
+                 const int index);
+    
     /// Creates inverted graph from this graph.
     /// @return The inverted graph.
     Graph<T> invert() const;
@@ -84,6 +90,15 @@ public:
     /// Number of vertices in this graph.
     /// @return The numbet of vertices.
     int vertices() const;
+    
+    /// Gets edges data for specific vertice.
+    /// @param index The index of vertice.
+    /// @return The edges data.
+    std::set<int> edge(const int index) const;
+    
+    /// Gets vector of indexes of orphaned vertices.
+    /// @return The vector of indexes.
+    std::vector<int> orphans() const;
 };
 
 template <class T>
@@ -205,6 +220,14 @@ Graph<T>::add(const T& vertice,
 }
 
 template <class T>
+void
+Graph<T>::replace(const T&  vertice,
+                  const int index)
+{
+    _vertices[index] = vertice; 
+}
+
+template <class T>
 Graph<T>
 Graph<T>::invert() const
 {
@@ -235,6 +258,30 @@ int
 Graph<T>::vertices() const
 {
     return static_cast<int>(_vertices.size());
+}
+
+template <class T>
+std::set<int>
+Graph<T>::edge(const int index) const
+{
+    return _edges[index]; 
+}
+
+template <class T>
+std::vector<int>
+Graph<T>::orphans() const
+{
+    std::vector<int> indexes;
+    
+    for (size_t i = 0; i < _vertices.size(); i++)
+    {
+        if (_edges[i].empty())
+        {
+            indexes.push_back(static_cast<int>(i));
+        }
+    }
+    
+    return indexes;
 }
 
 #endif /* graph_hpp */

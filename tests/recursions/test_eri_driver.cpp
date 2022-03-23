@@ -30,6 +30,10 @@ using R4CTerm = RecursionTerm<T4CIntegral>;
 
 using R4CDist = RecursionExpansion<T4CIntegral>;
 
+using R4Group = RecursionGroup<T4CIntegral>;
+
+using R4Graph = Graph<R4Group>;
+
 TEST_F(EriDriverTest, BraHrr)
 {
     EriDriver eri_drv;
@@ -848,4 +852,169 @@ TEST_F(EriDriverTest, ApplyKetVrrForGroup)
     EXPECT_EQ(t4g, R4Group({r4adist, r4bdist}));
     
     EXPECT_EQ(sints, rints);
+}
+
+TEST_F(EriDriverTest, ApplyBraHrrWithGraphForPP)
+{
+    EriDriver eri_drv;
+    
+    // recursion data
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto d_xx = TensorComponent(2, 0, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto d_yy = TensorComponent(0, 2, 0);
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto b_x_x = T2CPair({"GA", "GB"}, {p_x, p_x});
+    
+    const auto b_x_y = T2CPair({"GA", "GB"}, {p_x, p_y});
+    
+    const auto b_y_y = T2CPair({"GA", "GB"}, {p_y, p_y});
+    
+    const auto k_0_0 = T2CPair({"GC", "GD"}, {s_0, s_0});
+    
+    const auto t_x_x = T4CIntegral(b_x_x, k_0_0, operi);
+    
+    const auto t_x_y = T4CIntegral(b_x_y, k_0_0, operi);
+    
+    const auto t_y_y = T4CIntegral(b_y_y, k_0_0, operi);
+    
+    const auto rd_x_x =  R4CDist(R4CTerm(t_x_x));
+    
+    const auto rd_x_y =  R4CDist(R4CTerm(t_x_y));
+    
+    const auto rd_y_y =  R4CDist(R4CTerm(t_y_y));
+    
+    // initialize graph
+    
+    R4Graph rgraph(R4Group({rd_x_x, rd_x_y, rd_y_y}));
+    
+    std::set<T4CIntegral> sints;
+    
+    // apply horizontal bra recursion
+    
+    eri_drv.apply_bra_hrr(rgraph, sints);
+    
+    // set up reference data:
+    
+    const auto b_0_xx = T2CPair({"GA", "GB"}, {s_0, d_xx});
+    
+    const auto b_0_xy = T2CPair({"GA", "GB"}, {s_0, d_xy});
+    
+    const auto b_0_yy = T2CPair({"GA", "GB"}, {s_0, d_yy});
+    
+    const auto t_0_xx = T4CIntegral(b_0_xx, k_0_0, operi);
+    
+    const auto t_0_xy = T4CIntegral(b_0_xy, k_0_0, operi);
+    
+    const auto t_0_yy = T4CIntegral(b_0_yy, k_0_0, operi);
+    
+    const auto rd_0_xx = R4CDist(R4CTerm(t_0_xx));
+    
+    const auto rd_0_xy = R4CDist(R4CTerm(t_0_xy));
+    
+    const auto rd_0_yy = R4CDist(R4CTerm(t_0_yy));
+    
+    const auto b_0_x = T2CPair({"GA", "GB"}, {s_0, p_x});
+    
+    const auto b_0_y = T2CPair({"GA", "GB"}, {s_0, p_y});
+    
+    const auto t_0_x = T4CIntegral(b_0_x, k_0_0, operi);
+    
+    const auto t_0_y = T4CIntegral(b_0_y, k_0_0, operi);
+    
+    const auto rd_0_x = R4CDist(R4CTerm(t_0_x));
+    
+    const auto rd_0_y = R4CDist(R4CTerm(t_0_y));
+    
+    std::set<T4CIntegral> rints;
+    
+    const auto hrr_x_x = eri_drv.apply_bra_hrr(R4CTerm(t_x_x), rints);
+    
+    const auto hrr_x_y = eri_drv.apply_bra_hrr(R4CTerm(t_x_y), rints);
+    
+    const auto hrr_y_y = eri_drv.apply_bra_hrr(R4CTerm(t_y_y), rints);
+    
+    // compare by terms
+    
+    EXPECT_EQ(rgraph.vertices(), 3);
+    
+    EXPECT_EQ(rgraph[0], R4Group({hrr_x_x, hrr_x_y, hrr_y_y}));
+    
+    EXPECT_EQ(rgraph[1], R4Group({rd_0_y, rd_0_x}));
+    
+    EXPECT_EQ(rgraph[2], R4Group({rd_0_yy, rd_0_xy, rd_0_xx}));
+    
+    EXPECT_EQ(sints, rints);
+    
+    EXPECT_EQ(rgraph.edge(0), std::set<int>({1,2}));
+    
+    EXPECT_EQ(rgraph.edge(1), std::set<int>({}));
+    
+    EXPECT_EQ(rgraph.edge(2), std::set<int>({}));
+}
+
+TEST_F(EriDriverTest, ApplyBraHrrWithGraphForDD)
+{
+    EriDriver eri_drv;
+    
+    // recursion data
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto d_xx = TensorComponent(2, 0, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto d_yy = TensorComponent(0, 2, 0);
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto b_xx_xx = T2CPair({"GA", "GB"}, {d_xx, d_xx});
+    
+    const auto b_xy_xy = T2CPair({"GA", "GB"}, {d_xy, d_xy});
+    
+    const auto b_yy_yy = T2CPair({"GA", "GB"}, {d_yy, d_yy});
+    
+    const auto k_0_0 = T2CPair({"GC", "GD"}, {s_0, s_0});
+    
+    const auto t_xx_xx = T4CIntegral(b_xx_xx, k_0_0, operi);
+    
+    const auto t_xy_xy = T4CIntegral(b_xy_xy, k_0_0, operi);
+    
+    const auto t_yy_yy = T4CIntegral(b_yy_yy, k_0_0, operi);
+    
+    const auto rd_xx_xx =  R4CDist(R4CTerm(t_xx_xx));
+    
+    const auto rd_xy_xy =  R4CDist(R4CTerm(t_xy_xy));
+    
+    const auto rd_yy_yy =  R4CDist(R4CTerm(t_yy_yy));
+    
+    // initialize graph
+    
+    R4Graph rgraph(R4Group({rd_xx_xx, rd_xy_xy, rd_yy_yy}));
+    
+    std::set<T4CIntegral> sints;
+    
+    // apply horizontal bra recursion
+    
+    eri_drv.apply_bra_hrr(rgraph, sints);
+    
+    
+    // compare by terms
+    
+    EXPECT_EQ(rgraph.vertices(), 3);
 }

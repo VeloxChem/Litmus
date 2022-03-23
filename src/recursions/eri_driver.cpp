@@ -19,6 +19,12 @@
 #include <array>
 
 #include "axes.hpp"
+#include "integral.hpp"
+#include "two_center_pair.hpp"
+
+using I2CPair = TwoCenterPair;
+
+using I4CIntegral = Integral<I2CPair, I2CPair>;
 
 EriDriver::EriDriver()
 {
@@ -431,10 +437,45 @@ EriDriver::apply_bra_hrr(R4Graph&       rgraph,
     {
         if (rgraph[0].empty())
         {
-            rgraph.add(apply_bra_hrr(rgraph[0].roots(), sints), rgraph[0]);
+            const auto rgroup = apply_bra_hrr(rgraph[0].roots(), sints);
+
+            rgraph.replace(rgroup, 0);
         }
     }
     
-    //
+    // loop over orphaned vertices
     
+    bool use_hrr = true;
+    
+    while (use_hrr)
+    {
+        int cnt = 0;
+        
+        const auto vidx = rgraph.orphans();
+        
+        for (const auto i : vidx)
+        {
+            if (!rgraph[i].auxilary(0))
+            {
+                for (const auto& vterms : rgraph[i].split_terms<I4CIntegral>())
+                {
+                    auto rgroup = apply_bra_hrr(vterms, sints);
+                    
+                    if (rgroup.expansions() == 0)
+                    {
+                        for (const auto& tval : vterms)
+                        {
+                            rgroup.add(R4CDist(tval));
+                        }
+                    }
+                    
+                    rgraph.add(rgroup, i);
+                    
+                    cnt++;
+                }
+            }
+        }
+        
+        if (cnt == 0) use_hrr = false;
+    }
 }

@@ -17,6 +17,8 @@
 #ifndef recursion_group_hpp
 #define recursion_group_hpp
 
+#include <vector>
+
 #include <recursion_expansion.hpp>
 
 /// Recursion group class.
@@ -76,6 +78,13 @@ public:
     /// @return True if recursion group contains only empty recursion expansions,
     /// false otherwise.
     bool empty() const;
+    
+    /// Checks if recursion group contains only auxilary recursion expansions on specific
+    /// angular center.
+    /// @param center The angular center to check.
+    /// @return True if recursion group contains only auxilary recursion expansions,
+    /// false otherwise.
+    bool auxilary(const int center) const;
 };
 
 template <class T>
@@ -215,5 +224,23 @@ RecursionGroup<T>::empty() const
     
     return true; 
 }
+
+template <class T>
+bool
+RecursionGroup<T>::auxilary(const int center) const
+{
+    for (const auto& tval : _expansions)
+    {
+        if (!tval.auxilary(center))
+        {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+template <class T>
+using VRecursionGroups = std::vector<RecursionGroup<T>>; 
 
 #endif /* recursion_group_hpp */

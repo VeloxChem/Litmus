@@ -82,6 +82,12 @@ public:
     /// @param integrals The set of integrals used to count new integrals.
     /// @return The number of new integrals in recursion expansion.
     int count_new_integrals(const std::set<T>& integrals) const;
+    
+    /// Checks if recursion expansion contains auxilary root  at specific
+    /// angular center.
+    /// @param center The angular center to check.
+    /// @return True if recursion expansion contains auxilary root, false otherwise.
+    bool auxilary(const int center) const;
 };
 
 template <class T>
@@ -196,6 +202,13 @@ RecursionExpansion<T>::count_new_integrals(const std::set<T>& integrals) const
     }
     
     return nints;
+}
+
+template <class T>
+bool
+RecursionExpansion<T>::auxilary(const int center) const
+{
+    return _root.auxilary(center);
 }
 
 template <class T>

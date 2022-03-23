@@ -41,6 +41,8 @@ using R4CDist = RecursionExpansion<T4CIntegral>;
 
 using R4Group = RecursionGroup<T4CIntegral>;
 
+using V4Groups = VRecursionGroups<T4CIntegral>;
+
 using R4Graph = Graph<R4Group>;
 
 /// Electron repulsion integrals driver class.
