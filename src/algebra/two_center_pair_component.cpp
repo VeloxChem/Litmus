@@ -75,6 +75,23 @@ TwoCenterPairComponent::operator<(const TwoCenterPairComponent& other) const
     }
 }
 
+bool
+TwoCenterPairComponent::similar(const TwoCenterPairComponent& other) const
+{
+    if (_names != other._names)
+    {
+        return false;
+    }
+    else if (!_shapes[0].similar(other._shapes[0]))
+    {
+        return false;
+    }
+    else
+    {
+        return _shapes[1].similar(other._shapes[1]);
+    }
+}
+
 std::array<std::string, 2>
 TwoCenterPairComponent::names() const
 {

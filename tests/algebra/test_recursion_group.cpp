@@ -122,9 +122,9 @@ TEST_F(RecursionGroupTest, OperatorBrackets)
     
     const auto t4group = R4Group({t4cdist, r4cdist});
     
-    EXPECT_EQ(t4group[0], t4cdist);
+    EXPECT_EQ(t4group[0], r4cdist);
     
-    EXPECT_EQ(t4group[1], r4cdist);
+    EXPECT_EQ(t4group[1], t4cdist);
 }
 
 TEST_F(RecursionGroupTest, OperatorEqual)
@@ -251,7 +251,7 @@ TEST_F(RecursionGroupTest, OperatorLess)
     
     EXPECT_TRUE(R4Group({t4cdist, r4cdist}) < R4Group({t4cdist, t4cdist}));
     
-    EXPECT_FALSE(R4Group({t4cdist, r4cdist}) < R4Group({t4cdist}));
+    EXPECT_TRUE(R4Group({t4cdist, r4cdist}) < R4Group({t4cdist}));
 }
 
 TEST_F(RecursionGroupTest, Add)
@@ -445,9 +445,9 @@ TEST_F(RecursionGroupTest, Roots)
     
     EXPECT_EQ(vterms.size(), 2);
     
-    EXPECT_EQ(vterms[0], R4CTerm(t4cint));
+    EXPECT_EQ(vterms[0], R4CTerm(r4cint));
     
-    EXPECT_EQ(vterms[1], R4CTerm(r4cint));
+    EXPECT_EQ(vterms[1], R4CTerm(t4cint));
 }
 
 TEST_F(RecursionGroupTest, Empty)

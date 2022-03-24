@@ -100,6 +100,29 @@ OperatorComponent::operator<(const OperatorComponent& other) const
     }
 }
 
+bool
+OperatorComponent::similar(const OperatorComponent& other) const
+{
+    if (this == &other) return true;
+
+    if (_name != other._name)
+    {
+        return false;
+    }
+    else if (_target != other._target)
+    {
+        return false;
+    }
+    else if (_center != other._center)
+    {
+        return false;
+    }
+    else
+    {
+        return _shape.similar(other._shape);
+    }
+}
+
 std::string
 OperatorComponent::name() const
 {

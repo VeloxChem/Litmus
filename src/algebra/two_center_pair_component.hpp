@@ -61,6 +61,11 @@ public:
     /// @return true if this two center pair component  is less than other two center pair component, false otherwise.
     bool operator<(const TwoCenterPairComponent& other) const;
     
+    /// Checks if this two center pair component is similar to other two center pair component.
+    /// @param other The other two center pair component to compare.
+    /// @return True if two center pair components  are similar, false otherwise.
+    bool similar(const TwoCenterPairComponent& other) const;
+    
     /// Gets names of centers in two center pair component.
     /// @return The names of centers.
     std::array<std::string, 2> names() const;

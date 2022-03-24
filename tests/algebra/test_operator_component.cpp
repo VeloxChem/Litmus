@@ -83,6 +83,41 @@ TEST_F(OperatorComponentTest, OperatorLess)
     EXPECT_TRUE(OperatorComponent("1/r") < OperatorComponent("d/dr", scomp, "none", 0));
 }
 
+TEST_F(OperatorComponentTest, Similar)
+{
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_z = TensorComponent(0, 0, 1);
+    
+    auto lhs_op = OperatorComponent("1/r");
+    
+    auto rhs_op = OperatorComponent("r^2", s_0, "none", -1);
+    
+    EXPECT_FALSE(lhs_op.similar(rhs_op));
+    
+    rhs_op = OperatorComponent("1/r", p_x, "none", -1);
+    
+    EXPECT_FALSE(lhs_op.similar(rhs_op));
+    
+    rhs_op = OperatorComponent("1/r", s_0, "bra", -1);
+    
+    EXPECT_FALSE(lhs_op.similar(rhs_op));
+    
+    rhs_op = OperatorComponent("1/r", s_0, "none", 2);
+    
+    EXPECT_FALSE(lhs_op.similar(rhs_op));
+    
+    lhs_op = OperatorComponent("r^2", p_z, "none", -1);
+    
+    rhs_op = OperatorComponent("r^2", p_x, "none", -1);
+    
+    EXPECT_TRUE(lhs_op.similar(rhs_op));
+    
+    EXPECT_TRUE(rhs_op.similar(lhs_op));
+}
+
 TEST_F(OperatorComponentTest, Name)
 {
     const auto pcomp = TensorComponent(0, 0, 1);

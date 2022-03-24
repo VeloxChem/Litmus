@@ -66,6 +66,11 @@ public:
     /// @return true if this tensor component is less than other tensor component, false otherwise.
     bool operator<(const TensorComponent& other) const;
     
+    /// Checks if this tensor component is similar to other tensor component.
+    /// @param other The other tensor component to compare.
+    /// @return True if tensor components  are similar, false otherwise.
+    bool similar(const TensorComponent& other) const;
+    
     /// Creates primitive textual representation of this tensor component.
     /// @return The string with primitive textual representation of tensor component.
     std::string to_string() const;

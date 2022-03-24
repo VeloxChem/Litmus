@@ -85,6 +85,12 @@ TensorComponent::operator<(const TensorComponent& other) const
     }
 }
 
+bool
+TensorComponent::similar(const TensorComponent& other) const
+{
+    return order() == other.order();
+}
+
 std::string
 TensorComponent::to_string() const
 {

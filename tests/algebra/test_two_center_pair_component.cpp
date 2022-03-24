@@ -70,6 +70,47 @@ TEST_F(TwoCenterPairComponentTest, OperatorNotEqual)
     EXPECT_TRUE(lhspair != rhspair);
 }
 
+TEST_F(TwoCenterPairComponentTest, Similar)
+{
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto d_yz = TensorComponent(0, 1, 1);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto lhspair = TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz});
+    
+    auto rhspair = TwoCenterPairComponent({"LA", "GB"}, {p_x, d_yz});
+    
+    EXPECT_FALSE(lhspair.similar(rhspair));
+    
+    rhspair = TwoCenterPairComponent({"GA", "GB"}, {p_x, p_x});
+    
+    EXPECT_FALSE(lhspair.similar(rhspair));
+    
+    rhspair = TwoCenterPairComponent({"GA", "GB"}, {d_yz, d_yz});
+    
+    EXPECT_FALSE(lhspair.similar(rhspair));
+    
+    rhspair = TwoCenterPairComponent({"GA", "GB"}, {p_x, d_yz});
+    
+    EXPECT_TRUE(lhspair.similar(rhspair));
+    
+    rhspair = TwoCenterPairComponent({"GA", "GB"}, {p_x, d_xy});
+    
+    EXPECT_TRUE(lhspair.similar(rhspair));
+    
+    rhspair = TwoCenterPairComponent({"GA", "GB"}, {p_y, d_yz});
+    
+    EXPECT_TRUE(lhspair.similar(rhspair));
+    
+    rhspair = TwoCenterPairComponent({"GA", "GB"}, {p_y, d_xy});
+    
+    EXPECT_TRUE(lhspair.similar(rhspair));
+}
+
 TEST_F(TwoCenterPairComponentTest, OperatorLess)
 {
     const auto p_x = TensorComponent(1, 0, 0);

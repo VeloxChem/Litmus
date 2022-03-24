@@ -18,6 +18,7 @@
 #define recursion_group_hpp
 
 #include <vector>
+#include <algorithm>
 
 #include <recursion_expansion.hpp>
 
@@ -100,7 +101,7 @@ RecursionGroup<T>::RecursionGroup(const VRecursionExpansions<T>& expansions)
 
     : _expansions(expansions)
 {
-    
+        std::sort(_expansions.begin(), _expansions.end());
 }
 
 template <class T>
@@ -138,6 +139,8 @@ void
 RecursionGroup<T>::add(const RecursionExpansion<T>& expansion)
 {
     _expansions.push_back(expansion);
+    
+    std::sort(_expansions.begin(), _expansions.end());
 }
 
 template <class T>

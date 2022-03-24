@@ -149,6 +149,43 @@ TEST_F(TensorComponentTest, OperatorLess)
     EXPECT_FALSE(dcomps[5] < dcomps[5]);
 }
 
+TEST_F(TensorComponentTest, Similar)
+{
+    const auto dcomps = gset::tensor_components(2);
+    
+    const auto fcomps = gset::tensor_components(3);
+    
+    // D tensor components
+    
+    for (const auto& lhs_comp : dcomps)
+    {
+        for (const auto rhs_comp : dcomps)
+        {
+            EXPECT_TRUE(lhs_comp.similar(rhs_comp));
+        }
+    }
+    
+    // F tensor components
+    
+    for (const auto& lhs_comp : fcomps)
+    {
+        for (const auto rhs_comp : fcomps)
+        {
+            EXPECT_TRUE(lhs_comp.similar(rhs_comp));
+        }
+    }
+    
+    // D, F tensor components
+    
+    for (const auto& lhs_comp : fcomps)
+    {
+        for (const auto rhs_comp : dcomps)
+        {
+            EXPECT_FALSE(lhs_comp.similar(rhs_comp));
+        }
+    }
+}
+
 TEST_F(TensorComponentTest, ToString)
 {
     const auto fcomps = gset::tensor_components(3);

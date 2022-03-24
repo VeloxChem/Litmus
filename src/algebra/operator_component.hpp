@@ -72,6 +72,11 @@ public:
     /// @return true if this operator component is less than other operator component, false otherwise.
     bool operator<(const OperatorComponent& other) const;
     
+    /// Checks if this operator component is similar to other operator component.
+    /// @param other The other operator component to compare.
+    /// @return True if operator components  are similar, false otherwise.
+    bool similar(const OperatorComponent& other) const;
+    
     /// Gets name of operator component.
     /// @return The name of operator component.
     std::string name() const;
