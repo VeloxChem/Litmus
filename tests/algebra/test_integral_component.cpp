@@ -259,6 +259,110 @@ TEST_F(IntegralComponentTest, OperatorLess)
     EXPECT_FALSE(lhsint < rhsint);
 }
 
+
+TEST_F(IntegralComponentTest, Similar)
+{
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto opddr = OperatorComponent("d/dr", p_y, "bra", 1);
+    
+    const auto opddc = OperatorComponent("d/dC", p_x, "ket", 0);
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto d_zz = TensorComponent(0, 0, 2);
+    
+    const auto f_yzz = TensorComponent(0, 1, 2);
+    
+    const auto f_xxx = TensorComponent(3, 0, 0);
+    
+    auto bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
+    
+    auto kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
+
+    auto lhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    bpair = T2CPair({"GB", "GB"}, {p_x, f_yzz});
+    
+    auto rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    EXPECT_FALSE(lhsint.similar(rhsint));
+    
+    bpair = T2CPair({"GA", "GB"}, {p_x, p_x});
+    
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    EXPECT_FALSE(lhsint.similar(rhsint));
+    
+    bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
+    
+    kpair = T2CPair({"GC", "LA"}, {s_0, d_xy});
+    
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    EXPECT_FALSE(lhsint.similar(rhsint));
+    
+    kpair = T2CPair({"GC", "GD"}, {p_x, d_xy});
+    
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    EXPECT_FALSE(lhsint.similar(rhsint));
+    
+    kpair = T2CPair({"GC", "GD"}, {s_0, d_xy});
+    
+    rhsint = T4CIntegral(bpair, kpair, opddr, 2, {opddr, opddc});
+    
+    EXPECT_FALSE(lhsint.similar(rhsint));
+    
+    rhsint = T4CIntegral(bpair, kpair, operi, 1, {opddr, opddc});
+    
+    EXPECT_FALSE(lhsint.similar(rhsint));
+    
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr});
+    
+    EXPECT_FALSE(lhsint.similar(rhsint));
+    
+    bpair = T2CPair({"GA", "GB"}, {p_y, f_yzz});
+
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    EXPECT_TRUE(lhsint.similar(rhsint));
+    
+    bpair = T2CPair({"GA", "GB"}, {p_x, f_xxx});
+
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    EXPECT_TRUE(lhsint.similar(rhsint));
+    
+    bpair = T2CPair({"GA", "GB"}, {p_y, f_xxx});
+
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    EXPECT_TRUE(lhsint.similar(rhsint));
+    
+    bpair = T2CPair({"GA", "GB"}, {p_x, f_yzz});
+    
+    kpair = T2CPair({"GC", "GD"}, {s_0, d_zz});
+
+    rhsint = T4CIntegral(bpair, kpair, operi, 2, {opddr, opddc});
+    
+    EXPECT_TRUE(lhsint.similar(rhsint));
+    
+    lhsint = T4CIntegral(bpair, kpair, opddr, 2, {opddr, opddc});
+    
+    const auto ropddr = OperatorComponent("d/dr", p_x, "bra", 1);
+    
+    rhsint = T4CIntegral(bpair, kpair, ropddr, 2, {opddr, opddc});
+   
+    EXPECT_TRUE(lhsint.similar(rhsint));
+}
+
 TEST_F(IntegralComponentTest, Bra)
 {
     const auto operi = OperatorComponent("1/|r-r'|");

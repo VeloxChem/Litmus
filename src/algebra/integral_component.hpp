@@ -77,6 +77,11 @@ public:
     /// @return true if this integral  component is less than other integral component, false otherwise.
     bool operator<(const IntegralComponent<T, U>& other) const;
     
+    /// Checks if this integral component is similar to other integral component.
+    /// @param other The other integral component to compare.
+    /// @return True if integral components  are similar, false otherwise.
+    bool similar(const IntegralComponent<T, U>& other) const;
+    
     /// Gets bra side of integral component.
     /// @return The bra side of integral component.
     T bra() const;
@@ -249,6 +254,33 @@ IntegralComponent<T,U>::operator<(const IntegralComponent<T, U>& other) const
         return _prefixes < other._prefixes;
     }
 }
+
+template <class T, class U>
+bool
+IntegralComponent<T,U>::similar(const IntegralComponent<T, U>& other) const
+{
+    if (_order != other._order)
+    {
+        return false;
+    }
+    else if (_prefixes != other._prefixes)
+    {
+        return false;
+    }
+    else if (!_integrand.similar(other._integrand))
+    {
+        return false;
+    }
+    else if (!_bra.similar(other._bra))
+    {
+        return false;
+    }
+    else
+    {
+        return _ket.similar(other._ket);
+    }
+}
+
 template <class T, class U>
 T
 IntegralComponent<T,U>::bra() const
