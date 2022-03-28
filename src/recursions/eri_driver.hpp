@@ -51,9 +51,6 @@ class EriDriver
     /// Cartesian coordinate tensor components.
     std::array<TensorComponent, 3> _rxyz;
     
-    /// Scalar tensor components.
-    TensorComponent _scalar;
-    
 public:
     /// Creates an electron repulsion integrals driver.
     EriDriver();
@@ -154,6 +151,24 @@ public:
     /// @param rgraph The recursion graph.
     /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
     void apply_bra_hrr(R4Graph&       rgraph,
+                       ST4CIntegrals& sints) const;
+    
+    /// Recursively applies horizontal recursion to ket side of given graph.
+    /// @param rgraph The recursion graph.
+    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
+    void apply_ket_hrr(R4Graph&       rgraph,
+                       ST4CIntegrals& sints) const;
+    
+    /// Recursively applies vertical recursion to bra side of given graph.
+    /// @param rgraph The recursion graph.
+    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
+    void apply_bra_vrr(R4Graph&       rgraph,
+                       ST4CIntegrals& sints) const;
+    
+    /// Recursively applies vertical recursion to ket side of given graph.
+    /// @param rgraph The recursion graph.
+    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
+    void apply_ket_vrr(R4Graph&       rgraph,
                        ST4CIntegrals& sints) const;
 };
 

@@ -31,8 +31,6 @@ EriDriver::EriDriver()
     _rxyz = {TensorComponent(1, 0, 0),
              TensorComponent(0, 1, 0),
              TensorComponent(0, 0, 1)};
-    
-    _scalar = TensorComponent(0, 0, 0);
 }
 
 std::optional<R4CDist>
@@ -142,7 +140,7 @@ EriDriver::bra_vrr(const R4CTerm& rterm,
             
             const auto nb = r1val[1][axis];
             
-            x3val.add(Factor("1/zeta", "fz", _scalar), Fraction(nb, 2));
+            x3val.add(Factor("1/zeta", "fz"), Fraction(nb, 2));
             
             t4crt.add(x3val);
             
@@ -150,7 +148,7 @@ EriDriver::bra_vrr(const R4CTerm& rterm,
             {
                 auto x4val = *r4val;
                 
-                x4val.add(Factor("rho/zeta^2", "frz2", _scalar), Fraction(-nb, 2));
+                x4val.add(Factor("rho/zeta^2", "frz2"), Fraction(-nb, 2));
                 
                 t4crt.add(x4val);
             }
@@ -166,7 +164,7 @@ EriDriver::bra_vrr(const R4CTerm& rterm,
                
                 const auto nd = r1val[3][axis];
                
-                x5val.add(Factor("1/(zeta+eta)", "fze", _scalar), Fraction(nd, 2));
+                x5val.add(Factor("1/(zeta+eta)", "fze"), Fraction(nd, 2));
                
                 t4crt.add(x5val);
             }
@@ -217,7 +215,7 @@ EriDriver::ket_vrr(const R4CTerm& rterm,
             
             const auto nd = r1val[3][axis];
             
-            x3val.add(Factor("1/eta", "fe", _scalar), Fraction(nd, 2));
+            x3val.add(Factor("1/eta", "fe"), Fraction(nd, 2));
             
             t4crt.add(x3val);
             
@@ -225,7 +223,7 @@ EriDriver::ket_vrr(const R4CTerm& rterm,
             {
                 auto x4val = *r4val;
                 
-                x4val.add(Factor("rho/eta^2", "fre2", _scalar), Fraction(-nd, 2));
+                x4val.add(Factor("rho/eta^2", "fre2"), Fraction(-nd, 2));
                 
                 t4crt.add(x4val);
             }
@@ -431,15 +429,15 @@ void
 EriDriver::apply_bra_hrr(R4Graph&       rgraph,
                          ST4CIntegrals& sints) const
 {
-    // special case: single vertice without expansion terms
+    // special cases: single vertices without expansion terms
     
-    if (rgraph.vertices() == 1)
+    for (const auto i : rgraph.orphans())
     {
-        if (rgraph[0].empty())
+        if (rgraph[i].empty() && (!rgraph[i].auxilary(0)))
         {
-            const auto rgroup = apply_bra_hrr(rgraph[0].roots(), sints);
+            const auto rgroup = apply_bra_hrr(rgraph[i].roots(), sints);
 
-            rgraph.replace(rgroup, 0);
+            rgraph.replace(rgroup, i);
         }
     }
     
@@ -460,6 +458,171 @@ EriDriver::apply_bra_hrr(R4Graph&       rgraph,
                 for (const auto& vterms : rgraph[i].split_terms<I4CIntegral>())
                 {
                     auto rgroup = apply_bra_hrr(vterms, sints);
+                    
+                    if (rgroup.expansions() == 0)
+                    {
+                        for (const auto& tval : vterms)
+                        {
+                            rgroup.add(R4CDist(tval));
+                        }
+                    }
+                    
+                    rgraph.add(rgroup, i);
+                    
+                    cnt++;
+                }
+            }
+        }
+        
+        if (cnt == 0) use_hrr = false;
+    }
+    
+    rgraph.reduce();
+}
+
+void
+EriDriver::apply_ket_hrr(R4Graph&       rgraph,
+                         ST4CIntegrals& sints) const
+{
+    // special cases: single vertices without expansion terms
+    
+    for (const auto i : rgraph.orphans())
+    {
+        if (rgraph[i].empty() && (!rgraph[i].auxilary(2)))
+        {
+            const auto rgroup = apply_ket_hrr(rgraph[i].roots(), sints);
+
+            rgraph.replace(rgroup, i);
+        }
+    }
+    
+    // loop over orphaned vertices
+    
+    bool use_hrr = true;
+    
+    while (use_hrr)
+    {
+        int cnt = 0;
+        
+        const auto vidx = rgraph.orphans();
+        
+        for (const auto i : vidx)
+        {
+            if (!rgraph[i].auxilary(2))
+            {
+                for (const auto& vterms : rgraph[i].split_terms<I4CIntegral>())
+                {
+                    auto rgroup = apply_ket_hrr(vterms, sints);
+                    
+                    if (rgroup.expansions() == 0)
+                    {
+                        for (const auto& tval : vterms)
+                        {
+                            rgroup.add(R4CDist(tval));
+                        }
+                    }
+                    
+                    rgraph.add(rgroup, i);
+                    
+                    cnt++;
+                }
+            }
+        }
+        
+        if (cnt == 0) use_hrr = false;
+    }
+    
+    rgraph.reduce();
+}
+
+void
+EriDriver::apply_bra_vrr(R4Graph&       rgraph,
+                         ST4CIntegrals& sints) const
+{
+    // special cases: single vertices without expansion terms
+    
+    for (const auto i : rgraph.orphans())
+    {
+        if (rgraph[i].empty() && (!rgraph[i].auxilary(1)))
+        {
+            const auto rgroup = apply_bra_vrr(rgraph[i].roots(), sints);
+
+            rgraph.replace(rgroup, i);
+        }
+    }
+    
+    // loop over orphaned vertices
+    
+    bool use_hrr = true;
+    
+    while (use_hrr)
+    {
+        int cnt = 0;
+        
+        const auto vidx = rgraph.orphans();
+        
+        for (const auto i : vidx)
+        {
+            if (!rgraph[i].auxilary(1))
+            {
+                for (const auto& vterms : rgraph[i].split_terms<I4CIntegral>())
+                {
+                    auto rgroup = apply_bra_vrr(vterms, sints);
+                    
+                    if (rgroup.expansions() == 0)
+                    {
+                        for (const auto& tval : vterms)
+                        {
+                            rgroup.add(R4CDist(tval));
+                        }
+                    }
+                    
+                    rgraph.add(rgroup, i);
+                    
+                    cnt++;
+                }
+            }
+        }
+        
+        if (cnt == 0) use_hrr = false;
+    }
+    
+    rgraph.reduce();
+}
+
+void
+EriDriver::apply_ket_vrr(R4Graph&       rgraph,
+                         ST4CIntegrals& sints) const
+{
+    // special cases: single vertices without expansion terms
+    
+    for (const auto i : rgraph.orphans())
+    {
+        if (rgraph[i].empty() && (!rgraph[i].auxilary(3)))
+        {
+            const auto rgroup = apply_ket_vrr(rgraph[i].roots(), sints);
+
+            rgraph.replace(rgroup, i);
+        }
+    }
+    
+    // loop over orphaned vertices
+    
+    bool use_hrr = true;
+    
+    while (use_hrr)
+    {
+        int cnt = 0;
+        
+        const auto vidx = rgraph.orphans();
+        
+        for (const auto i : vidx)
+        {
+            if (!rgraph[i].auxilary(3))
+            {
+                for (const auto& vterms : rgraph[i].split_terms<I4CIntegral>())
+                {
+                    auto rgroup = apply_ket_vrr(vterms, sints);
                     
                     if (rgroup.expansions() == 0)
                     {
