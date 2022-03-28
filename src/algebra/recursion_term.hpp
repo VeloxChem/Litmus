@@ -71,6 +71,11 @@ public:
     /// @return true if this recursion term is less than other recursion term, false otherwise.
     bool operator<(const RecursionTerm<T>& other) const;
     
+    /// Checks if this recursion term is similar to other recursion term.
+    /// @param other The other recursion term to compare.
+    /// @return True if recursion terms  are similar, false otherwise.
+    bool similar(const RecursionTerm<T>& other) const;
+    
     /// Gets bra side of recursion term.
     /// @return The bra side of recursion term.
     template <class U>
@@ -241,6 +246,13 @@ RecursionTerm<T>::operator<(const RecursionTerm<T>& other) const
     {
         return _prefactor < other._prefactor;
     }
+}
+
+template <class T>
+bool
+RecursionTerm<T>::similar(const RecursionTerm<T>& other) const
+{
+    return _integral.similar(other._integral); 
 }
 
 template <class T>

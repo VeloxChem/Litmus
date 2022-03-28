@@ -20,6 +20,9 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <tuple>
+
+#include "generics.hpp"
 
 /// Recursion group class.
 template <class T>
@@ -83,9 +86,18 @@ public:
     void replace(const T&  vertice,
                  const int index);
     
+    /// Replaces selected vertice with given vertice.
+    /// @param ivertice The index of vertice to merge into.
+    /// @param jvertice The index of vertice to be merged.
+    void merge(const int ivertice,
+               const int jvertice);
+    
     /// Creates inverted graph from this graph.
     /// @return The inverted graph.
     Graph<T> invert() const;
+    
+    /// Reduces this graph to minimal representation by merging similar vertices.
+    void reduce();
     
     /// Number of vertices in this graph.
     /// @return The numbet of vertices.
@@ -228,6 +240,49 @@ Graph<T>::replace(const T&  vertice,
 }
 
 template <class T>
+void
+Graph<T>::merge(const int ivertice,
+                const int jvertice)
+{
+    // update vertices data
+    
+    gen::merge<T>(_vertices[ivertice], _vertices[jvertice]);
+    
+    _vertices.erase(_vertices.begin() + jvertice);
+    
+    // update edges data
+    
+    _edges[ivertice].insert(_edges[jvertice].begin(), _edges[jvertice].end());
+    
+    _edges[ivertice].erase(jvertice);
+    
+    _edges.erase(_edges.begin() + jvertice);
+    
+    // update indexing scheme in edges data
+    
+    const auto nedges = static_cast<int>(_edges.size());
+    
+    for (int i = 0; i < nedges; i++)
+    {
+        if (_edges[i].erase(jvertice) > 0)
+        {
+            if (i < ivertice )
+            {
+                _edges[i].insert(ivertice);
+            }
+        }
+
+       for (int j = jvertice + 1; j < nedges + 1; j++)
+       {
+            if (_edges[i].erase(j) > 0)
+            {
+                _edges[i].insert(j - 1);
+            }
+       }
+    }
+}
+
+template <class T>
 Graph<T>
 Graph<T>::invert() const
 {
@@ -251,6 +306,42 @@ Graph<T>::invert() const
     }
     
     return Graph(new_vertices, new_edges);
+}
+
+template <class T>
+void
+Graph<T>::reduce()
+{
+    bool need_merge = true;
+    
+    while (need_merge)
+    {
+        need_merge = false;
+                
+        for (int32_t i = 0; i < vertices(); i++)
+        {
+            auto pair = std::make_tuple(i, i);
+            
+            for (int32_t j = i + 1; j < vertices(); j++)
+            {
+                if (gen::similar(_vertices[i], _vertices[j]))
+                {
+                    pair = std::make_tuple(i, j);
+                    
+                    break;
+                }
+            }
+            
+            if (const auto [idx, jdx] = pair; idx != jdx)
+            {
+                merge(idx, jdx);
+                
+                need_merge = true;
+                
+                break;
+            }
+        }
+    }
 }
 
 template <class T>

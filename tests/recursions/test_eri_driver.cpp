@@ -963,6 +963,8 @@ TEST_F(EriDriverTest, ApplyBraHrrWithGraphForPP)
     EXPECT_EQ(rgraph.edge(2), std::set<int>({}));
 }
 
+#include <iostream>
+
 TEST_F(EriDriverTest, ApplyBraHrrWithGraphForDD)
 {
     EriDriver eri_drv;
@@ -981,6 +983,20 @@ TEST_F(EriDriverTest, ApplyBraHrrWithGraphForDD)
     
     const auto d_yy = TensorComponent(0, 2, 0);
     
+    const auto f_xxx = TensorComponent(3, 0, 0);
+    
+    const auto f_xxy = TensorComponent(2, 1, 0);
+    
+    const auto f_xyy = TensorComponent(1, 2, 0);
+    
+    const auto f_yyy = TensorComponent(0, 3, 0);
+    
+    const auto g_xxxx = TensorComponent(4, 0, 0);
+    
+    const auto g_xxyy = TensorComponent(2, 2, 0);
+    
+    const auto g_yyyy = TensorComponent(0, 4, 0);
+    
     const auto operi = OperatorComponent("1/|r-r'|");
     
     const auto b_xx_xx = T2CPair({"GA", "GB"}, {d_xx, d_xx});
@@ -997,11 +1013,11 @@ TEST_F(EriDriverTest, ApplyBraHrrWithGraphForDD)
     
     const auto t_yy_yy = T4CIntegral(b_yy_yy, k_0_0, operi);
     
-    const auto rd_xx_xx =  R4CDist(R4CTerm(t_xx_xx));
+    auto rd_xx_xx =  R4CDist(R4CTerm(t_xx_xx));
     
-    const auto rd_xy_xy =  R4CDist(R4CTerm(t_xy_xy));
+    auto rd_xy_xy =  R4CDist(R4CTerm(t_xy_xy));
     
-    const auto rd_yy_yy =  R4CDist(R4CTerm(t_yy_yy));
+    auto rd_yy_yy =  R4CDist(R4CTerm(t_yy_yy));
     
     // initialize graph
     
@@ -1013,8 +1029,233 @@ TEST_F(EriDriverTest, ApplyBraHrrWithGraphForDD)
     
     eri_drv.apply_bra_hrr(rgraph, sints);
     
+    // check number of vertices
     
-    // compare by terms
+    EXPECT_EQ(rgraph.vertices(), 6);
     
-    EXPECT_EQ(rgraph.vertices(), 3);
+    // reference (pd|ss) integrals
+    
+    const auto b_x_xx = T2CPair({"GA", "GB"}, {p_x, d_xx});
+    
+    const auto b_y_xy = T2CPair({"GA", "GB"}, {p_y, d_xy});
+    
+    const auto b_y_yy = T2CPair({"GA", "GB"}, {p_y, d_yy});
+    
+    const auto t_x_xx = T4CIntegral(b_x_xx, k_0_0, operi);
+    
+    const auto t_y_xy = T4CIntegral(b_y_xy, k_0_0, operi);
+    
+    const auto t_y_yy = T4CIntegral(b_y_yy, k_0_0, operi);
+    
+    const auto rabx = Factor("AB", "rab", TensorComponent(1, 0, 0));
+    
+    const auto raby = Factor("AB", "rab", TensorComponent(0, 1, 0));
+    
+    const auto rt_x_xx = R4CTerm(t_x_xx, {{rabx, 1},}, Fraction(-1));
+    
+    const auto rt_y_xy = R4CTerm(t_y_xy, {{rabx, 1},}, Fraction(-1));
+    
+    const auto rt_y_yy = R4CTerm(t_y_yy, {{raby, 1},}, Fraction(-1));
+    
+    // reference (pf|ss) integrals
+    
+    const auto b_x_xxx = T2CPair({"GA", "GB"}, {p_x, f_xxx});
+    
+    const auto b_y_xxy = T2CPair({"GA", "GB"}, {p_y, f_xxy});
+    
+    const auto b_y_yyy = T2CPair({"GA", "GB"}, {p_y, f_yyy});
+    
+    const auto t_x_xxx = T4CIntegral(b_x_xxx, k_0_0, operi);
+    
+    const auto t_y_xxy = T4CIntegral(b_y_xxy, k_0_0, operi);
+    
+    const auto t_y_yyy = T4CIntegral(b_y_yyy, k_0_0, operi);
+    
+    const auto rt_x_xxx = R4CTerm(t_x_xxx);
+    
+    const auto rt_y_xxy = R4CTerm(t_y_xxy);
+    
+    const auto rt_y_yyy = R4CTerm(t_y_yyy);
+    
+    // check first recursion step
+    
+    rd_xx_xx =  R4CDist(R4CTerm(t_xx_xx), {rt_x_xxx, rt_x_xx,});
+    
+    rd_xy_xy =  R4CDist(R4CTerm(t_xy_xy), {rt_y_xxy, rt_y_xy});
+    
+    rd_yy_yy =  R4CDist(R4CTerm(t_yy_yy), {rt_y_yyy, rt_y_yy});
+    
+    EXPECT_EQ(rgraph[0], R4Group({rd_xx_xx, rd_xy_xy, rd_yy_yy,}));
+    
+    // reference (sd|ss) integrals
+    
+    const auto b_0_xx = T2CPair({"GA", "GB"}, {s_0, d_xx});
+    
+    const auto b_0_xy = T2CPair({"GA", "GB"}, {s_0, d_xy});
+    
+    const auto b_0_yy = T2CPair({"GA", "GB"}, {s_0, d_yy});
+    
+    const auto t_0_xx = T4CIntegral(b_0_xx, k_0_0, operi);
+    
+    const auto t_0_xy = T4CIntegral(b_0_xy, k_0_0, operi);
+    
+    const auto t_0_yy = T4CIntegral(b_0_yy, k_0_0, operi);
+    
+    const auto rt_0_xx = R4CTerm(t_0_xx, {{rabx, 1},}, Fraction(-1));
+    
+    const auto rt_0_xy = R4CTerm(t_0_xy, {{raby, 1},}, Fraction(-1));
+    
+    const auto rt_0_yy = R4CTerm(t_0_yy, {{raby, 1},}, Fraction(-1));
+    
+    // reference (sf|ss) integrals
+    
+    const auto b_0_xxx = T2CPair({"GA", "GB"}, {s_0, f_xxx});
+    
+    const auto b_0_xxy = T2CPair({"GA", "GB"}, {s_0, f_xxy});
+    
+    const auto b_0_xyy = T2CPair({"GA", "GB"}, {s_0, f_xyy});
+    
+    const auto b_0_yyy = T2CPair({"GA", "GB"}, {s_0, f_yyy});
+    
+    const auto t_0_xxx = T4CIntegral(b_0_xxx, k_0_0, operi);
+    
+    const auto t_0_xxy = T4CIntegral(b_0_xxy, k_0_0, operi);
+    
+    const auto t_0_xyy = T4CIntegral(b_0_xyy, k_0_0, operi);
+    
+    const auto t_0_yyy = T4CIntegral(b_0_yyy, k_0_0, operi);
+    
+    auto rt_0_xxx = R4CTerm(t_0_xxx);
+    
+    auto rt_0_xxy = R4CTerm(t_0_xxy);
+    
+    auto rt_0_xyy = R4CTerm(t_0_xyy);
+   
+    auto rt_0_yyy = R4CTerm(t_0_yyy);
+    
+    // check second step in recursion
+    
+    auto rd_x_xx =  R4CDist(R4CTerm(t_x_xx), {rt_0_xxx, rt_0_xx,});
+    
+    auto rd_y_xy =  R4CDist(R4CTerm(t_y_xy), {rt_0_xyy, rt_0_xy});
+    
+    auto rd_y_yy =  R4CDist(R4CTerm(t_y_yy), {rt_0_yyy, rt_0_yy});
+    
+    EXPECT_EQ(rgraph[1], R4Group({rd_x_xx, rd_y_xy, rd_y_yy,}));
+    
+    // reference (sg|ss) integrals
+    
+    const auto b_0_xxxx = T2CPair({"GA", "GB"}, {s_0, g_xxxx});
+    
+    const auto b_0_xxyy = T2CPair({"GA", "GB"}, {s_0, g_xxyy});
+    
+    const auto b_0_yyyy = T2CPair({"GA", "GB"}, {s_0, g_yyyy});
+    
+    const auto t_0_xxxx = T4CIntegral(b_0_xxxx, k_0_0, operi);
+    
+    const auto t_0_xxyy = T4CIntegral(b_0_xxyy, k_0_0, operi);
+    
+    const auto t_0_yyyy = T4CIntegral(b_0_yyyy, k_0_0, operi);
+    
+    auto rt_0_xxxx = R4CTerm(t_0_xxxx);
+    
+    auto rt_0_xxyy = R4CTerm(t_0_xxyy);
+   
+    auto rt_0_yyyy = R4CTerm(t_0_yyyy);
+    
+    // update recursion (sf|ss) terms
+    
+    rt_0_yyy.add(raby); rt_0_yyy.scale(Fraction(-1));
+    
+    rt_0_xxy.add(raby); rt_0_xxy.scale(Fraction(-1));
+    
+    rt_0_xxx.add(rabx); rt_0_xxx.scale(Fraction(-1));
+    
+    // check third recursion term
+    
+    auto rd_x_xxx =  R4CDist(R4CTerm(t_x_xxx), {rt_0_xxxx, rt_0_xxx,});
+    
+    auto rd_y_xxy =  R4CDist(R4CTerm(t_y_xxy), {rt_0_xxyy, rt_0_xxy});
+    
+    auto rd_y_yyy =  R4CDist(R4CTerm(t_y_yyy), {rt_0_yyyy, rt_0_yyy});
+    
+    EXPECT_EQ(rgraph[2], R4Group({rd_x_xxx, rd_y_xxy, rd_y_yyy,}));
+    
+    // check fourth recursion term
+    
+    auto rd_0_xx =  R4CDist(R4CTerm(t_0_xx));
+    
+    auto rd_0_xy =  R4CDist(R4CTerm(t_0_xy));
+    
+    auto rd_0_yy =  R4CDist(R4CTerm(t_0_yy));
+    
+    EXPECT_EQ(rgraph[3], R4Group({rd_0_xx, rd_0_xy, rd_0_yy,}));
+    
+    // check fifth recursion term
+    
+    auto rd_0_xxx =  R4CDist(R4CTerm(t_0_xxx));
+    
+    auto rd_0_xxy =  R4CDist(R4CTerm(t_0_xxy));
+    
+    auto rd_0_xyy =  R4CDist(R4CTerm(t_0_xyy));
+    
+    auto rd_0_yyy =  R4CDist(R4CTerm(t_0_yyy));
+    
+    EXPECT_EQ(rgraph[4], R4Group({rd_0_xxx, rd_0_xxy, rd_0_xyy, rd_0_yyy,}));
+    
+    // check sixth recursion term
+    
+    auto rd_0_xxxx =  R4CDist(R4CTerm(t_0_xxxx));
+    
+    auto rd_0_xxyy =  R4CDist(R4CTerm(t_0_xxyy));
+    
+    auto rd_0_yyyy =  R4CDist(R4CTerm(t_0_yyyy));
+    
+    EXPECT_EQ(rgraph[5], R4Group({rd_0_xxxx, rd_0_xxyy, rd_0_yyyy,}));
+    
+    // check common integrals set
+    
+    std::set<T4CIntegral> rints = {t_0_xx, t_0_xy, t_0_yy,
+                                   t_0_xxx, t_0_xxy, t_0_xyy, t_0_yyy,
+                                   t_0_xxxx, t_0_xxyy, t_0_yyyy,
+                                   t_x_xx, t_y_xy, t_y_yy,
+                                   t_x_xxx, t_y_xxy, t_y_yyy};
+    
+    EXPECT_EQ(sints, rints);
+    
+    // check edges
+    
+    EXPECT_EQ(rgraph.edge(0), std::set<int>({1, 2}));
+    
+    EXPECT_EQ(rgraph.edge(1), std::set<int>({3, 4}));
+    
+    EXPECT_EQ(rgraph.edge(2), std::set<int>({4, 5}));
+    
+    EXPECT_EQ(rgraph.edge(3), std::set<int>({}));
+    
+    EXPECT_EQ(rgraph.edge(4), std::set<int>({}));
+    
+    EXPECT_EQ(rgraph.edge(5), std::set<int>({}));
 }
+
+
+//const auto nverts = rgraph.vertices();
+//
+//for (int i = 0; i < nverts; i++)
+//{
+//    std::cout << "Vertice: " << i << std::endl;
+//
+//    for (const auto& tval : rgraph[i].roots())
+//    {
+//        std::cout << tval.integral().label() << " ";
+//    }
+//
+//    std::cout << std::endl;
+//
+//    for (const auto& tval : rgraph.edge(i))
+//    {
+//        std::cout << tval << " ";
+//    }
+//
+//    std::cout << std::endl;
+//}

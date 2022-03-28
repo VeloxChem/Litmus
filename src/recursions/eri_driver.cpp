@@ -427,9 +427,6 @@ EriDriver::apply_ket_vrr(const V4CTerms&      rterms,
     return rgroup;
 }
 
-
-#include <iostream>
-
 void
 EriDriver::apply_bra_hrr(R4Graph&       rgraph,
                          ST4CIntegrals& sints) const
@@ -482,15 +479,5 @@ EriDriver::apply_bra_hrr(R4Graph&       rgraph,
         if (cnt == 0) use_hrr = false;
     }
     
-    for (int i = 0; i < rgraph.vertices(); i++)
-    {
-        std::cout << "** Graph term = " << i <<  std::endl;
-        
-        for (const auto& tval : rgraph[i].roots())
-        {
-            std::cout << tval.label() <<  " : "; 
-        }
-        
-        std::cout << std::endl;
-    }
+    rgraph.reduce();
 }

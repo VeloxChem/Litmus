@@ -62,6 +62,11 @@ public:
     /// @return true if this recursion expansion is less than other recursion expansion, false otherwise.
     bool operator<(const RecursionExpansion<T>& other) const;
     
+    /// Checks if this recursion expansion is similar to other recursion expansion.
+    /// @param other The other recursion expansion to compare.
+    /// @return True if recursion expansions  are similar, false otherwise.
+    bool similar(const RecursionExpansion<T>& other) const;
+    
     /// Adds recursion term to expansion of root recursion expansion.
     /// @param rterm The recursion term to add.
     void add(const RecursionTerm<T>& rterm);
@@ -153,6 +158,13 @@ RecursionExpansion<T>::operator<(const RecursionExpansion<T>& other) const
     {
         return _expansion < other._expansion;
     }
+}
+
+template <class T>
+bool
+RecursionExpansion<T>::similar(const RecursionExpansion<T>& other) const
+{
+    return _root.similar(other._root); 
 }
 
 template <class T>

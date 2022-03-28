@@ -57,9 +57,23 @@ public:
     /// @return true if this recursion group is less than other recursion group, false otherwise.
     bool operator<(const RecursionGroup<T>& other) const;
     
+    /// Checks if this recursion group is similar to other recursion group.
+    /// @param other The other recursion group to compare.
+    /// @return True if recursion groups  are similar, false otherwise.
+    bool similar(const RecursionGroup<T>& other) const;
+    
     /// Adds recursion expansion to recursion expansion group.
     /// @param expansion The recursion expansion to add.
     void add(const RecursionExpansion<T>& expansion);
+    
+    /// Merges given recursion expansion into this recursion  group.
+    /// @param other The recursion group to merge.
+    void merge(const RecursionGroup<T>& other);
+    
+    /// Cheks if recursion group contains the given recursion expansion.
+    /// @param rexp The recursion expansion to check.
+    /// @return Ture if recursion group contains given recursion expansion, false otherwise.
+    bool contains(const RecursionExpansion<T>& rexp) const;
     
     /// Gets number of recursion expansions in recursion group.
     /// @return The number of recursion expansions in recursion group.
@@ -135,10 +149,55 @@ RecursionGroup<T>::operator<(const RecursionGroup<T>& other) const
 }
 
 template <class T>
+bool
+RecursionGroup<T>::similar(const RecursionGroup<T>& other) const
+{
+    for (const auto& rhsrt : _expansions)
+    {
+        for (const auto lhsrt : other._expansions)
+        {
+            if (!lhsrt.similar(rhsrt))
+            {
+                return false;
+            }
+        }
+    }
+    
+    return true; 
+}
+
+template <class T>
 void
 RecursionGroup<T>::add(const RecursionExpansion<T>& expansion)
 {
     _expansions.push_back(expansion);
+    
+    std::sort(_expansions.begin(), _expansions.end());
+}
+
+template <class T>
+bool
+RecursionGroup<T>::contains(const RecursionExpansion<T>& rexp) const
+{
+    for (const auto& tval : _expansions)
+    {
+        if (tval.root() == rexp.root())
+        {
+            return true;
+        }
+    }
+    
+    return false; 
+}
+
+template <class T>
+void
+RecursionGroup<T>::merge(const RecursionGroup<T>& other)
+{
+    for (const auto& tval : other._expansions)
+    {
+        if (!contains(tval)) _expansions.push_back(tval);
+    }
     
     std::sort(_expansions.begin(), _expansions.end());
 }

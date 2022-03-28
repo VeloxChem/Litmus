@@ -241,3 +241,31 @@ TEST_F(GraphTest, Orpahns)
     
     EXPECT_EQ(rg.orphans(), std::vector<int>({4,}));
 }
+
+TEST_F(GraphTest, Merge)
+{
+    auto tg = Graph<std::string>({"A", "B", "C", "D", "E",},
+                                 {{1, 2, 3}, {2, 3, 4}, {3, 4}, {4}, {},});
+
+    tg.merge(1, 3);
+    
+    EXPECT_EQ(tg.vertices(), 4);
+    
+    auto rg = Graph<std::string>({"A", "BD", "C", "E",},
+                                 {{1, 2}, {2, 3}, {3}, {},});
+    
+    EXPECT_EQ(tg, rg);
+}
+
+TEST_F(GraphTest, Similar)
+{
+    auto tg = Graph<std::string>({"A", "B", "C", "B", "BB",},
+                                 {{1, 2, 3}, {2, 3, 4}, {3, 4}, {4}, {},});
+
+    tg.reduce();
+    
+    const auto rg = Graph<std::string>({"A", "BBBB", "C",},
+                                       {{1, 2}, {2}, {},});
+    
+    EXPECT_EQ(tg, rg);
+}
