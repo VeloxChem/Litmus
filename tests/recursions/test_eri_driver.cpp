@@ -956,13 +956,13 @@ TEST_F(EriDriverTest, ApplyBraHrrWithGraphForPP)
     
     EXPECT_EQ(rgraph[0], R4Group({hrr_x_x, hrr_x_y, hrr_y_y}));
     
-    EXPECT_EQ(rgraph[1], R4Group({rd_0_y, rd_0_x}));
+    EXPECT_EQ(rgraph[1], R4Group({rd_0_yy, rd_0_xy, rd_0_xx}));
     
-    EXPECT_EQ(rgraph[2], R4Group({rd_0_yy, rd_0_xy, rd_0_xx}));
+    EXPECT_EQ(rgraph[2], R4Group({rd_0_y, rd_0_x}));
     
     EXPECT_EQ(sints, rints);
     
-    EXPECT_EQ(rgraph.edge(0), std::set<int>({1,2}));
+    EXPECT_EQ(rgraph.edge(0), std::set<int>({1, 2}));
     
     EXPECT_EQ(rgraph.edge(1), std::set<int>({}));
     
@@ -1083,11 +1083,11 @@ TEST_F(EriDriverTest, ApplyBraHrrWithGraphForDD)
     
     // check first recursion step
     
-    rd_xx_xx =  R4CDist(R4CTerm(t_xx_xx), {rt_x_xxx, rt_x_xx,});
+    rd_xx_xx = R4CDist(R4CTerm(t_xx_xx), {rt_x_xxx, rt_x_xx,});
     
-    rd_xy_xy =  R4CDist(R4CTerm(t_xy_xy), {rt_y_xxy, rt_y_xy});
+    rd_xy_xy = R4CDist(R4CTerm(t_xy_xy), {rt_y_xxy, rt_y_xy});
     
-    rd_yy_yy =  R4CDist(R4CTerm(t_yy_yy), {rt_y_yyy, rt_y_yy});
+    rd_yy_yy = R4CDist(R4CTerm(t_yy_yy), {rt_y_yyy, rt_y_yy});
     
     EXPECT_EQ(rgraph[0], R4Group({rd_xx_xx, rd_xy_xy, rd_yy_yy,}));
     
@@ -1145,7 +1145,7 @@ TEST_F(EriDriverTest, ApplyBraHrrWithGraphForDD)
     
     auto rd_y_yy =  R4CDist(R4CTerm(t_y_yy), {rt_0_yyy, rt_0_yy});
     
-    EXPECT_EQ(rgraph[1], R4Group({rd_x_xx, rd_y_xy, rd_y_yy,}));
+    EXPECT_EQ(rgraph[2], R4Group({rd_x_xx, rd_y_xy, rd_y_yy,}));
     
     // reference (sg|ss) integrals
     
@@ -1183,7 +1183,7 @@ TEST_F(EriDriverTest, ApplyBraHrrWithGraphForDD)
     
     auto rd_y_yyy =  R4CDist(R4CTerm(t_y_yyy), {rt_0_yyyy, rt_0_yyy});
     
-    EXPECT_EQ(rgraph[2], R4Group({rd_x_xxx, rd_y_xxy, rd_y_yyy,}));
+    EXPECT_EQ(rgraph[1], R4Group({rd_x_xxx, rd_y_xxy, rd_y_yyy,}));
     
     // check fourth recursion term
     
@@ -1193,7 +1193,7 @@ TEST_F(EriDriverTest, ApplyBraHrrWithGraphForDD)
     
     auto rd_0_yy =  R4CDist(R4CTerm(t_0_yy));
     
-    EXPECT_EQ(rgraph[3], R4Group({rd_0_xx, rd_0_xy, rd_0_yy,}));
+    EXPECT_EQ(rgraph[5], R4Group({rd_0_xx, rd_0_xy, rd_0_yy,}));
     
     // check fifth recursion term
     
@@ -1215,7 +1215,7 @@ TEST_F(EriDriverTest, ApplyBraHrrWithGraphForDD)
     
     auto rd_0_yyyy =  R4CDist(R4CTerm(t_0_yyyy));
     
-    EXPECT_EQ(rgraph[5], R4Group({rd_0_xxxx, rd_0_xxyy, rd_0_yyyy,}));
+    EXPECT_EQ(rgraph[3], R4Group({rd_0_xxxx, rd_0_xxyy, rd_0_yyyy,}));
     
     // check common integrals set
     
@@ -1418,7 +1418,7 @@ TEST_F(EriDriverTest, ApplyKetHrrWithGraphForDD)
     
     auto rd_y_yy =  R4CDist(R4CTerm(t_y_yy), {rt_0_yyy, rt_0_yy});
     
-    EXPECT_EQ(rgraph[1], R4Group({rd_x_xx, rd_y_xy, rd_y_yy,}));
+    EXPECT_EQ(rgraph[2], R4Group({rd_x_xx, rd_y_xy, rd_y_yy,}));
     
     // reference (ss|sg) integrals
     
@@ -1456,7 +1456,7 @@ TEST_F(EriDriverTest, ApplyKetHrrWithGraphForDD)
     
     auto rd_y_yyy =  R4CDist(R4CTerm(t_y_yyy), {rt_0_yyyy, rt_0_yyy});
     
-    EXPECT_EQ(rgraph[2], R4Group({rd_x_xxx, rd_y_xxy, rd_y_yyy,}));
+    EXPECT_EQ(rgraph[1], R4Group({rd_x_xxx, rd_y_xxy, rd_y_yyy,}));
     
     // check fourth recursion term
     
@@ -1466,7 +1466,7 @@ TEST_F(EriDriverTest, ApplyKetHrrWithGraphForDD)
     
     auto rd_0_yy =  R4CDist(R4CTerm(t_0_yy));
     
-    EXPECT_EQ(rgraph[3], R4Group({rd_0_xx, rd_0_xy, rd_0_yy,}));
+    EXPECT_EQ(rgraph[5], R4Group({rd_0_xx, rd_0_xy, rd_0_yy,}));
     
     // check fifth recursion term
     
@@ -1488,7 +1488,7 @@ TEST_F(EriDriverTest, ApplyKetHrrWithGraphForDD)
     
     auto rd_0_yyyy =  R4CDist(R4CTerm(t_0_yyyy));
     
-    EXPECT_EQ(rgraph[5], R4Group({rd_0_xxxx, rd_0_xxyy, rd_0_yyyy,}));
+    EXPECT_EQ(rgraph[3], R4Group({rd_0_xxxx, rd_0_xxyy, rd_0_yyyy,}));
     
     // check common integrals set
     
@@ -1553,11 +1553,61 @@ TEST_F(EriDriverTest, ApplyBraVrrWithGraphForDD)
     
     const auto b_0_yy = T2CPair({"GC", "GD"}, {s_0, d_yy});
     
+    const auto b_0_x = T2CPair({"GC", "GD"}, {s_0, p_x});
+
+    const auto b_0_y = T2CPair({"GC", "GD"}, {s_0, p_y});
+    
+    const auto b_0_0 = T2CPair({"GC", "GD"}, {s_0, s_0});
+    
     const auto t_xx_xx = T4CIntegral(b_0_xx, k_0_xx, operi);
     
     const auto t_xy_xy = T4CIntegral(b_0_xy, k_0_xy, operi);
     
     const auto t_yy_yy = T4CIntegral(b_0_yy, k_0_yy, operi);
+    
+    const auto t_x_xx_0 = T4CIntegral(b_0_x, k_0_xx, operi);
+    
+    const auto t_y_xy_0 = T4CIntegral(b_0_y, k_0_xy, operi);
+    
+    const auto t_y_yy_0 = T4CIntegral(b_0_y, k_0_yy, operi);
+    
+    const auto t_x_xx_1 = T4CIntegral(b_0_x, k_0_xx, operi, 1);
+    
+    const auto t_y_xy_1 = T4CIntegral(b_0_y, k_0_xy, operi, 1);
+    
+    const auto t_y_yy_1 = T4CIntegral(b_0_y, k_0_yy, operi, 1);
+    
+    const auto t_0_xx_0 = T4CIntegral(b_0_0, k_0_xx, operi);
+    
+    const auto t_0_xy_0 = T4CIntegral(b_0_0, k_0_xy, operi);
+    
+    const auto t_0_yy_0 = T4CIntegral(b_0_0, k_0_yy, operi);
+    
+    const auto t_0_xx_1 = T4CIntegral(b_0_0, k_0_xx, operi, 1);
+    
+    const auto t_0_xy_1 = T4CIntegral(b_0_0, k_0_xy, operi, 1);
+    
+    const auto t_0_yy_1 = T4CIntegral(b_0_0, k_0_yy, operi, 1);
+    
+    const auto t_0_xx_2 = T4CIntegral(b_0_0, k_0_xx, operi, 2);
+    
+    const auto t_0_xy_2 = T4CIntegral(b_0_0, k_0_xy, operi, 2);
+    
+    const auto t_0_yy_2 = T4CIntegral(b_0_0, k_0_yy, operi, 2);
+    
+    const auto t_x_x_1 = T4CIntegral(b_0_x, k_0_x, operi, 1);
+    
+    const auto t_y_y_1 = T4CIntegral(b_0_y, k_0_y, operi, 1);
+    
+    const auto t_0_x_2 = T4CIntegral(b_0_0, k_0_x, operi, 2);
+    
+    const auto t_0_y_2 = T4CIntegral(b_0_0, k_0_y, operi, 2);
+    
+    const auto t_0_x_1 = T4CIntegral(b_0_0, k_0_x, operi, 1);
+    
+    const auto t_0_y_1 = T4CIntegral(b_0_0, k_0_y, operi, 1);
+    
+    const auto t_0_0_2 = T4CIntegral(b_0_0, k_0_0, operi, 2);
     
     auto rd_xx_xx =  R4CDist(R4CTerm(t_xx_xx));
     
@@ -1577,43 +1627,106 @@ TEST_F(EriDriverTest, ApplyBraVrrWithGraphForDD)
     
     // check number of vertices
     
-    EXPECT_EQ(rgraph.vertices(), 6);
+    EXPECT_EQ(rgraph.vertices(), 10);
     
-    const auto nverts = rgraph.vertices();
+    // first recursion step
     
-    std::set<I4CIntegral> gints;
+    std::set<T4CIntegral> rints;
     
-    for (int i = 0; i < nverts; i++)
-    {
-        std::cout << "Vertice: " << i << std::endl;
+    rd_yy_yy = eri_drv.apply_bra_vrr(R4CTerm(t_yy_yy), rints);
     
-        for (const auto& tval : rgraph[i].roots())
-        {
-            auto gint = I4CIntegral(tval.integral());
-            
-            gints.insert(gint);
-            
-            std::cout << tval.integral().label(true) << "->" << gint.label(true) << " ";
-        }
-        
+    rd_xy_xy = eri_drv.apply_bra_vrr(R4CTerm(t_xy_xy), rints);
     
-        std::cout << std::endl;
+    rd_xx_xx = eri_drv.apply_bra_vrr(R4CTerm(t_xx_xx), rints);
     
-        for (const auto& tval : rgraph.edge(i))
-        {
-            std::cout << tval << " ";
-        }
+    EXPECT_EQ(rgraph[0], R4Group({rd_xx_xx, rd_xy_xy, rd_yy_yy,}));
     
-        std::cout << std::endl;
-    }
+    // second recursion step
     
-    for (const auto& tval : gints)
-    {
-        std::cout << tval.label(true) << " ";
-    }
+    const auto rd_y_yy_1 = eri_drv.apply_bra_vrr(R4CTerm(t_y_yy_1), rints);
+    
+    const auto rd_y_xy_1 = eri_drv.apply_bra_vrr(R4CTerm(t_y_xy_1), rints);
+    
+    const auto rd_x_xx_1 = eri_drv.apply_bra_vrr(R4CTerm(t_x_xx_1), rints);
+    
+    EXPECT_EQ(rgraph[1], R4Group({rd_x_xx_1, rd_y_xy_1, rd_y_yy_1,}));
+    
+    // third recursion step
+    
+    const auto rd_y_yy_0 = eri_drv.apply_bra_vrr(R4CTerm(t_y_yy_0), rints);
+    
+    const auto rd_y_xy_0 = eri_drv.apply_bra_vrr(R4CTerm(t_y_xy_0), rints);
+    
+    const auto rd_x_xx_0 = eri_drv.apply_bra_vrr(R4CTerm(t_x_xx_0), rints);
+    
+    EXPECT_EQ(rgraph[2], R4Group({rd_x_xx_0, rd_y_xy_0, rd_y_yy_0,}));
+    
+    // fourth recursion step
+    
+    const auto rd_y_y_1 = eri_drv.apply_bra_vrr(R4CTerm(t_y_y_1), rints);
+    
+    const auto rd_x_x_1 = eri_drv.apply_bra_vrr(R4CTerm(t_x_x_1), rints);
+    
+    EXPECT_EQ(rgraph[3], R4Group({rd_x_x_1, rd_y_y_1,}));
+    
+    // fifth recursion step
+    
+    const auto rd_0_yy_2 = R4CDist(R4CTerm(t_0_yy_2));
+    
+    const auto rd_0_xy_2 = R4CDist(R4CTerm(t_0_xy_2));
+    
+    const auto rd_0_xx_2 = R4CDist(R4CTerm(t_0_xx_2));
+    
+    EXPECT_EQ(rgraph[4], R4Group({rd_0_xx_2, rd_0_xy_2, rd_0_yy_2}));
+    
+    // sixth recursion step
+    
+    const auto rd_0_yy_1 = R4CDist(R4CTerm(t_0_yy_1));
+    
+    const auto rd_0_xy_1 = R4CDist(R4CTerm(t_0_xy_1));
+    
+    const auto rd_0_xx_1 = R4CDist(R4CTerm(t_0_xx_1));
+    
+    EXPECT_EQ(rgraph[5], R4Group({rd_0_xx_1, rd_0_xy_1, rd_0_yy_1}));
+    
+    // seventh recursion step
+    
+    const auto rd_0_yy_0 = R4CDist(R4CTerm(t_0_yy_0));
+    
+    const auto rd_0_xy_0 = R4CDist(R4CTerm(t_0_xy_0));
+    
+    const auto rd_0_xx_0 = R4CDist(R4CTerm(t_0_xx_0));
+    
+    EXPECT_EQ(rgraph[6], R4Group({rd_0_xx_0, rd_0_xy_0, rd_0_yy_0}));
+    
+    // eight recursion step
+    
+    const auto rd_0_y_2 = R4CDist(R4CTerm(t_0_y_2));
+    
+    const auto rd_0_x_2 = R4CDist(R4CTerm(t_0_x_2));
+    
+    EXPECT_EQ(rgraph[7], R4Group({rd_0_x_2, rd_0_y_2,}));
+    
+    // ninth recursion step
+    
+    const auto rd_0_y_1 = R4CDist(R4CTerm(t_0_y_1));
+    
+    const auto rd_0_x_1 = R4CDist(R4CTerm(t_0_x_1));
+    
+    EXPECT_EQ(rgraph[8], R4Group({rd_0_x_1, rd_0_y_1,}));
+    
+    // tenth recursion step
+    
+    const auto rd_0_0_2 = R4CDist(R4CTerm(t_0_0_2));
+    
+    EXPECT_EQ(rgraph[9], R4Group({rd_0_0_2, }));
+    
+    // check custom integrals buffer
+    
+    EXPECT_EQ(rints, sints);
 }
 
-TEST_F(EriDriverTest, ApplyKetVrrWithGraphForDD)
+TEST_F(EriDriverTest, ApplyKetVrrWithGraphForSD)
 {
     EriDriver eri_drv;
     
@@ -1721,36 +1834,57 @@ TEST_F(EriDriverTest, ApplyKetVrrWithGraphForDD)
     
     const auto rt_0_0_0_1 = R4CTerm(t_0_0_1, {{fre2, 1},}, Fraction(-1, 2));
     
-    rd_0_xx =  R4CDist(R4CTerm(t_0_xx), {rt_0_x_x_0, rt_0_x_x_1, rt_0_0_0_0, rt_0_0_0_1,});
+    rd_0_xx = R4CDist(R4CTerm(t_0_xx), {rt_0_x_x_0, rt_0_x_x_1, rt_0_0_0_0, rt_0_0_0_1,});
     
-    rd_0_xy =  R4CDist(R4CTerm(t_0_xy), {rt_0_x_y_0, rt_0_x_y_1,});
+    rd_0_xy = R4CDist(R4CTerm(t_0_xy), {rt_0_x_y_0, rt_0_x_y_1,});
     
-    rd_0_yy =  R4CDist(R4CTerm(t_0_yy), {rt_0_y_y_0, rt_0_y_y_1, rt_0_0_0_0, rt_0_0_0_1,});
+    rd_0_yy = R4CDist(R4CTerm(t_0_yy), {rt_0_y_y_0, rt_0_y_y_1, rt_0_0_0_0, rt_0_0_0_1,});
     
     EXPECT_EQ(rgraph[0], R4Group({rd_0_xx, rd_0_xy, rd_0_yy,}));
     
+    // second recursion step
     
+    auto rt_0_x_1 = R4CTerm(t_0_0_1, {{rqdx, 1},});
     
-    const auto nverts = rgraph.vertices();
+    auto rt_0_y_1 = R4CTerm(t_0_0_1, {{rqdy, 1},});
     
-    for (int i = 0; i < nverts; i++)
-    {
-        std::cout << "Vertice: " << i << std::endl;
+    const auto rt_0_x_2 = R4CTerm(t_0_0_2, {{rwqx, 1},});
     
-        for (const auto& tval : rgraph[i].roots())
-        {
-            std::cout << tval.integral().label(true) << " ";
-        }
+    const auto rt_0_y_2 = R4CTerm(t_0_0_2, {{rwqy, 1},});
     
-        std::cout << std::endl;
+    const auto rd_0_x_1 = R4CDist(R4CTerm(t_0_x_1), {rt_0_x_1, rt_0_x_2});
     
-        for (const auto& tval : rgraph.edge(i))
-        {
-            std::cout << tval << " ";
-        }
+    const auto rd_0_y_1 = R4CDist(R4CTerm(t_0_y_1), {rt_0_y_1, rt_0_y_2});
     
-        std::cout << std::endl;
-    }
+    EXPECT_EQ(rgraph[1], R4Group({rd_0_x_1, rd_0_y_1}));
+    
+    // third recursion step
+    
+    const auto rt_0_x_0 = R4CTerm(t_0_0_0, {{rqdx, 1},});
+    
+    const auto rt_0_y_0 = R4CTerm(t_0_0_0, {{rqdy, 1},});
+    
+    rt_0_x_1 = R4CTerm(t_0_0_1, {{rwqx, 1},});
+    
+    rt_0_y_1 = R4CTerm(t_0_0_1, {{rwqy, 1},});
+    
+    const auto rd_0_x_0 = R4CDist(R4CTerm(t_0_x_0), {rt_0_x_0, rt_0_x_1});
+    
+    const auto rd_0_y_0 = R4CDist(R4CTerm(t_0_y_0), {rt_0_y_0, rt_0_y_1});
+    
+    EXPECT_EQ(rgraph[2], R4Group({rd_0_x_0, rd_0_y_0}));
+    
+    // fourth recursion step
+    
+    EXPECT_EQ(rgraph[3], R4Group({R4CTerm(t_0_0_2), }));
+    
+    // fifth recursion step
+    
+    EXPECT_EQ(rgraph[4], R4Group({R4CTerm(t_0_0_1), }));
+    
+    // sixth recursion step
+    
+    EXPECT_EQ(rgraph[5], R4Group({R4CTerm(t_0_0_0), }));
 }
 
 //const auto nverts = rgraph.vertices();
@@ -1772,4 +1906,37 @@ TEST_F(EriDriverTest, ApplyKetVrrWithGraphForDD)
 //    }
 //
 //    std::cout << std::endl;
+//}
+
+//const auto nverts = rgraph.vertices();
+//
+//std::set<I4CIntegral> gints;
+//
+//for (int i = 0; i < nverts; i++)
+//{
+//    std::cout << "Vertice: " << i << std::endl;
+//
+//    for (const auto& tval : rgraph[i].roots())
+//    {
+//        auto gint = I4CIntegral(tval.integral());
+//        
+//        gints.insert(gint);
+//        
+//        std::cout << tval.integral().label(true) << "->" << gint.label(true) << " ";
+//    }
+//    
+//
+//    std::cout << std::endl;
+//
+//    for (const auto& tval : rgraph.edge(i))
+//    {
+//        std::cout << tval << " ";
+//    }
+//
+//    std::cout << std::endl;
+//}
+//
+//for (const auto& tval : gints)
+//{
+//    std::cout << tval.label(true) << " ";
 //}

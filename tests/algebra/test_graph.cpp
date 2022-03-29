@@ -275,33 +275,34 @@ TEST_F(GraphTest, Indexes)
     const auto tg = Graph<std::string>({"A", "C", "B", "E", "D",},
                                        {{1, 2, 3}, {2, 3, 4}, {3, 4}, {4}, {},});
 
-    EXPECT_EQ(tg.indexes<std::string>(), std::vector<int>({0, 2, 1, 4, 3}));
+    EXPECT_EQ(tg.indexes<std::string>(false), std::vector<int>({0, 2, 1, 4, 3}));
+    
+    EXPECT_EQ(tg.indexes<std::string>(true), std::vector<int>({4, 2, 3, 0, 1}));
 }
 
-TEST_F(GraphTest, Sort)
+TEST_F(GraphTest, SortDecreasingOrder)
+{
+    auto tg = Graph<std::string>({"A", "C", "B", "E", "D",},
+                                 {{1, 2, 3}, {2, 3, 4}, {3, 4}, {4}, {},});
+    
+    tg.sort<std::string>(false);
+    
+    const auto rg = Graph<std::string>({"A", "B", "C", "D", "E",},
+                                       {{1, 2, 4}, {3, 4}, {1, 3, 4}, {}, {3},});
+    
+    EXPECT_EQ(tg, rg);
+}
+
+TEST_F(GraphTest, SortIncreasingOrder)
 {
     auto tg = Graph<std::string>({"A", "C", "B", "E", "D",},
                                  {{1, 2, 3}, {2, 3, 4}, {3, 4}, {4}, {},});
     
     tg.sort<std::string>(true);
     
-    
-    const auto nverts = tg.vertices();
-    
-    for (int i = 0; i < nverts; i++)
-    {
-        std::cout << "Vertice: " << i << std::endl;
-    
-        std::cout << "@value -> " << tg[i] << std::endl;
-   
-        std::cout << "@edges -> ";
-        
-        for (const auto& tval : tg.edge(i))
-        {
-            std::cout << tval << " ";
-        }
-    
-        std::cout << std::endl;
-    }
+    const auto rg = Graph<std::string>({"E", "D", "C", "B", "A",},
+                                       {{1}, {}, {0, 1, 3}, {0, 1}, {0, 2, 3},});
+
+    EXPECT_EQ(tg, rg);
 }
 

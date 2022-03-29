@@ -118,9 +118,10 @@ public:
     std::vector<int> orphans() const;
     
     /// Gets vector of indexes for ordering vertices.
+    /// @param rorder The reverse order flag.
     /// @return The vector of indexes.
     template <class U>
-    std::vector<int> indexes() const;
+    std::vector<int> indexes(const bool rorder) const;
 };
 
 template <class T>
@@ -323,20 +324,17 @@ template <class U>
 void
 Graph<T>::sort(const bool rorder)
 {
+    // intialize new vertices and edges
+    
+    std::vector<T> new_vertices(_vertices.size(), T());
+    
+    std::vector<std::set<int>> new_edges(_vertices.size(), std::set<int>());
+    
     // set up ordering indexes
     
-    auto vecids = indexes<U>();
-    
-    if (rorder)
-    {
-        vecids = std::vector<int>(vecids.rbegin(), vecids.rend());
-    }
+    auto vecids = indexes<U>(rorder);
     
     // reconstruct graph
-    
-    std::vector<T> new_vertices;
-    
-    std::vector<std::set<int>> new_edges;
     
     const auto nverts = vertices();
     
@@ -344,16 +342,11 @@ Graph<T>::sort(const bool rorder)
     {
         const auto idx = vecids[i];
         
-        new_vertices.push_back(_vertices[idx]);
+        new_vertices[idx] = _vertices[i];
         
-        new_edges.push_back(std::set<int>());
-        
-        for (int j = 0; j < nverts; j++)
+        for (const auto j : _edges[i])
         {
-            if (const auto tval = _edges[j].find(idx); tval != _edges[j].cend())
-            {
-                new_edges[i].insert(vecids[j]);
-            }
+            new_edges[idx].insert(vecids[j]);
         }
     }
     
@@ -434,7 +427,7 @@ Graph<T>::orphans() const
 template <class T>
 template <class U>
 std::vector<int>
-Graph<T>::indexes() const
+Graph<T>::indexes(const bool rorder) const
 {
     std::set<U> svalues;
     
@@ -450,7 +443,17 @@ Graph<T>::indexes() const
     
     if (_vertices.size() == svalues.size())
     {
-        std::vector<U> vvalues(svalues.begin(), svalues.end());
+        std::vector<U> vvalues;
+        
+        if (rorder)
+        {
+            vvalues = std::vector<U>(svalues.rbegin(), svalues.rend());
+        }
+        else
+        {
+            vvalues = std::vector<U>(svalues.begin(), svalues.end());
+        }
+        
         
         for (const auto& tvert : _vertices)
         {

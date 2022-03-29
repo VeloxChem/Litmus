@@ -478,6 +478,8 @@ EriDriver::apply_bra_hrr(R4Graph&       rgraph,
     }
     
     rgraph.reduce();
+    
+    rgraph.sort<I4CIntegral>(true);
 }
 
 void
@@ -533,6 +535,8 @@ EriDriver::apply_ket_hrr(R4Graph&       rgraph,
     }
     
     rgraph.reduce();
+    
+    rgraph.sort<I4CIntegral>(true); 
 }
 
 void
@@ -588,6 +592,8 @@ EriDriver::apply_bra_vrr(R4Graph&       rgraph,
     }
     
     rgraph.reduce();
+    
+    rgraph.sort<I4CIntegral>(true);
 }
 
 void
@@ -643,4 +649,6 @@ EriDriver::apply_ket_vrr(R4Graph&       rgraph,
     }
     
     rgraph.reduce();
+    
+    rgraph.sort<I4CIntegral>(true);
 }
