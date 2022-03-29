@@ -269,3 +269,39 @@ TEST_F(GraphTest, Similar)
     
     EXPECT_EQ(tg, rg);
 }
+
+TEST_F(GraphTest, Indexes)
+{
+    const auto tg = Graph<std::string>({"A", "C", "B", "E", "D",},
+                                       {{1, 2, 3}, {2, 3, 4}, {3, 4}, {4}, {},});
+
+    EXPECT_EQ(tg.indexes<std::string>(), std::vector<int>({0, 2, 1, 4, 3}));
+}
+
+TEST_F(GraphTest, Sort)
+{
+    auto tg = Graph<std::string>({"A", "C", "B", "E", "D",},
+                                 {{1, 2, 3}, {2, 3, 4}, {3, 4}, {4}, {},});
+    
+    tg.sort<std::string>(true);
+    
+    
+    const auto nverts = tg.vertices();
+    
+    for (int i = 0; i < nverts; i++)
+    {
+        std::cout << "Vertice: " << i << std::endl;
+    
+        std::cout << "@value -> " << tg[i] << std::endl;
+   
+        std::cout << "@edges -> ";
+        
+        for (const auto& tval : tg.edge(i))
+        {
+            std::cout << tval << " ";
+        }
+    
+        std::cout << std::endl;
+    }
+}
+

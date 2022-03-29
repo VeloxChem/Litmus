@@ -18,6 +18,7 @@
 #define generics_hpp
 
 #include <string>
+#include <optional>
 
 namespace gen
 {
@@ -50,7 +51,7 @@ merge(      std::string& lhsobj,
 template <class T>
 inline bool
 similar(const T& lhsobj,
-      const T& rhsobj)
+        const T& rhsobj)
 {
     return lhsobj.similar(rhsobj);
 }
@@ -65,6 +66,34 @@ similar(const std::string& lhsobj,
         const std::string& rhsobj)
 {
     return lhsobj == rhsobj;
+}
+
+
+/// Template function for getting base value of object.
+/// @param obj the object.
+/// @return the base value of this object.
+template <class T, class U>
+inline std::optional<U>
+base(const T& obj)
+{
+    return obj.template base<U>();
+}
+
+/// Template function for getting base value of object.
+/// @param obj the object.
+/// @return the base value of this object.
+template <> 
+inline std::optional<std::string>
+base(const std::string& obj)
+{
+    if (obj.empty())
+    {
+        return std::nullopt;
+    }
+    else
+    {
+        return obj;
+    }
 }
 
 }

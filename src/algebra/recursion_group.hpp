@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <optional>
 
 #include <recursion_expansion.hpp>
 
@@ -100,6 +101,11 @@ public:
     /// @return True if recursion group contains only auxilary recursion expansions,
     /// false otherwise.
     bool auxilary(const int center) const;
+    
+    /// Gets optional base integral of unniform recursion group.
+    /// @return The base integral of uniform recursion group.
+    template <class U>
+    std::optional<U> base() const;
 };
 
 template <class T>
@@ -300,6 +306,30 @@ RecursionGroup<T>::auxilary(const int center) const
     }
     
     return true;
+}
+
+template <class T>
+template <class U>
+std::optional<U>
+RecursionGroup<T>::base() const
+{
+    std::set<U> tints;
+    
+    for (const auto& tval : _expansions)
+    {
+        const auto root = tval.root();
+        
+        tints.insert(U(root.integral()));
+    }
+    
+    if (tints.size()  == 1)
+    {
+        return *(tints.begin());
+    }
+    else
+    {
+        return std::nullopt;
+    }
 }
 
 template <class T>

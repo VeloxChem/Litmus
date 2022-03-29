@@ -96,6 +96,11 @@ public:
     /// @return The inverted graph.
     Graph<T> invert() const;
     
+    /// Sorts this graph according to normal or reverse order.
+    /// @param rorder The flag to indicate the reverse ordering in solrting.
+    template <class U>
+    void sort(const bool rorder);
+    
     /// Reduces this graph to minimal representation by merging similar vertices.
     void reduce();
     
@@ -111,6 +116,11 @@ public:
     /// Gets vector of indexes of orphaned vertices.
     /// @return The vector of indexes.
     std::vector<int> orphans() const;
+    
+    /// Gets vector of indexes for ordering vertices.
+    /// @return The vector of indexes.
+    template <class U>
+    std::vector<int> indexes() const;
 };
 
 template <class T>
@@ -309,6 +319,52 @@ Graph<T>::invert() const
 }
 
 template <class T>
+template <class U>
+void
+Graph<T>::sort(const bool rorder)
+{
+    // set up ordering indexes
+    
+    auto vecids = indexes<U>();
+    
+    if (rorder)
+    {
+        vecids = std::vector<int>(vecids.rbegin(), vecids.rend());
+    }
+    
+    // reconstruct graph
+    
+    std::vector<T> new_vertices;
+    
+    std::vector<std::set<int>> new_edges;
+    
+    const auto nverts = vertices();
+    
+    for (int i = 0; i < nverts; i++)
+    {
+        const auto idx = vecids[i];
+        
+        new_vertices.push_back(_vertices[idx]);
+        
+        new_edges.push_back(std::set<int>());
+        
+        for (int j = 0; j < nverts; j++)
+        {
+            if (const auto tval = _edges[j].find(idx); tval != _edges[j].cend())
+            {
+                new_edges[i].insert(vecids[j]);
+            }
+        }
+    }
+    
+    // assign new vertices and edges
+    
+    _vertices = new_vertices;
+    
+    _edges = new_edges;
+}
+
+template <class T>
 void
 Graph<T>::reduce()
 {
@@ -373,6 +429,41 @@ Graph<T>::orphans() const
     }
     
     return indexes;
+}
+
+template <class T>
+template <class U>
+std::vector<int>
+Graph<T>::indexes() const
+{
+    std::set<U> svalues;
+    
+    for (const auto& tvert : _vertices)
+    {
+        if (const auto tval = gen::base<T, U>(tvert))
+        {
+            svalues.insert(*tval);
+        }
+    }
+    
+    std::vector<int> vecids;
+    
+    if (_vertices.size() == svalues.size())
+    {
+        std::vector<U> vvalues(svalues.begin(), svalues.end());
+        
+        for (const auto& tvert : _vertices)
+        {
+            if (const auto tval = gen::base<T, U>(tvert))
+            {
+                auto idx = std::find(vvalues.begin(), vvalues.end(), *tval);
+                
+                vecids.push_back(static_cast<int>(idx - vvalues.begin()));
+            }
+        }
+    }
+    
+    return vecids;
 }
 
 #endif /* graph_hpp */
