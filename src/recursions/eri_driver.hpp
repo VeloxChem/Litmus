@@ -170,6 +170,12 @@ public:
     /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
     void apply_ket_vrr(R4Graph&       rgraph,
                        ST4CIntegrals& sints) const;
+    
+    /// Recursively applies Obara-Saika recursion to graph.
+    /// @param rgraph The recursion graph.
+    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
+    void apply_recursion(R4Graph&       rgraph,
+                         ST4CIntegrals& sints) const;
 };
 
 #endif /* eri_driver_hpp */

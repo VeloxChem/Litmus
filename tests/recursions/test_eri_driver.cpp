@@ -1887,6 +1887,89 @@ TEST_F(EriDriverTest, ApplyKetVrrWithGraphForSD)
     EXPECT_EQ(rgraph[5], R4Group({R4CTerm(t_0_0_0), }));
 }
 
+TEST_F(EriDriverTest, ApplyRecursionDDDD)
+{
+    EriDriver eri_drv;
+    
+    // recursion data
+    
+    const auto d_xx = TensorComponent(2, 0, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto d_yy = TensorComponent(0, 2, 0);
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    const auto k_xx_xx = T2CPair({"GA", "GB"}, {d_xx, d_xx});
+    
+    const auto k_xy_xy = T2CPair({"GA", "GB"}, {d_xy, d_xy});
+    
+    const auto k_yy_yy = T2CPair({"GA", "GB"}, {d_xy, d_yy});
+    
+    const auto b_xx_xx = T2CPair({"GC", "GD"}, {d_xx, d_xx});
+    
+    const auto b_xy_xy = T2CPair({"GC", "GD"}, {d_xy, d_xy});
+    
+    const auto b_yy_yy = T2CPair({"GC", "GD"}, {d_yy, d_yy});
+    
+    const auto t_xx_xx_xx_xx = T4CIntegral(b_xx_xx, k_xx_xx, operi);
+    
+    const auto t_xy_xy_xy_xy = T4CIntegral(b_xy_xy, k_xy_xy, operi);
+    
+    const auto t_yy_yy_yy_yy = T4CIntegral(b_yy_yy, k_yy_yy, operi);
+    
+    auto rd_xx_xx_xx_xx =  R4CDist(R4CTerm(t_xx_xx_xx_xx));
+    
+    auto rd_xy_xy_xy_xy =  R4CDist(R4CTerm(t_xy_xy_xy_xy));
+    
+    auto rd_yy_yy_yy_yy =  R4CDist(R4CTerm(t_yy_yy_yy_yy));
+    
+    // initialize graph
+    
+    R4Graph rgraph(R4Group({rd_xx_xx_xx_xx, rd_xy_xy_xy_xy,
+                            rd_yy_yy_yy_yy}));
+    
+    std::set<T4CIntegral> sints;
+    
+    // apply vertical ket recursion
+    
+    eri_drv.apply_recursion(rgraph, sints);
+    
+    const auto nverts = rgraph.vertices();
+    
+    std::set<I4CIntegral> gints;
+    
+    for (int i = 0; i < nverts; i++)
+    {
+        std::cout << "Vertice: " << i << std::endl;
+    
+        for (const auto& tval : rgraph[i].roots())
+        {
+            auto gint = I4CIntegral(tval.integral());
+    
+            gints.insert(gint);
+    
+            std::cout << tval.integral().label(true) << "->" << gint.label(true) << " ";
+        }
+    
+    
+        std::cout << std::endl;
+    
+        for (const auto& tval : rgraph.edge(i))
+        {
+            std::cout << tval << " ";
+        }
+    
+        std::cout << std::endl;
+    }
+    
+    for (const auto& tval : gints)
+    {
+        std::cout << tval.label(true) << " ";
+    }
+}
+
 //const auto nverts = rgraph.vertices();
 //
 //for (int i = 0; i < nverts; i++)

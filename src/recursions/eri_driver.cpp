@@ -652,3 +652,20 @@ EriDriver::apply_ket_vrr(R4Graph&       rgraph,
     
     rgraph.sort<I4CIntegral>(true);
 }
+
+void
+EriDriver::apply_recursion(R4Graph&       rgraph,
+                           ST4CIntegrals& sints) const
+{
+    // horizontal recursion
+    
+    apply_bra_hrr(rgraph, sints);
+
+    apply_ket_hrr(rgraph, sints);
+    
+    // vertical recursion 
+    
+    apply_bra_vrr(rgraph, sints);
+    
+    apply_ket_vrr(rgraph, sints);
+}
