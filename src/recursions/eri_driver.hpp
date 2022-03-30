@@ -47,6 +47,8 @@ using V4Groups = VRecursionGroups<T4CIntegral>;
 
 using R4Graph = Graph<R4Group>;
 
+using V4Graphs = VGraphs<R4Group>;
+
 /// Electron repulsion integrals driver class.
 class EriDriver
 {
@@ -179,7 +181,7 @@ public:
     void apply_recursion(R4Graph&       rgraph,
                          ST4CIntegrals& sints) const;
     
-    /// Creates recursion graph for given angular momentum values..
+    /// Creates recursion graph for given angular momentum values.
     /// @param anga The angular momentum of center A.
     /// @param angb The angular momentum of center B.
     /// @param angc The angular momentum of center C.
@@ -190,6 +192,18 @@ public:
                          const int  angc,
                          const int  angd,
                          const bool diag) const;
+    
+    /// Creates vector of recursion graphs with upper limit of angular momentum values.
+    /// @param anga The angular momentum of center A.
+    /// @param angb The angular momentum of center B.
+    /// @param angc The angular momentum of center C.
+    /// @param angd The angular momentum of center D.
+    /// @param diag The flag to generate only diagonal terms.
+    V4Graphs create_graphs(const int  anga,
+                           const int  angb,
+                           const int  angc,
+                           const int  angd,
+                           const bool diag) const;
 };
 
 #endif /* eri_driver_hpp */

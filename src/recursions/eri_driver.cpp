@@ -719,3 +719,29 @@ EriDriver::create_graph(const int  anga,
     
     return rgraph;
 }
+
+V4Graphs
+EriDriver::create_graphs(const int  anga,
+                         const int  angb,
+                         const int  angc,
+                         const int  angd,
+                         const bool diag) const
+{
+    V4Graphs vgraphs;
+
+    for (int i = 0; i <= anga; i++)
+    {
+        for (int j = 0; j <= angb; j++)
+        {
+            for (int k = 0; k <= angc; k++)
+            {
+                for (int l = 0; l <= angd; l++)
+                {
+                    vgraphs.push_back(create_graph(i, j, k, l, diag));
+                }
+            }
+        }
+    }
+    
+    return vgraphs;
+}

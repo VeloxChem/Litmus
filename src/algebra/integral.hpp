@@ -281,9 +281,13 @@ Integral<T, U>::diag_components() const
         {
             for (const auto& opcomp : _integrand.components())
             {
-                for (const auto& bra : _bra.components())
+                const auto bcomps = _bra.components();
+                
+                const auto kcomps = _ket.components();
+                
+                for (size_t i = 0; i < bcomps.size(); i++)
                 {
-                    vcomps.push_back(IntegralComponent<V, W>(bra, bra, opcomp, _order, prefix));
+                    vcomps.push_back(IntegralComponent<V, W>(bcomps[i], kcomps[i], opcomp, _order, prefix));
                 }
             }
         }
@@ -292,9 +296,13 @@ Integral<T, U>::diag_components() const
     {
         for (const auto& opcomp : _integrand.components())
         {
-            for (const auto& bra : _bra.components())
+            const auto bcomps = _bra.components();
+            
+            const auto kcomps = _ket.components();
+            
+            for (size_t i = 0; i < bcomps.size(); i++)
             {
-                vcomps.push_back(IntegralComponent<V, W>(bra, bra, opcomp, _order));
+                vcomps.push_back(IntegralComponent<V, W>(bcomps[i], kcomps[i], opcomp, _order));
             }
         }
     }

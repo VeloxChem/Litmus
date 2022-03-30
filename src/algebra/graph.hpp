@@ -454,7 +454,6 @@ Graph<T>::indexes(const bool rorder) const
             vvalues = std::vector<U>(svalues.begin(), svalues.end());
         }
         
-        
         for (const auto& tvert : _vertices)
         {
             if (const auto tval = gen::base<T, U>(tvert))
@@ -468,5 +467,8 @@ Graph<T>::indexes(const bool rorder) const
     
     return vecids;
 }
+
+template <class T>
+using VGraphs = std::vector<Graph<T>>;
 
 #endif /* graph_hpp */

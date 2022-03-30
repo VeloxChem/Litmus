@@ -2241,8 +2241,7 @@ TEST_F(EriDriverTest, CreateGraphWithDiagonal)
     
     const auto rd_0_z_0_z = R4CDist(R4CTerm(t_0_z_0_z));
     
-    R4Graph rgraph(R4Group({rd_0_x_0_x, rd_0_y_0_y,
-                            rd_0_z_0_z}));
+    R4Graph rgraph(R4Group({rd_0_x_0_x, rd_0_y_0_y, rd_0_z_0_z}));
     
     std::set<T4CIntegral> sints;
     
@@ -2255,26 +2254,131 @@ TEST_F(EriDriverTest, CreateGraphWithDiagonal)
     EXPECT_EQ(rgraph, tgraph);
 }
 
-//const auto nverts = rgraph.vertices();
-//
-//for (int i = 0; i < nverts; i++)
-//{
-//    std::cout << "Vertice: " << i << std::endl;
-//
-//    for (const auto& tval : rgraph[i].roots())
-//    {
-//        std::cout << tval.integral().label() << " ";
-//    }
-//
-//    std::cout << std::endl;
-//
-//    for (const auto& tval : rgraph.edge(i))
-//    {
-//        std::cout << tval << " ";
-//    }
-//
-//    std::cout << std::endl;
-//}
+TEST_F(EriDriverTest, CreateGraph)
+{
+    EriDriver eri_drv;
+    
+    // tensor components
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto p_z = TensorComponent(0, 0, 1);
+
+    // bra and ket pairs
+    
+    const auto b_0_x = T2CPair({"GA", "GB"}, {s_0, p_x});
+    
+    const auto b_0_y = T2CPair({"GA", "GB"}, {s_0, p_y});
+    
+    const auto b_0_z = T2CPair({"GA", "GB"}, {s_0, p_z});
+    
+    const auto k_0_x = T2CPair({"GC", "GD"}, {s_0, p_x});
+    
+    const auto k_0_y = T2CPair({"GC", "GD"}, {s_0, p_y});
+    
+    const auto k_0_z = T2CPair({"GC", "GD"}, {s_0, p_z});
+    
+    // operator
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    // integral components
+    
+    const auto t_0_x_0_x = T4CIntegral(b_0_x, k_0_x, operi);
+    
+    const auto t_0_x_0_y = T4CIntegral(b_0_x, k_0_y, operi);
+    
+    const auto t_0_x_0_z = T4CIntegral(b_0_x, k_0_z, operi);
+    
+    const auto t_0_y_0_x = T4CIntegral(b_0_y, k_0_x, operi);
+    
+    const auto t_0_y_0_y = T4CIntegral(b_0_y, k_0_y, operi);
+    
+    const auto t_0_y_0_z = T4CIntegral(b_0_y, k_0_z, operi);
+    
+    const auto t_0_z_0_x = T4CIntegral(b_0_z, k_0_x, operi);
+    
+    const auto t_0_z_0_y = T4CIntegral(b_0_z, k_0_y, operi);
+    
+    const auto t_0_z_0_z = T4CIntegral(b_0_z, k_0_z, operi);
+    
+    // reference generate graph
+    
+    const auto rd_0_x_0_x = R4CDist(R4CTerm(t_0_x_0_x));
+    
+    const auto rd_0_x_0_y = R4CDist(R4CTerm(t_0_x_0_y));
+    
+    const auto rd_0_x_0_z = R4CDist(R4CTerm(t_0_x_0_z));
+    
+    const auto rd_0_y_0_x = R4CDist(R4CTerm(t_0_y_0_x));
+    
+    const auto rd_0_y_0_y = R4CDist(R4CTerm(t_0_y_0_y));
+    
+    const auto rd_0_y_0_z = R4CDist(R4CTerm(t_0_y_0_z));
+    
+    const auto rd_0_z_0_x = R4CDist(R4CTerm(t_0_z_0_x));
+    
+    const auto rd_0_z_0_y = R4CDist(R4CTerm(t_0_z_0_y));
+    
+    const auto rd_0_z_0_z = R4CDist(R4CTerm(t_0_z_0_z));
+    
+    R4Graph rgraph(R4Group({rd_0_x_0_x, rd_0_x_0_y, rd_0_x_0_z,
+                            rd_0_y_0_x, rd_0_y_0_y, rd_0_y_0_z,
+                            rd_0_z_0_x, rd_0_z_0_y, rd_0_z_0_z,}));
+    
+    std::set<T4CIntegral> sints;
+    
+    eri_drv.apply_recursion(rgraph, sints);
+    
+    // check create graph
+    
+    const auto tgraph = eri_drv.create_graph(0, 1, 0, 1, false);
+    
+    EXPECT_EQ(rgraph, tgraph);
+}
+
+TEST_F(EriDriverTest, CreateGraphs)
+{
+    EriDriver eri_drv;
+    
+    const auto vgraphs = eri_drv.create_graphs(1, 1, 1, 1, false);
+    
+    EXPECT_EQ(vgraphs[0], eri_drv.create_graph(0, 0, 0, 0, false));
+    
+    EXPECT_EQ(vgraphs[1], eri_drv.create_graph(0, 0, 0, 1, false));
+    
+    EXPECT_EQ(vgraphs[2], eri_drv.create_graph(0, 0, 1, 0, false));
+    
+    EXPECT_EQ(vgraphs[3], eri_drv.create_graph(0, 0, 1, 1, false));
+    
+    EXPECT_EQ(vgraphs[4], eri_drv.create_graph(0, 1, 0, 0, false));
+    
+    EXPECT_EQ(vgraphs[5], eri_drv.create_graph(0, 1, 0, 1, false));
+    
+    EXPECT_EQ(vgraphs[6], eri_drv.create_graph(0, 1, 1, 0, false));
+    
+    EXPECT_EQ(vgraphs[7], eri_drv.create_graph(0, 1, 1, 1, false));
+    
+    EXPECT_EQ(vgraphs[8], eri_drv.create_graph(1, 0, 0, 0, false));
+    
+    EXPECT_EQ(vgraphs[9], eri_drv.create_graph(1, 0, 0, 1, false));
+    
+    EXPECT_EQ(vgraphs[10], eri_drv.create_graph(1, 0, 1, 0, false));
+    
+    EXPECT_EQ(vgraphs[11], eri_drv.create_graph(1, 0, 1, 1, false));
+    
+    EXPECT_EQ(vgraphs[12], eri_drv.create_graph(1, 1, 0, 0, false));
+    
+    EXPECT_EQ(vgraphs[13], eri_drv.create_graph(1, 1, 0, 1, false));
+    
+    EXPECT_EQ(vgraphs[14], eri_drv.create_graph(1, 1, 1, 0, false));
+    
+    EXPECT_EQ(vgraphs[15], eri_drv.create_graph(1, 1, 1, 1, false));
+}
 
 //const auto nverts = rgraph.vertices();
 //
