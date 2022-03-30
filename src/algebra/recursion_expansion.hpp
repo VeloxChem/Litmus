@@ -20,7 +20,7 @@
 #include <vector>
 #include <set>
 
-#include <recursion_term.hpp>
+#include "recursion_term.hpp"
 
 /// Recursion expansion class.
 template <class T>
@@ -82,6 +82,10 @@ public:
     /// Gets unique integrals in recursion expansion.
     /// @return The set of unique integrals in recursion expansion.
     std::set<T> unique_integrals() const;
+    
+    /// Gets unique factors in recursion expansion.
+    /// @return The set of unique factors in recursion expansion.
+    std::set<Factor> unique_factors() const;
     
     /// Counts number of new integrals in recursion expansion with respect to given integral set.
     /// @param integrals The set of integrals used to count new integrals.
@@ -204,6 +208,23 @@ RecursionExpansion<T>::unique_integrals() const
     }
     
     return sints;
+}
+
+template <class T>
+std::set<Factor>
+RecursionExpansion<T>::unique_factors() const
+{
+    std::set<Factor> facts;
+    
+    for (const auto& rterm : _expansion)
+    {
+        for (const auto& fact : rterm.factors())
+        {
+            facts.insert(fact);
+        }
+    }
+
+    return facts;
 }
 
 template <class T>

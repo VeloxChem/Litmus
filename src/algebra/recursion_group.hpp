@@ -23,6 +23,7 @@
 #include <climits>
 
 #include "recursion_expansion.hpp"
+#include "signature.hpp"
 
 /// Recursion group class.
 template <class T>
@@ -111,6 +112,10 @@ public:
     /// Determines minimum order of integrals in this recursion group.
     /// @return The minimum order of integrlas.
     int min_order() const;
+    
+    /// Creates signature of recursion group.
+    /// @return The signature of recursion group.
+    Signature<T> signature() const;
 };
 
 template <class T>
@@ -352,6 +357,40 @@ RecursionGroup<T>::min_order() const
     }
     
     return morder;
+}
+
+template <class T>
+Signature<T>
+RecursionGroup<T>::signature() const
+{
+    Signature<T> tsign;
+    
+    const auto morder = min_order();
+    
+    for (const auto& tval : _expansions)
+    {
+        auto tint = (tval.root()).integral();
+        
+        if (const auto rint = tint.shift_order(-morder))
+        {
+            tsign.add(*rint, "out");
+        }
+        
+        for (const auto& tint : tval.unique_integrals())
+        {
+            if (const auto rint = tint.shift_order(-morder))
+            {
+                tsign.add(*rint, "inp");
+            }
+        }
+        
+        for (const auto& fact : tval.unique_factors())
+        {
+            tsign.add(fact);
+        }
+    }
+    
+    return tsign;
 }
 
 template <class T>

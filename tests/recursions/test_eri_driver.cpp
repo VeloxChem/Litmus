@@ -2380,6 +2380,114 @@ TEST_F(EriDriverTest, CreateGraphs)
     EXPECT_EQ(vgraphs[15], eri_drv.create_graph(1, 1, 1, 1, false));
 }
 
+TEST_F(EriDriverTest, GraphSignaturesMap)
+{
+    EriDriver eri_drv;
+    
+    // tensor components
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto d_xx = TensorComponent(2, 0, 0);
+    
+    const auto d_xy = TensorComponent(1, 1, 0);
+    
+    const auto d_yy = TensorComponent(0, 2, 0);
+    
+    // bra and ket pairs
+    
+    const auto b_x_x = T2CPair({"GA", "GB"}, {p_x, p_x});
+    
+    const auto b_x_y = T2CPair({"GA", "GB"}, {p_x, p_y});
+    
+    const auto b_y_y = T2CPair({"GA", "GB"}, {p_y, p_y});
+    
+    const auto b_0_xx = T2CPair({"GA", "GB"}, {s_0, d_xx});
+    
+    const auto b_0_xy = T2CPair({"GA", "GB"}, {s_0, d_xy});
+    
+    const auto b_0_yy = T2CPair({"GA", "GB"}, {s_0, d_yy});
+    
+    const auto b_0_x = T2CPair({"GA", "GB"}, {s_0, p_x});
+    
+    const auto b_0_y = T2CPair({"GA", "GB"}, {s_0, p_y});
+    
+    const auto k_0_0 = T2CPair({"GC", "GD"}, {s_0, s_0});
+    
+    // operator
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    // integral components
+    
+    const auto t_x_x = T4CIntegral(b_x_x, k_0_0, operi);
+    
+    const auto t_x_y = T4CIntegral(b_x_y, k_0_0, operi);
+    
+    const auto t_y_y = T4CIntegral(b_y_y, k_0_0, operi);
+    
+    const auto t_0_xx = T4CIntegral(b_0_xx, k_0_0, operi);
+    
+    const auto t_0_xy = T4CIntegral(b_0_xy, k_0_0, operi);
+    
+    const auto t_0_yy = T4CIntegral(b_0_yy, k_0_0, operi);
+    
+    const auto t_0_x = T4CIntegral(b_0_x, k_0_0, operi);
+    
+    const auto t_0_y = T4CIntegral(b_0_y, k_0_0, operi);
+    
+    // generate graph
+    
+    const auto rd_x_x = R4CDist(R4CTerm(t_x_x));
+    
+    const auto rd_x_y = R4CDist(R4CTerm(t_x_y));
+    
+    const auto rd_y_y = R4CDist(R4CTerm(t_y_y));
+    
+    R4Graph rgraph(R4Group({rd_x_x, rd_x_y, rd_y_y}));
+    
+    std::set<T4CIntegral> sints;
+    
+    eri_drv.apply_bra_hrr(rgraph, sints);
+    
+    // set up reference data
+    
+    std::set<T4CIntegral> rints;
+    
+    const auto rr_x_x = eri_drv.apply_bra_hrr(R4CTerm(t_x_x), rints);
+    
+    const auto rr_x_y = eri_drv.apply_bra_hrr(R4CTerm(t_x_y), rints);
+    
+    const auto rr_y_y = eri_drv.apply_bra_hrr(R4CTerm(t_y_y), rints);
+    
+    const auto rd_0_xx = R4CDist(R4CTerm(t_0_xx));
+    
+    const auto rd_0_xy = R4CDist(R4CTerm(t_0_xy));
+    
+    const auto rd_0_yy = R4CDist(R4CTerm(t_0_yy));
+    
+    const auto rd_0_x = R4CDist(R4CTerm(t_0_x));
+    
+    const auto rd_0_y = R4CDist(R4CTerm(t_0_y));
+    
+    // compare signature maps
+    
+    const auto smap = rgraph.signatures<T4CIntegral>();
+    
+    std::map<Signature<T4CIntegral>, R4Group> rmap;
+    
+    for (int i = 0; i < 3; i++)
+    {
+        rmap[rgraph[i].signature()] = rgraph[i];
+    }
+    
+    EXPECT_EQ(rmap, smap);
+}
+
 //const auto nverts = rgraph.vertices();
 //
 //std::set<I4CIntegral> gints;

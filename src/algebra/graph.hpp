@@ -21,8 +21,10 @@
 #include <set>
 #include <algorithm>
 #include <tuple>
+#include <map>
 
 #include "generics.hpp"
+#include "signature.hpp"
 
 /// Recursion group class.
 template <class T>
@@ -122,6 +124,11 @@ public:
     /// @return The vector of indexes.
     template <class U>
     std::vector<int> indexes(const bool rorder) const;
+    
+    /// Gets of map of signature:vertice pairs.
+    /// @return The map of signature:vertice pairs.
+    template <class U>
+    std::map<Signature<U>, T> signatures() const;
 };
 
 template <class T>
@@ -466,6 +473,26 @@ Graph<T>::indexes(const bool rorder) const
     }
     
     return vecids;
+}
+
+template <class T>
+template <class U>
+std::map<Signature<U>, T>
+Graph<T>::signatures() const
+{
+    std::map<Signature<U>, T> vmap;
+    
+    for (const auto& vert : _vertices)
+    {
+        const Signature<U> tsign = vert.signature();
+        
+        if (vmap.find(tsign) == vmap.end())
+        {
+            vmap[tsign] = vert;
+        }
+    }
+    
+    return vmap; 
 }
 
 template <class T>

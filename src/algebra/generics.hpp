@@ -20,6 +20,8 @@
 #include <string>
 #include <optional>
 
+#include "signature.hpp"
+
 namespace gen
 {
 /// Template function for merging two objects into one.
