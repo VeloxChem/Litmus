@@ -20,8 +20,9 @@
 #include <vector>
 #include <algorithm>
 #include <optional>
+#include <climits>
 
-#include <recursion_expansion.hpp>
+#include "recursion_expansion.hpp"
 
 /// Recursion group class.
 template <class T>
@@ -106,6 +107,10 @@ public:
     /// @return The base integral of uniform recursion group.
     template <class U>
     std::optional<U> base() const;
+    
+    /// Determines minimum order of integrals in this recursion group.
+    /// @return The minimum order of integrlas.
+    int min_order() const;
 };
 
 template <class T>
@@ -330,6 +335,23 @@ RecursionGroup<T>::base() const
     {
         return std::nullopt;
     }
+}
+
+template <class T>
+int
+RecursionGroup<T>::min_order() const
+{
+    int morder = INT_MAX;
+    
+    for (const auto& tval : _expansions)
+    {
+        if (const auto tord = tval.min_order(); tord < morder)
+        {
+            morder = tord;
+        }
+    }
+    
+    return morder;
 }
 
 template <class T>

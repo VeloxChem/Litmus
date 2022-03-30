@@ -93,6 +93,10 @@ public:
     /// @param center The angular center to check.
     /// @return True if recursion expansion contains auxilary root, false otherwise.
     bool auxilary(const int center) const;
+    
+    /// Determines minimum order of integrals in this recursion expansion.
+    /// @return The minimum order of integrlas.
+    int min_order() const;
 };
 
 template <class T>
@@ -221,6 +225,23 @@ bool
 RecursionExpansion<T>::auxilary(const int center) const
 {
     return _root.auxilary(center);
+}
+
+template <class T>
+int
+RecursionExpansion<T>::min_order() const
+{
+    int morder = _root.order();
+    
+    for (const auto& rterm : _expansion)
+    {
+        if (const auto tord = rterm.order(); tord < morder)
+        {
+            morder = tord;
+        }
+    }
+    
+    return morder;
 }
 
 template <class T>
