@@ -669,3 +669,53 @@ EriDriver::apply_recursion(R4Graph&       rgraph,
     
     apply_ket_vrr(rgraph, sints);
 }
+
+R4Graph
+EriDriver::create_graph(const int  anga,
+                        const int  angb,
+                        const int  angc,
+                        const int  angd,
+                        const bool diag) const
+{
+    // reference integral
+    
+    const auto operi = Operator("1/|r-r'|");
+    
+    const auto bpair = I2CPair("GA", anga, "GB", angb);
+    
+    const auto kpair = I2CPair("GC", angc, "GD", angd);
+    
+    const auto refint = I4CIntegral(bpair, kpair, operi);
+    
+    // create refrence integral components
+    
+    VT4CIntegrals refcomps;
+    
+    if (diag)
+    {
+        refcomps = refint.diag_components<T2CPair, T2CPair>();
+    }
+    else
+    {
+        refcomps = refint.components<T2CPair, T2CPair>();
+    }
+    
+    // create reference group
+    
+    R4Group r4group;
+    
+    for (const auto& tcomp : refcomps)
+    {
+        r4group.add(R4CDist(R4CTerm(tcomp)));
+    }
+    
+    // apply Obara-Saika recursion 
+    
+    ST4CIntegrals sints;
+    
+    R4Graph rgraph({r4group,});
+    
+    apply_recursion(rgraph, sints);
+    
+    return rgraph;
+}

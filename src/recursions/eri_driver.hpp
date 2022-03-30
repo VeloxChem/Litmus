@@ -31,6 +31,8 @@ using T2CPair = TwoCenterPairComponent;
 
 using T4CIntegral = IntegralComponent<T2CPair, T2CPair>;
 
+using VT4CIntegrals = VIntegralComponents<T2CPair, T2CPair>;
+
 using ST4CIntegrals = SIntegralComponents<T2CPair, T2CPair>;
 
 using R4CTerm = RecursionTerm<T4CIntegral>;
@@ -176,6 +178,18 @@ public:
     /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
     void apply_recursion(R4Graph&       rgraph,
                          ST4CIntegrals& sints) const;
+    
+    /// Creates recursion graph for given angular momentum values..
+    /// @param anga The angular momentum of center A.
+    /// @param angb The angular momentum of center B.
+    /// @param angc The angular momentum of center C.
+    /// @param angd The angular momentum of center D.
+    /// @param diag The flag to generate only diagonal terms.
+    R4Graph create_graph(const int  anga,
+                         const int  angb,
+                         const int  angc,
+                         const int  angd,
+                         const bool diag) const;
 };
 
 #endif /* eri_driver_hpp */
