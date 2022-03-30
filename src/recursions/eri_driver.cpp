@@ -19,12 +19,6 @@
 #include <array>
 
 #include "axes.hpp"
-#include "integral.hpp"
-#include "two_center_pair.hpp"
-
-using I2CPair = TwoCenterPair;
-
-using I4CIntegral = Integral<I2CPair, I2CPair>;
 
 EriDriver::EriDriver()
 {

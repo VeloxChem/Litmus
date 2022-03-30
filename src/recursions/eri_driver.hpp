@@ -26,6 +26,8 @@
 #include "recursion_term.hpp"
 #include "integral_component.hpp"
 #include "two_center_pair_component.hpp"
+#include "integral.hpp"
+#include "two_center_pair.hpp"
 
 using T2CPair = TwoCenterPairComponent;
 
@@ -48,6 +50,10 @@ using V4Groups = VRecursionGroups<T4CIntegral>;
 using R4Graph = Graph<R4Group>;
 
 using V4Graphs = VGraphs<R4Group>;
+
+using I2CPair = TwoCenterPair;
+
+using I4CIntegral = Integral<I2CPair, I2CPair>;
 
 /// Electron repulsion integrals driver class.
 class EriDriver
