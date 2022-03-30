@@ -1863,6 +1863,12 @@ TEST_F(EriDriverTest, ApplyRecursionPPPP)
     
     const auto b_0_yy = T2CPair({"GA", "GB"}, {s_0, d_yy});
     
+    const auto b_0_x = T2CPair({"GA", "GB"}, {s_0, p_x});
+    
+    const auto b_0_y = T2CPair({"GA", "GB"}, {s_0, p_y});
+    
+    const auto b_0_0 = T2CPair({"GA", "GB"}, {s_0, s_0});
+    
     const auto k_x_x = T2CPair({"GC", "GD"}, {p_x, p_x});
     
     const auto k_x_y = T2CPair({"GC", "GD"}, {p_x, p_y});
@@ -1874,6 +1880,12 @@ TEST_F(EriDriverTest, ApplyRecursionPPPP)
     const auto k_0_xy = T2CPair({"GC", "GD"}, {s_0, d_xy});
     
     const auto k_0_yy = T2CPair({"GC", "GD"}, {s_0, d_yy});
+    
+    const auto k_0_x = T2CPair({"GC", "GD"}, {s_0, p_x});
+    
+    const auto k_0_y = T2CPair({"GC", "GD"}, {s_0, p_y});
+    
+    const auto k_0_0 = T2CPair({"GC", "GD"}, {s_0, s_0});
     
     // operator
     
@@ -1904,6 +1916,80 @@ TEST_F(EriDriverTest, ApplyRecursionPPPP)
     const auto t_0_xy_0_y = T4CIntegral(b_0_xy, k_0_y, operi);
     
     const auto t_0_yy_0_y = T4CIntegral(b_0_yy, k_0_y, operi);
+    
+    const auto t_0_x_x_x = T4CIntegral(b_0_x, k_x_x, operi);
+    
+    const auto t_0_y_x_y = T4CIntegral(b_0_y, k_x_y, operi);
+    
+    const auto t_0_y_y_y = T4CIntegral(b_0_y, k_y_y, operi);
+    
+    const auto t_0_x_0_xx_1 = T4CIntegral(b_0_x, k_0_xx, operi, 1);
+    
+    const auto t_0_y_0_xy_1 = T4CIntegral(b_0_y, k_0_xy, operi, 1);
+    
+    const auto t_0_y_0_yy_1 = T4CIntegral(b_0_y, k_0_yy, operi, 1);
+    
+    const auto t_0_x_0_xx = T4CIntegral(b_0_x, k_0_xx, operi);
+    
+    const auto t_0_y_0_xy = T4CIntegral(b_0_y, k_0_xy, operi);
+    
+    const auto t_0_y_0_yy = T4CIntegral(b_0_y, k_0_yy, operi);
+    
+    const auto t_0_x_0_x_1 = T4CIntegral(b_0_x, k_0_x, operi, 1);
+    
+    const auto t_0_y_0_y_1 = T4CIntegral(b_0_y, k_0_y, operi, 1);
+    
+    const auto t_0_x_0_x = T4CIntegral(b_0_x, k_0_x, operi);
+    
+    const auto t_0_y_0_y = T4CIntegral(b_0_y, k_0_y, operi);
+    
+    const auto t_0_x_0_0_1 = T4CIntegral(b_0_x, k_0_0, operi, 1);
+    
+    const auto t_0_y_0_0_1 = T4CIntegral(b_0_y, k_0_0, operi, 1);
+    
+    const auto t_0_0_0_xx_2 = T4CIntegral(b_0_0, k_0_xx, operi, 2);
+    
+    const auto t_0_0_0_xy_2 = T4CIntegral(b_0_0, k_0_xy, operi, 2);
+    
+    const auto t_0_0_0_yy_2 = T4CIntegral(b_0_0, k_0_yy, operi, 2);
+    
+    const auto t_0_0_0_xx_1 = T4CIntegral(b_0_0, k_0_xx, operi, 1);
+    
+    const auto t_0_0_0_xy_1 = T4CIntegral(b_0_0, k_0_xy, operi, 1);
+    
+    const auto t_0_0_0_yy_1 = T4CIntegral(b_0_0, k_0_yy, operi, 1);
+    
+    const auto t_0_0_0_xx = T4CIntegral(b_0_0, k_0_xx, operi);
+    
+    const auto t_0_0_0_xy = T4CIntegral(b_0_0, k_0_xy, operi);
+    
+    const auto t_0_0_0_yy = T4CIntegral(b_0_0, k_0_yy, operi);
+    
+    const auto t_0_0_0_x_3 = T4CIntegral(b_0_0, k_0_x, operi, 3);
+    
+    const auto t_0_0_0_y_3 = T4CIntegral(b_0_0, k_0_y, operi, 3);
+    
+    const auto t_0_0_0_x_2 = T4CIntegral(b_0_0, k_0_x, operi, 2);
+    
+    const auto t_0_0_0_y_2 = T4CIntegral(b_0_0, k_0_y, operi, 2);
+    
+    const auto t_0_0_0_x_1 = T4CIntegral(b_0_0, k_0_x, operi, 1);
+    
+    const auto t_0_0_0_y_1 = T4CIntegral(b_0_0, k_0_y, operi, 1);
+    
+    const auto t_0_0_0_x = T4CIntegral(b_0_0, k_0_x, operi);
+    
+    const auto t_0_0_0_y = T4CIntegral(b_0_0, k_0_y, operi);
+    
+    const auto t_0_0_0_0_4 = T4CIntegral(b_0_0, k_0_0, operi, 4);
+    
+    const auto t_0_0_0_0_3 = T4CIntegral(b_0_0, k_0_0, operi, 3);
+    
+    const auto t_0_0_0_0_2 = T4CIntegral(b_0_0, k_0_0, operi, 2);
+    
+    const auto t_0_0_0_0_1 = T4CIntegral(b_0_0, k_0_0, operi, 1);
+    
+    const auto t_0_0_0_0_0 = T4CIntegral(b_0_0, k_0_0, operi);
     
     // generate graph
     
@@ -1942,8 +2028,75 @@ TEST_F(EriDriverTest, ApplyRecursionPPPP)
     
     const auto rr_0_xx_0_xx = eri_drv.apply_bra_vrr(R4CTerm(t_0_xx_0_xx), rints);
     
+    const auto rr_0_yy_0_y = eri_drv.apply_bra_vrr(R4CTerm(t_0_yy_0_y), rints);
     
-    0_yy_0_y_0->SDSP_0 0_xy_0_y_0->SDSP_0 0_xx_0_x_0->SDSP_0
+    const auto rr_0_xy_0_y = eri_drv.apply_bra_vrr(R4CTerm(t_0_xy_0_y), rints);
+    
+    const auto rr_0_xx_0_x = eri_drv.apply_bra_vrr(R4CTerm(t_0_xx_0_x), rints);
+    
+    const auto rr_0_y_y_y = eri_drv.apply_ket_hrr(R4CTerm(t_0_y_y_y), rints);
+    
+    const auto rr_0_y_x_y = eri_drv.apply_ket_hrr(R4CTerm(t_0_y_x_y), rints);
+    
+    const auto rr_0_x_x_x = eri_drv.apply_ket_hrr(R4CTerm(t_0_x_x_x), rints);
+    
+    const auto rr_0_y_0_yy_1 = eri_drv.apply_bra_vrr(R4CTerm(t_0_y_0_yy_1), rints);
+    
+    const auto rr_0_y_0_xy_1 = eri_drv.apply_bra_vrr(R4CTerm(t_0_y_0_xy_1), rints);
+    
+    const auto rr_0_x_0_xx_1 = eri_drv.apply_bra_vrr(R4CTerm(t_0_x_0_xx_1), rints);
+    
+    const auto rr_0_y_0_yy = eri_drv.apply_bra_vrr(R4CTerm(t_0_y_0_yy), rints);
+    
+    const auto rr_0_y_0_xy = eri_drv.apply_bra_vrr(R4CTerm(t_0_y_0_xy), rints);
+    
+    const auto rr_0_x_0_xx = eri_drv.apply_bra_vrr(R4CTerm(t_0_x_0_xx), rints);
+    
+    const auto rr_0_y_0_y_1 = eri_drv.apply_bra_vrr(R4CTerm(t_0_y_0_y_1), rints);
+    
+    const auto rr_0_x_0_x_1 = eri_drv.apply_bra_vrr(R4CTerm(t_0_x_0_x_1), rints);
+    
+    const auto rr_0_y_0_y = eri_drv.apply_bra_vrr(R4CTerm(t_0_y_0_y), rints);
+    
+    const auto rr_0_x_0_x = eri_drv.apply_bra_vrr(R4CTerm(t_0_x_0_x), rints);
+    
+    const auto rr_0_y_0_0_1 = eri_drv.apply_bra_vrr(R4CTerm(t_0_y_0_0_1), rints);
+    
+    const auto rr_0_x_0_0_1 = eri_drv.apply_bra_vrr(R4CTerm(t_0_x_0_0_1), rints);
+    
+    const auto rr_0_0_0_yy_2 = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_yy_2), rints);
+    
+    const auto rr_0_0_0_xy_2 = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_xy_2), rints);
+    
+    const auto rr_0_0_0_xx_2 = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_xx_2), rints);
+    
+    const auto rr_0_0_0_yy_1 = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_yy_1), rints);
+    
+    const auto rr_0_0_0_xy_1 = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_xy_1), rints);
+    
+    const auto rr_0_0_0_xx_1 = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_xx_1), rints);
+    
+    const auto rr_0_0_0_yy = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_yy), rints);
+    
+    const auto rr_0_0_0_xy = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_xy), rints);
+    
+    const auto rr_0_0_0_xx = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_xx), rints);
+    
+    const auto rr_0_0_0_y_3 = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_y_3), rints);
+    
+    const auto rr_0_0_0_x_3 = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_x_3), rints);
+    
+    const auto rr_0_0_0_y_2 = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_y_2), rints);
+    
+    const auto rr_0_0_0_x_2 = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_x_2), rints);
+    
+    const auto rr_0_0_0_y_1 = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_y_1), rints);
+    
+    const auto rr_0_0_0_x_1 = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_x_1), rints);
+    
+    const auto rr_0_0_0_y = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_y), rints);
+    
+    const auto rr_0_0_0_x = eri_drv.apply_ket_vrr(R4CTerm(t_0_0_0_x), rints);
     
     // compare vertices and edges of graph
     
@@ -1955,38 +2108,89 @@ TEST_F(EriDriverTest, ApplyRecursionPPPP)
     
     EXPECT_EQ(rgraph[2], R4Group({rr_0_xx_0_xx, rr_0_xy_0_xy, rr_0_yy_0_yy,}));
     
-    const auto nverts = rgraph.vertices();
+    EXPECT_EQ(rgraph[3], R4Group({rr_0_xx_0_x, rr_0_xy_0_y, rr_0_yy_0_y,}));
     
-    std::set<I4CIntegral> gints;
+    EXPECT_EQ(rgraph[4], R4Group({rr_0_x_x_x, rr_0_y_x_y, rr_0_y_y_y,}));
     
-    for (int i = 0; i < nverts; i++)
-    {
-        std::cout << "Vertice: " << i << std::endl;
+    EXPECT_EQ(rgraph[5], R4Group({rr_0_x_0_xx_1, rr_0_y_0_xy_1, rr_0_y_0_yy_1,}));
     
-        for (const auto& tval : rgraph[i].roots())
-        {
-            auto gint = I4CIntegral(tval.integral());
+    EXPECT_EQ(rgraph[6], R4Group({rr_0_x_0_xx, rr_0_y_0_xy, rr_0_y_0_yy,}));
     
-            gints.insert(gint);
+    EXPECT_EQ(rgraph[7], R4Group({rr_0_x_0_x_1, rr_0_y_0_y_1}));
     
-            std::cout << tval.integral().label(true) << "->" << gint.label(true) << " ";
-        }
+    EXPECT_EQ(rgraph[8], R4Group({rr_0_x_0_x, rr_0_y_0_y}));
     
+    EXPECT_EQ(rgraph[9], R4Group({rr_0_x_0_0_1, rr_0_y_0_0_1}));
     
-        std::cout << std::endl;
+    EXPECT_EQ(rgraph[10], R4Group({rr_0_0_0_xx_2, rr_0_0_0_xy_2, rr_0_0_0_yy_2,}));
     
-        for (const auto& tval : rgraph.edge(i))
-        {
-            std::cout << tval << " ";
-        }
+    EXPECT_EQ(rgraph[11], R4Group({rr_0_0_0_xx_1, rr_0_0_0_xy_1, rr_0_0_0_yy_1,}));
     
-        std::cout << std::endl;
-    }
+    EXPECT_EQ(rgraph[12], R4Group({rr_0_0_0_xx, rr_0_0_0_xy, rr_0_0_0_yy,}));
     
-    for (const auto& tval : gints)
-    {
-        std::cout << tval.label(true) << " ";
-    }
+    EXPECT_EQ(rgraph[13], R4Group({rr_0_0_0_x_3, rr_0_0_0_y_3,}));
+    
+    EXPECT_EQ(rgraph[14], R4Group({rr_0_0_0_x_2, rr_0_0_0_y_2,}));
+    
+    EXPECT_EQ(rgraph[15], R4Group({rr_0_0_0_x_1, rr_0_0_0_y_1,}));
+    
+    EXPECT_EQ(rgraph[16], R4Group({rr_0_0_0_x, rr_0_0_0_y,}));
+    
+    EXPECT_EQ(rgraph[17], R4Group({R4CTerm(t_0_0_0_0_4),}));
+    
+    EXPECT_EQ(rgraph[18], R4Group({R4CTerm(t_0_0_0_0_3), }));
+    
+    EXPECT_EQ(rgraph[19], R4Group({R4CTerm(t_0_0_0_0_2), }));
+    
+    EXPECT_EQ(rgraph[20], R4Group({R4CTerm(t_0_0_0_0_1), }));
+    
+    EXPECT_EQ(rgraph[21], R4Group({R4CTerm(t_0_0_0_0_0), }));
+    
+    EXPECT_EQ(sints, rints);
+    
+    EXPECT_EQ(rgraph.edge(0), std::set<int>({1, 4}));
+    
+    EXPECT_EQ(rgraph.edge(1), std::set<int>({2, 3}));
+    
+    EXPECT_EQ(rgraph.edge(2), std::set<int>({5, 6, 7, 11, 12}));
+    
+    EXPECT_EQ(rgraph.edge(3), std::set<int>({7, 8, 9, 15, 16}));
+    
+    EXPECT_EQ(rgraph.edge(4), std::set<int>({6, 8}));
+    
+    EXPECT_EQ(rgraph.edge(5), std::set<int>({10, 14}));
+    
+    EXPECT_EQ(rgraph.edge(6), std::set<int>({11, 12, 15}));
+    
+    EXPECT_EQ(rgraph.edge(7), std::set<int>({14, 15, 19}));
+    
+    EXPECT_EQ(rgraph.edge(8), std::set<int>({15, 16, 20}));
+    
+    EXPECT_EQ(rgraph.edge(9), std::set<int>({19, 20}));
+    
+    EXPECT_EQ(rgraph.edge(10), std::set<int>({13, 14, 18, 19}));
+    
+    EXPECT_EQ(rgraph.edge(11), std::set<int>({14, 15, 19, 20}));
+    
+    EXPECT_EQ(rgraph.edge(12), std::set<int>({15, 16, 20, 21}));
+    
+    EXPECT_EQ(rgraph.edge(13), std::set<int>({17, 18}));
+    
+    EXPECT_EQ(rgraph.edge(14), std::set<int>({18, 19}));
+    
+    EXPECT_EQ(rgraph.edge(15), std::set<int>({19, 20}));
+    
+    EXPECT_EQ(rgraph.edge(16), std::set<int>({20, 21}));
+    
+    EXPECT_EQ(rgraph.edge(17), std::set<int>({}));
+    
+    EXPECT_EQ(rgraph.edge(18), std::set<int>({}));
+    
+    EXPECT_EQ(rgraph.edge(19), std::set<int>({}));
+    
+    EXPECT_EQ(rgraph.edge(20), std::set<int>({}));
+    
+    EXPECT_EQ(rgraph.edge(21), std::set<int>({}));
 }
 
 //const auto nverts = rgraph.vertices();
