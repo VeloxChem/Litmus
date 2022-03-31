@@ -2375,12 +2375,6 @@ TEST_F(EriDriverTest, GraphSignaturesMap)
     
     const auto p_y = TensorComponent(0, 1, 0);
     
-    const auto d_xx = TensorComponent(2, 0, 0);
-    
-    const auto d_xy = TensorComponent(1, 1, 0);
-    
-    const auto d_yy = TensorComponent(0, 2, 0);
-    
     // bra and ket pairs
     
     const auto b_x_x = T2CPair({"GA", "GB"}, {p_x, p_x});
@@ -2388,16 +2382,6 @@ TEST_F(EriDriverTest, GraphSignaturesMap)
     const auto b_x_y = T2CPair({"GA", "GB"}, {p_x, p_y});
     
     const auto b_y_y = T2CPair({"GA", "GB"}, {p_y, p_y});
-    
-    const auto b_0_xx = T2CPair({"GA", "GB"}, {s_0, d_xx});
-    
-    const auto b_0_xy = T2CPair({"GA", "GB"}, {s_0, d_xy});
-    
-    const auto b_0_yy = T2CPair({"GA", "GB"}, {s_0, d_yy});
-    
-    const auto b_0_x = T2CPair({"GA", "GB"}, {s_0, p_x});
-    
-    const auto b_0_y = T2CPair({"GA", "GB"}, {s_0, p_y});
     
     const auto k_0_0 = T2CPair({"GC", "GD"}, {s_0, s_0});
     
@@ -2412,16 +2396,6 @@ TEST_F(EriDriverTest, GraphSignaturesMap)
     const auto t_x_y = T4CIntegral(b_x_y, k_0_0, operi);
     
     const auto t_y_y = T4CIntegral(b_y_y, k_0_0, operi);
-    
-    const auto t_0_xx = T4CIntegral(b_0_xx, k_0_0, operi);
-    
-    const auto t_0_xy = T4CIntegral(b_0_xy, k_0_0, operi);
-    
-    const auto t_0_yy = T4CIntegral(b_0_yy, k_0_0, operi);
-    
-    const auto t_0_x = T4CIntegral(b_0_x, k_0_0, operi);
-    
-    const auto t_0_y = T4CIntegral(b_0_y, k_0_0, operi);
     
     // generate graph
     
@@ -2463,12 +2437,6 @@ TEST_F(EriDriverTest, RepositoryAdd)
     
     const auto p_y = TensorComponent(0, 1, 0);
     
-    const auto d_xx = TensorComponent(2, 0, 0);
-    
-    const auto d_xy = TensorComponent(1, 1, 0);
-    
-    const auto d_yy = TensorComponent(0, 2, 0);
-    
     // bra and ket pairs
     
     const auto b_x_x = T2CPair({"GA", "GB"}, {p_x, p_x});
@@ -2476,16 +2444,6 @@ TEST_F(EriDriverTest, RepositoryAdd)
     const auto b_x_y = T2CPair({"GA", "GB"}, {p_x, p_y});
     
     const auto b_y_y = T2CPair({"GA", "GB"}, {p_y, p_y});
-    
-    const auto b_0_xx = T2CPair({"GA", "GB"}, {s_0, d_xx});
-    
-    const auto b_0_xy = T2CPair({"GA", "GB"}, {s_0, d_xy});
-    
-    const auto b_0_yy = T2CPair({"GA", "GB"}, {s_0, d_yy});
-    
-    const auto b_0_x = T2CPair({"GA", "GB"}, {s_0, p_x});
-    
-    const auto b_0_y = T2CPair({"GA", "GB"}, {s_0, p_y});
     
     const auto k_0_0 = T2CPair({"GC", "GD"}, {s_0, s_0});
     
@@ -2500,16 +2458,6 @@ TEST_F(EriDriverTest, RepositoryAdd)
     const auto t_x_y = T4CIntegral(b_x_y, k_0_0, operi);
     
     const auto t_y_y = T4CIntegral(b_y_y, k_0_0, operi);
-    
-    const auto t_0_xx = T4CIntegral(b_0_xx, k_0_0, operi);
-    
-    const auto t_0_xy = T4CIntegral(b_0_xy, k_0_0, operi);
-    
-    const auto t_0_yy = T4CIntegral(b_0_yy, k_0_0, operi);
-    
-    const auto t_0_x = T4CIntegral(b_0_x, k_0_0, operi);
-    
-    const auto t_0_y = T4CIntegral(b_0_y, k_0_0, operi);
     
     // generate graph
     
@@ -2536,6 +2484,176 @@ TEST_F(EriDriverTest, RepositoryAdd)
     const auto ref_repo = Repository<R4Group, T4CIntegral>(V4Graphs({rgraph,}), smap); 
     
     EXPECT_EQ(repo, ref_repo);
+}
+
+TEST_F(EriDriverTest, RepositoryBase)
+{
+    EriDriver eri_drv;
+    
+    // tensor components
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto d_xx = TensorComponent(2, 0, 0);
+    
+    // bra and ket pairs
+    
+    const auto b_x_x = T2CPair({"GA", "GB"}, {p_x, p_x});
+    
+    const auto b_x_y = T2CPair({"GA", "GB"}, {p_x, p_y});
+    
+    const auto b_y_y = T2CPair({"GA", "GB"}, {p_y, p_y});
+    
+    const auto b_0_xx = T2CPair({"GA", "GB"}, {s_0, d_xx});
+    
+    const auto b_0_x = T2CPair({"GA", "GB"}, {s_0, p_x});
+    
+    const auto k_0_0 = T2CPair({"GC", "GD"}, {s_0, s_0});
+    
+    // operator
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    // integral components
+    
+    const auto t_x_x = T4CIntegral(b_x_x, k_0_0, operi);
+    
+    const auto t_x_y = T4CIntegral(b_x_y, k_0_0, operi);
+    
+    const auto t_y_y = T4CIntegral(b_y_y, k_0_0, operi);
+    
+    const auto t_0_xx = T4CIntegral(b_0_xx, k_0_0, operi);
+    
+    const auto t_0_x = T4CIntegral(b_0_x, k_0_0, operi);
+    
+    // generate graph
+    
+    const auto rd_x_x = R4CDist(R4CTerm(t_x_x));
+    
+    const auto rd_x_y = R4CDist(R4CTerm(t_x_y));
+    
+    const auto rd_y_y = R4CDist(R4CTerm(t_y_y));
+    
+    R4Graph rgraph(R4Group({rd_x_x, rd_x_y, rd_y_y}));
+    
+    std::set<T4CIntegral> sints;
+    
+    eri_drv.apply_bra_hrr(rgraph, sints);
+    
+    // create repository for integrals
+    
+    Repository<R4Group, T4CIntegral> repo;
+    
+    repo.add(V4Graphs({rgraph,}));
+    
+    // check set of base integrals
+    
+    std::set<I4CIntegral> rints;
+    
+    rints.insert(I4CIntegral(t_x_x));
+    
+    rints.insert(I4CIntegral(t_0_xx));
+    
+    rints.insert(I4CIntegral(t_0_x));
+    
+    EXPECT_EQ(rints, repo.base<I4CIntegral>()); 
+}
+
+TEST_F(EriDriverTest, RepositoryBaseMap)
+{
+    EriDriver eri_drv;
+    
+    // tensor components
+    
+    const auto s_0 = TensorComponent(0, 0, 0);
+    
+    const auto p_x = TensorComponent(1, 0, 0);
+    
+    const auto p_y = TensorComponent(0, 1, 0);
+    
+    const auto d_xx = TensorComponent(2, 0, 0);
+    
+    // bra and ket pairs
+    
+    const auto b_x_x = T2CPair({"GA", "GB"}, {p_x, p_x});
+    
+    const auto b_x_y = T2CPair({"GA", "GB"}, {p_x, p_y});
+    
+    const auto b_y_y = T2CPair({"GA", "GB"}, {p_y, p_y});
+    
+    const auto b_0_xx = T2CPair({"GA", "GB"}, {s_0, d_xx});
+    
+    const auto b_0_x = T2CPair({"GA", "GB"}, {s_0, p_x});
+    
+    const auto k_0_0 = T2CPair({"GC", "GD"}, {s_0, s_0});
+    
+    // operator
+    
+    const auto operi = OperatorComponent("1/|r-r'|");
+    
+    // integral components
+    
+    const auto t_x_x = T4CIntegral(b_x_x, k_0_0, operi);
+    
+    const auto t_x_y = T4CIntegral(b_x_y, k_0_0, operi);
+    
+    const auto t_y_y = T4CIntegral(b_y_y, k_0_0, operi);
+    
+    const auto t_0_xx = T4CIntegral(b_0_xx, k_0_0, operi);
+    
+    const auto t_0_x = T4CIntegral(b_0_x, k_0_0, operi);
+    
+    // generate graph
+    
+    const auto rd_x_x = R4CDist(R4CTerm(t_x_x));
+    
+    const auto rd_x_y = R4CDist(R4CTerm(t_x_y));
+    
+    const auto rd_y_y = R4CDist(R4CTerm(t_y_y));
+    
+    R4Graph rgraph(R4Group({rd_x_x, rd_x_y, rd_y_y}));
+    
+    std::set<T4CIntegral> sints;
+    
+    eri_drv.apply_bra_hrr(rgraph, sints);
+    
+    // create repository for integrals
+    
+    Repository<R4Group, T4CIntegral> repo;
+    
+    repo.add(V4Graphs({rgraph,}));
+    
+    // compare base map for (PPSS) integrals
+    
+    auto tmap = repo.base_map(I4CIntegral(t_x_x));
+    
+    std::map<Signature<T4CIntegral>, R4Group> rmap;
+    
+    rmap[rgraph[0].signature()] = rgraph[0];
+    
+    EXPECT_EQ(tmap, rmap);
+    
+    // compare base map for (SDSS) integrals
+    
+    tmap = repo.base_map(I4CIntegral(t_0_xx));
+    
+    rmap.clear();
+    
+    rmap[rgraph[1].signature()] = rgraph[1];
+    
+    // compare base map for (SPSS) integrals
+    
+    tmap = repo.base_map(I4CIntegral(t_0_x));
+    
+    rmap.clear();
+    
+    rmap[rgraph[2].signature()] = rgraph[2];
+    
+    EXPECT_EQ(tmap, rmap);
 }
 
 //const auto nverts = rgraph.vertices();

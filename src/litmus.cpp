@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     
     // set up angular momentum values
     
-    const int mang = 3;
+    const int mang = 4;
     
     // electron repulsion integral recursions
     
@@ -43,6 +43,8 @@ int main(int argc, char **argv)
     // summary of four-center integrals repository
 
     t4c_repo.summary();
+    
+    t4c_repo.details<I4CIntegral>();
  
     return 0;
 }

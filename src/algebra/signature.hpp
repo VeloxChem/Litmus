@@ -73,10 +73,19 @@ public:
     /// @param factor The factor to add.
     void add(const Factor& factor);
     
-    /// Gets  base integral of unniform signature.
+    /// Gets  base integral of uniform signature.
     /// @return The base integral of uniform signature.
     template <class U>
     std::optional<U> base() const;
+    
+    /// Gets number of factors in this signature.
+    /// @return The number of factors in  signature.
+    int nfactors() const;
+    
+    /// Adds  parameter to this signature.
+    /// @param destination The destination of added parameter.
+    /// @return The number of parameters in selected set of parameters.
+    int nparams(const std::string& destination) const;
 };
 
 template <class T>
@@ -193,6 +202,29 @@ Signature<T>::base() const
     {
         return std::nullopt;
     }
+}
+
+template <class T>
+int
+Signature<T>::nfactors() const
+{
+    return static_cast<int>(_factors.size());
+}
+
+template <class T>
+int
+Signature<T>::nparams(const std::string& destination) const
+{
+    if (destination == "inp")
+    {
+        return static_cast<int>(_inp_params.size());
+    }
+    
+    if (destination == "out")
+    {
+        return static_cast<int>(_out_params.size());
+    }
+    return 0;
 }
 
 #endif /* signature_hpp */

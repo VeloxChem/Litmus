@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 #include <iostream>
 
 #include "signature.hpp"
@@ -59,12 +60,27 @@ public:
     /// @param graphs The vector of graphs.
     void add(const VGraphs<T>& graphs);
     
+    /// Gets  set  of base integrals in this repository.
+    /// @return The sef of base integrals in this repository.
+    template <class V>
+    std::set<V> base() const;
+    
+    /// Gets  map of unique signature : data pairs with same base integral.
+    /// @param bdata The base integral of signature.
+    /// @return The sef of base integrals in this repository.
+    template <class V>
+    std::map<Signature<U>, T> base_map(const V& bdata) const;
+    
     /// Computes number of recursion groups in repository.
     /// @return The number of recursion groups.
     int rec_groups() const;
     
     /// Prints summary of this repository.
     void summary() const;
+    
+    /// Prints detailes summary of signatures of this repository.
+    template <class V>
+    void details() const;
 };
 
 template <class T, class U>
@@ -124,6 +140,45 @@ Repository<T, U>::add(const VGraphs<T>& graphs)
 }
 
 template <class T, class U>
+template <class V>
+std::set<V>
+Repository<T, U>::base() const
+{
+    std::set<V> sints;
+    
+    for (const auto& tval : _rgmap)
+    {
+        if (const auto tint = tval.first.template base<V>())
+        {
+            sints.insert(*tint);
+        }
+    }
+    
+    return sints;
+}
+
+template <class T, class U>
+template <class V>
+std::map<Signature<U>, T>
+Repository<T, U>::base_map(const V& bdata) const
+{
+    std::map<Signature<U>, T> tmap;
+    
+    for (const auto& tval : _rgmap)
+    {
+        if (const auto tint = tval.first.template base<V>())
+        {
+            if (bdata == *tint)
+            {
+                tmap[tval.first] = tval.second;
+            }
+        }
+    }
+    
+    return tmap;
+}
+
+template <class T, class U>
 int
 Repository<T, U>::rec_groups() const
 {
@@ -146,6 +201,30 @@ Repository<T, U>::summary() const
     std::cout << "Number of Recursion Groups  : " << rec_groups() << std::endl;
     
     std::cout << "Number of Unique Signatures : " << _rgmap.size() << std::endl;
+}
+
+template <class T, class U>
+template <class V>
+void
+Repository<T, U>::details() const
+{
+    for (const auto& tint : base<V>())
+    {
+        const auto tmap = base_map<V>(tint);
+        
+        std::cout << "Integral angular form [" << tint.label() << "]" << std::endl;
+        
+        std::cout << "Unique recursion patterns: " << tmap.size() << std::endl;
+        
+        for (const auto& tval : tmap)
+        {
+            std::cout << " o-params: " << tval.first.nparams("out");
+            
+            std::cout << " i-params: " << tval.first.nparams("inp");;
+         
+            std::cout << " i-facts: " << tval.first.nfactors() << std::endl;
+        }
+    }
 }
 
 #endif /* repository_hpp */
