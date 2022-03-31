@@ -17,6 +17,7 @@
 #include "eri_driver.hpp"
 
 #include <array>
+#include <iostream>
 
 #include "axes.hpp"
 
@@ -681,6 +682,8 @@ EriDriver::create_graph(const int  anga,
     
     const auto refint = I4CIntegral(bpair, kpair, operi);
     
+    std::cout << "Creating graph for " << refint.label() << "...";
+    
     // create refrence integral components
     
     VT4CIntegrals refcomps;
@@ -711,27 +714,39 @@ EriDriver::create_graph(const int  anga,
     
     apply_recursion(rgraph, sints);
     
+    std::cout << "done." << std::endl;
+    
     return rgraph;
 }
 
 V4Graphs
-EriDriver::create_graphs(const int  anga,
-                         const int  angb,
-                         const int  angc,
-                         const int  angd,
+EriDriver::create_graphs(const int  mang,
                          const bool diag) const
 {
     V4Graphs vgraphs;
-
-    for (int i = 0; i <= anga; i++)
+    
+    if (diag)
     {
-        for (int j = 0; j <= angb; j++)
+        for (int i = 0; i <= mang; i++)
         {
-            for (int k = 0; k <= angc; k++)
+            for (int j = i; j <= mang; j++)
             {
-                for (int l = 0; l <= angd; l++)
+                vgraphs.push_back(create_graph(i, j, i, j, true));
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0; i <= mang; i++)
+        {
+            for (int j = i; j <= mang; j++)
+            {
+                for (int k = 0; k <= mang; k++)
                 {
-                    vgraphs.push_back(create_graph(i, j, k, l, diag));
+                    for (int l = k; l <= mang; l++)
+                    {
+                        vgraphs.push_back(create_graph(i, j, k, l, false));
+                    }
                 }
             }
         }

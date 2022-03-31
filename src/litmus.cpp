@@ -16,9 +16,33 @@
 
 #include <iostream>
 
+#include "eri_driver.hpp"
+#include "repository.hpp"
+
 int main(int argc, char **argv)
 {
-    std::cout << "Litmus: An automated molecular integrals generator!\n";
+    // four-center integrals repository
+    
+    Repository<R4Group, T4CIntegral> t4c_repo;
+    
+    // set up angular momentum values
+    
+    const int mang = 3;
+    
+    // electron repulsion integral recursions
+    
+    if (true)
+    {
+        EriDriver eri_drv;
+        
+        t4c_repo.add(eri_drv.create_graphs(mang, false));
+        
+        //t4c_repo.add(eri_drv.create_graphs(mang, mang, mang, mang, true));
+    }
+    
+    // summary of four-center integrals repository
+
+    t4c_repo.summary();
  
     return 0;
 }

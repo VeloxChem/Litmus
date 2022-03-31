@@ -200,15 +200,9 @@ public:
                          const bool diag) const;
     
     /// Creates vector of recursion graphs with upper limit of angular momentum values.
-    /// @param anga The angular momentum of center A.
-    /// @param angb The angular momentum of center B.
-    /// @param angc The angular momentum of center C.
-    /// @param angd The angular momentum of center D.
+    /// @param mang The maximum angular momentum.
     /// @param diag The flag to generate only diagonal terms.
-    V4Graphs create_graphs(const int  anga,
-                           const int  angb,
-                           const int  angc,
-                           const int  angd,
+    V4Graphs create_graphs(const int  mang,
                            const bool diag) const;
 };
 

@@ -2325,39 +2325,42 @@ TEST_F(EriDriverTest, CreateGraphs)
 {
     EriDriver eri_drv;
     
-    const auto vgraphs = eri_drv.create_graphs(1, 1, 1, 1, false);
+    const auto vgraphs = eri_drv.create_graphs(1, false);
+    
+    EXPECT_EQ(vgraphs.size(), 9);
     
     EXPECT_EQ(vgraphs[0], eri_drv.create_graph(0, 0, 0, 0, false));
     
     EXPECT_EQ(vgraphs[1], eri_drv.create_graph(0, 0, 0, 1, false));
     
-    EXPECT_EQ(vgraphs[2], eri_drv.create_graph(0, 0, 1, 0, false));
+    EXPECT_EQ(vgraphs[2], eri_drv.create_graph(0, 0, 1, 1, false));
     
-    EXPECT_EQ(vgraphs[3], eri_drv.create_graph(0, 0, 1, 1, false));
+    EXPECT_EQ(vgraphs[3], eri_drv.create_graph(0, 1, 0, 0, false));
     
-    EXPECT_EQ(vgraphs[4], eri_drv.create_graph(0, 1, 0, 0, false));
+    EXPECT_EQ(vgraphs[4], eri_drv.create_graph(0, 1, 0, 1, false));
     
-    EXPECT_EQ(vgraphs[5], eri_drv.create_graph(0, 1, 0, 1, false));
+    EXPECT_EQ(vgraphs[5], eri_drv.create_graph(0, 1, 1, 1, false));
     
-    EXPECT_EQ(vgraphs[6], eri_drv.create_graph(0, 1, 1, 0, false));
+    EXPECT_EQ(vgraphs[6], eri_drv.create_graph(1, 1, 0, 0, false));
     
-    EXPECT_EQ(vgraphs[7], eri_drv.create_graph(0, 1, 1, 1, false));
+    EXPECT_EQ(vgraphs[7], eri_drv.create_graph(1, 1, 0, 1, false));
     
-    EXPECT_EQ(vgraphs[8], eri_drv.create_graph(1, 0, 0, 0, false));
+    EXPECT_EQ(vgraphs[8], eri_drv.create_graph(1, 1, 1, 1, false));
+}
+
+TEST_F(EriDriverTest, CreateGraphsDiagonal)
+{
+    EriDriver eri_drv;
     
-    EXPECT_EQ(vgraphs[9], eri_drv.create_graph(1, 0, 0, 1, false));
+    const auto vgraphs = eri_drv.create_graphs(1, true);
     
-    EXPECT_EQ(vgraphs[10], eri_drv.create_graph(1, 0, 1, 0, false));
+    EXPECT_EQ(vgraphs.size(), 3);
     
-    EXPECT_EQ(vgraphs[11], eri_drv.create_graph(1, 0, 1, 1, false));
+    EXPECT_EQ(vgraphs[0], eri_drv.create_graph(0, 0, 0, 0, true));
     
-    EXPECT_EQ(vgraphs[12], eri_drv.create_graph(1, 1, 0, 0, false));
+    EXPECT_EQ(vgraphs[1], eri_drv.create_graph(0, 1, 0, 1, true));
     
-    EXPECT_EQ(vgraphs[13], eri_drv.create_graph(1, 1, 0, 1, false));
-    
-    EXPECT_EQ(vgraphs[14], eri_drv.create_graph(1, 1, 1, 0, false));
-    
-    EXPECT_EQ(vgraphs[15], eri_drv.create_graph(1, 1, 1, 1, false));
+    EXPECT_EQ(vgraphs[2], eri_drv.create_graph(1, 1, 1, 1, true));
 }
 
 TEST_F(EriDriverTest, GraphSignaturesMap)

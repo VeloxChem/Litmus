@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <map>
+#include <iostream>
 
 #include "signature.hpp"
 #include "recursion_group.hpp"
@@ -57,6 +58,13 @@ public:
     /// Adds vector of  graphs into this repository.
     /// @param graphs The vector of graphs.
     void add(const VGraphs<T>& graphs);
+    
+    /// Computes number of recursion groups in repository.
+    /// @return The number of recursion groups.
+    int rec_groups() const;
+    
+    /// Prints summary of this repository.
+    void summary() const;
 };
 
 template <class T, class U>
@@ -103,7 +111,6 @@ Repository<T, U>::operator!=(const Repository<T, U>& other) const
     return !((*this) == other);
 }
 
-
 template <class T, class U>
 void
 Repository<T, U>::add(const VGraphs<T>& graphs)
@@ -114,6 +121,31 @@ Repository<T, U>::add(const VGraphs<T>& graphs)
         
         _rgmap.merge(tval.template signatures<U>());
     }
+}
+
+template <class T, class U>
+int
+Repository<T, U>::rec_groups() const
+{
+    int ngroups = 0;
+    
+    for (const auto& tval : _graphs)
+    {
+        ngroups += tval.vertices();
+    }
+    
+    return ngroups;
+}
+
+template <class T, class U>
+void
+Repository<T, U>::summary() const
+{
+    std::cout << "Number of Recursion Graphs  : " << _graphs.size() << std::endl;
+    
+    std::cout << "Number of Recursion Groups  : " << rec_groups() << std::endl;
+    
+    std::cout << "Number of Unique Signatures : " << _rgmap.size() << std::endl;
 }
 
 #endif /* repository_hpp */
