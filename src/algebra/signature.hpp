@@ -19,6 +19,7 @@
 
 #include <set>
 #include <string>
+#include <optional>
 
 #include "factor.hpp"
 
@@ -71,6 +72,11 @@ public:
     /// Adds  factor to this signature.
     /// @param factor The factor to add.
     void add(const Factor& factor);
+    
+    /// Gets  base integral of unniform signature.
+    /// @return The base integral of uniform signature.
+    template <class U>
+    std::optional<U> base() const;
 };
 
 template <class T>
@@ -165,6 +171,28 @@ void
 Signature<T>::add(const Factor& factor)
 {
     _factors.insert(factor); 
+}
+
+template <class T>
+template <class U>
+std::optional<U>
+Signature<T>::base() const
+{
+    std::set<U> tints;
+    
+    for (const auto& tval : _out_params)
+    {
+        tints.insert(U(tval));
+    }
+    
+    if (tints.size()  == 1)
+    {
+        return *(tints.begin());
+    }
+    else
+    {
+        return std::nullopt;
+    }
 }
 
 #endif /* signature_hpp */

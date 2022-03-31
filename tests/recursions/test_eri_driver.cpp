@@ -2536,19 +2536,6 @@ TEST_F(EriDriverTest, RepositoryAdd)
     const auto ref_repo = Repository<R4Group, T4CIntegral>(V4Graphs({rgraph,}), smap); 
     
     EXPECT_EQ(repo, ref_repo);
-    
-//    // compare signature maps
-//
-//    const auto smap = rgraph.signatures<T4CIntegral>();
-//
-//    std::map<Signature<T4CIntegral>, R4Group> rmap;
-//
-//    for (int i = 0; i < 3; i++)
-//    {
-//        rmap[rgraph[i].signature()] = rgraph[i];
-//    }
-//
-//    EXPECT_EQ(rmap, smap);
 }
 
 //const auto nverts = rgraph.vertices();
