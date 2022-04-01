@@ -129,6 +129,11 @@ public:
     /// @return The map of signature:vertice pairs.
     template <class U>
     std::map<Signature<U>, T> signatures() const;
+    
+    /// Gets of global signature.
+    /// @return The global signature.
+    template <class U>
+    Signature<U> global_signature() const;
 };
 
 template <class T>
@@ -493,6 +498,21 @@ Graph<T>::signatures() const
     }
     
     return vmap; 
+}
+
+template <class T>
+template <class U>
+Signature<U>
+Graph<T>::global_signature() const
+{
+    Signature<U> tsign;
+    
+    for (const auto& vert : _vertices)
+    {
+        tsign.merge(vert.signature());
+    }
+    
+    return tsign;
 }
 
 template <class T>

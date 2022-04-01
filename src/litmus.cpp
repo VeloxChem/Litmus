@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     
     // set up angular momentum values
     
-    const int mang = 4;
+    const int mang = 3;
     
     // electron repulsion integral recursions
     

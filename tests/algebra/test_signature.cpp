@@ -92,6 +92,23 @@ TEST_F(SignatureTest, OperatorLess)
     EXPECT_TRUE(lhsrt < rhsrt);
 }
 
+TEST_F(SignatureTest, Merge)
+{
+    const auto pbx = Factor("(P-B)", "pb");
+    
+    const auto wpy = Factor("(W-P)", "wp");
+    
+    auto lhsrt = IntSign({1, 3}, {2, 4}, {pbx,});
+    
+    auto rhsrt = IntSign({3, 2}, {1, 8, 2}, {pbx, wpy,});
+    
+    lhsrt.merge(rhsrt);
+    
+    rhsrt = IntSign({1, 2, 3}, {1, 2, 4, 8}, {pbx, wpy,});
+    
+    EXPECT_EQ(lhsrt, rhsrt);
+}
+
 TEST_F(SignatureTest, AddParam)
 {
     const auto pbx = Factor("(P-B)", "pb");
@@ -159,3 +176,52 @@ TEST_F(SignatureTest, AddFactor)
     
     EXPECT_EQ(lhsrt, rhsrt);
 }
+
+TEST_F(SignatureTest, NParams)
+{
+    const auto pbx = Factor("(P-B)", "pb");
+    
+    const auto wpy = Factor("(W-P)", "wp");
+    
+    auto rhsrt = IntSign({1, 3, 5}, {2, 4, 7, 8}, {pbx, wpy});
+    
+    EXPECT_EQ(rhsrt.nparams("out"), 3);
+    
+    EXPECT_EQ(rhsrt.nparams("inp"), 4);
+}
+
+TEST_F(SignatureTest, NFactors)
+{
+    const auto pbx = Factor("(P-B)", "pb");
+    
+    const auto wpy = Factor("(W-P)", "wp");
+    
+    auto rhsrt = IntSign({1, 3, 5}, {2, 4, 7, 8}, {pbx, wpy});
+    
+    EXPECT_EQ(rhsrt.nfactors(), 2);
+}
+
+TEST_F(SignatureTest, Params)
+{
+    const auto pbx = Factor("(P-B)", "pb");
+    
+    const auto wpy = Factor("(W-P)", "wp");
+    
+    auto rhsrt = IntSign({1, 3, 5}, {2, 4, 7, 8}, {pbx, wpy});
+    
+    EXPECT_EQ(rhsrt.params("out"), std::set<int>({1, 3, 5}));
+    
+    EXPECT_EQ(rhsrt.params("inp"), std::set<int>({2, 4, 7, 8}));
+}
+
+TEST_F(SignatureTest, Factors)
+{
+    const auto pbx = Factor("(P-B)", "pb");
+    
+    const auto wpy = Factor("(W-P)", "wp");
+    
+    auto rhsrt = IntSign({1, 3, 5}, {2, 4, 7, 8}, {pbx, wpy});
+    
+    EXPECT_EQ(rhsrt.factors(), std::set<Factor>({pbx, wpy}));
+}
+

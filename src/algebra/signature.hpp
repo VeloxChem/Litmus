@@ -63,6 +63,10 @@ public:
     /// @return true if this signature is less than other signature, false otherwise.
     bool operator<(const Signature<T>& other) const;
     
+    /// Merges other signature into this signature.
+    /// @param other The other signature to merge.
+    void merge(const Signature<T>& other);
+    
     /// Adds  parameter to this signature.
     /// @param param The parameter to add.
     /// @param destination The destination of added parameter.
@@ -82,10 +86,19 @@ public:
     /// @return The number of factors in  signature.
     int nfactors() const;
     
-    /// Adds  parameter to this signature.
-    /// @param destination The destination of added parameter.
-    /// @return The number of parameters in selected set of parameters.
+    /// Gets number of  parameters in this signature.
+    /// @param destination The destination of counted parameters.
+    /// @return The number of parameters in this signature.
     int nparams(const std::string& destination) const;
+    
+    /// Gets set of factors in this signature.
+    /// @return The set of factors in  signature.
+    std::set<Factor> factors() const;
+    
+    /// Gets parameters in this signature.
+    /// @param destination The destination of parameters.
+    /// @return The selected parameters in this signature.
+    std::set<T> params(const std::string& destination) const;
 };
 
 template <class T>
@@ -161,6 +174,17 @@ Signature<T>::operator<(const Signature<T>& other) const
 
 template <class T>
 void
+Signature<T>::merge(const Signature<T>& other)
+{
+    _out_params.insert(other._out_params.cbegin(), other._out_params.cend());
+    
+    _inp_params.insert(other._inp_params.cbegin(), other._inp_params.cend());
+    
+    _factors.insert(other._factors.cbegin(), other._factors.cend());
+}
+
+template <class T>
+void
 Signature<T>::add(const T&           param,
                   const std::string& destination)
 {
@@ -224,7 +248,32 @@ Signature<T>::nparams(const std::string& destination) const
     {
         return static_cast<int>(_out_params.size());
     }
+    
     return 0;
+}
+
+template <class T>
+std::set<Factor>
+Signature<T>::factors() const
+{
+    return _factors;
+}
+
+template <class T>
+std::set<T>
+Signature<T>::params(const std::string& destination) const
+{
+    if (destination == "inp")
+    {
+        return _inp_params;
+    }
+    
+    if (destination == "out")
+    {
+        return _out_params;
+    }
+    
+    return std::set<T>();
 }
 
 #endif /* signature_hpp */
