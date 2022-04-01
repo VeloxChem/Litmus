@@ -2775,7 +2775,6 @@ TEST_F(EriDriverTest, GraphGlobalSignature)
     EXPECT_EQ(tsig, rsign);
 }
 
-
 //const auto nverts = rgraph.vertices();
 //
 //std::set<I4CIntegral> gints;

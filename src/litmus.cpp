@@ -15,12 +15,17 @@
 // limitations under the License.
 
 #include <iostream>
+#include <chrono>
 
 #include "eri_driver.hpp"
 #include "repository.hpp"
 
 int main(int argc, char **argv)
 {
+    // set up start timer
+    
+    auto stime = std::chrono::high_resolution_clock::now();
+    
     // four-center integrals repository
     
     Repository<R4Group, T4CIntegral> t4c_repo;
@@ -40,11 +45,19 @@ int main(int argc, char **argv)
         //t4c_repo.add(eri_drv.create_graphs(mang, mang, mang, mang, true));
     }
     
-    // summary of four-center integrals repository
+    // print summary of integrals repository
 
     t4c_repo.summary();
     
     t4c_repo.details<I4CIntegral>();
  
+    // set up end timer & compute elapsed time
+    
+    auto etime = std::chrono::high_resolution_clock::now();
+    
+    auto dtime = std::chrono::duration_cast<std::chrono::seconds>(etime - stime);
+    
+    std::cout << "Elapsed time: " << dtime.count() << " seconds." << std::endl;
+    
     return 0;
 }

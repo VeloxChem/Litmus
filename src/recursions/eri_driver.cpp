@@ -18,7 +18,9 @@
 
 #include <array>
 #include <iostream>
+#include <algorithm>
 
+#include "omp.h"
 #include "axes.hpp"
 
 EriDriver::EriDriver()
@@ -725,32 +727,58 @@ EriDriver::create_graphs(const int  mang,
 {
     V4Graphs vgraphs;
     
-    if (diag)
+    auto ptr_vgraphs = &vgraphs;
+    
+    #pragma omp parallel shared(ptr_vgraphs)
     {
-        for (int i = 0; i <= mang; i++)
+        #pragma omp single nowait
         {
-            for (int j = i; j <= mang; j++)
+            if (diag)
             {
-                vgraphs.push_back(create_graph(i, j, i, j, true));
-            }
-        }
-    }
-    else
-    {
-        for (int i = 0; i <= mang; i++)
-        {
-            for (int j = i; j <= mang; j++)
-            {
-                for (int k = 0; k <= mang; k++)
+                for (int i = 0; i <= mang; i++)
                 {
-                    for (int l = k; l <= mang; l++)
+                    for (int j = i; j <= mang; j++)
                     {
-                        vgraphs.push_back(create_graph(i, j, k, l, false));
+                        #pragma omp task firstprivate(i, j)
+                        {
+                            auto rgraph = create_graph(i, j, i, j, true);
+                            
+                            #pragma omp critical
+                            {
+                                ptr_vgraphs->push_back(rgraph);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i <= mang; i++)
+                {
+                    for (int j = i; j <= mang; j++)
+                    {
+                        for (int k = 0; k <= mang; k++)
+                        {
+                            for (int l = k; l <= mang; l++)
+                            {
+                                #pragma omp task firstprivate(i, j, k, l)
+                                {
+                                    auto rgraph = create_graph(i, j, k, l, false);
+                                    
+                                    #pragma omp critical
+                                    {
+                                        ptr_vgraphs->push_back(rgraph);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
+    
+    std::sort(vgraphs.begin(), vgraphs.end());
     
     return vgraphs;
 }
