@@ -444,7 +444,7 @@ EriDriver::apply_bra_hrr(R4Graph&       rgraph,
     
     while (use_hrr)
     {
-        int cnt = 0;
+        size_t cnt = 0;
         
         const auto vidx = rgraph.orphans();
         
@@ -501,7 +501,7 @@ EriDriver::apply_ket_hrr(R4Graph&       rgraph,
     
     while (use_hrr)
     {
-        int cnt = 0;
+        size_t cnt = 0;
         
         const auto vidx = rgraph.orphans();
         
@@ -558,7 +558,7 @@ EriDriver::apply_bra_vrr(R4Graph&       rgraph,
     
     while (use_hrr)
     {
-        int cnt = 0;
+        size_t cnt = 0;
         
         const auto vidx = rgraph.orphans();
         
@@ -615,7 +615,7 @@ EriDriver::apply_ket_vrr(R4Graph&       rgraph,
     
     while (use_hrr)
     {
-        int cnt = 0;
+        size_t cnt = 0;
         
         const auto vidx = rgraph.orphans();
         
@@ -684,8 +684,6 @@ EriDriver::create_graph(const int  anga,
     
     const auto refint = I4CIntegral(bpair, kpair, operi);
     
-    std::cout << "Creating graph for " << refint.label() << "...";
-    
     // create refrence integral components
     
     VT4CIntegrals refcomps;
@@ -715,8 +713,6 @@ EriDriver::create_graph(const int  anga,
     R4Graph rgraph({r4group,});
     
     apply_recursion(rgraph, sints);
-    
-    std::cout << "done." << std::endl;
     
     return rgraph;
 }
