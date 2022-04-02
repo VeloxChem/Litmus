@@ -34,7 +34,7 @@ class Graph
     std::vector<T> _vertices;
     
     /// Adjacency list (edges) of graph vertices.
-    std::vector<std::set<int>> _edges;
+    std::vector<std::set<size_t>> _edges;
   
 public:
     /// Creates an empty graph.
@@ -43,8 +43,8 @@ public:
     /// Creates a  graph from the vertices and adjacency list.
     /// @param vertices The vector of vertices.
     /// @param edges The two dimensional adjacency list (edges).
-    Graph(const std::vector<T>&             vertices,
-          const std::vector<std::set<int>>& edges);
+    Graph(const std::vector<T>&                vertices,
+          const std::vector<std::set<size_t>>& edges);
     
     /// Creates a  graph from the single vertice.
     /// @param vertice The vertice to create graph.
@@ -53,7 +53,7 @@ public:
     /// Retrieves requested vertice from graph.
     /// @param index The index of vertice.
     /// @return The  requested vertice.
-    const T& operator[](const int index) const;
+    const T& operator[](const size_t index) const;
     
     /// Compares this graph with other graph.
     /// @param other The other graph to compare.
@@ -73,8 +73,8 @@ public:
     /// Adds vertice to graph.
     /// @param vertice The vertice to be added.
     /// @param root The index of root vertice to which added vertice is connected.
-    void add(const T&  vertice,
-             const int root);
+    void add(const T&     vertice,
+             const size_t root);
     
     /// Adds vertice to graph.
     /// @param vertice The vertice to be added.
@@ -85,14 +85,14 @@ public:
     /// Replaces selected vertice with given vertice.
     /// @param vertice The replacement vertice.
     /// @param index The index of vertice to be replaced.
-    void replace(const T&  vertice,
-                 const int index);
+    void replace(const T&     vertice,
+                 const size_t index);
     
     /// Replaces selected vertice with given vertice.
     /// @param ivertice The index of vertice to merge into.
     /// @param jvertice The index of vertice to be merged.
-    void merge(const int ivertice,
-               const int jvertice);
+    void merge(const size_t ivertice,
+               const size_t jvertice);
     
     /// Creates inverted graph from this graph.
     /// @return The inverted graph.
@@ -113,17 +113,17 @@ public:
     /// Gets edges data for specific vertice.
     /// @param index The index of vertice.
     /// @return The edges data.
-    std::set<int> edge(const int index) const;
+    std::set<size_t> edge(const size_t index) const;
     
     /// Gets vector of indexes of orphaned vertices.
     /// @return The vector of indexes.
-    std::vector<int> orphans() const;
+    std::vector<size_t> orphans() const;
     
     /// Gets vector of indexes for ordering vertices.
     /// @param rorder The reverse order flag.
     /// @return The vector of indexes.
     template <class U>
-    std::vector<int> indexes(const bool rorder) const;
+    std::vector<size_t> indexes(const bool rorder) const;
     
     /// Gets of map of signature:vertice pairs.
     /// @return The map of signature:vertice pairs.
@@ -141,14 +141,14 @@ Graph<T>::Graph()
     
     : _vertices(std::vector<T>({}))
     
-    , _edges(std::vector<std::set<int>>({}))
+    , _edges(std::vector<std::set<size_t>>({}))
 {
     
 }
 
 template <class T>
-Graph<T>::Graph(const std::vector<T>&             vertices,
-                const std::vector<std::set<int>>& edges)
+Graph<T>::Graph(const std::vector<T>&                vertices,
+                const std::vector<std::set<size_t>>& edges)
 
     : _vertices(vertices)
 
@@ -162,14 +162,14 @@ Graph<T>::Graph(const T& vertice)
 
     : _vertices({vertice,})
 
-, _edges(std::vector<std::set<int>>({{}, }))
+    , _edges(std::vector<std::set<size_t>>({{}, }))
 {
     
 }
 
 template <class T>
 const T&
-Graph<T>::operator[](const int index) const
+Graph<T>::operator[](const size_t index) const
 {
     return _vertices[index]; 
 }
@@ -213,8 +213,8 @@ Graph<T>::operator<(const Graph<T>& other) const
 
 template <class T>
 void
-Graph<T>::add(const T&  vertice,
-              const int root)
+Graph<T>::add(const T&     vertice,
+              const size_t root)
 {
     if (const auto tval = std::find(_vertices.cbegin(), _vertices.cend(), vertice); tval != _vertices.cend())
     {
@@ -222,11 +222,11 @@ Graph<T>::add(const T&  vertice,
     }
     else
     {
-        _edges[root].insert(static_cast<int>(_vertices.size()));
+        _edges[root].insert(static_cast<size_t>(_vertices.size()));
         
         _vertices.push_back(vertice);
         
-        _edges.push_back(std::set<int>());
+        _edges.push_back(std::set<size_t>());
     }
 }
 
@@ -249,23 +249,23 @@ Graph<T>::add(const T& vertice,
             
             _vertices.push_back(vertice);
             
-            _edges.push_back(std::set<int>());
+            _edges.push_back(std::set<size_t>());
         }
     }
 }
 
 template <class T>
 void
-Graph<T>::replace(const T&  vertice,
-                  const int index)
+Graph<T>::replace(const T&     vertice,
+                  const size_t index)
 {
     _vertices[index] = vertice; 
 }
 
 template <class T>
 void
-Graph<T>::merge(const int ivertice,
-                const int jvertice)
+Graph<T>::merge(const size_t ivertice,
+                const size_t jvertice)
 {
     // update vertices data
     
@@ -283,9 +283,9 @@ Graph<T>::merge(const int ivertice,
     
     // update indexing scheme in edges data
     
-    const auto nedges = static_cast<int>(_edges.size());
+    const auto nedges = _edges.size();
     
-    for (int i = 0; i < nedges; i++)
+    for (size_t i = 0; i < nedges; i++)
     {
         if (_edges[i].erase(jvertice) > 0)
         {
@@ -295,7 +295,7 @@ Graph<T>::merge(const int ivertice,
             }
         }
 
-       for (int j = jvertice + 1; j < nedges + 1; j++)
+       for (size_t j = jvertice + 1; j < nedges + 1; j++)
        {
             if (_edges[i].erase(j) > 0)
             {
@@ -311,7 +311,7 @@ Graph<T>::invert() const
 {
     std::vector<T> new_vertices(_vertices.crbegin(), _vertices.crend());
     
-    std::vector<std::set<int>> new_edges(_vertices.size(), std::set<int>());
+    std::vector<std::set<size_t>> new_edges(_vertices.size(), std::set<size_t>());
     
     const auto nverts = vertices();
     
@@ -340,7 +340,7 @@ Graph<T>::sort(const bool rorder)
     
     std::vector<T> new_vertices(_vertices.size(), T());
     
-    std::vector<std::set<int>> new_edges(_vertices.size(), std::set<int>());
+    std::vector<std::set<size_t>> new_edges(_vertices.size(), std::set<size_t>());
     
     // set up ordering indexes
     
@@ -350,7 +350,7 @@ Graph<T>::sort(const bool rorder)
     
     const auto nverts = vertices();
     
-    for (int i = 0; i < nverts; i++)
+    for (size_t i = 0; i < nverts; i++)
     {
         const auto idx = vecids[i];
         
@@ -413,23 +413,23 @@ Graph<T>::vertices() const
 }
 
 template <class T>
-std::set<int>
-Graph<T>::edge(const int index) const
+std::set<size_t>
+Graph<T>::edge(const size_t index) const
 {
     return _edges[index]; 
 }
 
 template <class T>
-std::vector<int>
+std::vector<size_t>
 Graph<T>::orphans() const
 {
-    std::vector<int> indexes;
+    std::vector<size_t> indexes;
     
     for (size_t i = 0; i < _vertices.size(); i++)
     {
         if (_edges[i].empty())
         {
-            indexes.push_back(static_cast<int>(i));
+            indexes.push_back(i);
         }
     }
     
@@ -438,7 +438,7 @@ Graph<T>::orphans() const
 
 template <class T>
 template <class U>
-std::vector<int>
+std::vector<size_t>
 Graph<T>::indexes(const bool rorder) const
 {
     std::set<U> svalues;
@@ -451,7 +451,7 @@ Graph<T>::indexes(const bool rorder) const
         }
     }
     
-    std::vector<int> vecids;
+    std::vector<size_t> vecids;
     
     if (_vertices.size() == svalues.size())
     {
@@ -472,7 +472,7 @@ Graph<T>::indexes(const bool rorder) const
             {
                 auto idx = std::find(vvalues.begin(), vvalues.end(), *tval);
                 
-                vecids.push_back(static_cast<int>(idx - vvalues.begin()));
+                vecids.push_back(static_cast<size_t>(idx - vvalues.begin()));
             }
         }
     }

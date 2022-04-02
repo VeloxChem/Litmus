@@ -240,7 +240,7 @@ EriDriver::apply_bra_hrr(const R4CTerm&       rterm,
 {
     R4CDist t4crt;
     
-    int nints = 3;
+    size_t nints = 3;
     
     for (const auto axis : "xyz")
     {
@@ -270,7 +270,7 @@ EriDriver::apply_ket_hrr(const R4CTerm&       rterm,
 {
     R4CDist t4crt;
     
-    int nints = 3;
+    size_t nints = 3;
     
     for (const auto axis : "xyz")
     {
@@ -300,7 +300,7 @@ EriDriver::apply_bra_vrr(const R4CTerm&       rterm,
 {
     R4CDist t4crt;
     
-    int nints = 6;
+    size_t nints = 6;
     
     for (const auto axis : "xyz")
     {
@@ -330,7 +330,7 @@ EriDriver::apply_ket_vrr(const R4CTerm&       rterm,
 {
     R4CDist t4crt;
     
-    int nints = 6;
+    size_t nints = 6;
     
     for (const auto axis : "xyz")
     {

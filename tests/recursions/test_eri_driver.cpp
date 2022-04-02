@@ -1056,11 +1056,11 @@ TEST_F(EriDriverTest, ApplyBraHrrWithGraphForPP)
     
     EXPECT_EQ(sints, rints);
     
-    EXPECT_EQ(rgraph.edge(0), std::set<int>({1, 2}));
+    EXPECT_EQ(rgraph.edge(0), std::set<size_t>({1, 2}));
     
-    EXPECT_EQ(rgraph.edge(1), std::set<int>({}));
+//    EXPECT_EQ(rgraph.edge(1), std::set<int>({}));
     
-    EXPECT_EQ(rgraph.edge(2), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(2), std::set<size_t>({}));
 }
 
 TEST_F(EriDriverTest, ApplyBraHrrWithGraphForDD)
@@ -1255,17 +1255,17 @@ TEST_F(EriDriverTest, ApplyBraHrrWithGraphForDD)
     
     EXPECT_EQ(sints, rints);
     
-    EXPECT_EQ(rgraph.edge(0), std::set<int>({1, 2}));
+    EXPECT_EQ(rgraph.edge(0), std::set<size_t>({1, 2}));
     
-    EXPECT_EQ(rgraph.edge(1), std::set<int>({3, 4}));
+    EXPECT_EQ(rgraph.edge(1), std::set<size_t>({3, 4}));
     
-    EXPECT_EQ(rgraph.edge(2), std::set<int>({4, 5}));
+    EXPECT_EQ(rgraph.edge(2), std::set<size_t>({4, 5}));
     
-    EXPECT_EQ(rgraph.edge(3), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(3), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(4), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(4), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(5), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(5), std::set<size_t>({}));
 }
 
 TEST_F(EriDriverTest, ApplyKetHrrWithGraphForDD)
@@ -1460,17 +1460,17 @@ TEST_F(EriDriverTest, ApplyKetHrrWithGraphForDD)
     
     EXPECT_EQ(sints, rints);
     
-    EXPECT_EQ(rgraph.edge(0), std::set<int>({1, 2}));
+    EXPECT_EQ(rgraph.edge(0), std::set<size_t>({1, 2}));
     
-    EXPECT_EQ(rgraph.edge(1), std::set<int>({3, 4}));
+    EXPECT_EQ(rgraph.edge(1), std::set<size_t>({3, 4}));
     
-    EXPECT_EQ(rgraph.edge(2), std::set<int>({4, 5}));
+    EXPECT_EQ(rgraph.edge(2), std::set<size_t>({4, 5}));
     
-    EXPECT_EQ(rgraph.edge(3), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(3), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(4), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(4), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(5), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(5), std::set<size_t>({}));
 }
 
 TEST_F(EriDriverTest, ApplyBraVrrWithGraphForDD)
@@ -1667,25 +1667,25 @@ TEST_F(EriDriverTest, ApplyBraVrrWithGraphForDD)
     
     EXPECT_EQ(rints, sints);
     
-    EXPECT_EQ(rgraph.edge(0), std::set<int>({1, 2, 3, 5, 6}));
+    EXPECT_EQ(rgraph.edge(0), std::set<size_t>({1, 2, 3, 5, 6}));
     
-    EXPECT_EQ(rgraph.edge(1), std::set<int>({4, 7}));
+    EXPECT_EQ(rgraph.edge(1), std::set<size_t>({4, 7}));
     
-    EXPECT_EQ(rgraph.edge(2), std::set<int>({8,}));
+    EXPECT_EQ(rgraph.edge(2), std::set<size_t>({8,}));
     
-    EXPECT_EQ(rgraph.edge(3), std::set<int>({7, 8, 9}));
+    EXPECT_EQ(rgraph.edge(3), std::set<size_t>({7, 8, 9}));
     
-    EXPECT_EQ(rgraph.edge(4), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(4), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(5), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(5), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(6), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(6), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(7), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(7), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(8), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(8), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(9), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(9), std::set<size_t>({}));
 }
 
 TEST_F(EriDriverTest, ApplyKetVrrWithGraphForSD)
@@ -1798,17 +1798,17 @@ TEST_F(EriDriverTest, ApplyKetVrrWithGraphForSD)
     
     EXPECT_EQ(sints, rints);
     
-    EXPECT_EQ(rgraph.edge(0), std::set<int>({1, 2, 4, 5}));
+    EXPECT_EQ(rgraph.edge(0), std::set<size_t>({1, 2, 4, 5}));
     
-    EXPECT_EQ(rgraph.edge(1), std::set<int>({3, 4}));
+    EXPECT_EQ(rgraph.edge(1), std::set<size_t>({3, 4}));
     
-    EXPECT_EQ(rgraph.edge(2), std::set<int>({4, 5}));
+    EXPECT_EQ(rgraph.edge(2), std::set<size_t>({4, 5}));
     
-    EXPECT_EQ(rgraph.edge(3), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(3), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(4), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(4), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(5), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(5), std::set<size_t>({}));
 }
 
 TEST_F(EriDriverTest, ApplyRecursionPPPP)
@@ -2128,49 +2128,49 @@ TEST_F(EriDriverTest, ApplyRecursionPPPP)
     
     EXPECT_EQ(sints, rints);
     
-    EXPECT_EQ(rgraph.edge(0), std::set<int>({1, 4}));
+    EXPECT_EQ(rgraph.edge(0), std::set<size_t>({1, 4}));
     
-    EXPECT_EQ(rgraph.edge(1), std::set<int>({2, 3}));
+    EXPECT_EQ(rgraph.edge(1), std::set<size_t>({2, 3}));
     
-    EXPECT_EQ(rgraph.edge(2), std::set<int>({5, 6, 7, 11, 12}));
+    EXPECT_EQ(rgraph.edge(2), std::set<size_t>({5, 6, 7, 11, 12}));
     
-    EXPECT_EQ(rgraph.edge(3), std::set<int>({7, 8, 9, 15, 16}));
+    EXPECT_EQ(rgraph.edge(3), std::set<size_t>({7, 8, 9, 15, 16}));
     
-    EXPECT_EQ(rgraph.edge(4), std::set<int>({6, 8}));
+    EXPECT_EQ(rgraph.edge(4), std::set<size_t>({6, 8}));
     
-    EXPECT_EQ(rgraph.edge(5), std::set<int>({10, 14}));
+    EXPECT_EQ(rgraph.edge(5), std::set<size_t>({10, 14}));
     
-    EXPECT_EQ(rgraph.edge(6), std::set<int>({11, 12, 15}));
+    EXPECT_EQ(rgraph.edge(6), std::set<size_t>({11, 12, 15}));
     
-    EXPECT_EQ(rgraph.edge(7), std::set<int>({14, 15, 19}));
+    EXPECT_EQ(rgraph.edge(7), std::set<size_t>({14, 15, 19}));
     
-    EXPECT_EQ(rgraph.edge(8), std::set<int>({15, 16, 20}));
+    EXPECT_EQ(rgraph.edge(8), std::set<size_t>({15, 16, 20}));
     
-    EXPECT_EQ(rgraph.edge(9), std::set<int>({19, 20}));
+    EXPECT_EQ(rgraph.edge(9), std::set<size_t>({19, 20}));
     
-    EXPECT_EQ(rgraph.edge(10), std::set<int>({13, 14, 18, 19}));
+    EXPECT_EQ(rgraph.edge(10), std::set<size_t>({13, 14, 18, 19}));
     
-    EXPECT_EQ(rgraph.edge(11), std::set<int>({14, 15, 19, 20}));
+    EXPECT_EQ(rgraph.edge(11), std::set<size_t>({14, 15, 19, 20}));
     
-    EXPECT_EQ(rgraph.edge(12), std::set<int>({15, 16, 20, 21}));
+    EXPECT_EQ(rgraph.edge(12), std::set<size_t>({15, 16, 20, 21}));
     
-    EXPECT_EQ(rgraph.edge(13), std::set<int>({17, 18}));
+    EXPECT_EQ(rgraph.edge(13), std::set<size_t>({17, 18}));
     
-    EXPECT_EQ(rgraph.edge(14), std::set<int>({18, 19}));
+    EXPECT_EQ(rgraph.edge(14), std::set<size_t>({18, 19}));
     
-    EXPECT_EQ(rgraph.edge(15), std::set<int>({19, 20}));
+    EXPECT_EQ(rgraph.edge(15), std::set<size_t>({19, 20}));
     
-    EXPECT_EQ(rgraph.edge(16), std::set<int>({20, 21}));
+    EXPECT_EQ(rgraph.edge(16), std::set<size_t>({20, 21}));
     
-    EXPECT_EQ(rgraph.edge(17), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(17), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(18), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(18), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(19), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(19), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(20), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(20), std::set<size_t>({}));
     
-    EXPECT_EQ(rgraph.edge(21), std::set<int>({}));
+    EXPECT_EQ(rgraph.edge(21), std::set<size_t>({}));
 }
 
 TEST_F(EriDriverTest, CreateGraphWithDiagonal)

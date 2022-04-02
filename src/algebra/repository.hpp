@@ -73,7 +73,7 @@ public:
     
     /// Computes number of recursion groups in repository.
     /// @return The number of recursion groups.
-    int rec_groups() const;
+    size_t rec_groups() const;
     
     /// Prints summary of this repository.
     void summary() const;
@@ -179,10 +179,10 @@ Repository<T, U>::base_map(const V& bdata) const
 }
 
 template <class T, class U>
-int
+size_t
 Repository<T, U>::rec_groups() const
 {
-    int ngroups = 0;
+    size_t ngroups = 0;
     
     for (const auto& tval : _graphs)
     {

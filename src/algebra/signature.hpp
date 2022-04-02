@@ -84,12 +84,12 @@ public:
     
     /// Gets number of factors in this signature.
     /// @return The number of factors in  signature.
-    int nfactors() const;
+    size_t nfactors() const;
     
     /// Gets number of  parameters in this signature.
     /// @param destination The destination of counted parameters.
     /// @return The number of parameters in this signature.
-    int nparams(const std::string& destination) const;
+    size_t nparams(const std::string& destination) const;
     
     /// Gets set of factors in this signature.
     /// @return The set of factors in  signature.
@@ -229,24 +229,24 @@ Signature<T>::base() const
 }
 
 template <class T>
-int
+size_t
 Signature<T>::nfactors() const
 {
-    return static_cast<int>(_factors.size());
+    return _factors.size();
 }
 
 template <class T>
-int
+size_t
 Signature<T>::nparams(const std::string& destination) const
 {
     if (destination == "inp")
     {
-        return static_cast<int>(_inp_params.size());
+        return _inp_params.size();
     }
     
     if (destination == "out")
     {
-        return static_cast<int>(_out_params.size());
+        return _out_params.size();
     }
     
     return 0;

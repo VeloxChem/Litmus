@@ -45,7 +45,7 @@ public:
     /// Retrieves requested recursion term from recursion terms expansion of root recursion term.
     /// @param index The index of recursion term.
     /// @return The  requested recursion term.
-    const RecursionTerm<T>& operator[](const int index) const;
+    const RecursionTerm<T>& operator[](const size_t index) const;
     
     /// Compares this recursion expansion with other recursion expansion.
     /// @param other The other recursion expansion to compare.
@@ -77,7 +77,7 @@ public:
     
     /// Gets number of recursion terms in expansion of root recursion term.
     /// @return The number of recursion terms in expansion of root recursion term.
-    int terms() const;
+    size_t terms() const;
     
     /// Gets unique integrals in recursion expansion.
     /// @return The set of unique integrals in recursion expansion.
@@ -90,7 +90,7 @@ public:
     /// Counts number of new integrals in recursion expansion with respect to given integral set.
     /// @param integrals The set of integrals used to count new integrals.
     /// @return The number of new integrals in recursion expansion.
-    int count_new_integrals(const std::set<T>& integrals) const;
+    size_t count_new_integrals(const std::set<T>& integrals) const;
     
     /// Checks if recursion expansion contains auxilary root  at specific
     /// angular center.
@@ -126,7 +126,7 @@ RecursionExpansion<T>::RecursionExpansion(const RecursionTerm<T>&   root,
 
 template <class T>
 const RecursionTerm<T>&
-RecursionExpansion<T>::operator[](const int index) const
+RecursionExpansion<T>::operator[](const size_t index) const
 {
     return _expansion[index]; 
 }
@@ -190,10 +190,10 @@ RecursionExpansion<T>::root() const
 }
 
 template <class T>
-int
+size_t
 RecursionExpansion<T>::terms() const
 {
-    return static_cast<int>(_expansion.size());
+    return _expansion.size();
 }
 
 template <class T>
@@ -228,10 +228,10 @@ RecursionExpansion<T>::unique_factors() const
 }
 
 template <class T>
-int
+size_t
 RecursionExpansion<T>::count_new_integrals(const std::set<T>& integrals) const
 {
-    int nints = 0;
+    size_t nints = 0;
     
     for (const auto& tint : unique_integrals())
     {

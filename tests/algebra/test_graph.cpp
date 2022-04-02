@@ -217,15 +217,15 @@ TEST_F(GraphTest, Edge)
     const auto tg = Graph<std::string>({"A", "B", "C", "D", "E",},
                                        {{1, 2}, {3, 4}, {4}, {}, {},});
 
-    EXPECT_EQ(tg.edge(0), std::set<int>({1, 2}));
+    EXPECT_EQ(tg.edge(0), std::set<size_t>({1, 2}));
     
-    EXPECT_EQ(tg.edge(1), std::set<int>({3, 4}));
+    EXPECT_EQ(tg.edge(1), std::set<size_t>({3, 4}));
     
-    EXPECT_EQ(tg.edge(2), std::set<int>({4}));
+    EXPECT_EQ(tg.edge(2), std::set<size_t>({4}));
     
-    EXPECT_EQ(tg.edge(3), std::set<int>({}));
+    EXPECT_EQ(tg.edge(3), std::set<size_t>({}));
     
-    EXPECT_EQ(tg.edge(4), std::set<int>({}));
+    EXPECT_EQ(tg.edge(4), std::set<size_t>({}));
     
 }
 
@@ -237,9 +237,9 @@ TEST_F(GraphTest, Orpahns)
     const auto rg = Graph<std::string>({"E", "D", "C", "B", "A",},
                                        {{2, 3}, {3}, {4}, {4}, {},});
 
-    EXPECT_EQ(tg.orphans(), std::vector<int>({3, 4,}));
+    EXPECT_EQ(tg.orphans(), std::vector<size_t>({3, 4,}));
     
-    EXPECT_EQ(rg.orphans(), std::vector<int>({4,}));
+    EXPECT_EQ(rg.orphans(), std::vector<size_t>({4,}));
 }
 
 TEST_F(GraphTest, Merge)
@@ -275,9 +275,9 @@ TEST_F(GraphTest, Indexes)
     const auto tg = Graph<std::string>({"A", "C", "B", "E", "D",},
                                        {{1, 2, 3}, {2, 3, 4}, {3, 4}, {4}, {},});
 
-    EXPECT_EQ(tg.indexes<std::string>(false), std::vector<int>({0, 2, 1, 4, 3}));
+    EXPECT_EQ(tg.indexes<std::string>(false), std::vector<size_t>({0, 2, 1, 4, 3}));
     
-    EXPECT_EQ(tg.indexes<std::string>(true), std::vector<int>({4, 2, 3, 0, 1}));
+    EXPECT_EQ(tg.indexes<std::string>(true), std::vector<size_t>({4, 2, 3, 0, 1}));
 }
 
 TEST_F(GraphTest, SortDecreasingOrder)

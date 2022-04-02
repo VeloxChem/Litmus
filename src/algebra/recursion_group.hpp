@@ -43,7 +43,7 @@ public:
     /// Retrieves requested recursion expansion from recursion group.
     /// @param index The index of recursion expansion.
     /// @return The  requested recursion expansion.
-    const RecursionExpansion<T>& operator[](const int index) const;
+    const RecursionExpansion<T>& operator[](const size_t index) const;
     
     /// Compares this recursion group with other recursion group.
     /// @param other The other recursion group to compare.
@@ -80,7 +80,7 @@ public:
     
     /// Gets number of recursion expansions in recursion group.
     /// @return The number of recursion expansions in recursion group.
-    int expansions() const;
+    size_t expansions() const;
     
     /// Splits expansions in recursion group into 2D vector of unique recursion
     /// terms according to integral type.
@@ -136,7 +136,7 @@ RecursionGroup<T>::RecursionGroup(const VRecursionExpansions<T>& expansions)
 
 template <class T>
 const RecursionExpansion<T>&
-RecursionGroup<T>::operator[](const int index) const
+RecursionGroup<T>::operator[](const size_t index) const
 {
     return _expansions[index];
 }
@@ -219,10 +219,10 @@ RecursionGroup<T>::merge(const RecursionGroup<T>& other)
 }
 
 template <class T>
-int
+size_t
 RecursionGroup<T>::expansions() const
 {
-    return static_cast<int>(_expansions.size());
+    return _expansions.size();
 }
 
 template <class T>
@@ -270,7 +270,7 @@ RecursionGroup<T>::split_terms() const
     
     MRecursionTerms<T> mrterms(tints.size(), VRecursionTerms<T>());
     
-    int idx = 0;
+    size_t idx = 0;
     
     for (const auto& tint : tints)
     {
