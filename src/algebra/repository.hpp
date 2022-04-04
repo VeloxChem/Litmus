@@ -31,7 +31,7 @@ template <class T, class U>
 class Repository
 {
     /// Vector of graphs.
-    VGraphs<T> _graphs;
+    VDynGraphs<T> _graphs;
     
     /// Map of unique  signature : data  pairs.
     std::map<Signature<U>, T> _rgmap;
@@ -45,6 +45,9 @@ public:
     /// @param rgmap The signatures map of unique signature: data pairs .
     Repository(const VGraphs<T>&                graphs,
                const std::map<Signature<U>, T>& rgmap);
+    
+    /// Destroys a repository.
+    ~Repository();
     
     /// Compares this repository with other repository.
     /// @param other The other repository to compare.
@@ -105,6 +108,15 @@ Repository<T, U>::Repository(const VGraphs<T>&                graphs,
 }
 
 template <class T, class U>
+Repository<T, U>::~Repository()
+{
+    for (auto& tval : _graphs)
+    {
+        delete tval;
+    }
+}
+
+template <class T, class U>
 bool
 Repository<T, U>::operator==(const Repository<T, U>& other) const
 {
@@ -133,7 +145,7 @@ Repository<T, U>::add(const VGraphs<T>& graphs)
 {
     for (const auto& tval : graphs)
     {
-        _graphs.push_back(tval);
+        _graphs.push_back(new Graph<T>(tval));
         
         _rgmap.merge(tval.template signatures<U>());
     }
@@ -186,7 +198,7 @@ Repository<T, U>::rec_groups() const
     
     for (const auto& tval : _graphs)
     {
-        ngroups += tval.vertices();
+        ngroups += tval->vertices();
     }
     
     return ngroups;

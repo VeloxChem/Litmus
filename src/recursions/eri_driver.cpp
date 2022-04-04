@@ -714,6 +714,8 @@ EriDriver::create_graph(const int  anga,
     
     apply_recursion(rgraph, sints);
     
+    std::cout << "Created graph for " << refint.label() << std::endl; 
+    
     return rgraph;
 }
 

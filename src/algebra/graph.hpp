@@ -518,4 +518,7 @@ Graph<T>::global_signature() const
 template <class T>
 using VGraphs = std::vector<Graph<T>>;
 
+template <class T>
+using VDynGraphs = std::vector<Graph<T>*>;
+
 #endif /* graph_hpp */

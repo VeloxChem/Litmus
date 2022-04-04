@@ -40,9 +40,15 @@ int main(int argc, char **argv)
     {
         EriDriver eri_drv;
         
-        t4c_repo.add(eri_drv.create_graphs(mang, false));
+        //t4c_repo.add(eri_drv.create_graphs(mang, false));
         
         //t4c_repo.add(eri_drv.create_graphs(mang, mang, mang, mang, true));
+        
+        // testing
+        
+        auto vgraphs = eri_drv.create_graph(4, 4, 4, 4, false);
+        
+        std::cout << vgraphs.vertices() << std::endl; 
     }
     
     // print summary of integrals repository
