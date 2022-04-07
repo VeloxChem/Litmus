@@ -100,11 +100,14 @@ template <class T, class U>
 Repository<T, U>::Repository(const VGraphs<T>&                graphs,
                              const std::map<Signature<U>, T>& rgmap)
 
-    : _graphs(graphs)
+    : _graphs()
 
     , _rgmap(rgmap)
 {
-    
+        for (const auto&  tval : graphs)
+        {
+            _graphs.push_back(new Graph<T>(tval));
+        }
 }
 
 template <class T, class U>
@@ -122,13 +125,28 @@ Repository<T, U>::operator==(const Repository<T, U>& other) const
 {
     if (this == &other) return true;
 
-    if (_graphs != other._graphs)
+    if (_rgmap != other._rgmap)
     {
         return false;
     }
     else
     {
-        return _rgmap == other._rgmap;
+        if (_graphs.size() == other._graphs.size())
+        {
+            for (size_t i = 0; i < _graphs.size(); i++)
+            {
+                if ((*_graphs[i]) != (*other._graphs[i]))
+                {
+                    return false;
+                }
+            }
+            
+            return true; 
+        }
+        else
+        {
+            return false;
+        }
     }
 }
 
