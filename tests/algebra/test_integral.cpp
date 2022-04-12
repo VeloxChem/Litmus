@@ -196,6 +196,19 @@ TEST_F(IntegralTest, OperatorLess)
     EXPECT_TRUE(lhsint < T4CIntegral(bpair, kpair, operi, 1, {opddr, opddr}));
 }
 
+TEST_F(IntegralTest, Integrand)
+{
+    const auto operi = Operator("1/|r-r'|");
+    
+    auto bpair = T2CPair("GA", 1, "GB", 2);
+    
+    auto kpair = T2CPair("GC", 3, "GD", 4);
+        
+    auto t4cint = T4CIntegral(bpair, kpair, operi);
+    
+    EXPECT_EQ(t4cint.integrand(), operi); 
+}
+
 TEST_F(IntegralTest, Label)
 {
     const auto operi = Operator("1/|r-r'|");
@@ -305,3 +318,4 @@ TEST_F(IntegralTest, DiagComponents)
         }
     }
 }
+

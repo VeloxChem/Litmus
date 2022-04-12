@@ -78,6 +78,10 @@ public:
     /// @return true if this integral is less than other integral, false otherwise.
     bool operator<(const Integral<T, U>& other) const;
     
+    /// Gets operator of this integral.
+    /// @return The operator of this integral.
+    Operator integrand() const;
+    
     /// Creates primitive textual label of this integral.
     /// @return The string with primitive textual label of integral.
     std::string label(const bool use_order = false) const;
@@ -208,6 +212,13 @@ Integral<T, U>::operator<(const Integral<T, U>& other) const
     {
         return _prefixes < other._prefixes;
     }
+}
+
+template <class T, class U>
+Operator
+Integral<T, U>::integrand() const
+{
+    return _integrand;
 }
 
 template <class T, class U>
