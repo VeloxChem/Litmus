@@ -116,6 +116,14 @@ public:
     /// Creates signature of recursion group.
     /// @return The signature of recursion group.
     Signature<T> signature() const;
+    
+    /// Gets unique factors in this recursion group.
+    /// @return The unique recursion factors.
+    std::set<Factor> factors() const;
+    
+    /// Gets map of factors in recursion group.
+    /// @return The map of factors in recursion group.
+    std::map<Factor, int> map_of_factors() const;
 };
 
 template <class T>
@@ -391,6 +399,47 @@ RecursionGroup<T>::signature() const
     }
     
     return tsign;
+}
+
+template <class T>
+std::set<Factor>
+RecursionGroup<T>::factors() const
+{
+    std::set<Factor> sfacts;
+    
+    for (const auto& tval : _expansions)
+    {
+        if (const auto facts = tval.factors(); !facts.empty())
+        {
+            sfacts.insert(facts.cbegin(), facts.cend());
+        }
+    }
+    
+    return sfacts;
+}
+
+template <class T>
+std::map<Factor, int>
+RecursionGroup<T>::map_of_factors() const
+{
+    std::map<Factor, int> mfacts;
+    
+    for (const auto& tval : _expansions)
+    {
+        for (const auto& fact : tval.map_of_factors())
+        {
+            if (const auto tkval = mfacts.find(fact.first); tkval != mfacts.end())
+            {
+                mfacts[tkval->first] = tkval->second + fact.second;
+            }
+            else
+            {
+                mfacts[fact.first] = fact.second;
+            }
+        }
+    }
+    
+    return mfacts;
 }
 
 template <class T>

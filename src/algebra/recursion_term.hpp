@@ -110,6 +110,10 @@ public:
     /// @return The set of factors in recursion term.
     std::set<Factor> factors() const;
     
+    /// Gets map of factors in recursion term.
+    /// @return The map of factors in recursion term.
+    std::map<Factor, int> map_of_factors() const;
+    
     /// Gets order of specific factors in recursion term.
     /// @return The order of specific factors in recursion term.
     int factor_order(const Factor& factor) const;
@@ -321,6 +325,13 @@ RecursionTerm<T>::factors() const
 }
 
 template <class T>
+std::map<Factor, int>
+RecursionTerm<T>::map_of_factors() const
+{
+    return _factors;
+}
+
+template <class T>
 int
 RecursionTerm<T>::factor_order(const Factor& factor) const
 {
@@ -362,7 +373,7 @@ RecursionTerm<T>::shift(const char axis,
     }
     else
     {
-            return std::nullopt;
+        return std::nullopt;
     }
 }
 
@@ -402,7 +413,7 @@ void
 RecursionTerm<T>::add(const Factor&   factor,
                       const Fraction& multiplier)
 {
-    if (const auto tkval = _factors.find(factor); tkval != _factors.cend())
+    if (const auto tkval = _factors.find(factor); tkval != _factors.end())
     {
         _factors[tkval->first] = tkval->second + 1;
     }

@@ -134,6 +134,14 @@ public:
     /// @return The global signature.
     template <class U>
     Signature<U> global_signature() const;
+    
+    /// Gets unique factors in this graph.
+    /// @return The unique recursion factors.
+    std::set<Factor> factors() const;
+    
+    /// Gets map of factors in graph.
+    /// @return The map of factors in graph.
+    std::map<Factor, int> map_of_factors() const;
 };
 
 template <class T>
@@ -513,6 +521,47 @@ Graph<T>::global_signature() const
     }
     
     return tsign;
+}
+
+template <class T>
+std::set<Factor>
+Graph<T>::factors() const
+{
+    std::set<Factor> sfacts;
+    
+    for (const auto& vert : _vertices)
+    {
+        if (const auto facts = vert.factors(); !facts.empty())
+        {
+            sfacts.insert(facts.cbegin(), facts.cend());
+        }
+    }
+    
+    return sfacts;
+}
+
+template <class T>
+std::map<Factor, int>
+Graph<T>::map_of_factors() const
+{
+    std::map<Factor, int> mfacts;
+    
+    for (const auto& vert : _vertices)
+    {
+        for (const auto& fact : vert.map_of_factors())
+        {
+            if (const auto tkval = mfacts.find(fact.first); tkval != mfacts.end())
+            {
+                mfacts[tkval->first] = tkval->second + fact.second;
+            }
+            else
+            {
+                mfacts[fact.first] = fact.second;
+            }
+        }
+    }
+    
+    return mfacts;
 }
 
 template <class T>
