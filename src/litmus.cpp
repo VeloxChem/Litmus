@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     
     // set up angular momentum values
     
-    const int mang = 2;
+    const int mang = 3;
     
     // electron repulsion integral recursions
     
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
     {
         EriDriver eri_drv;
         
-        t4c_repo.add(eri_drv.create_graphs(mang, false));
+        //t4c_repo.add(eri_drv.create_graphs(mang, false));
         
         t4c_repo.add(eri_drv.create_graphs(mang, true));
         
