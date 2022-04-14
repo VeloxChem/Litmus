@@ -206,21 +206,6 @@ public:
     /// @return The vector of recursion graphs.
     V4Graphs create_graphs(const int  mang,
                            const bool diag) const;
-    
-    /// Checks if recursion group is horizontal recursion group.
-    /// @param rgroup The recursion group to check.
-    /// @return True if recursion group is horizontal recursion group, false otherwise.
-    bool is_hrr_rec_group(const R4Group& rgroup) const;
-    
-    /// Checks if recursion group is vertical recursion group.
-    /// @param rgroup The recursion group to check.
-    /// @return True if recursion group is vertical recursion group, false otherwise.
-    bool is_vrr_rec_group(const R4Group& rgroup) const;
-    
-    /// Checks if recursion group is auxilary recursion group.
-    /// @param rgroup The recursion group to check.
-    /// @return True if recursion group is auxilary recursion group, false otherwise.
-    bool is_aux_rec_group(const R4Group& rgroup) const;
 };
 
 #endif /* eri_driver_hpp */

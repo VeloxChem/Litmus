@@ -47,6 +47,21 @@ public:
     /// Generates electron repulsion integrals code for the given repository.
     /// @param repo The repository of two-electron integrals.
     void generate(const Repository<R4Group, T4CIntegral>& repo) const;
+    
+    /// Checks if recursion group is horizontal recursion group.
+    /// @param rgroup The recursion group to check.
+    /// @return True if recursion group is horizontal recursion group, false otherwise.
+    bool is_hrr_rec_group(const R4Group& rgroup) const;
+    
+    /// Checks if recursion group is vertical recursion group.
+    /// @param rgroup The recursion group to check.
+    /// @return True if recursion group is vertical recursion group, false otherwise.
+    bool is_vrr_rec_group(const R4Group& rgroup) const;
+    
+    /// Checks if recursion group is auxilary recursion group.
+    /// @param rgroup The recursion group to check.
+    /// @return True if recursion group is auxilary recursion group, false otherwise.
+    bool is_aux_rec_group(const R4Group& rgroup) const;
 };
 
 #endif /* eri_cpu_generator_hpp */
