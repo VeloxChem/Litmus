@@ -193,6 +193,7 @@ public:
     /// @param angc The angular momentum of center C.
     /// @param angd The angular momentum of center D.
     /// @param diag The flag to generate only diagonal terms.
+    /// @return The recursion graph.
     R4Graph create_graph(const int  anga,
                          const int  angb,
                          const int  angc,
@@ -201,9 +202,25 @@ public:
     
     /// Creates vector of recursion graphs with upper limit of angular momentum values.
     /// @param mang The maximum angular momentum.
-    /// @param diag The flag to generate only diagonal terms.
+    /// @param diag The flag to generate only diagonal terms
+    /// @return The vector of recursion graphs.
     V4Graphs create_graphs(const int  mang,
                            const bool diag) const;
+    
+    /// Checks if recursion group is horizontal recursion group.
+    /// @param rgroup The recursion group to check.
+    /// @return True if recursion group is horizontal recursion group, false otherwise.
+    bool is_hrr_rec_group(const R4Group& rgroup) const;
+    
+    /// Checks if recursion group is vertical recursion group.
+    /// @param rgroup The recursion group to check.
+    /// @return True if recursion group is vertical recursion group, false otherwise.
+    bool is_vrr_rec_group(const R4Group& rgroup) const;
+    
+    /// Checks if recursion group is auxilary recursion group.
+    /// @param rgroup The recursion group to check.
+    /// @return True if recursion group is auxilary recursion group, false otherwise.
+    bool is_aux_rec_group(const R4Group& rgroup) const;
 };
 
 #endif /* eri_driver_hpp */

@@ -295,7 +295,7 @@ EriDriver::apply_ket_hrr(const R4CTerm&       rterm,
 }
 
 R4CDist
-EriDriver::apply_bra_vrr(const R4CTerm&       rterm,
+EriDriver::apply_bra_vrr(const R4CTerm&        rterm,
                                 ST4CIntegrals& sints) const
 {
     R4CDist t4crt;
@@ -779,4 +779,85 @@ EriDriver::create_graphs(const int  mang,
     std::sort(vgraphs.begin(), vgraphs.end());
     
     return vgraphs;
+}
+
+bool
+EriDriver::is_hrr_rec_group(const R4Group& rgroup) const
+{
+    if (const auto facts = rgroup.factors(); facts.empty())
+    {
+        return false;
+    }
+    else
+    {
+        const std::set<Factor> hfacts({Factor("AB", "rab", _rxyz[0]),
+                                       Factor("AB", "rab", _rxyz[1]),
+                                       Factor("AB", "rab", _rxyz[2]),
+                                       Factor("CD", "rcd", _rxyz[0]),
+                                       Factor("CD", "rcd", _rxyz[1]),
+                                       Factor("CD", "rcd", _rxyz[2])});
+        
+        for (const auto& fact : facts)
+        {
+            if (const auto idx = hfacts.find(fact) == hfacts.cend())
+            {
+                return false;
+            }
+        }
+    }
+        
+    return true;
+}
+
+
+bool
+EriDriver::is_vrr_rec_group(const R4Group& rgroup) const
+{
+    if (const auto facts = rgroup.factors(); facts.empty())
+    {
+        return false;
+    }
+    else
+    {
+        const std::set<Factor> vfacts({Factor("PB", "rpb", _rxyz[0]),
+                                       Factor("PB", "rpb", _rxyz[1]),
+                                       Factor("PB", "rpb", _rxyz[2]),
+                                       Factor("WP", "rwp", _rxyz[0]),
+                                       Factor("WP", "rwp", _rxyz[1]),
+                                       Factor("WP", "rwp", _rxyz[2]),
+                                       Factor("QD", "rqd", _rxyz[0]),
+                                       Factor("QD", "rqd", _rxyz[1]),
+                                       Factor("QD", "rqd", _rxyz[2]),
+                                       Factor("WQ", "rwq", _rxyz[0]),
+                                       Factor("WQ", "rwq", _rxyz[1]),
+                                       Factor("WQ", "rwq", _rxyz[2]),
+                                       Factor("1/zeta", "fz"),
+                                       Factor("rho/zeta^2", "frz2"),
+                                       Factor("1/(zeta+eta)", "fze"),
+                                       Factor("1/eta", "fe"),
+                                       Factor("rho/eta^2", "fre2")});
+        
+        for (const auto& fact : facts)
+        {
+            if (const auto idx = vfacts.find(fact) == vfacts.cend())
+            {
+                return false;
+            }
+        }
+    }
+    
+    return true;
+}
+
+bool
+EriDriver::is_aux_rec_group(const R4Group& rgroup) const
+{
+    if (const auto facts = rgroup.factors(); facts.empty())
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }

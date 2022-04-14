@@ -2943,6 +2943,78 @@ TEST_F(EriDriverTest, GraphMapOfFactors)
     EXPECT_EQ(rgraph.map_of_factors(), mfacts);
 }
 
+TEST_F(EriDriverTest, IsHrrRecGroup)
+{
+    EriDriver eri_drv;
+    
+    const auto rgraph = eri_drv.create_graph(1, 1, 1, 1, true);
+    
+    EXPECT_EQ(rgraph.vertices(), 22);
+    
+    EXPECT_TRUE(eri_drv.is_hrr_rec_group(rgraph[0]));
+    
+    EXPECT_TRUE(eri_drv.is_hrr_rec_group(rgraph[1]));
+    
+    EXPECT_FALSE(eri_drv.is_hrr_rec_group(rgraph[2]));
+    
+    EXPECT_FALSE(eri_drv.is_hrr_rec_group(rgraph[3]));
+    
+    EXPECT_TRUE(eri_drv.is_hrr_rec_group(rgraph[4]));
+    
+    for (int i = 5; i < 22; i++)
+    {
+        EXPECT_FALSE(eri_drv.is_hrr_rec_group(rgraph[i]));
+    }
+}
+
+TEST_F(EriDriverTest, IsVrrRecGroup)
+{
+    EriDriver eri_drv;
+    
+    const auto rgraph = eri_drv.create_graph(1, 1, 1, 1, true);
+    
+    EXPECT_EQ(rgraph.vertices(), 22);
+    
+    EXPECT_FALSE(eri_drv.is_vrr_rec_group(rgraph[0]));
+    
+    EXPECT_FALSE(eri_drv.is_vrr_rec_group(rgraph[1]));
+    
+    EXPECT_TRUE(eri_drv.is_vrr_rec_group(rgraph[2]));
+    
+    EXPECT_TRUE(eri_drv.is_vrr_rec_group(rgraph[3]));
+    
+    EXPECT_FALSE(eri_drv.is_vrr_rec_group(rgraph[4]));
+    
+    for (int i = 5; i < 17; i++)
+    {
+        EXPECT_TRUE(eri_drv.is_vrr_rec_group(rgraph[i]));
+    }
+    
+    for (int i = 17; i < 22; i++)
+    {
+        EXPECT_FALSE(eri_drv.is_vrr_rec_group(rgraph[i]));
+    }
+}
+
+TEST_F(EriDriverTest, IsAuxRecGroup)
+{
+    EriDriver eri_drv;
+    
+    const auto rgraph = eri_drv.create_graph(1, 1, 1, 1, true);
+    
+    EXPECT_EQ(rgraph.vertices(), 22);
+    
+    for (int i = 0; i < 17; i++)
+    {
+        EXPECT_FALSE(eri_drv.is_aux_rec_group(rgraph[i]));
+    }
+    
+    for (int i = 17; i < 22; i++)
+    {
+        EXPECT_TRUE(eri_drv.is_aux_rec_group(rgraph[i]));
+    }
+}
+
 //const auto nverts = rgraph.vertices();
 //
 //std::set<I4CIntegral> gints;
