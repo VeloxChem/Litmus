@@ -101,6 +101,14 @@ public:
     /// Determines minimum order of integrals in this recursion expansion.
     /// @return The minimum order of integrlas.
     int min_order() const;
+    
+    /// Gets unique factors in this recursion expansion.
+    /// @return The unique recursion factors.
+    std::set<Factor> factors() const;
+    
+    /// Gets map of factors in recursion expansion.
+    /// @return The map of factors in recursion expansion.
+    std::map<Factor, int> map_of_factors() const;
 };
 
 template <class T>
@@ -263,6 +271,52 @@ RecursionExpansion<T>::min_order() const
     }
     
     return morder;
+}
+
+template <class T>
+std::set<Factor>
+RecursionExpansion<T>::factors() const
+{
+    std::set<Factor> sfacts;
+    
+    if (const auto facts = _root.factors(); !facts.empty())
+    {
+        sfacts.insert(facts.cbegin(), facts.cend());
+    }
+    
+    for (const auto& rterm : _expansion)
+    {
+        if (const auto facts = rterm.factors(); !facts.empty())
+        {
+            sfacts.insert(facts.cbegin(), facts.cend());
+        }
+    }
+    
+    return sfacts;
+}
+
+template <class T>
+std::map<Factor, int>
+RecursionExpansion<T>::map_of_factors() const
+{
+    std::map<Factor, int> mfacts(_root.map_of_factors());
+    
+    for (const auto& rterm : _expansion)
+    {
+        for (const auto& fact : rterm.map_of_factors())
+        {
+            if (const auto tkval = mfacts.find(fact.first); tkval != mfacts.end())
+            {
+                mfacts[tkval->first] = tkval->second + fact.second;
+            }
+            else
+            {
+                mfacts[fact.first] = fact.second;
+            }
+        }
+    }
+    
+    return mfacts;
 }
 
 template <class T>

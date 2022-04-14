@@ -19,6 +19,7 @@
 
 #include "eri_driver.hpp"
 #include "repository.hpp"
+#include "eri_cpu_generator.hpp"
 
 int main(int argc, char **argv)
 {
@@ -30,9 +31,11 @@ int main(int argc, char **argv)
     
     Repository<R4Group, T4CIntegral> t4c_repo;
     
-    // set up angular momentum values
+    // set up integrals generator parameters
     
     const int mang = 3;
+    
+    const bool diag_form = true;
     
     // electron repulsion integral recursions
     
@@ -40,17 +43,14 @@ int main(int argc, char **argv)
     {
         EriDriver eri_drv;
         
-        //t4c_repo.add(eri_drv.create_graphs(mang, false));
+        t4c_repo.add(eri_drv.create_graphs(mang, diag_form)); 
         
-        t4c_repo.add(eri_drv.create_graphs(mang, true));
+        EriCPUGenerator gen_drv;
         
-        //t4c_repo.add(eri_drv.create_graphs(mang, mang, mang, mang, true));
+        if (diag_form) gen_drv.set_diag_form();
+    
+        gen_drv.generate(t4c_repo); 
         
-        // testing
-        
-//        auto vgraphs = eri_drv.create_graph(4, 4, 4, 4, false);
-        
-//        std::cout << vgraphs.vertices() << std::endl;
     }
     
     // print summary of integrals repository
