@@ -65,6 +65,25 @@ TEST_F(IntegralTest, Constructor)
     EXPECT_EQ(lhsint, rhsint);
 }
 
+TEST_F(IntegralTest, OperatorBrackets)
+{
+    const auto operi = Operator("1/|r-r'|");
+    
+    auto bpair = T2CPair("GA", 1, "GB", 2);
+    
+    auto kpair = T2CPair("GC", 3, "GD", 4);
+        
+    auto t4cint = T4CIntegral(bpair, kpair, operi);
+    
+    EXPECT_EQ(t4cint[0], 1);
+    
+    EXPECT_EQ(t4cint[1], 2);
+    
+    EXPECT_EQ(t4cint[2], 3);
+    
+    EXPECT_EQ(t4cint[3], 4);
+}
+
 TEST_F(IntegralTest, OperatorEqual)
 {
     const auto operi = Operator("1/|r-r'|");

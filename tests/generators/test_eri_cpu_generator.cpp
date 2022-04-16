@@ -17,82 +17,96 @@
 #include "test_eri_cpu_generator.hpp"
 
 #include "eri_cpu_generator.hpp"
-#include "eri_driver.hpp"
 
-TEST_F(EriCPUGeneratorTest, IsHrrRecGroup)
+TEST_F(EriCPUGeneratorTest, IsHrrRec)
 {
-    EriDriver eri_drv;
-    
-    const auto rgraph = eri_drv.create_graph(1, 1, 1, 1, true);
-    
     EriCPUGenerator gen_drv;
     
-    EXPECT_EQ(rgraph.vertices(), 22);
+    const auto operi = Operator("1/|r-r'|");
     
-    EXPECT_TRUE(gen_drv.is_hrr_rec_group(rgraph[0]));
+    auto bpair = I2CPair("GA", 0, "GB", 2);
     
-    EXPECT_TRUE(gen_drv.is_hrr_rec_group(rgraph[1]));
+    auto kpair = I2CPair("GC", 0, "GD", 4);
+        
+    auto t4cint = I4CIntegral(bpair, kpair, operi);
     
-    EXPECT_FALSE(gen_drv.is_hrr_rec_group(rgraph[2]));
+    EXPECT_FALSE(gen_drv.is_hrr_rec(t4cint));
     
-    EXPECT_FALSE(gen_drv.is_hrr_rec_group(rgraph[3]));
+    kpair = I2CPair("GC", 1, "GD", 4);
+        
+    t4cint = I4CIntegral(bpair, kpair, operi);
     
-    EXPECT_TRUE(gen_drv.is_hrr_rec_group(rgraph[4]));
+    EXPECT_TRUE(gen_drv.is_hrr_rec(t4cint));
     
-    for (int i = 5; i < 22; i++)
-    {
-        EXPECT_FALSE(gen_drv.is_hrr_rec_group(rgraph[i]));
-    }
+    bpair = I2CPair("GA", 3, "GB", 2);
+        
+    t4cint = I4CIntegral(bpair, kpair, operi);
+    
+    EXPECT_TRUE(gen_drv.is_hrr_rec(t4cint));
+    
+    t4cint = I4CIntegral();
+    
+    EXPECT_FALSE(gen_drv.is_hrr_rec(t4cint));
 }
 
-TEST_F(EriCPUGeneratorTest, IsVrrRecGroup)
+TEST_F(EriCPUGeneratorTest, IsVrrRec)
 {
-    EriDriver eri_drv;
-    
-    const auto rgraph = eri_drv.create_graph(1, 1, 1, 1, true);
-    
     EriCPUGenerator gen_drv;
     
-    EXPECT_EQ(rgraph.vertices(), 22);
+    const auto operi = Operator("1/|r-r'|");
     
-    EXPECT_FALSE(gen_drv.is_vrr_rec_group(rgraph[0]));
+    auto bpair = I2CPair("GA", 0, "GB", 2);
     
-    EXPECT_FALSE(gen_drv.is_vrr_rec_group(rgraph[1]));
+    auto kpair = I2CPair("GC", 0, "GD", 4);
+        
+    auto t4cint = I4CIntegral(bpair, kpair, operi);
     
-    EXPECT_TRUE(gen_drv.is_vrr_rec_group(rgraph[2]));
+    EXPECT_TRUE(gen_drv.is_vrr_rec(t4cint));
     
-    EXPECT_TRUE(gen_drv.is_vrr_rec_group(rgraph[3]));
+    kpair = I2CPair("GC", 1, "GD", 4);
+        
+    t4cint = I4CIntegral(bpair, kpair, operi);
     
-    EXPECT_FALSE(gen_drv.is_vrr_rec_group(rgraph[4]));
+    EXPECT_FALSE(gen_drv.is_vrr_rec(t4cint));
     
-    for (int i = 5; i < 17; i++)
-    {
-        EXPECT_TRUE(gen_drv.is_vrr_rec_group(rgraph[i]));
-    }
+    bpair = I2CPair("GA", 3, "GB", 2);
+        
+    t4cint = I4CIntegral(bpair, kpair, operi);
     
-    for (int i = 17; i < 22; i++)
-    {
-        EXPECT_FALSE(gen_drv.is_vrr_rec_group(rgraph[i]));
-    }
+    EXPECT_FALSE(gen_drv.is_vrr_rec(t4cint));
+    
+    t4cint = I4CIntegral();
+    
+    EXPECT_FALSE(gen_drv.is_vrr_rec(t4cint));
 }
 
-TEST_F(EriCPUGeneratorTest, IsAuxRecGroup)
+TEST_F(EriCPUGeneratorTest, IsAuxRec)
 {
-    EriDriver eri_drv;
-    
-    const auto rgraph = eri_drv.create_graph(1, 1, 1, 1, true);
-    
     EriCPUGenerator gen_drv;
     
-    EXPECT_EQ(rgraph.vertices(), 22);
+    const auto operi = Operator("1/|r-r'|");
     
-    for (int i = 0; i < 17; i++)
-    {
-        EXPECT_FALSE(gen_drv.is_aux_rec_group(rgraph[i]));
-    }
+    auto bpair = I2CPair("GA", 0, "GB", 2);
     
-    for (int i = 17; i < 22; i++)
-    {
-        EXPECT_TRUE(gen_drv.is_aux_rec_group(rgraph[i]));
-    }
+    auto kpair = I2CPair("GC", 0, "GD", 4);
+        
+    auto t4cint = I4CIntegral(bpair, kpair, operi);
+    
+    EXPECT_FALSE(gen_drv.is_aux_rec(t4cint));
+    
+    kpair = I2CPair("GC", 1, "GD", 4);
+        
+    t4cint = I4CIntegral(bpair, kpair, operi);
+    
+    EXPECT_FALSE(gen_drv.is_aux_rec(t4cint));
+    
+    bpair = I2CPair("GA", 3, "GB", 2);
+        
+    t4cint = I4CIntegral(bpair, kpair, operi);
+    
+    EXPECT_FALSE(gen_drv.is_aux_rec(t4cint));
+    
+    t4cint = I4CIntegral();
+    
+    EXPECT_TRUE(gen_drv.is_aux_rec(t4cint));
 }

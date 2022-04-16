@@ -38,7 +38,7 @@ EriCPUGenerator::generate(const Repository<R4Group, T4CIntegral>& repo) const
 {
     for (const auto& tint : repo.base<I4CIntegral>())
     {
-        _write_vrr_cpp_header(tint);
+        //_write_vrr_cpp_header(tint);
     }
 }
 
@@ -58,7 +58,8 @@ EriCPUGenerator::_file_name(const I4CIntegral& integral,
 }
 
 void
-EriCPUGenerator::_write_vrr_cpp_header(const I4CIntegral& integral) const
+EriCPUGenerator::_write_vrr_cpp_header(const I4CIntegral&   integral,
+                                       const R4SigGroupMap& recmap) const
 {
     std::string fname = _file_name(integral, "VRR") + ".hpp";
         
@@ -67,6 +68,8 @@ EriCPUGenerator::_write_vrr_cpp_header(const I4CIntegral& integral) const
     fstream.open(fname.c_str(), std::ios_base::trunc);
     
     ost::write_copyright(fstream);
+    
+    
     
 //    _write_header_includes(fstream);
 //
@@ -80,77 +83,38 @@ EriCPUGenerator::_write_vrr_cpp_header(const I4CIntegral& integral) const
 }
 
 bool
-EriCPUGenerator::is_hrr_rec_group(const R4Group& rgroup) const
+EriCPUGenerator::is_hrr_rec(const I4CIntegral& integral) const
 {
-    if (const auto facts = rgroup.factors(); facts.empty())
+    if (((integral[0] + integral[2]) > 0) &&
+        ((integral[1] + integral[3]) > 0))
     {
-        return false;
+        return true;
     }
     else
     {
-        const std::set<Factor> hfacts({Factor("AB", "rab", TensorComponent(1, 0, 0)),
-                                       Factor("AB", "rab", TensorComponent(0, 1, 0)),
-                                       Factor("AB", "rab", TensorComponent(0, 0, 1)),
-                                       Factor("CD", "rcd", TensorComponent(1, 0, 0)),
-                                       Factor("CD", "rcd", TensorComponent(0, 1, 0)),
-                                       Factor("CD", "rcd", TensorComponent(0, 0, 1))});
-        
-        for (const auto& fact : facts)
-        {
-            if (const auto idx = hfacts.find(fact) == hfacts.cend())
-            {
-                return false;
-            }
-        }
+        return false;
     }
-        
-    return true;
 }
 
 
 bool
-EriCPUGenerator::is_vrr_rec_group(const R4Group& rgroup) const
+EriCPUGenerator::is_vrr_rec(const I4CIntegral& integral) const
 {
-    if (const auto facts = rgroup.factors(); facts.empty())
+    if (((integral[0] + integral[2]) == 0) &&
+        ((integral[1] + integral[3]) > 0))
     {
-        return false;
+        return true;
     }
     else
     {
-        const std::set<Factor> vfacts({Factor("PB", "rpb", TensorComponent(1, 0, 0)),
-                                       Factor("PB", "rpb", TensorComponent(0, 1, 0)),
-                                       Factor("PB", "rpb", TensorComponent(0, 0, 1)),
-                                       Factor("WP", "rwp", TensorComponent(1, 0, 0)),
-                                       Factor("WP", "rwp", TensorComponent(0, 1, 0)),
-                                       Factor("WP", "rwp", TensorComponent(0, 0, 1)),
-                                       Factor("QD", "rqd", TensorComponent(1, 0, 0)),
-                                       Factor("QD", "rqd", TensorComponent(0, 1, 0)),
-                                       Factor("QD", "rqd", TensorComponent(0, 0, 1)),
-                                       Factor("WQ", "rwq", TensorComponent(1, 0, 0)),
-                                       Factor("WQ", "rwq", TensorComponent(0, 1, 0)),
-                                       Factor("WQ", "rwq", TensorComponent(0, 0, 1)),
-                                       Factor("1/zeta", "fz"),
-                                       Factor("rho/zeta^2", "frz2"),
-                                       Factor("1/(zeta+eta)", "fze"),
-                                       Factor("1/eta", "fe"),
-                                       Factor("rho/eta^2", "fre2")});
-        
-        for (const auto& fact : facts)
-        {
-            if (const auto idx = vfacts.find(fact) == vfacts.cend())
-            {
-                return false;
-            }
-        }
+        return false;
     }
-    
-    return true;
 }
 
 bool
-EriCPUGenerator::is_aux_rec_group(const R4Group& rgroup) const
+EriCPUGenerator::is_aux_rec(const I4CIntegral& integral) const
 {
-    if (const auto facts = rgroup.factors(); facts.empty())
+    if ((integral[0] + integral[1] + integral[2] + integral[3]) == 0)
     {
         return true;
     }

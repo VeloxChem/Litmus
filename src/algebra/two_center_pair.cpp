@@ -60,6 +60,12 @@ TwoCenterPair::TwoCenterPair(const TwoCenterPairComponent& t2pcomp)
     _shapes[1] = Tensor(tcomps[1].order());
 }
 
+int
+TwoCenterPair::operator[](const int index) const
+{
+    return _shapes[index].order();
+}
+
 bool
 TwoCenterPair::operator==(const TwoCenterPair& other) const
 {

@@ -182,9 +182,7 @@ template <class T, class U>
 const TensorComponent&
 IntegralComponent<T,U>::operator[](const int center) const
 {
-    const auto bcenters = _bra.centers();
-    
-    if (center < bcenters)
+    if (const auto bcenters = _bra.centers(); center < bcenters)
     {
         return _bra[center];
     }

@@ -53,6 +53,10 @@ public:
     /// @param other The other tensor to compare.
     /// @return true if this tensor is less than other tensor, false otherwise.
     bool operator<(const Tensor& other) const;
+    
+    /// Gets order of this tensor.
+    /// @return The order of this tensor.
+    int order() const;
         
     /// Creates primitive textual representation of this tensor.
     /// @return The string with primitive textual representation of tensor.

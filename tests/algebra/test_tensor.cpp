@@ -89,6 +89,16 @@ TEST_F(TensorTest, OperatorLess)
     EXPECT_FALSE(Tensor(3) < Tensor(3));
 }
 
+TEST_F(TensorTest, Order)
+{
+    for (int i = 0; i < 17; i++)
+    {
+        const Tensor tval(i);
+        
+        EXPECT_EQ(tval.order(), i);
+    }
+}
+
 TEST_F(TensorTest, Label)
 {
     const std::string names("SPDFGHIKLMNOQRTUV");

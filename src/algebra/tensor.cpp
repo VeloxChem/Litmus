@@ -57,6 +57,12 @@ Tensor::operator<(const Tensor& other) const
     return _order < other._order;
 }
 
+int
+Tensor::order() const
+{
+    return _order;
+}
+
 std::string
 Tensor::to_string() const
 {

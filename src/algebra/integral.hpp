@@ -63,6 +63,11 @@ public:
     template <class V, class W>
     Integral(const IntegralComponent<V, W>& tcomp);
     
+    /// Retrieves angular momentum of requested center in this integral.
+    /// @param center The index of center to retrieve angular momentum.
+    /// @return The   angular momentum of requested center in.
+    int operator[](const int center) const;
+    
     /// Compares this integral with other integral.
     /// @param other The other integral to compare.
     /// @return true if integrals, false otherwise.
@@ -150,6 +155,20 @@ Integral<T, U>::Integral(const IntegralComponent<V, W>& tcomp)
     for (const auto& opcomp : tcomp.prefixes())
     {
         _prefixes.push_back(Operator(opcomp));
+    }
+}
+
+template <class T, class U>
+int
+Integral<T, U>::operator[](const int center) const
+{
+    if (const auto bcenters = _bra.centers(); center < bcenters)
+    {
+        return _bra[center];
+    }
+    else
+    {
+        return _ket[center - bcenters];
     }
 }
 

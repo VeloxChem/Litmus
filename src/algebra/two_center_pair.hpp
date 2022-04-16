@@ -57,6 +57,11 @@ public:
     /// @param t2pcomp The two center pair component to create two center pair.
     TwoCenterPair(const TwoCenterPairComponent& t2pcomp);
     
+    /// Retrieves tensor order along requested center.
+    /// @param index The index of center to retrieve axial value.
+    /// @return The tensor order of requested center in two center pair.
+    int operator[](const int index) const;
+    
     /// Compares this two center pair  with other two center pair.
     /// @param other The other two center pair to compare.
     /// @return true if two center pairs are equal, false otherwise.
@@ -71,6 +76,10 @@ public:
     /// @param other The other two center pair to compare.
     /// @return true if this two center pair is less than other two center pair, false otherwise.
     bool operator<(const TwoCenterPair& other) const;
+    
+    /// Gets number of centers  in two center pair..
+    /// @return The number of centers in two center pair.
+    int centers() const {return 2;};
     
     /// Creates primitive textual representation of this two center pair.
     /// @return The string with primitive textual representation of two center pair.

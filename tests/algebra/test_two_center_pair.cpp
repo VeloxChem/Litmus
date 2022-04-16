@@ -39,6 +39,15 @@ TEST_F(TwoCenterPairTest, Constructor)
     }
 }
 
+TEST_F(TwoCenterPairTest, OperatorBrackets)
+{
+    const auto tpair = TwoCenterPair("GA", 2, "GB", 1);
+    
+    EXPECT_EQ(tpair[0], 2);
+    
+    EXPECT_EQ(tpair[1], 1);
+}
+
 TEST_F(TwoCenterPairTest, OperatorEqual)
 {
     const auto lhspair = TwoCenterPair("GA", 2, "GB", 1);
@@ -72,6 +81,13 @@ TEST_F(TwoCenterPairTest, OperatorLess)
     EXPECT_FALSE(TwoCenterPair("GA", 2, "GB", 1) < TwoCenterPair("GA", 2, "GA", 1));
     
     EXPECT_FALSE(TwoCenterPair("GA", 2, "GB", 1) < TwoCenterPair("GA", 2, "GB", 0));
+}
+
+TEST_F(TwoCenterPairTest, Centers)
+{
+    const auto tpair = TwoCenterPair("GA", 2, "GB", 1);
+    
+    EXPECT_EQ(tpair.centers(), 2);
 }
 
 TEST_F(TwoCenterPairTest, ToString)
