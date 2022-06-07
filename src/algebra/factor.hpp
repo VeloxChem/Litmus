@@ -67,6 +67,10 @@ public:
     /// Creates label of this factor.
     /// @return The string with label of factor.
     std::string label() const;
+    
+    /// Gets name of this factor.
+    /// @return The string with name of factor.
+    std::string name() const;
 };
 
 #endif /* factor_hpp */

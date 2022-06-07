@@ -82,6 +82,11 @@ public:
     template <class U>
     std::optional<U> base() const;
     
+    /// Gets  set of unique recursion expansion integrals used in signature.
+    /// @return The set of unique recursion exoansion integrals.
+    template <class U>
+    std::set<U> expansion() const;
+    
     /// Gets number of factors in this signature.
     /// @return The number of factors in  signature.
     size_t nfactors() const;
@@ -94,6 +99,15 @@ public:
     /// Gets set of factors in this signature.
     /// @return The set of factors in  signature.
     std::set<Factor> factors() const;
+    
+    /// Gets set of factors with the given name in this signature.
+    /// @param name The name of factor.
+    /// @return The set of factors with specific name in  signature.
+    std::set<Factor> factors(const std::string& name) const;
+    
+    /// Gets set of factor names in this signature.
+    /// @return The set of factors in  signature.
+    std::set<std::string> factor_names()const;
     
     /// Gets parameters in this signature.
     /// @param destination The destination of parameters.
@@ -218,7 +232,7 @@ Signature<T>::base() const
         tints.insert(U(tval));
     }
     
-    if (tints.size()  == 1)
+    if (tints.size() == 1)
     {
         return *(tints.begin());
     }
@@ -226,6 +240,21 @@ Signature<T>::base() const
     {
         return std::nullopt;
     }
+}
+
+template <class T>
+template <class U>
+std::set<U>
+Signature<T>::expansion() const
+{
+    std::set<U> tints;
+    
+    for (const auto& tval : _inp_params)
+    {
+        tints.insert(U(tval));
+    }
+    
+    return tints;
 }
 
 template <class T>
@@ -257,6 +286,37 @@ std::set<Factor>
 Signature<T>::factors() const
 {
     return _factors;
+}
+
+template <class T>
+std::set<Factor>
+Signature<T>::factors(const std::string& name) const
+{
+    std::set<Factor> facts;
+    
+    for (const auto& tval : _factors)
+    {
+        if (tval.name() == name)
+        {
+            facts.insert(tval); 
+        }
+    }
+    
+    return facts; 
+}
+
+template <class T>
+std::set<std::string>
+Signature<T>::factor_names() const
+{
+    std::set<std::string> labels;
+    
+    for (const auto fact : _factors)
+    {
+        labels.insert(fact.name());
+    }
+    
+    return labels;
 }
 
 template <class T>

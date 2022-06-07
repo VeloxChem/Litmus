@@ -20,8 +20,6 @@
 #include "eri_driver.hpp"
 #include "repository.hpp"
 
-using R4SigGroupMap = std::map<Signature<T4CIntegral>, R4Group>;
-
 /// Electron repulsion integrals code generator for CPU class.
 class EriCPUGenerator
 {
@@ -37,9 +35,24 @@ class EriCPUGenerator
     
     /// Writes header file for VRR recursion.
     /// @param integral The base four center integral.
-    /// @param recmap The recursion map for base integral.
-    void _write_vrr_cpp_header(const I4CIntegral&   integral,
-                               const R4SigGroupMap& recmap) const;
+    /// @param repo The repository of recursion graphs.
+    void _write_vrr_cpp_header(const I4CIntegral&                      integral,
+                               const Repository<R4Group, T4CIntegral>& repo) const;
+    
+    /// Gets buffer name for given integral
+    /// @param integral The base four center integral.
+    /// @return The buffer name.
+    std::string _buffer_name(const I4CIntegral& integral) const;
+    
+    /// Gets buffer's indexes name for given integral
+    /// @param integral The base four center integral.
+    /// @return The buffer's indexes name.
+    std::string _indexes_name(const I4CIntegral& integral) const;
+    
+    /// Gets factor name for given factor
+    /// @param label The label of factor.
+    /// @return The factor name.
+    std::string _factor_name(const std::string& label) const; 
     
 public:
     /// Creates an electron repulsion integrals CPU code generator.
@@ -66,6 +79,38 @@ public:
     /// @param integral The base four center integral.
     /// @return True if i false otherwise.
     bool is_aux_rec(const I4CIntegral& integral) const;
+    
+    /// Writes VRR  function declaration to file stream.
+    /// @param fstream the file stream.
+    /// @param signatures the list of signatures.
+    /// @param signature the signature of integral.
+    void write_vrr_func_decl(      std::ofstream&                             fstream,
+                             const std::map<Signature<T4CIntegral>, R4Group>& signatures,
+                             const Signature<T4CIntegral>&                    signature) const;
+    
+    /// Writes VRR  function body to file stream.
+    /// @param fstream the file stream.
+    /// @param signature the signature of integral.
+    void write_vrr_func_body(      std::ofstream&          fstream,
+                             const Signature<T4CIntegral>& signature) const;
+    
+    /// Writes Obara-Saika factors to file stream.
+    /// @param fstream the file stream.
+    /// @param signature the signature of integral.
+    void write_os_factors(      std::ofstream&          fstream,
+                          const Signature<T4CIntegral>& signature) const;
+    
+    /// Writes distances used in recursion to file stream.
+    /// @param fstream the file stream.
+    /// @param signature the signature of integral.
+    void write_distances(      std::ofstream&          fstream,
+                         const Signature<T4CIntegral>& signature) const;
+    
+    /// Gets VRR  function name.
+    /// @param signatures the list of signatures.
+    /// @param signature the signature of integral.
+    std::string vrr_func_name(const std::map<Signature<T4CIntegral>, R4Group>& signatures,
+                              const Signature<T4CIntegral>&                    signature) const;
 };
 
 #endif /* eri_cpu_generator_hpp */

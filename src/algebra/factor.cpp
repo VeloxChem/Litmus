@@ -100,3 +100,8 @@ Factor::label() const
     }
 }
 
+std::string
+Factor::name() const
+{
+    return _name;
+}

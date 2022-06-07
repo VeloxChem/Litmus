@@ -87,6 +87,10 @@ public:
     /// @return The operator of this integral.
     Operator integrand() const;
     
+    /// Gets order of integral.
+    /// @return The order of integral.
+    int32_t order() const; 
+    
     /// Creates primitive textual label of this integral.
     /// @return The string with primitive textual label of integral.
     std::string label(const bool use_order = false) const;
@@ -238,6 +242,13 @@ Operator
 Integral<T, U>::integrand() const
 {
     return _integrand;
+}
+
+template <class T, class U>
+int32_t
+Integral<T, U>::order() const
+{
+    return _order;
 }
 
 template <class T, class U>

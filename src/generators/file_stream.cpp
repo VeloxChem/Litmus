@@ -68,6 +68,35 @@ namespace ost { // ost namespace
         fstream << "//  You should have received a copy of the GNU Lesser General Public License    " << std::endl;
         
         fstream << "//  along with VeloxChem. If not, see <https://www.gnu.org/licenses/>.          " << std::endl;
+        
+        fstream << std::endl; 
+    }
+
+    void
+    write_namespace(      std::ofstream& fstream,
+                    const std::string&   label,
+                    const bool           start)
+    {
+        if (start)
+        {
+            fstream << "namespace "  << label << " { // " << label << " namespace" << std::endl;
+            
+            fstream << std::endl;
+        }
+        else
+        {
+            fstream << std::endl;
+            
+            fstream << "} // " << label << " namespace" << std::endl;
+        }
+    }
+
+    void
+    write_vrr_includes(std::ofstream& fstream)
+    {
+        fstream << "#include <cstdint>" << std::endl << std::endl;
+        
+        fstream << "#include \"Buffer.hpp\"" << std::endl << std::endl;
     }
 
 } // ost namespace
