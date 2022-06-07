@@ -121,6 +121,10 @@ public:
     /// @return The unique recursion factors.
     std::set<Factor> factors() const;
     
+    /// Gets unique prefactors in this recursion group.
+    /// @return The unique prefactors.
+    std::set<Fraction> prefactors() const;
+    
     /// Gets map of factors in recursion group.
     /// @return The map of factors in recursion group.
     std::map<Factor, int> map_of_factors() const;
@@ -416,6 +420,23 @@ RecursionGroup<T>::factors() const
     }
     
     return sfacts;
+}
+
+template <class T>
+std::set<Fraction>
+RecursionGroup<T>::prefactors() const
+{
+    std::set<Fraction> facts;
+    
+    for (const auto& tval : _expansions)
+    {
+        if (const auto tfacts = tval.prefactors(); !tfacts.empty())
+        {
+            facts.insert(tfacts.cbegin(), tfacts.cend());
+        }
+    }
+    
+    return facts; 
 }
 
 template <class T>

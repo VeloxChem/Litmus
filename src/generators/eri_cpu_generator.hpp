@@ -17,6 +17,9 @@
 #ifndef eri_cpu_generator_hpp
 #define eri_cpu_generator_hpp
 
+#include <set>
+#include <fstream>
+
 #include "eri_driver.hpp"
 #include "repository.hpp"
 
@@ -49,10 +52,15 @@ class EriCPUGenerator
     /// @return The buffer's indexes name.
     std::string _indexes_name(const I4CIntegral& integral) const;
     
-    /// Gets factor name for given factor
+    /// Gets factor name for given factor.
     /// @param label The label of factor.
     /// @return The factor name.
-    std::string _factor_name(const std::string& label) const; 
+    std::string _factor_name(const std::string& label) const;
+    
+    /// Gets fraction name for given fraction.
+    /// @param fraction The fraction.
+    /// @return The fraction name.
+    std::string _fraction_name(const Fraction& fraction) const;
     
 public:
     /// Creates an electron repulsion integrals CPU code generator.
@@ -91,8 +99,10 @@ public:
     /// Writes VRR  function body to file stream.
     /// @param fstream the file stream.
     /// @param signature the signature of integral.
+    /// @param recgroup the recursion group.
     void write_vrr_func_body(      std::ofstream&          fstream,
-                             const Signature<T4CIntegral>& signature) const;
+                             const Signature<T4CIntegral>& signature,
+                             const R4Group&                recgroup) const;
     
     /// Writes Obara-Saika factors to file stream.
     /// @param fstream the file stream.
@@ -105,6 +115,24 @@ public:
     /// @param signature the signature of integral.
     void write_distances(      std::ofstream&          fstream,
                          const Signature<T4CIntegral>& signature) const;
+    
+    /// Writes integral buffers used in recursion to file stream.
+    /// @param fstream the file stream.
+    /// @param signature the signature of integral.
+    void write_buffers(      std::ofstream&          fstream,
+                       const Signature<T4CIntegral>& signature) const;
+    
+    /// Writes integral components to file stream.
+    /// @param fstream the file stream.
+    /// @param integrals the set of integral components.
+    void write_intetgrals(      std::ofstream&         fstream,
+                          const std::set<T4CIntegral>& integrals) const;
+    
+    /// Writes fraction factors to file stream.
+    /// @param fstream the file stream.
+    /// @param recgroup the recursion group to generate integral components.
+    void write_fractions(      std::ofstream& fstream,
+                         const R4Group&       recgroup) const; 
     
     /// Gets VRR  function name.
     /// @param signatures the list of signatures.

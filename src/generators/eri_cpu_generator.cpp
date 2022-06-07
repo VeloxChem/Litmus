@@ -16,8 +16,6 @@
 
 #include "eri_cpu_generator.hpp"
 
-#include <fstream>
-
 #include "file_stream.hpp"
 
 EriCPUGenerator::EriCPUGenerator()
@@ -67,7 +65,7 @@ EriCPUGenerator::_write_vrr_cpp_header(const I4CIntegral&                      i
     {
         write_vrr_func_decl(fstream, tmaps, tval.first);
         
-        write_vrr_func_body(fstream, tval.first);
+        write_vrr_func_body(fstream, tval.first, tval.second);
     }
     
     ost::write_namespace(fstream, "derirec", false);
@@ -160,6 +158,20 @@ EriCPUGenerator::_factor_name(const std::string& label) const
     return std::string();
 }
 
+std::string
+EriCPUGenerator::_fraction_name(const Fraction& fraction) const
+{
+    std::string label = "fact_";
+    
+    label += std::to_string(fraction.numerator());
+    
+    if (fraction.denominator() != 1)
+    {
+        label += "_" + std::to_string(fraction.denominator());
+    }
+    
+    return label;
+}
 
 bool
 EriCPUGenerator::is_hrr_rec(const I4CIntegral& integral) const
@@ -234,9 +246,16 @@ EriCPUGenerator::write_vrr_func_decl(      std::ofstream&                       
     
     for (const auto& tint : signature.expansion<I4CIntegral>())
     {
-        fstream << space << "const " << vlabels[0] << _buffer_name(tint) << "," << std::endl;
-            
-        fstream << space << "const " << vlabels[1] << _indexes_name(tint) << "," << std::endl;
+        if ((tint[0] + tint[1] + tint[2] + tint[3]) == 0)
+        {
+            fstream << space << "const " << vlabels[3] << _buffer_name(tint) << "," << std::endl;
+        }
+        else
+        {
+            fstream << space << "const " << vlabels[0] << _buffer_name(tint) << "," << std::endl;
+                
+            fstream << space << "const " << vlabels[1] << _indexes_name(tint) << "," << std::endl;
+        }
     }
     
     // recursion factors
@@ -262,13 +281,18 @@ EriCPUGenerator::write_vrr_func_decl(      std::ofstream&                       
 
 void
 EriCPUGenerator::write_vrr_func_body(      std::ofstream&          fstream,
-                                     const Signature<T4CIntegral>& signature) const
+                                     const Signature<T4CIntegral>& signature,
+                                     const R4Group&                recgroup) const
 {
     fstream << "{" << std::endl;
     
     write_os_factors(fstream, signature); 
     
     write_distances(fstream, signature);
+    
+    write_buffers(fstream, signature);
+    
+    write_fractions(fstream, recgroup); 
     
     fstream << "}" << std::endl << std::endl;
 }
@@ -332,6 +356,97 @@ EriCPUGenerator::write_distances(      std::ofstream&          fstream,
                 fstream << ");" << std::endl << std::endl;
             }
         }
+    }
+}
+
+void
+EriCPUGenerator::write_buffers(      std::ofstream&          fstream,
+                               const Signature<T4CIntegral>& signature) const
+{
+    // base integral components
+    
+    write_intetgrals(fstream, signature.params("out"));
+    
+    // recursion integral components
+    
+    for (const auto& tint : signature.expansion<I4CIntegral>())
+    {
+        write_intetgrals(fstream, signature.expansion_components(tint)); 
+    }
+}
+
+void
+EriCPUGenerator::write_intetgrals(      std::ofstream&         fstream,
+                                  const std::set<T4CIntegral>& integrals) const
+{
+    const auto space = std::string(4, ' ');
+    
+    bool header = true;
+    
+    int32_t idx = 0;
+    
+    for (const auto& tcomp : integrals)
+    {
+        const auto tint = I4CIntegral(tcomp);
+        
+        if (header)
+        {
+            fstream << space << "// set up [" << tint.label() << "]^(";
+            
+            fstream << std::to_string(tcomp.order()) << ") integral components";
+            
+            fstream << std::endl << std::endl;
+            
+            header = false;
+        }
+        
+        fstream << space << "t_" << tcomp.label(true) << " = " ;
+        
+        if ((tint[0] + tint[1] + tint[2] + tint[3]) == 0)
+        {
+            fstream << _buffer_name(tint) << ";";
+        }
+        else
+        {
+            fstream << _buffer_name(tint) << ".data(";
+            
+            fstream << _indexes_name(tint) << "(";
+            
+            fstream << std::to_string(idx) << "));";
+        }
+        
+        fstream << std::endl << std::endl;
+        
+        idx++;
+    }
+}
+
+void
+EriCPUGenerator::write_fractions(      std::ofstream& fstream,
+                                 const R4Group&       recgroup) const
+{
+    const auto space = std::string(4, ' ');
+    
+    bool header = true;
+    
+    for (const auto& tval : recgroup.prefactors())
+    {
+        if ((tval == Fraction(1)) || (tval == Fraction(-1))) continue;
+        
+        if (header)
+        {
+            fstream << space << "// set up scaling factors";
+            
+            fstream << std::endl << std::endl;
+            
+            header = false;
+        }
+        
+        fstream << space << "const auto " << _fraction_name(tval);
+        
+        fstream << " = static_cast<T>(" << tval.label() << ");";
+        
+        fstream << std::endl << std::endl;
     }
 }
 

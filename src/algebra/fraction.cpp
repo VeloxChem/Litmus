@@ -125,6 +125,12 @@ Fraction::denominator() const
     return _denominator;
 }
 
+Fraction
+Fraction::abs() const
+{
+    return Fraction(std::abs(_numerator), denominator());
+}
+
 bool
 Fraction::is_negative() const
 {

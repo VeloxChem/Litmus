@@ -96,6 +96,10 @@ public:
     /// @return true if this fraction is not a number.
     bool isNan() const;
     
+    /// Creates frcaction with absolute value of this fraction.
+    /// @return the absolute values of fraction. 
+    Fraction abs() const;
+    
     /// Creates primitive textual representation of this fraction.
     /// @return The string with primitive textual representation of fraction.
     std::string to_string() const;

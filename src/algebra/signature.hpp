@@ -83,9 +83,14 @@ public:
     std::optional<U> base() const;
     
     /// Gets  set of unique recursion expansion integrals used in signature.
-    /// @return The set of unique recursion exoansion integrals.
+    /// @return The set of unique recursion expansion integrals.
     template <class U>
     std::set<U> expansion() const;
+    
+    /// Gets  set of unique integral components for given integral insignature.
+    /// @return The set of unique integral components.
+    template <class U>
+    std::set<T> expansion_components(const U& integral) const; 
     
     /// Gets number of factors in this signature.
     /// @return The number of factors in  signature.
@@ -252,6 +257,24 @@ Signature<T>::expansion() const
     for (const auto& tval : _inp_params)
     {
         tints.insert(U(tval));
+    }
+    
+    return tints;
+}
+
+template <class T>
+template <class U>
+std::set<T>
+Signature<T>::expansion_components(const U& integral) const
+{
+    std::set<T> tints;
+    
+    for (const auto& tval : _inp_params)
+    {
+        if (integral == U(tval))
+        {
+            tints.insert(tval);
+        }
     }
     
     return tints;
