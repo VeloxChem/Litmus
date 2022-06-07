@@ -501,7 +501,11 @@ Graph<T>::signatures() const
         
         if (vmap.find(tsign) == vmap.end())
         {
-            vmap[tsign] = vert;
+            auto mvert = T(vert);
+            
+            mvert.reduce();
+            
+            vmap[tsign] = mvert;
         }
     }
     

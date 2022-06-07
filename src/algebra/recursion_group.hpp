@@ -73,6 +73,9 @@ public:
     /// @param other The recursion group to merge.
     void merge(const RecursionGroup<T>& other);
     
+    /// Reduces order of this recursion term to minimal possible.
+    void reduce();
+    
     /// Cheks if recursion group contains the given recursion expansion.
     /// @param rexp The recursion expansion to check.
     /// @return Ture if recursion group contains given recursion expansion, false otherwise.
@@ -201,6 +204,21 @@ RecursionGroup<T>::add(const RecursionExpansion<T>& expansion)
     _expansions.push_back(expansion);
     
     std::sort(_expansions.begin(), _expansions.end());
+}
+
+template <class T>
+void
+RecursionGroup<T>::reduce()
+{
+    const auto morder = min_order();
+    
+    if (morder > 0)
+    {
+        for (size_t i = 0; i < _expansions.size(); i++)
+        {
+            _expansions[i].reduce(morder); 
+        }
+    }
 }
 
 template <class T>

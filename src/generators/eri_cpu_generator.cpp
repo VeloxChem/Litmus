@@ -292,7 +292,9 @@ EriCPUGenerator::write_vrr_func_body(      std::ofstream&          fstream,
     
     write_buffers(fstream, signature);
     
-    write_fractions(fstream, recgroup); 
+    write_fractions(fstream, recgroup);
+    
+    write_loop(fstream, recgroup);
     
     fstream << "}" << std::endl << std::endl;
 }
@@ -448,6 +450,115 @@ EriCPUGenerator::write_fractions(      std::ofstream& fstream,
         
         fstream << std::endl << std::endl;
     }
+}
+
+void
+EriCPUGenerator::write_loop(      std::ofstream& fstream,
+                            const R4Group&       recgroup) const
+{
+    const auto ncomps = static_cast<int32_t>(recgroup.expansions());
+    
+    auto ngroups = ncomps / 36;
+    
+    if ((ncomps % 36) != 0) ngroups++;
+    
+    const auto space = std::string(4, ' ');
+        
+    fstream << space << "if (useSummation)" << std::endl;
+    
+    fstream << space << "{" << std::endl;
+    
+    for (int32_t i = 0; i < ngroups; i++)
+    {
+        const auto bstart = i * 36;
+        
+        const auto bend = ((bstart + 36) > ncomps) ? ncomps : bstart + 36;
+        
+        write_simd_loop(fstream, recgroup, bstart, bend, true);
+    }
+
+    fstream << space << "}" << std::endl;
+    
+    fstream << space << "else" << std::endl;
+    
+    fstream << space << "{" << std::endl;
+    
+    for (int32_t i = 0; i < ngroups; i++)
+    {
+        const auto bstart = i * 36;
+        
+        const auto bend = ((bstart + 36) > ncomps) ? ncomps : bstart + 36;
+        
+        write_simd_loop(fstream, recgroup, bstart, bend, false);
+    }
+    
+    fstream << space << "}" << std::endl;
+}
+
+void
+EriCPUGenerator::write_simd_loop(      std::ofstream& fstream,
+                                 const R4Group&       recgroup,
+                                 const int32_t        lstart,
+                                 const int32_t        lend,
+                                 const bool           flg_sum) const
+{
+    const auto space2x = std::string(8, ' ');
+    
+    const auto space3x = std::string(12, ' ');
+    
+    fstream << space2x << "for (int32_t i = 0; i < nBatchPairs; i++)" << std::endl;
+    
+    fstream << space2x << "{" << std::endl;
+    
+    for (int32_t i = lstart; i < lend; i++)
+    {
+        // reference integral
+        
+        auto rterm = recgroup[i].root();
+        
+        fstream << space3x << "t_" << rterm.label(true) << "[i]";
+        
+        fstream << ((flg_sum) ? " += " : " = ");
+        
+        // recursion terms
+        
+        const auto nterms = recgroup[i].terms();
+        
+        for (int32_t j = 0; j < nterms; j++)
+        {
+            rterm = (recgroup[i])[j];
+            
+            auto pfact = rterm.prefactor();
+            
+            if (pfact.is_negative())
+            {
+                fstream << ((j > 0) ? "- " : "-");
+                    
+                pfact = pfact.abs();
+            }
+            else
+            {
+                fstream << ((j > 0) ? "+ " : "");
+            }
+            
+            if (pfact != Fraction(1)) fstream << _fraction_name(pfact) << " * ";
+                
+            for (const auto& tval : rterm.factors())
+            {
+                fstream << tval.label() << "[i] * ";
+            }
+            
+            fstream << "t_" << rterm.label(true) << "[i]";
+            
+            if ((j + 1) != nterms) fstream << " ";
+        }
+        
+        fstream << ";" << std::endl;
+        
+        if ((i + 1) != lend) fstream << std::endl;
+    }
+    
+    fstream << space2x << "}" << std::endl;
 }
 
 std::string

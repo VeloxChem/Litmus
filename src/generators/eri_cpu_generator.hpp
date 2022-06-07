@@ -132,7 +132,25 @@ public:
     /// @param fstream the file stream.
     /// @param recgroup the recursion group to generate integral components.
     void write_fractions(      std::ofstream& fstream,
-                         const R4Group&       recgroup) const; 
+                         const R4Group&       recgroup) const;
+    
+    /// Writes recursion loop to file stream.
+    /// @param fstream the file stream.
+    /// @param recgroup the recursion group to generate integral components.
+    void write_loop(      std::ofstream& fstream,
+                    const R4Group&       recgroup) const;
+    
+    /// Writes recursion loop to file stream.
+    /// @param fstream the file stream.
+    /// @param recgroup the recursion group to generate integral components.
+    /// @param lstart the start of partial recursion loop.
+    /// @param lend the end of partial recursion loop.
+    /// @param flg_sum  the summation form of recursion.
+    void write_simd_loop(      std::ofstream& fstream,
+                         const R4Group&       recgroup,
+                         const int32_t        lstart,
+                         const int32_t        lend,
+                         const bool           flg_sum) const;
     
     /// Gets VRR  function name.
     /// @param signatures the list of signatures.
