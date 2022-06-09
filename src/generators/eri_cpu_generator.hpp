@@ -62,6 +62,15 @@ class EriCPUGenerator
     /// @return The fraction name.
     std::string _fraction_name(const Fraction& fraction) const;
     
+    /// Gets recursion term name for given fraction.
+    /// @param recterm The recursion term.
+    /// @param index The string with index.
+    /// @param first The flag for first recursion term in expansion.
+    /// @return The  name of recursion term.
+    std::string _rec_term_name(const R4CTerm&     recterm,
+                               const std::string& index,
+                               const bool         first) const;
+    
 public:
     /// Creates an electron repulsion integrals CPU code generator.
     EriCPUGenerator();
@@ -151,6 +160,24 @@ public:
                          const int32_t        lstart,
                          const int32_t        lend,
                          const bool           flg_sum) const;
+    
+    /// Writes omp header for simd loop to file stream.
+    /// @param fstream the file stream.
+    /// @param recgroup the recursion group to generate integral components.
+    /// @param lstart the start of partial recursion loop.
+    void write_omp_header(      std::ofstream& fstream,
+                          const R4Group&       recgroup,
+                          const int32_t        lstart,
+                          const int32_t        lend) const;
+    
+    /// Gets set of unique variables in given range of recursion group.
+    /// @param recgroup the recursion group to generate integral components.
+    /// @param lstart the start of partial recursion loop.
+    /// @param lend the end of partial recursion loop.
+    /// @return The set of unique variables.
+    std::set<std::string> get_align_vars(const R4Group& recgroup,
+                                         const int32_t  lstart,
+                                         const int32_t  lend) const;
     
     /// Gets VRR  function name.
     /// @param signatures the list of signatures.

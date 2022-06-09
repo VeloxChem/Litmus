@@ -173,6 +173,47 @@ EriCPUGenerator::_fraction_name(const Fraction& fraction) const
     return label;
 }
 
+std::string
+EriCPUGenerator::_rec_term_name(const R4CTerm&     recterm,
+                                const std::string& index,
+                                const bool         first) const
+{
+    std::string label;
+    
+    // sign of recursion term
+    
+    auto pfact = recterm.prefactor();
+    
+    if (pfact.is_negative())
+    {
+        label = (first) ? "-" : "- ";
+            
+        pfact = pfact.abs();
+    }
+    else
+    {
+        label = (first) ? "" : "+ ";
+    }
+    
+    // prefactor of recursion term
+    
+    if (pfact != Fraction(1)) label += _fraction_name(pfact) + " * ";
+    
+    // factors of recursion term
+        
+    for (const auto& tval : recterm.factors())
+    {
+        label += tval.label() + index  + " * ";
+    }
+    
+    // integral component of recursion term
+    
+    label += "t_" + recterm.label(true) + index;
+    
+    return label;
+}
+
+
 bool
 EriCPUGenerator::is_hrr_rec(const I4CIntegral& integral) const
 {
@@ -502,6 +543,12 @@ EriCPUGenerator::write_simd_loop(      std::ofstream& fstream,
                                  const int32_t        lend,
                                  const bool           flg_sum) const
 {
+    // omp header for loop
+    
+    write_omp_header(fstream, recgroup, lstart, lend);
+
+    // loop body
+    
     const auto space2x = std::string(8, ' ');
     
     const auto space3x = std::string(12, ' ');
@@ -514,9 +561,7 @@ EriCPUGenerator::write_simd_loop(      std::ofstream& fstream,
     {
         // reference integral
         
-        auto rterm = recgroup[i].root();
-        
-        fstream << space3x << "t_" << rterm.label(true) << "[i]";
+        fstream << space3x << _rec_term_name(recgroup[i].root(), "[i]", true);
         
         fstream << ((flg_sum) ? " += " : " = ");
         
@@ -526,29 +571,7 @@ EriCPUGenerator::write_simd_loop(      std::ofstream& fstream,
         
         for (int32_t j = 0; j < nterms; j++)
         {
-            rterm = (recgroup[i])[j];
-            
-            auto pfact = rterm.prefactor();
-            
-            if (pfact.is_negative())
-            {
-                fstream << ((j > 0) ? "- " : "-");
-                    
-                pfact = pfact.abs();
-            }
-            else
-            {
-                fstream << ((j > 0) ? "+ " : "");
-            }
-            
-            if (pfact != Fraction(1)) fstream << _fraction_name(pfact) << " * ";
-                
-            for (const auto& tval : rterm.factors())
-            {
-                fstream << tval.label() << "[i] * ";
-            }
-            
-            fstream << "t_" << rterm.label(true) << "[i]";
+            fstream << _rec_term_name((recgroup[i])[j], "[i]", j == 0);
             
             if ((j + 1) != nterms) fstream << " ";
         }
@@ -559,6 +582,83 @@ EriCPUGenerator::write_simd_loop(      std::ofstream& fstream,
     }
     
     fstream << space2x << "}" << std::endl;
+}
+
+
+void
+EriCPUGenerator::write_omp_header(      std::ofstream& fstream,
+                                  const R4Group&       recgroup,
+                                  const int32_t        lstart,
+                                  const int32_t        lend) const
+{
+    const auto labels = get_align_vars(recgroup, lstart, lend);
+    
+    std::string vstr = std::string(8, ' ') + "#pragma omp simd align(";
+    
+    for (const auto& tlabel : labels)
+    {
+        vstr += tlabel;
+        
+        if (vstr.size() > 81)
+        {
+            if (tlabel != *labels.rbegin())
+            {
+                fstream << vstr << ",\\" << std::endl;
+                
+                vstr = std::string(31, ' ');
+            }
+            else
+            {
+                fstream << vstr << " : VLX_ALIGN)" << std::endl;
+                
+                vstr.clear();
+            }
+        }
+        else
+        {
+            if (tlabel != *labels.rbegin()) vstr += ", ";
+        }
+    }
+
+    if (!vstr.empty())
+    {
+        fstream << vstr << " : VLX_ALIGN)" << std::endl;
+    }
+}
+
+std::set<std::string>
+EriCPUGenerator::get_align_vars(const R4Group& recgroup,
+                                const int32_t  lstart,
+                                const int32_t  lend) const
+{
+    std::set<std::string> avars;
+    
+    for (int32_t i = lstart; i < lend; i++)
+    {
+        // reference integral
+        
+        avars.insert("t_" + (recgroup[i].root()).label(true));
+    
+        // recursion terms
+        
+        const auto nterms = recgroup[i].terms();
+        
+        for (int32_t j = 0; j < nterms; j++)
+        {
+            const auto rterm = (recgroup[i])[j];
+            
+            avars.insert("t_" + rterm.label(true));
+            
+            // factors of recursion term
+            
+            for (const auto& tfact : rterm.factors())
+            {
+                avars.insert(tfact.label());
+            }
+        }
+    }
+    
+    return avars;
 }
 
 std::string
