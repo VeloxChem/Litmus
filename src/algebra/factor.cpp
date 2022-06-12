@@ -88,15 +88,15 @@ Factor::to_string() const
 }
 
 std::string
-Factor::label() const
+Factor::label(const bool nocomp) const
 {
-    if (_shape.order() > 0)
+    if (nocomp)
     {
-        return _label + "_" + _shape.label();
+        return _label;
     }
     else
     {
-        return _label;
+        return _label + "_" + _shape.label();
     }
 }
 

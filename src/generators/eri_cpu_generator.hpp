@@ -48,6 +48,10 @@ class EriCPUGenerator
     void _write_hrr_cpp_header(const I4CIntegral&                      integral,
                                const Repository<R4Group, T4CIntegral>& repo) const;
     
+    /// Writes header file for computation scheme of recursion.
+    /// @param graph The recursion graph.
+    void _write_comp_cpp_header(const Graph<R4Group>* graph) const;
+    
     /// Gets buffer name for given integral
     /// @param integral The base four center integral.
     /// @param flg_hrr The HRR recursion flag.
@@ -72,6 +76,11 @@ class EriCPUGenerator
     /// @return The fraction name.
     std::string _fraction_name(const Fraction& fraction) const;
     
+    /// Gets fraction name for given fraction.
+    /// @param graph The recursion graph. 
+    /// @return The number of Obara-Saika factors.
+    int _number_os_factors(const Graph<R4Group>* graph) const;
+    
     /// Gets recursion term name for given fraction.
     /// @param recterm The recursion term.
     /// @param index The string with index.
@@ -95,8 +104,13 @@ class EriCPUGenerator
     
     /// Checks if integral is auxilary integral.
     /// @param integral The base four center integral.
-    /// @return True if i false otherwise.
+    /// @return True if auxilary false otherwise.
     bool _is_aux_rec(const I4CIntegral& integral) const;
+    
+    /// Checks if name of factor is distance factor name.
+    /// @param name The name of factor.
+    /// @return True if name is name of distance factor false otherwise.
+    bool _is_distance(const std::string& name) const;
     
     /// Writes HRR/VRR  function declaration to file stream.
     /// @param fstream the file stream.
@@ -105,6 +119,12 @@ class EriCPUGenerator
     void _write_hvrr_func_decl(      std::ofstream&                             fstream,
                               const std::map<Signature<T4CIntegral>, R4Group>& signatures,
                               const Signature<T4CIntegral>&                    signature) const;
+    
+    /// Writes compute function declaration to file stream.
+    /// @param fstream the file stream.
+    /// @param graph The recursion graph. 
+    void _write_comp_func_decl(      std::ofstream&  fstream,
+                               const Graph<R4Group>* graph) const;
     
     /// Writes VRR  function body to file stream.
     /// @param fstream the file stream.
@@ -122,6 +142,12 @@ class EriCPUGenerator
                               const Signature<T4CIntegral>& signature,
                               const R4Group&                recgroup) const;
     
+    /// Writes compute function body to file stream.
+    /// @param fstream the file stream.
+    /// @param graph The recursion graph. 
+    void _write_comp_func_body(      std::ofstream&  fstream,
+                               const Graph<R4Group>* graph) const;
+    
     /// Writes Obara-Saika factors to file stream.
     /// @param fstream the file stream.
     /// @param signature the signature of integral.
@@ -133,6 +159,12 @@ class EriCPUGenerator
     /// @param signature the signature of integral.
     void _write_distances(      std::ofstream&          fstream,
                           const Signature<T4CIntegral>& signature) const;
+    
+    /// Writes compute factors to file stream.
+    /// @param fstream the file stream.
+    /// @param graph The recursion graph. 
+    void _write_comp_factors(      std::ofstream&  fstream,
+                             const Graph<R4Group>* graph) const;
     
     /// Writes integral buffers used in recursion to file stream.
     /// @param fstream the file stream.
@@ -209,6 +241,13 @@ class EriCPUGenerator
     /// @param signature the signature of integral.
     std::string _hvrr_func_name(const std::map<Signature<T4CIntegral>, R4Group>& signatures,
                                 const Signature<T4CIntegral>&                    signature) const;
+    
+    
+    /// Writes diagonal VRR  includes to file stream.
+    /// @param fstream the file stream.
+    /// @param graph The recursion graph.
+    void _write_diag_includes(      std::ofstream&  fstream,
+                              const Graph<R4Group>* graph) const;
     
 public:
     /// Creates an electron repulsion integrals CPU code generator.

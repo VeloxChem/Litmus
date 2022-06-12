@@ -34,6 +34,8 @@ EriCPUGenerator::set_diag_form()
 void
 EriCPUGenerator::generate(const Repository<R4Group, T4CIntegral>& repo) const
 {
+    // generate VRR and HRR recursions
+    
     for (const auto& tint : repo.base<I4CIntegral>())
     {
         // generates VRR recursions
@@ -50,6 +52,13 @@ EriCPUGenerator::generate(const Repository<R4Group, T4CIntegral>& repo) const
             _write_hrr_cpp_header(tint, repo);
         }
     }
+    
+    // generate integrals computation codes
+    
+    for (auto tgraph : repo.graphs())
+    {
+        _write_comp_cpp_header(tgraph);
+    }
 }
 
 void
@@ -64,7 +73,7 @@ EriCPUGenerator::_write_vrr_cpp_header(const I4CIntegral&                      i
     
     ost::write_copyright(fstream);
     
-    ost::write_vrr_includes(fstream);
+    ost::write_hvrr_includes(fstream);
     
     ost::write_namespace(fstream, "derirec", true);
     
@@ -94,7 +103,7 @@ EriCPUGenerator::_write_hrr_cpp_header(const I4CIntegral&                      i
     
     ost::write_copyright(fstream);
     
-    ost::write_vrr_includes(fstream);
+    ost::write_hvrr_includes(fstream);
     
     ost::write_namespace(fstream, "derirec", true);
     
@@ -112,6 +121,33 @@ EriCPUGenerator::_write_hrr_cpp_header(const I4CIntegral&                      i
     fstream.close();
 }
 
+void
+EriCPUGenerator::_write_comp_cpp_header(const Graph<R4Group>* graph) const
+{
+    const auto tint = graph->base<I4CIntegral>();
+    
+    if (_is_aux_rec(tint)) return;
+    
+    std::string fname = _file_name(tint, "") + ".hpp";
+    
+    std::ofstream fstream;
+           
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    ost::write_copyright(fstream);
+    
+    _write_diag_includes(fstream, graph);
+    
+    ost::write_namespace(fstream, "derirec", true);
+    
+    _write_comp_func_decl(fstream, graph);
+    
+    _write_comp_func_body(fstream, graph);
+    
+    ost::write_namespace(fstream, "derirec", false);
+    
+    fstream.close();
+}
 
 std::string
 EriCPUGenerator::_file_name(const I4CIntegral& integral,
@@ -157,11 +193,9 @@ EriCPUGenerator::_indexes_name(const I4CIntegral& integral,
 std::string
 EriCPUGenerator::_factor_name(const std::string& label) const
 {
-    // distances PB, QD, WP, WQ
+    // distances PB, QD, WP, WQ, AB, CD
     
-    if ((label == "PB") || (label == "QD") ||
-        (label == "WP") || (label == "WQ") ||
-        (label == "AB") || (label == "CD"))
+    if (_is_distance(label))
     {
         return "rDistances" + label;
     }
@@ -195,6 +229,7 @@ EriCPUGenerator::_factor_name(const std::string& label) const
     
     return std::string();
 }
+
 
 std::string
 EriCPUGenerator::_fraction_name(const Fraction& fraction) const
@@ -252,6 +287,37 @@ EriCPUGenerator::_rec_term_name(const R4CTerm&     recterm,
     return label;
 }
 
+int
+EriCPUGenerator::_number_os_factors(const Graph<R4Group>* graph) const
+{
+    // get list of unique labels
+    
+    std::set<std::string> labels;
+    
+    for (const auto& tfact : graph->factors())
+    {
+        labels.insert(tfact.name());
+    }
+    
+    int nfacts = 1;
+    
+    for (const auto& tlabel : labels)
+    {
+        // Obara-Saika factors
+        
+        if (tlabel == "1/zeta") nfacts++;
+        
+        if (tlabel == "1/eta") nfacts++;
+        
+        if (tlabel == "1/(zeta+eta)") nfacts++;
+        
+        if (tlabel == "rho/zeta^2") nfacts++;
+        
+        if (tlabel == "rho/eta^2") nfacts++;
+    }
+    
+    return nfacts;
+}
 
 bool
 EriCPUGenerator::_is_hrr_rec(const I4CIntegral& integral) const
@@ -292,6 +358,24 @@ EriCPUGenerator::_is_aux_rec(const I4CIntegral& integral) const
     {
         return false;
     }
+}
+
+bool
+EriCPUGenerator::_is_distance(const std::string& name) const
+{
+    if (name == "PB") return true;
+    
+    if (name == "QD") return true;
+    
+    if (name == "WP") return true;
+    
+    if (name == "WQ") return true;
+    
+    if (name == "AB") return true;
+    
+    if (name == "CD") return true;
+    
+    return false;
 }
 
 void
@@ -362,6 +446,31 @@ EriCPUGenerator::_write_hvrr_func_decl(      std::ofstream&                     
 }
 
 void
+EriCPUGenerator::_write_comp_func_decl(      std::ofstream&  fstream,
+                                       const Graph<R4Group>* graph) const
+{
+    // unique integrals
+    
+    const auto tint = graph->base<I4CIntegral>();
+    
+    // write function declaration
+    
+    fstream << "template <typename T>" << std::endl << "auto" << std::endl;
+    
+    fstream << "compHost" << tint.label() << "(" << std::string(6, ' ');
+    
+    fstream << "T*                                 intsBuffer,"  << std::endl;
+    
+    const auto space = std::string(13, ' ');
+    
+    fstream << space << "const CBinnedGtoPairBlock<T, mem::Host>* gtoPairBlock," << std::endl;
+    
+    fstream << space << "const int32_t                            bPosition," << std::endl;
+    
+    fstream << space << "const int32_t                            ePosition) -> void" << std::endl;
+}
+
+void
 EriCPUGenerator::_write_vrr_func_body(      std::ofstream&          fstream,
                                       const Signature<T4CIntegral>& signature,
                                       const R4Group&                recgroup) const
@@ -401,6 +510,18 @@ EriCPUGenerator::_write_hrr_func_body(      std::ofstream&          fstream,
     fstream << "}" << std::endl << std::endl;
 }
 
+void
+EriCPUGenerator::_write_comp_func_body(      std::ofstream&  fstream,
+                                       const Graph<R4Group>* graph) const
+{
+    fstream << "{" << std::endl;
+    
+    ost::write_dimensions(fstream);
+    
+    _write_comp_factors(fstream, graph);
+    
+    fstream << "}" << std::endl << std::endl;
+}
 
 void
 EriCPUGenerator::_write_os_factors(      std::ofstream&          fstream,
@@ -462,6 +583,75 @@ EriCPUGenerator::_write_distances(      std::ofstream&          fstream,
             }
         }
     }
+}
+
+void
+EriCPUGenerator::_write_comp_factors(      std::ofstream&  fstream,
+                                     const Graph<R4Group>* graph) const
+{
+    const auto space = std::string(4, ' ');
+    
+    // write Obara-Saika factors
+    
+    if (const auto nfacts = _number_os_factors(graph); nfacts > 0)
+    {
+        fstream << space << "// allocate Obara-Saika factors" << std::endl << std::endl;
+        
+        fstream << space << "BufferHostMY<T, " << std::to_string(nfacts);
+        
+        fstream << "> osfacts(ncpairs);" << std::endl << std::endl;
+    }
+    
+    // write distances
+ 
+    fstream << space << "// allocate distances" << std::endl << std::endl;
+    
+    fstream << space << "BufferHostMY<T, 3> rpq(ncpairs); " << std::endl << std::endl;
+    
+    std::set<std::string> labels;
+    
+    for (const auto& tfact : graph->factors())
+    {
+        if (const auto name = tfact.name(); _is_distance(name))
+        {
+            if (labels.find(name) == labels.end())
+            {
+                fstream << space << "BufferHostMY<T, 3> " << tfact.label(true);
+                
+                fstream << "(ncpairs);" << std::endl << std::endl;
+                
+                labels.insert(name);
+            }
+        }
+    }
+    
+    // write coordinates
+    
+    if ((labels.find("WP") != labels.end()) ||
+        (labels.find("WQ") != labels.end()))
+    {
+        fstream << space << "// allocate coordinates" << std::endl << std::endl;
+        
+        fstream << space << "BufferHostMY<T, 3> rw(ncpairs); " << std::endl << std::endl;
+    }
+    
+    // writes Boys function
+    
+    fstream << space << "// allocate Boys function data" << std::endl << std::endl; 
+    
+    const auto tint = graph->base<I4CIntegral>();
+    
+    const auto border = tint[0] + tint[1] + tint[2] + tint[3];
+    
+    fstream << space << "BufferHostX<T> bargs(ncpairs);" << std::endl << std::endl;
+    
+    fstream << space << "BufferHostXY<T> bvals(" << border + 1;
+    
+    fstream << ", ncpairs);" << std::endl << std::endl;
+    
+    fstream << space << "CBoysFunc<T, " << border <<  "> bftable;";
+    
+    fstream << std::endl << std::endl;
 }
 
 void
@@ -798,5 +988,43 @@ EriCPUGenerator::_hvrr_func_name(const std::map<Signature<T4CIntegral>, R4Group>
     return std::string();
 }
 
+void
+EriCPUGenerator::_write_diag_includes(      std::ofstream&  fstream,
+                                      const Graph<R4Group>* graph) const
+{
+    fstream << "#include <cstdint>" << std::endl << std::endl;
+    
+    fstream << "#include \"Buffer.hpp\"" << std::endl;
+    
+    fstream << "#include \"BinnedGtoPairBlock.hpp\"" << std::endl;
+    
+    fstream << "#include \"DiagEriRecFacts.hpp\"" << std::endl;
+    
+    // unique integrals
+    
+    const auto tints = graph->roots<I4CIntegral>();
+    
+    // VRR integrals
+    
+    for (const auto& tint : tints)
+    {
+        if (_is_vrr_rec(tint) || _is_aux_rec(tint))
+        {
+            fstream << "#include \"" + _file_name(tint, "VRR") + ".hpp\"" << std::endl;
+        }
+    }
+    
+    // HRR integrals
+    
+    for (const auto& tint : tints)
+    {
+        if (_is_hrr_rec(tint))
+        {
+            fstream << "#include \"" + _file_name(tint, "HRR") + ".hpp\"" << std::endl;
+        }
+    }
+    
+    fstream << std::endl;
+}
 
 

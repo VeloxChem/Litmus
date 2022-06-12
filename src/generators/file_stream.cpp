@@ -92,11 +92,23 @@ namespace ost { // ost namespace
     }
 
     void
-    write_vrr_includes(std::ofstream& fstream)
+    write_hvrr_includes(std::ofstream& fstream)
     {
         fstream << "#include <cstdint>" << std::endl << std::endl;
         
         fstream << "#include \"Buffer.hpp\"" << std::endl << std::endl;
+    }
+
+    void
+    write_dimensions(std::ofstream& fstream)
+    {
+        const auto space = std::string(4, ' ');
+        
+        fstream << space << "// set up dimensions" << std::endl << std::endl;
+        
+        fstream << space << "const auto nppairs = gtoPairBlock->getNumberOfPrimPairs();" << std::endl << std::endl;
+        
+        fstream << space << "const auto ncpairs = ePosition - bPosition;" << std::endl << std::endl;
     }
 
 } // ost namespace

@@ -83,6 +83,10 @@ public:
     /// @return true if this integral is less than other integral, false otherwise.
     bool operator<(const Integral<T, U>& other) const;
     
+    /// Sets order of integral.
+    /// @param order The order of integral.
+    void set_order(const int order);
+    
     /// Gets operator of this integral.
     /// @return The operator of this integral.
     Operator integrand() const;
@@ -235,6 +239,13 @@ Integral<T, U>::operator<(const Integral<T, U>& other) const
     {
         return _prefixes < other._prefixes;
     }
+}
+
+template <class T, class U>
+void
+Integral<T, U>::set_order(const int order)
+{
+    _order = order; 
 }
 
 template <class T, class U>

@@ -142,6 +142,16 @@ public:
     /// Gets map of factors in graph.
     /// @return The map of factors in graph.
     std::map<Factor, int> map_of_factors() const;
+    
+    /// Gets set of unique integrals.
+    /// @return The map of factors in graph.
+    template <class U>
+    std::set<U> roots() const;
+    
+    /// Gets base integral of this graph.
+    /// @return The base integral of this graph.
+    template <class U>
+    U base() const;
 };
 
 template <class T>
@@ -566,6 +576,33 @@ Graph<T>::map_of_factors() const
     }
     
     return mfacts;
+}
+
+template <class T>
+template <class U>
+U
+Graph<T>::base() const
+{
+    return *((_vertices.begin())-> template base<U>());
+}
+
+template <class T>
+template <class U>
+std::set<U>
+Graph<T>::roots() const
+{
+    std::set<U> tints;
+    
+    for (const auto& vert : _vertices)
+    {
+        auto tint = *(vert. template base<U>());
+        
+        tint.set_order(0); 
+        
+        tints.insert(tint);
+    }
+    
+    return tints;
 }
 
 template <class T>

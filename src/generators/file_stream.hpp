@@ -34,9 +34,13 @@ namespace ost { // ost namespace
                          const std::string&   label,
                          const bool           start);
 
-    /// Writes VRR  includes to file stream.
+    /// Writes HRR/VRR  includes to file stream.
     /// @param fstream the file stream.
-    void write_vrr_includes(std::ofstream& fstream);
+    void write_hvrr_includes(std::ofstream& fstream);
+
+    /// Writes recursion dimensions to file stream.
+    /// @param fstream the file stream.
+    void write_dimensions(std::ofstream& fstream);
 
 } // ost namespace
 

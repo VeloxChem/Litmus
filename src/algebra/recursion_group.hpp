@@ -131,6 +131,10 @@ public:
     /// Gets map of factors in recursion group.
     /// @return The map of factors in recursion group.
     std::map<Factor, int> map_of_factors() const;
+    
+    /// Gets set of unique integral components in recursion group.
+    /// @return The set of unique integral components in recursion group.
+    std::set<T> components() const;
 };
 
 template <class T>
@@ -479,6 +483,25 @@ RecursionGroup<T>::map_of_factors() const
     }
     
     return mfacts;
+}
+
+template <class T>
+std::set<T>
+RecursionGroup<T>::components() const
+{
+    std::set<T> tcomps;
+    
+    for (const auto& tval : _expansions)
+    {
+        tcomps.insert((tval.root()).integral());
+        
+        for (size_t i = 0; i < tval.size(); i++)
+        {
+            tcomps.insert(tval[i].integral()); 
+        }
+    }
+    
+    return tcomps;
 }
 
 template <class T>

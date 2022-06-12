@@ -63,6 +63,10 @@ public:
     /// @param graphs The vector of graphs.
     void add(const VGraphs<T>& graphs);
     
+    /// Gets  set  of graphs in this repository.
+    /// @return The sef of graphs in this repository.
+    VDynGraphs<T> graphs() const;
+    
     /// Gets  set  of base integrals in this repository.
     /// @return The sef of base integrals in this repository.
     template <class V>
@@ -167,6 +171,13 @@ Repository<T, U>::add(const VGraphs<T>& graphs)
         
         _rgmap.merge(tval.template signatures<U>());
     }
+}
+
+template <class T, class U>
+VDynGraphs<T>
+Repository<T, U>::graphs() const
+{
+    return _graphs;
 }
 
 template <class T, class U>
