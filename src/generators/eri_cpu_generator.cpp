@@ -36,9 +36,18 @@ EriCPUGenerator::generate(const Repository<R4Group, T4CIntegral>& repo) const
 {
     for (const auto& tint : repo.base<I4CIntegral>())
     {
-        if ((tint[0] == 0) && (tint[2] == 0))
+        // generates VRR recursions
+        
+        if (_is_vrr_rec(tint))
         {
             _write_vrr_cpp_header(tint, repo);
+        }
+        
+        // generates HRR recursions
+        
+        if (_is_hrr_rec(tint))
+        {
+            _write_hrr_cpp_header(tint, repo);
         }
     }
 }
@@ -63,23 +72,46 @@ EriCPUGenerator::_write_vrr_cpp_header(const I4CIntegral&                      i
     
     for (const auto& tval : tmaps)
     {
-        write_vrr_func_decl(fstream, tmaps, tval.first);
+        _write_hvrr_func_decl(fstream, tmaps, tval.first);
         
-        write_vrr_func_body(fstream, tval.first, tval.second);
+        _write_vrr_func_body(fstream, tval.first, tval.second);
     }
     
     ost::write_namespace(fstream, "derirec", false);
     
-//    _write_vrr_header_includes(fstream);
-//
-//    ost::write_namespace_start(_ref_namespace, fstream);
-//
-//    _write_header_data(fstream);
-//
-//    ost::write_namespace_end(_ref_namespace, fstream);
+    fstream.close();
+}
+
+void
+EriCPUGenerator::_write_hrr_cpp_header(const I4CIntegral&                      integral,
+                                       const Repository<R4Group, T4CIntegral>& repo) const
+{
+    std::string fname = _file_name(integral, "HRR") + ".hpp";
+        
+    std::ofstream fstream;
+           
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    ost::write_copyright(fstream);
+    
+    ost::write_vrr_includes(fstream);
+    
+    ost::write_namespace(fstream, "derirec", true);
+    
+    const auto tmaps = repo.base_map<I4CIntegral>(integral);
+    
+    for (const auto& tval : tmaps)
+    {
+        _write_hvrr_func_decl(fstream, tmaps, tval.first);
+        
+        _write_hrr_func_body(fstream, tval.first, tval.second);
+    }
+    
+    ost::write_namespace(fstream, "derirec", false);
     
     fstream.close();
 }
+
 
 std::string
 EriCPUGenerator::_file_name(const I4CIntegral& integral,
@@ -97,21 +129,27 @@ EriCPUGenerator::_file_name(const I4CIntegral& integral,
 }
 
 std::string
-EriCPUGenerator::_buffer_name(const I4CIntegral& integral) const
+EriCPUGenerator::_buffer_name(const I4CIntegral& integral,
+                              const bool         flg_hrr) const
 {
     std::string name = "intsBuffer"; 
     
-    name += integral.label() + std::to_string(integral.order());
+    name += integral.label();
+    
+    if (!flg_hrr) name += std::to_string(integral.order());
     
     return name;
 }
 
 std::string
-EriCPUGenerator::_indexes_name(const I4CIntegral& integral) const
+EriCPUGenerator::_indexes_name(const I4CIntegral& integral,
+                               const bool         flg_hrr) const
 {
     std::string name = "intsIndexes";
     
-    name += integral.label() + std::to_string(integral.order());
+    name += integral.label();
+    
+    if (!flg_hrr) name += std::to_string(integral.order());
     
     return name;
 }
@@ -176,7 +214,8 @@ EriCPUGenerator::_fraction_name(const Fraction& fraction) const
 std::string
 EriCPUGenerator::_rec_term_name(const R4CTerm&     recterm,
                                 const std::string& index,
-                                const bool         first) const
+                                const bool         first,
+                                const bool         flg_hrr) const
 {
     std::string label;
     
@@ -208,17 +247,16 @@ EriCPUGenerator::_rec_term_name(const R4CTerm&     recterm,
     
     // integral component of recursion term
     
-    label += "t_" + recterm.label(true) + index;
+    label += "t_" + recterm.label(!flg_hrr) + index;
     
     return label;
 }
 
 
 bool
-EriCPUGenerator::is_hrr_rec(const I4CIntegral& integral) const
+EriCPUGenerator::_is_hrr_rec(const I4CIntegral& integral) const
 {
-    if (((integral[0] + integral[2]) > 0) &&
-        ((integral[1] + integral[3]) > 0))
+    if ((integral[0] > 0) || (integral[2] > 0))
     {
         return true;
     }
@@ -230,7 +268,7 @@ EriCPUGenerator::is_hrr_rec(const I4CIntegral& integral) const
 
 
 bool
-EriCPUGenerator::is_vrr_rec(const I4CIntegral& integral) const
+EriCPUGenerator::_is_vrr_rec(const I4CIntegral& integral) const
 {
     if (((integral[0] + integral[2]) == 0) &&
         ((integral[1] + integral[3]) > 0))
@@ -244,7 +282,7 @@ EriCPUGenerator::is_vrr_rec(const I4CIntegral& integral) const
 }
 
 bool
-EriCPUGenerator::is_aux_rec(const I4CIntegral& integral) const
+EriCPUGenerator::_is_aux_rec(const I4CIntegral& integral) const
 {
     if ((integral[0] + integral[1] + integral[2] + integral[3]) == 0)
     {
@@ -257,19 +295,19 @@ EriCPUGenerator::is_aux_rec(const I4CIntegral& integral) const
 }
 
 void
-EriCPUGenerator::write_vrr_func_decl(      std::ofstream&                             fstream,
-                                     const std::map<Signature<T4CIntegral>, R4Group>& signatures,
-                                     const Signature<T4CIntegral>&                    signature) const
+EriCPUGenerator::_write_hvrr_func_decl(      std::ofstream&                             fstream,
+                                       const std::map<Signature<T4CIntegral>, R4Group>& signatures,
+                                       const Signature<T4CIntegral>&                    signature) const
 {
     const std::vector<std::string> vlabels = {"BufferHostXY<T>&      ", "BufferHostX<int32_t>& ",
                                               "BufferHostMY<T, 3>&   ", "T*                    ",
                                               "int32_t               ", "bool                  "};
-    
+        
     // write function declaration
     
     fstream << "template <typename T>" << std::endl << "auto" << std::endl;
     
-    const auto flabel = vrr_func_name(signatures, signature);
+    const auto flabel = _hvrr_func_name(signatures, signature);
     
     fstream << flabel << "(" << std::string(6, ' ');
     
@@ -277,11 +315,11 @@ EriCPUGenerator::write_vrr_func_decl(      std::ofstream&                       
     
     const auto rint = signature.base<I4CIntegral>();
     
-    fstream << vlabels[0] << _buffer_name(*rint) << "," << std::endl;
+    fstream << vlabels[0] << _buffer_name(*rint, true) << "," << std::endl;
     
     const auto space = std::string(flabel.size() + 1, ' ');
         
-    fstream << space << "const " << vlabels[1] << _indexes_name(*rint) << "," << std::endl;
+    fstream << space << "const " << vlabels[1] << _indexes_name(*rint, _is_hrr_rec(*rint)) << "," << std::endl;
     
     // recursion integrals
     
@@ -289,13 +327,13 @@ EriCPUGenerator::write_vrr_func_decl(      std::ofstream&                       
     {
         if ((tint[0] + tint[1] + tint[2] + tint[3]) == 0)
         {
-            fstream << space << "const " << vlabels[3] << _buffer_name(tint) << "," << std::endl;
+            fstream << space << "const " << vlabels[3] << _buffer_name(tint, _is_hrr_rec(*rint)) << "," << std::endl;
         }
         else
         {
-            fstream << space << "const " << vlabels[0] << _buffer_name(tint) << "," << std::endl;
+            fstream << space << "const " << vlabels[0] << _buffer_name(tint, _is_hrr_rec(*rint)) << "," << std::endl;
                 
-            fstream << space << "const " << vlabels[1] << _indexes_name(tint) << "," << std::endl;
+            fstream << space << "const " << vlabels[1] << _indexes_name(tint, _is_hrr_rec(*rint)) << "," << std::endl;
         }
     }
     
@@ -315,34 +353,58 @@ EriCPUGenerator::write_vrr_func_decl(      std::ofstream&                       
     
     // other input parameters
     
-    fstream << space <<"const " << vlabels[5] << "useSummation," << std::endl;
+    if (_is_vrr_rec(*rint))
+    {
+        fstream << space <<"const " << vlabels[5] << "useSummation," << std::endl;
+    }
     
     fstream << space <<"const " << vlabels[4] << "nBatchPairs) -> void" << std::endl;
 }
 
 void
-EriCPUGenerator::write_vrr_func_body(      std::ofstream&          fstream,
-                                     const Signature<T4CIntegral>& signature,
-                                     const R4Group&                recgroup) const
+EriCPUGenerator::_write_vrr_func_body(      std::ofstream&          fstream,
+                                      const Signature<T4CIntegral>& signature,
+                                      const R4Group&                recgroup) const
 {
     fstream << "{" << std::endl;
     
-    write_os_factors(fstream, signature); 
+    _write_os_factors(fstream, signature);
     
-    write_distances(fstream, signature);
+    _write_distances(fstream, signature);
     
-    write_buffers(fstream, signature);
+    _write_buffers(fstream, signature, false);
     
-    write_fractions(fstream, recgroup);
+    _write_fractions(fstream, recgroup);
     
-    write_loop(fstream, recgroup);
+    _write_vrr_loop(fstream, recgroup);
     
     fstream << "}" << std::endl << std::endl;
 }
 
 void
-EriCPUGenerator::write_os_factors(      std::ofstream&          fstream,
-                                  const Signature<T4CIntegral>& signature) const
+EriCPUGenerator::_write_hrr_func_body(      std::ofstream&          fstream,
+                                      const Signature<T4CIntegral>& signature,
+                                      const R4Group&                recgroup) const
+{
+    fstream << "{" << std::endl;
+    
+    _write_os_factors(fstream, signature);
+    
+    _write_distances(fstream, signature);
+    
+    _write_buffers(fstream, signature, true);
+    
+    _write_fractions(fstream, recgroup);
+    
+    _write_hrr_loop(fstream, recgroup);
+    
+    fstream << "}" << std::endl << std::endl;
+}
+
+
+void
+EriCPUGenerator::_write_os_factors(      std::ofstream&          fstream,
+                                   const Signature<T4CIntegral>& signature) const
 {
     const auto space = std::string(4, ' ');
     
@@ -369,8 +431,8 @@ EriCPUGenerator::write_os_factors(      std::ofstream&          fstream,
 }
 
 void
-EriCPUGenerator::write_distances(      std::ofstream&          fstream,
-                                 const Signature<T4CIntegral>& signature) const
+EriCPUGenerator::_write_distances(      std::ofstream&          fstream,
+                                  const Signature<T4CIntegral>& signature) const
 {
     const auto space = std::string(4, ' ');
     
@@ -403,24 +465,26 @@ EriCPUGenerator::write_distances(      std::ofstream&          fstream,
 }
 
 void
-EriCPUGenerator::write_buffers(      std::ofstream&          fstream,
-                               const Signature<T4CIntegral>& signature) const
+EriCPUGenerator::_write_buffers(      std::ofstream&          fstream,
+                                const Signature<T4CIntegral>& signature,
+                                const bool                    flg_hrr) const
 {
     // base integral components
     
-    write_intetgrals(fstream, signature.params("out"));
+    _write_intetgrals(fstream, signature.params("out"), flg_hrr);
     
     // recursion integral components
     
     for (const auto& tint : signature.expansion<I4CIntegral>())
     {
-        write_intetgrals(fstream, signature.expansion_components(tint)); 
+        _write_intetgrals(fstream, signature.expansion_components(tint), flg_hrr);
     }
 }
 
 void
-EriCPUGenerator::write_intetgrals(      std::ofstream&         fstream,
-                                  const std::set<T4CIntegral>& integrals) const
+EriCPUGenerator::_write_intetgrals(      std::ofstream&         fstream,
+                                   const std::set<T4CIntegral>& integrals,
+                                   const bool                   flg_hrr) const
 {
     const auto space = std::string(4, ' ');
     
@@ -434,26 +498,35 @@ EriCPUGenerator::write_intetgrals(      std::ofstream&         fstream,
         
         if (header)
         {
-            fstream << space << "// set up [" << tint.label() << "]^(";
-            
-            fstream << std::to_string(tcomp.order()) << ") integral components";
+            if (flg_hrr)
+            {
+                fstream << space << "// set up (" << tint.label() << ") ";
+                
+                fstream << "integral components";
+            }
+            else
+            {
+                fstream << space << "// set up [" << tint.label() << "]^(";
+                
+                fstream << std::to_string(tcomp.order()) << ") integral components";
+            }
             
             fstream << std::endl << std::endl;
             
             header = false;
         }
         
-        fstream << space << "t_" << tcomp.label(true) << " = " ;
+        fstream << space << "t_" << tcomp.label(!flg_hrr) << " = " ;
         
         if ((tint[0] + tint[1] + tint[2] + tint[3]) == 0)
         {
-            fstream << _buffer_name(tint) << ";";
+            fstream << _buffer_name(tint, flg_hrr) << ";";
         }
         else
         {
-            fstream << _buffer_name(tint) << ".data(";
+            fstream << _buffer_name(tint, flg_hrr) << ".data(";
             
-            fstream << _indexes_name(tint) << "(";
+            fstream << _indexes_name(tint, flg_hrr) << "(";
             
             fstream << std::to_string(idx) << "));";
         }
@@ -465,8 +538,8 @@ EriCPUGenerator::write_intetgrals(      std::ofstream&         fstream,
 }
 
 void
-EriCPUGenerator::write_fractions(      std::ofstream& fstream,
-                                 const R4Group&       recgroup) const
+EriCPUGenerator::_write_fractions(      std::ofstream& fstream,
+                                  const R4Group&       recgroup) const
 {
     const auto space = std::string(4, ' ');
     
@@ -494,8 +567,8 @@ EriCPUGenerator::write_fractions(      std::ofstream& fstream,
 }
 
 void
-EriCPUGenerator::write_loop(      std::ofstream& fstream,
-                            const R4Group&       recgroup) const
+EriCPUGenerator::_write_vrr_loop(      std::ofstream& fstream,
+                                 const R4Group&       recgroup) const
 {
     const auto ncomps = static_cast<int32_t>(recgroup.expansions());
     
@@ -504,20 +577,20 @@ EriCPUGenerator::write_loop(      std::ofstream& fstream,
     if ((ncomps % 36) != 0) ngroups++;
     
     const auto space = std::string(4, ' ');
-        
+    
     fstream << space << "if (useSummation)" << std::endl;
-    
+        
     fstream << space << "{" << std::endl;
-    
+        
     for (int32_t i = 0; i < ngroups; i++)
     {
         const auto bstart = i * 36;
         
         const auto bend = ((bstart + 36) > ncomps) ? ncomps : bstart + 36;
         
-        write_simd_loop(fstream, recgroup, bstart, bend, true);
+        _write_simd_loop(fstream, recgroup, bstart, bend, false, true);
     }
-
+    
     fstream << space << "}" << std::endl;
     
     fstream << space << "else" << std::endl;
@@ -530,28 +603,55 @@ EriCPUGenerator::write_loop(      std::ofstream& fstream,
         
         const auto bend = ((bstart + 36) > ncomps) ? ncomps : bstart + 36;
         
-        write_simd_loop(fstream, recgroup, bstart, bend, false);
+        _write_simd_loop(fstream, recgroup, bstart, bend, false, false);
+        
+        if (bend != ncomps) fstream << std::endl;
     }
     
     fstream << space << "}" << std::endl;
 }
 
 void
-EriCPUGenerator::write_simd_loop(      std::ofstream& fstream,
-                                 const R4Group&       recgroup,
-                                 const int32_t        lstart,
-                                 const int32_t        lend,
-                                 const bool           flg_sum) const
+EriCPUGenerator::_write_hrr_loop(      std::ofstream& fstream,
+                                 const R4Group&       recgroup) const
+{
+    const auto ncomps = static_cast<int32_t>(recgroup.expansions());
+    
+    auto ngroups = ncomps / 36;
+    
+    if ((ncomps % 36) != 0) ngroups++;
+    
+    const auto space = std::string(4, ' ');
+            
+    for (int32_t i = 0; i < ngroups; i++)
+    {
+        const auto bstart = i * 36;
+        
+        const auto bend = ((bstart + 36) > ncomps) ? ncomps : bstart + 36;
+        
+        _write_simd_loop(fstream, recgroup, bstart, bend, true, false);
+        
+        if (bend != ncomps) fstream << std::endl;
+    }
+}
+
+void
+EriCPUGenerator::_write_simd_loop(      std::ofstream& fstream,
+                                  const R4Group&       recgroup,
+                                  const int32_t        lstart,
+                                  const int32_t        lend,
+                                  const bool           flg_hrr, 
+                                  const bool           flg_sum) const
 {
     // omp header for loop
     
-    write_omp_header(fstream, recgroup, lstart, lend);
+    _write_omp_header(fstream, recgroup, lstart, lend, flg_hrr);
 
     // loop body
     
-    const auto space2x = std::string(8, ' ');
+    const auto space2x = (flg_hrr) ? std::string(4, ' ') : std::string(8, ' ');
     
-    const auto space3x = std::string(12, ' ');
+    const auto space3x = (flg_hrr) ? std::string(8, ' ') : std::string(12, ' ');
     
     fstream << space2x << "for (int32_t i = 0; i < nBatchPairs; i++)" << std::endl;
     
@@ -561,7 +661,7 @@ EriCPUGenerator::write_simd_loop(      std::ofstream& fstream,
     {
         // reference integral
         
-        fstream << space3x << _rec_term_name(recgroup[i].root(), "[i]", true);
+        fstream << space3x << _rec_term_name(recgroup[i].root(), "[i]", true, flg_hrr);
         
         fstream << ((flg_sum) ? " += " : " = ");
         
@@ -571,7 +671,7 @@ EriCPUGenerator::write_simd_loop(      std::ofstream& fstream,
         
         for (int32_t j = 0; j < nterms; j++)
         {
-            fstream << _rec_term_name((recgroup[i])[j], "[i]", j == 0);
+            fstream << _rec_term_name((recgroup[i])[j], "[i]", j == 0, flg_hrr);
             
             if ((j + 1) != nterms) fstream << " ";
         }
@@ -584,16 +684,18 @@ EriCPUGenerator::write_simd_loop(      std::ofstream& fstream,
     fstream << space2x << "}" << std::endl;
 }
 
-
 void
-EriCPUGenerator::write_omp_header(      std::ofstream& fstream,
-                                  const R4Group&       recgroup,
-                                  const int32_t        lstart,
-                                  const int32_t        lend) const
+EriCPUGenerator::_write_omp_header(      std::ofstream& fstream,
+                                   const R4Group&       recgroup,
+                                   const int32_t        lstart,
+                                   const int32_t        lend,
+                                   const bool           flg_hrr) const
 {
-    const auto labels = get_align_vars(recgroup, lstart, lend);
+    const auto labels = _get_align_vars(recgroup, lstart, lend, flg_hrr);
     
-    std::string vstr = std::string(8, ' ') + "#pragma omp simd align(";
+    std::string vstr = (flg_hrr) ? std::string(4, ' ') : std::string(8, ' ');
+    
+    vstr += "#pragma omp simd align(";
     
     for (const auto& tlabel : labels)
     {
@@ -605,7 +707,7 @@ EriCPUGenerator::write_omp_header(      std::ofstream& fstream,
             {
                 fstream << vstr << ",\\" << std::endl;
                 
-                vstr = std::string(31, ' ');
+                vstr = (flg_hrr) ? std::string(27, ' ') : std::string(31, ' ');
             }
             else
             {
@@ -627,9 +729,10 @@ EriCPUGenerator::write_omp_header(      std::ofstream& fstream,
 }
 
 std::set<std::string>
-EriCPUGenerator::get_align_vars(const R4Group& recgroup,
-                                const int32_t  lstart,
-                                const int32_t  lend) const
+EriCPUGenerator::_get_align_vars(const R4Group& recgroup,
+                                 const int32_t  lstart,
+                                 const int32_t  lend,
+                                 const bool     flg_hrr) const
 {
     std::set<std::string> avars;
     
@@ -637,7 +740,7 @@ EriCPUGenerator::get_align_vars(const R4Group& recgroup,
     {
         // reference integral
         
-        avars.insert("t_" + (recgroup[i].root()).label(true));
+        avars.insert("t_" + (recgroup[i].root()).label(!flg_hrr));
     
         // recursion terms
         
@@ -647,7 +750,7 @@ EriCPUGenerator::get_align_vars(const R4Group& recgroup,
         {
             const auto rterm = (recgroup[i])[j];
             
-            avars.insert("t_" + rterm.label(true));
+            avars.insert("t_" + rterm.label(!flg_hrr));
             
             // factors of recursion term
             
@@ -662,12 +765,23 @@ EriCPUGenerator::get_align_vars(const R4Group& recgroup,
 }
 
 std::string
-EriCPUGenerator::vrr_func_name(const std::map<Signature<T4CIntegral>, R4Group>& signatures,
-                               const Signature<T4CIntegral>&                    signature) const
+EriCPUGenerator::_hvrr_func_name(const std::map<Signature<T4CIntegral>, R4Group>& signatures,
+                                const Signature<T4CIntegral>&                    signature) const
 {
+    std::string label = "compHost";
+ 
     const auto tint = signature.base<I4CIntegral>();
     
-    std::string label = "compHostVRRFor" + tint->label();
+    if (_is_vrr_rec(*tint))
+    {
+        label += "VRR";
+    }
+    else
+    {
+        label += "HRR";
+    }
+    
+    label += "For" + tint->label();
         
     int32_t idx = 0;
     
