@@ -520,6 +520,8 @@ EriCPUGenerator::_write_comp_func_body(      std::ofstream&  fstream,
     
     _write_comp_factors(fstream, graph);
     
+    _write_comp_buffers(fstream, graph); 
+    
     fstream << "}" << std::endl << std::endl;
 }
 
@@ -637,7 +639,7 @@ EriCPUGenerator::_write_comp_factors(      std::ofstream&  fstream,
     
     // writes Boys function
     
-    fstream << space << "// allocate Boys function data" << std::endl << std::endl; 
+    fstream << space << "// allocate Boys function data" << std::endl << std::endl;
     
     const auto tint = graph->base<I4CIntegral>();
     
@@ -668,6 +670,69 @@ EriCPUGenerator::_write_buffers(      std::ofstream&          fstream,
     for (const auto& tint : signature.expansion<I4CIntegral>())
     {
         _write_intetgrals(fstream, signature.expansion_components(tint), flg_hrr);
+    }
+}
+
+void
+EriCPUGenerator::_write_comp_buffers(      std::ofstream&  fstream,
+                                     const Graph<R4Group>* graph) const
+{
+    const auto space = std::string(4, ' ');
+    
+    // auxilary integrals
+    
+    const auto rint = graph->base<I4CIntegral>();
+    
+    const auto border = rint[0] + rint[1] + rint[2] + rint[3] + 1;
+    
+    fstream << space << "// Primitive integral buffers" << std::endl << std::endl;
+    
+    fstream << space << "BufferHostXY<T> pbufSSSS(";
+    
+    fstream << border << ", ncpairs);" << std::endl << std::endl;
+   
+    // VRR integrals
+    
+    for (const auto& tint : _get_integrals(graph))
+    {
+        if (_is_vrr_rec(tint))
+        {
+            const auto tcomps = _get_components(tint, graph);
+            
+            if (rint == tint)
+            {
+                fstream << space << "// Contracted integral buffers" << std::endl << std::endl;
+                
+                fstream << space << "auto cbuf" << tint.label();
+                
+                fstream << " = BufferHostXY<T>::Zero(" << tcomps.size() << ", ncpairs);" << std::endl << std::endl;
+            }
+            else
+            {
+                fstream << space << "BufferHostXY<T> pbuf" << tint.label() << tint.order();
+                
+                fstream << "(" << tcomps.size() << ", ncpairs);" << std::endl << std::endl;
+            }
+        }
+    }
+    
+    // HRR integrals
+    
+    if (_is_hrr_rec(rint))
+    {
+        fstream << space << "// Contracted integral buffers" << std::endl << std::endl;
+    }
+    
+    for (const auto& tint : _get_integrals(graph))
+    {
+        if (_is_hrr_rec(tint))
+        {
+            const auto tcomps = _get_components(tint, graph);
+            
+            fstream << space << "BufferHostXY<T> cbuf" << tint.label();
+                
+            fstream << "(" << tcomps.size() << ", ncpairs);" << std::endl << std::endl;
+        }
     }
 }
 
@@ -952,6 +1017,55 @@ EriCPUGenerator::_get_align_vars(const R4Group& recgroup,
     }
     
     return avars;
+}
+
+ST4CIntegrals
+EriCPUGenerator::_get_components(const Graph<R4Group>* graph) const
+{
+    ST4CIntegrals tcomps;
+    
+    for (size_t i = 0; i < graph->vertices(); i++)
+    {
+        for (const auto& tval : (*graph)[i].components())
+        {
+            tcomps.insert(tval);
+        }
+    }
+    
+    return tcomps;
+}
+
+ST4CIntegrals
+EriCPUGenerator::_get_components(const I4CIntegral&    integral,
+                                 const Graph<R4Group>* graph) const
+{
+    ST4CIntegrals tcomps;
+    
+    for (size_t i = 0; i < graph->vertices(); i++)
+    {
+        for (const auto& tval : (*graph)[i].components())
+        {
+            if (integral == I4CIntegral(tval))
+            {
+                tcomps.insert(tval);
+            }
+        }
+    }
+    
+    return tcomps;
+}
+
+std::set<I4CIntegral>
+EriCPUGenerator::_get_integrals(const Graph<R4Group>* graph) const
+{
+    std::set<I4CIntegral> tints;
+    
+    for (const auto& tcomp : _get_components(graph))
+    {
+        tints.insert(I4CIntegral(tcomp));
+    }
+    
+    return tints;
 }
 
 std::string

@@ -495,9 +495,9 @@ RecursionGroup<T>::components() const
     {
         tcomps.insert((tval.root()).integral());
         
-        for (size_t i = 0; i < tval.size(); i++)
+        for (size_t i = 0; i < tval.terms(); i++)
         {
-            tcomps.insert(tval[i].integral()); 
+            tcomps.insert(tval[i].integral());
         }
     }
     

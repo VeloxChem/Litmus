@@ -174,6 +174,12 @@ class EriCPUGenerator
                         const Signature<T4CIntegral>& signature,
                         const bool                    flg_hrr) const;
     
+    /// Writes compute buffers to file stream.
+    /// @param fstream the file stream.
+    /// @param graph The recursion graph.
+    void _write_comp_buffers(      std::ofstream&  fstream,
+                             const Graph<R4Group>* graph) const;
+    
     /// Writes integral components to file stream.
     /// @param fstream the file stream.
     /// @param integrals the set of integral components.
@@ -235,6 +241,28 @@ class EriCPUGenerator
                                           const int32_t  lstart,
                                           const int32_t  lend,
                                           const bool     flg_hrr) const;
+    
+    /// Gets unique integral components in graph.
+    /// @param graph The recursion graph.
+    /// @return The set of unique integral components.
+    ST4CIntegrals _get_components(const Graph<R4Group>* graph) const;
+    
+    /// Gets unique integral components of specific integral in graph.
+    /// @param integral The base four center integral.
+    /// @param graph The recursion graph.
+    /// @return The set of unique integral components.
+    ST4CIntegrals _get_components(const I4CIntegral&    integral,
+                                  const Graph<R4Group>* graph) const;
+    
+    /// Gets unique integrals in graph.
+    /// @param graph The recursion graph.
+    /// @return The set of unique integrals.
+    std::set<I4CIntegral> _get_integrals(const Graph<R4Group>* graph) const;
+    
+    /// Gets unique HRR integrals in graph.
+    /// @param graph The recursion graph.
+    /// @return The set of unique integrals.
+    std::set<I4CIntegral> _get_hrr_integrals(const Graph<R4Group>* graph) const;
     
     /// Gets HRR/VRR  function name.
     /// @param signatures the list of signatures.
