@@ -206,6 +206,12 @@ class EriCPUGenerator
     void _write_hrr_loop(      std::ofstream& fstream,
                          const R4Group&       recgroup) const;
     
+    /// Writes recursion scheme loop to file stream.
+    /// @param fstream the file stream.
+    /// @param graph The recursion graph.
+    void _write_comp_loop(      std::ofstream&  fstream,
+                          const Graph<R4Group>* graph) const;
+    
     /// Writes recursion loop to file stream.
     /// @param fstream the file stream.
     /// @param recgroup the recursion group to generate integral components.
@@ -259,7 +265,7 @@ class EriCPUGenerator
     /// @return The set of unique integrals.
     std::set<I4CIntegral> _get_integrals(const Graph<R4Group>* graph) const;
     
-    /// Gets unique HRR integrals in graph.
+    /// Gets unique VRR integrals needed by HRR recursion in graph.
     /// @param graph The recursion graph.
     /// @return The set of unique integrals.
     std::set<I4CIntegral> _get_hrr_integrals(const Graph<R4Group>* graph) const;
@@ -270,12 +276,18 @@ class EriCPUGenerator
     std::string _hvrr_func_name(const std::map<Signature<T4CIntegral>, R4Group>& signatures,
                                 const Signature<T4CIntegral>&                    signature) const;
     
-    
     /// Writes diagonal VRR  includes to file stream.
     /// @param fstream the file stream.
     /// @param graph The recursion graph.
     void _write_diag_includes(      std::ofstream&  fstream,
                               const Graph<R4Group>* graph) const;
+    
+    /// Checks if distance factor appear in this graph.
+    /// @param name The name of factor.
+    /// @param graph The recursion graph.
+    /// @return True if distance appears in this graph, false otherwise.
+    bool _need_distance(const std::string&    name,
+                        const Graph<R4Group>* graph) const;
     
 public:
     /// Creates an electron repulsion integrals CPU code generator.

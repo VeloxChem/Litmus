@@ -520,7 +520,9 @@ EriCPUGenerator::_write_comp_func_body(      std::ofstream&  fstream,
     
     _write_comp_factors(fstream, graph);
     
-    _write_comp_buffers(fstream, graph); 
+    _write_comp_buffers(fstream, graph);
+    
+    _write_comp_loop(fstream, graph); 
     
     fstream << "}" << std::endl << std::endl;
 }
@@ -723,6 +725,15 @@ EriCPUGenerator::_write_comp_buffers(      std::ofstream&  fstream,
         fstream << space << "// Contracted integral buffers" << std::endl << std::endl;
     }
     
+    for (const auto& tint : _get_hrr_integrals(graph))
+    {
+        const auto tcomps = _get_components(tint, graph);
+        
+        fstream << space << "BufferHostXY<T> cbuf" << tint.label();
+            
+        fstream << "(" << tcomps.size() << ", ncpairs);" << std::endl << std::endl;
+    }
+    
     for (const auto& tint : _get_integrals(graph))
     {
         if (_is_hrr_rec(tint))
@@ -888,6 +899,25 @@ EriCPUGenerator::_write_hrr_loop(      std::ofstream& fstream,
         
         if (bend != ncomps) fstream << std::endl;
     }
+}
+
+void
+EriCPUGenerator::_write_comp_loop(      std::ofstream&  fstream,
+                                  const Graph<R4Group>* graph) const
+{
+    
+    const auto space = std::string(4, ' ');
+    
+    const auto space2x = std::string(8, ' ');
+        
+    // loop over primitive integrals
+    
+    fstream << space << "for (int32_t i = 0; i < nppairs; i++)" << std::endl;
+    
+    fstream << space << "{" << std::endl;
+        
+    
+    fstream << space << "}" << std::endl;
 }
 
 void
@@ -1063,6 +1093,28 @@ EriCPUGenerator::_get_integrals(const Graph<R4Group>* graph) const
     for (const auto& tcomp : _get_components(graph))
     {
         tints.insert(I4CIntegral(tcomp));
+    }
+    
+    return tints;
+}
+
+std::set<I4CIntegral>
+EriCPUGenerator::_get_hrr_integrals(const Graph<R4Group>* graph) const
+{
+    std::set<I4CIntegral> tints;
+    
+    for (size_t i = 0; i < graph->vertices(); i++)
+    {
+        if (const auto tgraph = (*graph)[i]; _is_hrr_rec(*tgraph.base<I4CIntegral>()))
+        {
+            for (const auto& tcomp : tgraph.components())
+            {
+                if (const auto tint = I4CIntegral(tcomp); _is_vrr_rec(tint))
+                {
+                    tints.insert(tint);
+                }
+            }
+        }
     }
     
     return tints;
