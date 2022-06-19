@@ -282,12 +282,12 @@ class EriCPUGenerator
     void _write_diag_includes(      std::ofstream&  fstream,
                               const Graph<R4Group>* graph) const;
     
-    /// Checks if distance factor appear in this graph.
+    /// Checks if factor appear in this graph.
     /// @param name The name of factor.
     /// @param graph The recursion graph.
     /// @return True if distance appears in this graph, false otherwise.
-    bool _need_distance(const std::string&    name,
-                        const Graph<R4Group>* graph) const;
+    bool _need_factor(const std::string&    name,
+                      const Graph<R4Group>* graph) const;
     
 public:
     /// Creates an electron repulsion integrals CPU code generator.

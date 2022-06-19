@@ -909,13 +909,152 @@ EriCPUGenerator::_write_comp_loop(      std::ofstream&  fstream,
     const auto space = std::string(4, ' ');
     
     const auto space2x = std::string(8, ' ');
+    
+    const auto space3x = std::string(12, ' ');
+    
+    const auto space4x = std::string(16, ' ');
         
-    // loop over primitive integrals
+    // first loop pver primitive integrals
     
     fstream << space << "for (int32_t i = 0; i < nppairs; i++)" << std::endl;
     
     fstream << space << "{" << std::endl;
+    
+    // R(PB) distances
+    
+    if (_need_factor("PB", graph))
+    {
+        fstream << space2x;
         
+        fstream << "derirec::compHostDistancesPT(rpb, gtoPairBlock, bPosition, ePosition, i);";
+        
+        fstream << std::endl << std::endl;
+    }
+    
+    // R(QD) distances
+    
+    if (_need_factor("1/zeta", graph))
+    {
+        fstream << space2x;
+        
+        fstream << "derirec::compHostFactorsPartialZeta(fz, gtoPairBlock, bPosition, ePosition, i);";
+        
+        fstream << std::endl << std::endl;
+    }
+    
+    // second loop over primitive integrals
+    
+    fstream << space2x << "for (int j = i; j < nppairs; j++)" << std::endl;
+    
+    fstream << space2x << "{" << std::endl;
+    
+    // R(PQ) distances
+    
+    fstream << space3x;
+    
+    fstream << "derirec::compHostDistancesPQ(rpq, gtoPairBlock, bPosition, ePosition, i, j);";
+    
+    fstream << std::endl << std::endl;
+    
+    // Obara-Saika factors: zeta*eta/(zeta+eta)
+    
+    fstream << space3x;
+    
+    fstream << "derirec::compHostFactorsRho(frho, gtoPairBlock, bPosition, ePosition, i, j);";
+    
+    fstream << std::endl << std::endl;
+    
+    // Obara-Saika factors: normalized overlaps
+    
+    fstream << space3x;
+    
+    fstream << "derirec::compHostFactorsNorm(fnorm, gtoPairBlock, bPosition, ePosition, i, j);";
+    
+    fstream << std::endl << std::endl;
+    
+    // Obara-Saika factors: 1/(zeta+eta)
+    
+    if (_need_factor("1/(zeta+eta)", graph))
+    {
+        fstream << space3x;
+        
+        fstream << "derirec::compHostFactorsZeta(fze, gtoPairBlock, bPosition, ePosition, i, j);";
+        
+        fstream << std::endl << std::endl;
+    }
+    
+    // Obara-Saika factors: 1/eta
+    
+    if (_need_factor("1/eta", graph))
+    {
+        fstream << space3x;
+        
+        fstream << "derirec::compHostFactorsPartialZeta(fe, gtoPairBlock, bPosition, ePosition, j);";
+        
+        fstream << std::endl << std::endl;
+    }
+    
+    // R(QD) distances
+    
+    if (_need_factor("QD", graph))
+    {
+        fstream << space3x;
+        
+        fstream << "derirec::compHostDistancesPT(rqd, gtoPairBlock, bPosition, ePosition, j);";
+        
+        fstream << std::endl << std::endl;
+    }
+    
+    // W coordinates
+    
+    if (_need_factor("WP", graph) || _need_factor("WQ", graph))
+    {
+        fstream << space3x;
+        
+        fstream << "derirec::compHostCoordinatesW(rw, gtoPairBlock, bPosition, ePosition, i, j);";
+        
+        fstream << std::endl << std::endl;
+    }
+    
+    // WP and WQ distances
+    
+    fstream << space3x << "if (i == j)" << std::endl;
+    
+    fstream << space3x << "{" << std::endl;
+    
+    if (_need_factor("WP", graph))
+    {
+        fstream << space4x << "rwp.setZero();" << std::endl;
+        
+        if (_need_factor("WQ", graph)) fstream << std::endl;
+    }
+    
+    if (_need_factor("WQ", graph))
+    {
+        fstream << space4x << "rwq.setZero();" << std::endl;
+    }
+    
+    fstream << space3x << "}" << std::endl;
+    
+    fstream << space3x << "else" << std::endl;
+    
+    fstream << space3x << "{" << std::endl;
+    
+    if (_need_factor("WP", graph))
+    {
+        fstream << space4x << "derirec::compHostDistancesWT(rwp, rw, gtoPairBlock, bPosition, ePosition, i);" << std::endl;
+        
+        if (_need_factor("WQ", graph)) fstream << std::endl;
+    }
+     
+    if (_need_factor("WQ", graph))
+    {
+        fstream << space4x << "derirec::compHostDistancesWT(rwq, rw, gtoPairBlock, bPosition, ePosition, j);" << std::endl;
+    }
+        
+    fstream << space3x << "}" << std::endl;
+    
+    fstream << space2x << "}" << std::endl;
     
     fstream << space << "}" << std::endl;
 }
@@ -1193,4 +1332,17 @@ EriCPUGenerator::_write_diag_includes(      std::ofstream&  fstream,
     fstream << std::endl;
 }
 
-
+bool
+EriCPUGenerator::_need_factor(const std::string&    name,
+                              const Graph<R4Group>* graph) const
+{
+    for (const auto& fact : graph->factors())
+    {
+        if (fact.name() == name)
+        {
+            return true;
+        }
+    }
+    
+    return false;
+}
