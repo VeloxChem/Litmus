@@ -363,6 +363,8 @@ EriCPUGenerator::_is_aux_rec(const I4CIntegral& integral) const
 bool
 EriCPUGenerator::_is_distance(const std::string& name) const
 {
+    if (name == "PQ") return true;
+    
     if (name == "PB") return true;
     
     if (name == "QD") return true;
