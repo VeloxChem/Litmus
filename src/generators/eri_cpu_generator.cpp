@@ -734,6 +734,13 @@ EriCPUGenerator::_write_comp_buffers(      std::ofstream&  fstream,
         fstream << space << "BufferHostXY<T> cbuf" << tint.label();
             
         fstream << "(" << tcomps.size() << ", ncpairs);" << std::endl << std::endl;
+        
+        for (const auto& tcomp : tcomps)
+        {
+            fstream << tcomp.label() << " ";
+        }
+        
+        fstream << std::endl;
     }
     
     for (const auto& tint : _get_integrals(graph))
@@ -745,6 +752,13 @@ EriCPUGenerator::_write_comp_buffers(      std::ofstream&  fstream,
             fstream << space << "BufferHostXY<T> cbuf" << tint.label();
                 
             fstream << "(" << tcomps.size() << ", ncpairs);" << std::endl << std::endl;
+            
+            for (const auto& tcomp : tcomps)
+            {
+                fstream << tcomp.label() << " ";
+            }
+            
+            fstream << std::endl;
         }
     }
 }

@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     
     // set up integrals generator parameters
     
-    const int mang = 2;
+    const int mang = 3;
     
     const bool diag_form = true;
     
