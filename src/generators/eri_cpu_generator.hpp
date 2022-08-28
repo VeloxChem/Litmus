@@ -19,6 +19,7 @@
 
 #include <set>
 #include <fstream>
+#include <optional>
 
 #include "eri_driver.hpp"
 #include "repository.hpp"
@@ -212,6 +213,12 @@ class EriCPUGenerator
     void _write_comp_loop(      std::ofstream&  fstream,
                           const Graph<R4Group>* graph) const;
     
+    /// Writes VRR part of recursion scheme loop to file stream.
+    /// @param fstream the file stream.
+    /// @param graph The recursion graph.
+    void _write_comp_loop_vrr_block(      std::ofstream&  fstream,
+                                    const Graph<R4Group>* graph) const;
+    
     /// Writes recursion loop to file stream.
     /// @param fstream the file stream.
     /// @param recgroup the recursion group to generate integral components.
@@ -260,6 +267,13 @@ class EriCPUGenerator
     ST4CIntegrals _get_components(const I4CIntegral&    integral,
                                   const Graph<R4Group>* graph) const;
     
+    /// Gets unique integral components of specific integral in recursion group.
+    /// @param integral The base four center integral.
+    /// @param rgroup The recursion group.
+    /// @return The set of unique integral components.
+    ST4CIntegrals _get_components(const I4CIntegral& integral,
+                                  const R4Group&     rgroup) const;
+    
     /// Gets unique integrals in graph.
     /// @param graph The recursion graph.
     /// @return The set of unique integrals.
@@ -269,6 +283,11 @@ class EriCPUGenerator
     /// @param graph The recursion graph.
     /// @return The set of unique integrals.
     std::set<I4CIntegral> _get_hrr_integrals(const Graph<R4Group>* graph) const;
+    
+    /// Gets unique integrals in recursion group.
+    /// @param rgroup The recursion group.
+    /// @return The set of unique integrals.
+    std::set<I4CIntegral> _get_integrals(const R4Group& rgroup) const;
     
     /// Gets HRR/VRR  function name.
     /// @param signatures the list of signatures.
@@ -288,6 +307,21 @@ class EriCPUGenerator
     /// @return True if distance appears in this graph, false otherwise.
     bool _need_factor(const std::string&    name,
                       const Graph<R4Group>* graph) const;
+    
+    /// Gets recursion group with specific angular shell composition.
+    /// @param graph The recursion graph.
+    /// @param angularMomentumA The angular momentum of center A.
+    /// @param angularMomentumB The angular momentum of center B.
+    /// @param angularMomentumC The angular momentum of center C.
+    /// @param angularMomentumD The angular momentum of center D.
+    /// @param order The order of integral.
+    /// @return The recursion group with specific angular shell.
+    std::optional<R4Group> _get_rgroup(const Graph<R4Group>* graph,
+                                       const int32_t         angularMomentumA,
+                                       const int32_t         angularMomentumB,
+                                       const int32_t         angularMomentumC,
+                                       const int32_t         angularMomentumD,
+                                       const int32_t         order) const;
     
 public:
     /// Creates an electron repulsion integrals CPU code generator.

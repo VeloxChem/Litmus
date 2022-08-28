@@ -710,12 +710,26 @@ EriCPUGenerator::_write_comp_buffers(      std::ofstream&  fstream,
                 fstream << space << "auto cbuf" << tint.label();
                 
                 fstream << " = BufferHostXY<T>::Zero(" << tcomps.size() << ", ncpairs);" << std::endl << std::endl;
+                
+                for (const auto& tcomp : tcomps)
+                {
+                    fstream << tcomp.label() << " ";
+                }
+                
+                fstream << std::endl;
             }
             else
             {
                 fstream << space << "BufferHostXY<T> pbuf" << tint.label() << tint.order();
                 
                 fstream << "(" << tcomps.size() << ", ncpairs);" << std::endl << std::endl;
+                
+                for (const auto& tcomp : tcomps)
+                {
+                    fstream << tcomp.label(true) << " ";
+                }
+                
+                fstream << std::endl;
             }
         }
     }
@@ -1068,11 +1082,64 @@ EriCPUGenerator::_write_comp_loop(      std::ofstream&  fstream,
         fstream << space4x << "derirec::compHostDistancesWT(rwq, rw, gtoPairBlock, bPosition, ePosition, j);" << std::endl;
     }
         
-    fstream << space3x << "}" << std::endl;
+    fstream << space3x << "}" << std::endl << std::endl;
+    
+    fstream << space3x << "derirec::compHostBoysArguments(bargs, rpq, frho, ncpairs);" << std::endl << std::endl;
+    
+    fstream << space3x << "bftable.compute(bvals, bargs);" << std::endl << std::endl;
+    
+    fstream << space3x << "derirec::compHostVRRForSSSS(pbufSSSS, bvals, frho, fnorm, ncpairs);" << std::endl << std::endl;
+    
+    _write_comp_loop_vrr_block(fstream, graph);
     
     fstream << space2x << "}" << std::endl;
     
     fstream << space << "}" << std::endl;
+}
+
+void
+EriCPUGenerator::_write_comp_loop_vrr_block(      std::ofstream&  fstream,
+                                            const Graph<R4Group>* graph) const
+{
+    // auxilary integrals
+    
+    const auto rint = graph->base<I4CIntegral>();
+    
+    const auto bang = rint[0] + rint[1];
+    
+    const auto kang = rint[2] + rint[3];
+    
+    for (int32_t i = 0; i <= bang; i++)
+    {
+        for (int32_t j = 0; j <= kang; j++)
+        {
+            if ((i + j) == 0) continue;
+            
+            for (int k = 0; k < (bang + kang); k++)
+            {
+                if (const auto rgroup = _get_rgroup(graph, 0, i, 0, j, k))
+                {
+                    fstream << "INTEGRAL:" << i << " : " << j <<  " : " << k << " : ";
+                    
+                    for (const auto& tint : _get_integrals(*rgroup))
+                    {
+                        fstream << tint.label(true);
+                        
+                        if (_get_components(tint, graph) == _get_components(tint, *rgroup))
+                        {
+                            fstream << " Y ";
+                        }
+                        else
+                        {
+                            fstream << " N ";
+                        }
+                    }
+                    
+                    fstream << std::endl << std::endl;
+                }
+            }
+        }
+    }
 }
 
 void
@@ -1240,6 +1307,23 @@ EriCPUGenerator::_get_components(const I4CIntegral&    integral,
     return tcomps;
 }
 
+ST4CIntegrals
+EriCPUGenerator::_get_components(const I4CIntegral& integral,
+                                 const R4Group&     rgroup) const
+{
+    ST4CIntegrals tcomps;
+    
+    for (const auto& tval : rgroup.components())
+    {
+        if (integral == I4CIntegral(tval))
+        {
+            tcomps.insert(tval);
+        }
+    }
+    
+    return tcomps;
+}
+
 std::set<I4CIntegral>
 EriCPUGenerator::_get_integrals(const Graph<R4Group>* graph) const
 {
@@ -1275,9 +1359,22 @@ EriCPUGenerator::_get_hrr_integrals(const Graph<R4Group>* graph) const
     return tints;
 }
 
+std::set<I4CIntegral>
+EriCPUGenerator::_get_integrals(const R4Group& rgroup) const
+{
+    std::set<I4CIntegral> tints;
+    
+    for (const auto& tcomp : rgroup.components())
+    {
+        tints.insert(I4CIntegral(tcomp));
+    }
+
+    return tints;
+}
+
 std::string
 EriCPUGenerator::_hvrr_func_name(const std::map<Signature<T4CIntegral>, R4Group>& signatures,
-                                const Signature<T4CIntegral>&                    signature) const
+                                 const Signature<T4CIntegral>&                    signature) const
 {
     std::string label = "compHost";
  
@@ -1361,4 +1458,34 @@ EriCPUGenerator::_need_factor(const std::string&    name,
     }
     
     return false;
+}
+
+std::optional<R4Group>
+EriCPUGenerator::_get_rgroup(const Graph<R4Group>* graph,
+                             const int32_t         angularMomentumA,
+                             const int32_t         angularMomentumB,
+                             const int32_t         angularMomentumC,
+                             const int32_t         angularMomentumD,
+                             const int32_t         order) const
+{
+    for (size_t i = 0; i < graph->vertices(); i++)
+    {
+        const auto tgraph = (*graph)[i];
+        
+        const auto tint = *tgraph.base<I4CIntegral>();
+        
+        if (tint[0] != angularMomentumA) continue;
+        
+        if (tint[1] != angularMomentumB) continue;
+        
+        if (tint[2] != angularMomentumC) continue;
+        
+        if (tint[3] != angularMomentumD) continue;
+        
+        if (tint.order() != order) continue;
+        
+        return tgraph;
+    }
+    
+    return std::nullopt;
 }
