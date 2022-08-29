@@ -152,6 +152,12 @@ public:
     /// @return The base integral of this graph.
     template <class U>
     U base() const;
+    
+    /// Gets set of unique integral components of specific integral.
+    /// @param integral The integral to match. 
+    /// @return The map of signature:vertice pairs.
+    template <class U, class V>
+    std::set<U> components(const V& integral) const;
 };
 
 template <class T>
@@ -603,6 +609,22 @@ Graph<T>::roots() const
     }
     
     return tints;
+}
+
+template <class T>
+template <class U, class V>
+std::set<U>
+Graph<T>::components(const V& integral) const
+{
+    std::set<U> tcomps;
+    
+    for (const auto& vert : _vertices)
+    {
+        for (const auto& tcomp : vert.components(integral))
+        {
+            tcomps.insert(tcomp);
+        }
+    }
 }
 
 template <class T>
