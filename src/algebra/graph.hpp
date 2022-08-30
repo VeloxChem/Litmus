@@ -625,6 +625,8 @@ Graph<T>::components(const V& integral) const
             tcomps.insert(tcomp);
         }
     }
+    
+    return tcomps; 
 }
 
 template <class T>

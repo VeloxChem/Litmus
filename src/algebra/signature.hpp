@@ -27,10 +27,13 @@
 template <class T>
 class Signature
 {
-    /// Set of output params.
+    /// Set of global parameters.
+    std::set<T> _glob_params;
+    
+    /// Set of output parameters.
     std::set<T> _out_params;
     
-    /// Set of input params.
+    /// Set of input parameters.
     std::set<T> _inp_params;
     
     /// Set of input factors.
@@ -41,10 +44,12 @@ public:
     Signature();
     
     /// Creates a  signature from the set of input/output params and recursion factors.
-    /// @param out_params The set of output params.
-    /// @param inp_params The set of input params.
+    /// @param glob_params The set of global parameters.
+    /// @param out_params The set of output parameters.
+    /// @param inp_params The set of input parameters.
     /// @param factors The set of recursion factors.
-    Signature(const std::set<T>&      out_params,
+    Signature(const std::set<T>&      glob_params,
+              const std::set<T>&      out_params,
               const std::set<T>&      inp_params,
               const std::set<Factor>& factors);
     
@@ -87,10 +92,15 @@ public:
     template <class U>
     std::set<U> expansion() const;
     
-    /// Gets  set of unique integral components for given integral insignature.
+    /// Gets  set of unique integral components for given integral in signature.
     /// @return The set of unique integral components.
     template <class U>
-    std::set<T> expansion_components(const U& integral) const; 
+    std::set<T> expansion_components(const U& integral) const;
+    
+    /// Gets  set of unique reference integral components for given integral in signature.
+    /// @return The set of unique integral components.
+    template <class U>
+    std::set<T> reference_components(const U& integral) const;
     
     /// Gets number of factors in this signature.
     /// @return The number of factors in  signature.
@@ -123,7 +133,9 @@ public:
 template <class T>
 Signature<T>::Signature()
     
-    : _out_params(std::set<T>({}))
+    : _glob_params(std::set<T>({}))
+
+    , _out_params(std::set<T>({}))
 
     , _inp_params(std::set<T>({}))
 
@@ -133,11 +145,14 @@ Signature<T>::Signature()
 }
 
 template <class T>
-Signature<T>::Signature(const std::set<T>&      out_params,
+Signature<T>::Signature(const std::set<T>&      glob_params,
+                        const std::set<T>&      out_params,
                         const std::set<T>&      inp_params,
                         const std::set<Factor>& factors)
     
-    : _out_params(out_params)
+    : _glob_params(glob_params)
+
+    , _out_params(out_params)
 
     , _inp_params(inp_params)
 
@@ -152,7 +167,11 @@ Signature<T>::operator==(const Signature<T>& other) const
 {
     if (this == &other) return true;
 
-    if (_out_params != other._out_params)
+    if (_glob_params != other._glob_params)
+    {
+        return false;
+    }
+    else if (_out_params != other._out_params)
     {
         return false;
     }
@@ -177,7 +196,11 @@ template <class T>
 bool
 Signature<T>::operator<(const Signature<T>& other) const
 {
-    if (_out_params != other._out_params)
+    if (_glob_params != other._glob_params)
+    {
+        return _glob_params < other._glob_params;
+    }
+    else if (_out_params != other._out_params)
     {
         return _out_params < other._out_params;
     }
@@ -195,6 +218,8 @@ template <class T>
 void
 Signature<T>::merge(const Signature<T>& other)
 {
+    _glob_params.insert(other._glob_params.cbegin(), other._glob_params.cend());
+    
     _out_params.insert(other._out_params.cbegin(), other._out_params.cend());
     
     _inp_params.insert(other._inp_params.cbegin(), other._inp_params.cend());
@@ -207,6 +232,11 @@ void
 Signature<T>::add(const T&           param,
                   const std::string& destination)
 {
+    if (destination == "glob")
+    {
+        _glob_params.insert(param);
+    }
+    
     if (destination == "inp")
     {
         _inp_params.insert(param);
@@ -281,6 +311,24 @@ Signature<T>::expansion_components(const U& integral) const
 }
 
 template <class T>
+template <class U>
+std::set<T>
+Signature<T>::reference_components(const U& integral) const
+{
+    std::set<T> tints;
+    
+    for (const auto& tval : _glob_params)
+    {
+        if (integral == U(tval))
+        {
+            tints.insert(tval);
+        }
+    }
+    
+    return tints;
+}
+
+template <class T>
 size_t
 Signature<T>::nfactors() const
 {
@@ -291,6 +339,11 @@ template <class T>
 size_t
 Signature<T>::nparams(const std::string& destination) const
 {
+    if (destination == "glob")
+    {
+        return _glob_params.size();
+    }
+    
     if (destination == "inp")
     {
         return _inp_params.size();
