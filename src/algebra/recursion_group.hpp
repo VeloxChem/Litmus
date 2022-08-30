@@ -136,7 +136,13 @@ public:
     /// @return The set of unique integral components in recursion group.
     std::set<T> components() const;
     
-    /// Gets set of unique integrals in recursion group.
+    /// Gets set of unique integral components of specific integral in recursion group.
+    /// @param integral The integral to match. 
+    /// @return The set of unique integral components of  specific integral  in recursion group.
+    template <class U>
+    std::set<T> components(const U& integral) const;
+    
+    /// Gets set of unique integrals  in recursion group.
     /// @return The set of unique integrals in recursion group.
     template <class U>
     std::set<U> integrals() const;
@@ -503,6 +509,24 @@ RecursionGroup<T>::components() const
         for (size_t i = 0; i < tval.terms(); i++)
         {
             tcomps.insert(tval[i].integral());
+        }
+    }
+    
+    return tcomps;
+}
+
+template <class T>
+template <class U>
+std::set<T>
+RecursionGroup<T>::components(const U& integral) const
+{
+    std::set<T> tcomps;
+    
+    for (const auto& tcomp : components())
+    {
+        if (U(tcomp) == integral)
+        {
+            tcomps.insert(tcomp);
         }
     }
     
