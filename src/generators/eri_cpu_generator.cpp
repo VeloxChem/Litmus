@@ -1105,6 +1105,22 @@ EriCPUGenerator::_write_comp_loop_vrr_block(      std::ofstream&  fstream,
     
     const auto rint = graph->base<I4CIntegral>();
     
+    // signature
+    
+    for (int32_t i = 0; i < graph->vertices(); i++)
+    {
+        fstream << "signature:" << std::endl;
+    
+        auto tsign = graph->signature<T4CIntegral, I4CIntegral>(i);
+    
+        for (const auto& tcomp : tsign.params("glob"))
+        {
+            fstream << tcomp.label(true) << " ";
+        }
+        
+        fstream << std::endl << std::endl;
+    }
+    
     const auto bang = rint[0] + rint[1];
     
     const auto kang = rint[2] + rint[3];
@@ -1136,6 +1152,32 @@ EriCPUGenerator::_write_comp_loop_vrr_block(      std::ofstream&  fstream,
                     }
                     
                     fstream << std::endl << std::endl;
+                    
+                    for (const auto& tcomp : (*rgroup).components())
+                    {
+                        fstream << tcomp.label(true) << " ";
+                    }
+                    
+                    fstream << std::endl << std::endl;
+                    
+                    for (const auto& tint : (*rgroup).integrals<I4CIntegral>())
+                    {
+                        fstream << tint.label(true) << " ";
+                    }
+                    
+                    fstream << std::endl << std::endl;
+                    
+                    for (const auto& tint : (*rgroup).integrals<I4CIntegral>())
+                    {
+                        fstream << tint.label(true) << " : ";
+                        
+                        for (const auto& tcomp : graph->components<T4CIntegral>(tint))
+                        {
+                            fstream << tcomp.label(true) << " ";
+                        }
+                        
+                        fstream << std::endl << std::endl;
+                    }
                 }
             }
         }

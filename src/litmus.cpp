@@ -33,9 +33,9 @@ int main(int argc, char **argv)
     
     // set up integrals generator parameters
     
-    const int mang = 2;
+    const int mang = 4;
     
-    const bool diag_form = true;
+    const bool diag_form = false;
     
     // electron repulsion integral recursions
     
@@ -43,21 +43,22 @@ int main(int argc, char **argv)
     {
         EriDriver eri_drv;
         
-        t4c_repo.add(eri_drv.create_graphs(mang, diag_form)); 
+        const auto graphs = eri_drv.create_graphs(mang, diag_form);
+        
+        // t4c_repo.add(eri_drv.create_graphs(mang, diag_form));
         
         EriCPUGenerator gen_drv;
         
         if (diag_form) gen_drv.set_diag_form();
     
-        gen_drv.generate(t4c_repo); 
-        
+        //gen_drv.generate(t4c_repo);
     }
     
     // print summary of integrals repository
 
-    t4c_repo.summary();
+    //t4c_repo.summary();
     
-    t4c_repo.details<I4CIntegral>();
+    //t4c_repo.details<I4CIntegral>();
  
     // set up end timer & compute elapsed time
     

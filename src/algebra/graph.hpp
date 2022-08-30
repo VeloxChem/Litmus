@@ -135,6 +135,12 @@ public:
     template <class U>
     Signature<U> global_signature() const;
     
+    /// Gets of vertice signature.
+    /// @param index The index of vertice.
+    /// @return The vertice signature.
+    template <class U, class V>
+    Signature<U> signature(const size_t index) const;
+    
     /// Gets unique factors in this graph.
     /// @return The unique recursion factors.
     std::set<Factor> factors() const;
@@ -152,6 +158,11 @@ public:
     /// @return The base integral of this graph.
     template <class U>
     U base() const;
+    
+    /// Gets set of unique integral components of specific integral in graph.
+    /// @return The set of unique intergral components.
+    template <class U, class V>
+    std::set<U> components(const V& reference) const;
 };
 
 template <class T>
@@ -538,6 +549,29 @@ Graph<T>::global_signature() const
 }
 
 template <class T>
+template <class U, class V>
+Signature<U>
+Graph<T>::signature(const size_t index) const
+{
+    Signature<U> tsign = _vertices[index].signature();
+    
+    const auto morder = _vertices[index].min_order();
+    
+    for (const auto& tint : _vertices[index].template integrals<V>())
+    {
+        for (const auto& tcomp : components<U>(tint))
+        {
+            if (const auto rcomp = tcomp.shift_order(-morder))
+            {
+                tsign.add(*rcomp, "glob");
+            }
+        }
+    }
+    
+    return tsign; 
+}
+
+template <class T>
 std::set<Factor>
 Graph<T>::factors() const
 {
@@ -603,6 +637,27 @@ Graph<T>::roots() const
     }
     
     return tints;
+}
+
+template <class T>
+template <class U, class V>
+std::set<U>
+Graph<T>::components(const V& reference) const
+{
+    std::set<U> tcomps;
+    
+    for (const auto& vert : _vertices)
+    {
+        for (const auto& tcomp : vert.components())
+        {
+            if (V(tcomp) == reference)
+            {
+                tcomps.insert(tcomp);
+            }
+        }
+    }
+    
+    return tcomps;
 }
 
 template <class T>

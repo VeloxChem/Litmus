@@ -714,7 +714,7 @@ EriDriver::create_graph(const int  anga,
     
     apply_recursion(rgraph, sints);
     
-    std::cout << "Created graph for " << refint.label() << std::endl; 
+    std::cout << "Create graph for " << refint.label() << std::endl;
     
     return rgraph;
 }
@@ -724,6 +724,10 @@ EriDriver::create_graphs(const int  mang,
                          const bool diag) const
 {
     V4Graphs vgraphs;
+    
+    const auto ncomps = mang + 1;
+    
+    vgraphs.reserve(ncomps * ncomps * ncomps * ncomps);
     
     auto ptr_vgraphs = &vgraphs;
     
@@ -751,11 +755,11 @@ EriDriver::create_graphs(const int  mang,
             }
             else
             {
-                for (int i = 0; i <= mang; i++)
+                for (int i = mang; i <= mang; i++)
                 {
                     for (int j = i; j <= mang; j++)
                     {
-                        for (int k = 0; k <= mang; k++)
+                        for (int k = mang; k <= mang; k++)
                         {
                             for (int l = k; l <= mang; l++)
                             {
@@ -776,7 +780,7 @@ EriDriver::create_graphs(const int  mang,
         }
     }
     
-    std::sort(vgraphs.begin(), vgraphs.end());
+    //std::sort(vgraphs.begin(), vgraphs.end());
     
     return vgraphs;
 }

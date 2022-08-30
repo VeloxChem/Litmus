@@ -27,6 +27,9 @@
 template <class T>
 class Signature
 {
+    /// Set of global params.
+    std::set<T> _glob_params;
+    
     /// Set of output params.
     std::set<T> _out_params;
     
@@ -41,10 +44,12 @@ public:
     Signature();
     
     /// Creates a  signature from the set of input/output params and recursion factors.
+    /// @param glob_params The set of global params.
     /// @param out_params The set of output params.
     /// @param inp_params The set of input params.
     /// @param factors The set of recursion factors.
-    Signature(const std::set<T>&      out_params,
+    Signature(const std::set<T>&      glob_params,
+              const std::set<T>&      out_params,
               const std::set<T>&      inp_params,
               const std::set<Factor>& factors);
     
@@ -118,12 +123,22 @@ public:
     /// @param destination The destination of parameters.
     /// @return The selected parameters in this signature.
     std::set<T> params(const std::string& destination) const;
+    
+    /// Gets parameters in this signature.
+    /// @param integral The integral to match parameter components. 
+    /// @param destination The destination of parameters.
+    /// @return The selected parameters in this signature.
+    template <class U>
+    std::set<T> params(const U&           integral,
+                       const std::string& destination) const;
 };
 
 template <class T>
 Signature<T>::Signature()
     
-    : _out_params(std::set<T>({}))
+    : _glob_params(std::set<T>({}))
+
+    , _out_params(std::set<T>({}))
 
     , _inp_params(std::set<T>({}))
 
@@ -133,11 +148,14 @@ Signature<T>::Signature()
 }
 
 template <class T>
-Signature<T>::Signature(const std::set<T>&      out_params,
+Signature<T>::Signature(const std::set<T>&      glob_params,
+                        const std::set<T>&      out_params,
                         const std::set<T>&      inp_params,
                         const std::set<Factor>& factors)
     
-    : _out_params(out_params)
+    : _glob_params(glob_params)
+
+    , _out_params(out_params)
 
     , _inp_params(inp_params)
 
@@ -152,7 +170,11 @@ Signature<T>::operator==(const Signature<T>& other) const
 {
     if (this == &other) return true;
 
-    if (_out_params != other._out_params)
+    if (_glob_params != other._glob_params)
+    {
+        return false;
+    }
+    else if (_out_params != other._out_params)
     {
         return false;
     }
@@ -177,7 +199,11 @@ template <class T>
 bool
 Signature<T>::operator<(const Signature<T>& other) const
 {
-    if (_out_params != other._out_params)
+    if (_glob_params != other._glob_params)
+    {
+        return _glob_params < other._glob_params;
+    }
+    else if (_out_params != other._out_params)
     {
         return _out_params < other._out_params;
     }
@@ -207,6 +233,11 @@ void
 Signature<T>::add(const T&           param,
                   const std::string& destination)
 {
+    if (destination == "glob")
+    {
+        _glob_params.insert(param);
+    }
+    
     if (destination == "inp")
     {
         _inp_params.insert(param);
@@ -291,6 +322,11 @@ template <class T>
 size_t
 Signature<T>::nparams(const std::string& destination) const
 {
+    if (destination == "glob")
+    {
+        return _glob_params.size();
+    }
+    
     if (destination == "inp")
     {
         return _inp_params.size();
@@ -346,6 +382,11 @@ template <class T>
 std::set<T>
 Signature<T>::params(const std::string& destination) const
 {
+    if (destination == "glob")
+    {
+        return _glob_params;
+    }
+    
     if (destination == "inp")
     {
         return _inp_params;
@@ -357,6 +398,25 @@ Signature<T>::params(const std::string& destination) const
     }
     
     return std::set<T>();
+}
+
+template <class T>
+template <class U>
+std::set<T>
+Signature<T>::params(const U&           integral,
+                     const std::string& destination) const
+{
+    std::set<T> tcomps;
+    
+    for (const auto& tcomp : params(destination))
+    {
+        if (U(tcomp) == integral)
+        {
+            tcomps.insert(tcomp);
+        }
+    }
+    
+    return tcomps;
 }
 
 #endif /* signature_hpp */
