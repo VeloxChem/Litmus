@@ -240,26 +240,26 @@ EriDriver::apply_bra_hrr(const R4CTerm&       rterm,
 {
     R4CDist t4crt;
     
-    size_t nints = 3;
+    //size_t nints = 3;
     
     for (const auto axis : "xyz")
     {
         if (const auto trec = bra_hrr(rterm, axis))
         {
-            const auto nterms = trec->count_new_integrals(sints);
+            //const auto nterms = trec->count_new_integrals(sints);
             
-            if (nterms < nints)
-            {
+            //if (nterms < nints)
+            //{
                 t4crt = *trec;
                 
-                nints = nterms;
-            }
+                //nints = nterms;
+            //}
         }
     }
     
-    const auto vints = t4crt.unique_integrals();
+    //const auto vints = t4crt.unique_integrals();
     
-    sints.insert(vints.cbegin(), vints.cend());
+    //sints.insert(vints.cbegin(), vints.cend());
 
     return t4crt;
 }
@@ -270,33 +270,33 @@ EriDriver::apply_ket_hrr(const R4CTerm&       rterm,
 {
     R4CDist t4crt;
     
-    size_t nints = 3;
+    //size_t nints = 3;
     
     for (const auto axis : "xyz")
     {
         if (const auto trec = ket_hrr(rterm, axis))
         {
-            const auto nterms = trec->count_new_integrals(sints);
+            //const auto nterms = trec->count_new_integrals(sints);
             
-            if (nterms < nints)
-            {
+            //if (nterms < nints)
+            //{
                 t4crt = *trec;
                 
-                nints = nterms;
-            }
+                //nints = nterms;
+            //}
         }
     }
     
-    const auto vints = t4crt.unique_integrals();
+    //const auto vints = t4crt.unique_integrals();
     
-    sints.insert(vints.cbegin(), vints.cend());
+    //sints.insert(vints.cbegin(), vints.cend());
 
     return t4crt;
 }
 
 R4CDist
 EriDriver::apply_bra_vrr(const R4CTerm&        rterm,
-                                ST4CIntegrals& sints) const
+                               ST4CIntegrals& sints) const
 {
     R4CDist t4crt;
     
@@ -306,7 +306,9 @@ EriDriver::apply_bra_vrr(const R4CTerm&        rterm,
     {
         if (const auto trec = bra_vrr(rterm, axis))
         {
-            const auto nterms = trec->count_new_integrals(sints);
+            //const auto nterms = trec->count_new_integrals(sints);
+            
+            const auto nterms = trec->terms();
             
             if (nterms < nints)
             {
@@ -317,16 +319,16 @@ EriDriver::apply_bra_vrr(const R4CTerm&        rterm,
         }
     }
     
-    const auto vints = t4crt.unique_integrals();
+    //const auto vints = t4crt.unique_integrals();
     
-    sints.insert(vints.cbegin(), vints.cend());
+    //sints.insert(vints.cbegin(), vints.cend());
 
     return t4crt;
 }
 
 R4CDist
 EriDriver::apply_ket_vrr(const R4CTerm&       rterm,
-                                ST4CIntegrals& sints) const
+                               ST4CIntegrals& sints) const
 {
     R4CDist t4crt;
     
@@ -336,7 +338,9 @@ EriDriver::apply_ket_vrr(const R4CTerm&       rterm,
     {
         if (const auto trec = ket_vrr(rterm, axis))
         {
-            const auto nterms = trec->count_new_integrals(sints);
+            //const auto nterms = trec->count_new_integrals(sints);
+            
+            const auto nterms = trec->terms();
             
             if (nterms < nints)
             {
@@ -347,9 +351,9 @@ EriDriver::apply_ket_vrr(const R4CTerm&       rterm,
         }
     }
     
-    const auto vints = t4crt.unique_integrals();
+    //const auto vints = t4crt.unique_integrals();
     
-    sints.insert(vints.cbegin(), vints.cend());
+    //sints.insert(vints.cbegin(), vints.cend());
 
     return t4crt;
 }
@@ -755,11 +759,11 @@ EriDriver::create_graphs(const int  mang,
             }
             else
             {
-                for (int i = mang; i <= mang; i++)
+                for (int i = 0; i <= mang; i++)
                 {
                     for (int j = i; j <= mang; j++)
                     {
-                        for (int k = mang; k <= mang; k++)
+                        for (int k = 0; k <= mang; k++)
                         {
                             for (int l = k; l <= mang; l++)
                             {
