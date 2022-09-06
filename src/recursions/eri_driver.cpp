@@ -235,68 +235,39 @@ EriDriver::ket_vrr(const R4CTerm& rterm,
 }
 
 R4CDist
-EriDriver::apply_bra_hrr(const R4CTerm&       rterm,
-                               ST4CIntegrals& sints) const
+EriDriver::apply_bra_hrr(const R4CTerm& rterm) const
 {
     R4CDist t4crt;
-    
-    //size_t nints = 3;
-    
+       
     for (const auto axis : "xyz")
     {
         if (const auto trec = bra_hrr(rterm, axis))
         {
-            //const auto nterms = trec->count_new_integrals(sints);
-            
-            //if (nterms < nints)
-            //{
-                t4crt = *trec;
-                
-                //nints = nterms;
-            //}
+            t4crt = *trec;
         }
     }
-    
-    //const auto vints = t4crt.unique_integrals();
-    
-    //sints.insert(vints.cbegin(), vints.cend());
 
     return t4crt;
 }
 
 R4CDist
-EriDriver::apply_ket_hrr(const R4CTerm&       rterm,
-                               ST4CIntegrals& sints) const
+EriDriver::apply_ket_hrr(const R4CTerm& rterm) const
 {
     R4CDist t4crt;
-    
-    //size_t nints = 3;
     
     for (const auto axis : "xyz")
     {
         if (const auto trec = ket_hrr(rterm, axis))
         {
-            //const auto nterms = trec->count_new_integrals(sints);
-            
-            //if (nterms < nints)
-            //{
-                t4crt = *trec;
-                
-                //nints = nterms;
-            //}
+            t4crt = *trec;
         }
     }
     
-    //const auto vints = t4crt.unique_integrals();
-    
-    //sints.insert(vints.cbegin(), vints.cend());
-
     return t4crt;
 }
 
 R4CDist
-EriDriver::apply_bra_vrr(const R4CTerm&        rterm,
-                               ST4CIntegrals& sints) const
+EriDriver::apply_bra_vrr(const R4CTerm& rterm) const
 {
     R4CDist t4crt;
     
@@ -306,8 +277,6 @@ EriDriver::apply_bra_vrr(const R4CTerm&        rterm,
     {
         if (const auto trec = bra_vrr(rterm, axis))
         {
-            //const auto nterms = trec->count_new_integrals(sints);
-            
             const auto nterms = trec->terms();
             
             if (nterms < nints)
@@ -318,17 +287,12 @@ EriDriver::apply_bra_vrr(const R4CTerm&        rterm,
             }
         }
     }
-    
-    //const auto vints = t4crt.unique_integrals();
-    
-    //sints.insert(vints.cbegin(), vints.cend());
 
     return t4crt;
 }
 
 R4CDist
-EriDriver::apply_ket_vrr(const R4CTerm&       rterm,
-                               ST4CIntegrals& sints) const
+EriDriver::apply_ket_vrr(const R4CTerm& rterm) const
 {
     R4CDist t4crt;
     
@@ -338,8 +302,6 @@ EriDriver::apply_ket_vrr(const R4CTerm&       rterm,
     {
         if (const auto trec = ket_vrr(rterm, axis))
         {
-            //const auto nterms = trec->count_new_integrals(sints);
-            
             const auto nterms = trec->terms();
             
             if (nterms < nints)
@@ -351,10 +313,6 @@ EriDriver::apply_ket_vrr(const R4CTerm&       rterm,
         }
     }
     
-    //const auto vints = t4crt.unique_integrals();
-    
-    //sints.insert(vints.cbegin(), vints.cend());
-
     return t4crt;
 }
 
@@ -362,13 +320,27 @@ R4Group
 EriDriver::apply_bra_hrr(const V4CTerms&      rterms,
                                ST4CIntegrals& sints) const
 {
+    const auto nterms = rterms.size();
+    
+    std::vector<R4CDist> rdists(nterms, R4CDist());
+    
+    auto pdists = rdists.data();
+    
+    auto pterms = rterms.data();
+    
+    #pragma omp parallel for shared(pdists, pterms)
+    for (size_t i = 0; i < nterms; i++)
+    {
+        pdists[i] = apply_bra_hrr(pterms[i]);
+    }
+    
     R4Group rgroup;
     
-    for (const auto& rterm : rterms)
+    for (const auto& tdist : rdists)
     {
-        if (const auto tval = apply_bra_hrr(rterm, sints); tval.terms() > 0)
+        if (tdist.terms() > 0)
         {
-            rgroup.add(tval);
+            rgroup.add(tdist);
         }
     }
     
@@ -379,13 +351,27 @@ R4Group
 EriDriver::apply_ket_hrr(const V4CTerms&      rterms,
                                ST4CIntegrals& sints) const
 {
+    const auto nterms = rterms.size();
+    
+    std::vector<R4CDist> rdists(nterms, R4CDist());
+    
+    auto pdists = rdists.data();
+    
+    auto pterms = rterms.data();
+    
+    #pragma omp parallel for shared(pdists, pterms)
+    for (size_t i = 0; i < nterms; i++)
+    {
+        pdists[i] = apply_ket_hrr(pterms[i]);
+    }
+    
     R4Group rgroup;
     
-    for (const auto& rterm : rterms)
+    for (const auto& tdist : rdists)
     {
-        if (const auto tval = apply_ket_hrr(rterm, sints); tval.terms() > 0)
+        if (tdist.terms() > 0)
         {
-            rgroup.add(tval);
+            rgroup.add(tdist);
         }
     }
     
@@ -396,13 +382,27 @@ R4Group
 EriDriver::apply_bra_vrr(const V4CTerms&      rterms,
                                ST4CIntegrals& sints) const
 {
+    const auto nterms = rterms.size();
+    
+    std::vector<R4CDist> rdists(nterms, R4CDist());
+    
+    auto pdists = rdists.data();
+    
+    auto pterms = rterms.data();
+    
+    #pragma omp parallel for shared(pdists, pterms)
+    for (size_t i = 0; i < nterms; i++)
+    {
+        pdists[i] = apply_bra_vrr(pterms[i]);
+    }
+    
     R4Group rgroup;
     
-    for (const auto& rterm : rterms)
+    for (const auto& tdist : rdists)
     {
-        if (const auto tval = apply_bra_vrr(rterm, sints); tval.terms() > 0)
+        if (tdist.terms() > 0)
         {
-            rgroup.add(tval);
+            rgroup.add(tdist);
         }
     }
     
@@ -413,13 +413,27 @@ R4Group
 EriDriver::apply_ket_vrr(const V4CTerms&      rterms,
                                ST4CIntegrals& sints) const
 {
+    const auto nterms = rterms.size();
+    
+    std::vector<R4CDist> rdists(nterms, R4CDist());
+    
+    auto pdists = rdists.data();
+    
+    auto pterms = rterms.data();
+    
+    #pragma omp parallel for shared(pdists, pterms)
+    for (size_t i = 0; i < nterms; i++)
+    {
+        pdists[i] = apply_ket_vrr(pterms[i]);
+    }
+    
     R4Group rgroup;
     
-    for (const auto& rterm : rterms)
+    for (const auto& tdist : rdists)
     {
-        if (const auto tval = apply_ket_vrr(rterm, sints); tval.terms() > 0)
+        if (tdist.terms() > 0)
         {
-            rgroup.add(tval);
+            rgroup.add(tdist);
         }
     }
     
@@ -784,8 +798,47 @@ EriDriver::create_graphs(const int  mang,
         }
     }
     
-    //std::sort(vgraphs.begin(), vgraphs.end());
-    
     return vgraphs;
+
+//    
+//    V4Graphs vgraphs;
+//    
+//    const auto ncomps = mang + 1;
+//    
+//    vgraphs.reserve(ncomps * ncomps * ncomps * ncomps);
+//    
+//    if (diag)
+//    {
+//        for (int i = 0; i <= mang; i++)
+//        {
+//            for (int j = i; j <= mang; j++)
+//            {
+//                auto rgraph = create_graph(i, j, i, j, true);
+//                            
+//                vgraphs.push_back(rgraph);
+//                
+//            }
+//        }
+//    }
+//    else
+//    {
+//        for (int i = 0; i <= mang; i++)
+//        {
+//            for (int j = i; j <= mang; j++)
+//            {
+//                for (int k = 0; k <= mang; k++)
+//                {
+//                    for (int l = k; l <= mang; l++)
+//                    {
+//                        auto rgraph = create_graph(i, j, k, l, false);
+//                                    
+//                        vgraphs.push_back(rgraph);
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    
+//    return vgraphs;
 }
 

@@ -96,34 +96,26 @@ public:
     /// Applies horizontal recursion to bra side recursion term containing electron repulsion
     /// integral.
     /// @param rterm The recursion term with electron repulsion integral.
-    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
     /// @return The recursion expansion of given recursion term.
-    R4CDist apply_bra_hrr(const R4CTerm&       rterm,
-                                ST4CIntegrals& sints) const;
+    R4CDist apply_bra_hrr(const R4CTerm& rterm) const;
     
     /// Applies horizontal recursion to ket side recursion term containing electron repulsion
     /// integral.
     /// @param rterm The recursion term with electron repulsion integral.
-    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
     /// @return The recursion expansion of given recursion term.
-    R4CDist apply_ket_hrr(const R4CTerm&       rterm,
-                                ST4CIntegrals& sints) const;
+    R4CDist apply_ket_hrr(const R4CTerm& rterm) const;
     
     /// Applies vertical recursion to bra side recursion term containing electron repulsion
     /// integral.
     /// @param rterm The recursion term with electron repulsion integral.
-    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
     /// @return The recursion expansion of given recursion term.
-    R4CDist apply_bra_vrr(const R4CTerm&       rterm,
-                                ST4CIntegrals& sints) const;
+    R4CDist apply_bra_vrr(const R4CTerm& rterm) const;
     
     /// Applies vertical recursion to ket side recursion term containing electron repulsion
     /// integral.
     /// @param rterm The recursion term with electron repulsion integral.
-    /// @param sints The set of electron repulsion integrals (updated by selecting recursion).
     /// @return The recursion expansion of given recursion term.
-    R4CDist apply_ket_vrr(const R4CTerm&       rterm,
-                                ST4CIntegrals& sints) const;
+    R4CDist apply_ket_vrr(const R4CTerm& rterm) const;
     
     /// Applies horizontal recursion to bra side of given vector of recursion terms containing
     /// electron repulsion integral.
