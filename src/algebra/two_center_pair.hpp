@@ -43,7 +43,7 @@ public:
     TwoCenterPair(const std::array<std::string, 2>& names,
                   const std::array<Tensor, 2>&      shapes);
     
-    /// Creates a two center pair from the given names and tensorial shapes.
+    /// Creates a two center pair from the given names and angular momentum data.
     /// @param f_name The name of first expansion center.
     /// @param f_angmom The angular momentum of first expansion centers.
     /// @param s_name The name of second expansion center.
