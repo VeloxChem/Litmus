@@ -14,19 +14,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "one_center.hpp"
+#include "one_center_component.hpp"
 
-OneCenter::OneCenter()
+OneCenterComponent::OneCenterComponent()
 
     : _name(std::string())
 
-    , _shape(Tensor(0))
+    , _shape(TensorComponent(0, 0, 0))
 {
     
 }
 
-OneCenter::OneCenter(const std::string& name,
-                     const Tensor&      shape)
+OneCenterComponent::OneCenterComponent(const std::string&     name,
+                                       const TensorComponent& shape)
     
     : _name(name)
 
@@ -35,32 +35,14 @@ OneCenter::OneCenter(const std::string& name,
     
 }
 
-OneCenter::OneCenter(const std::string& name,
-                     const int          angmom)
-    : _name(name)
-
-    , _shape(Tensor(angmom))
+const TensorComponent&
+OneCenterComponent::operator[](const int index) const
 {
-    
-}
-
-OneCenter::OneCenter(const OneCenterComponent& tcomp)
-
-    : _name(tcomp.name())
-
-    , _shape(Tensor((tcomp.shape()).order()))
-{
-
-}
-
-int
-OneCenter::operator[](const int index) const
-{
-    return _shape.order();
+    return _shape;
 }
 
 bool
-OneCenter::operator==(const OneCenter& other) const
+OneCenterComponent::operator==(const OneCenterComponent& other) const
 {
     if (this == &other) return true;
 
@@ -75,13 +57,13 @@ OneCenter::operator==(const OneCenter& other) const
 }
 
 bool
-OneCenter::operator!=(const OneCenter& other) const
+OneCenterComponent::operator!=(const OneCenterComponent& other) const
 {
     return !((*this) == other);
 }
 
 bool
-OneCenter::operator<(const OneCenter& other) const
+OneCenterComponent::operator<(const OneCenterComponent& other) const
 {
     if (_name != other._name)
     {
@@ -93,27 +75,42 @@ OneCenter::operator<(const OneCenter& other) const
     }
 }
 
+bool
+OneCenterComponent::similar(const OneCenterComponent& other) const
+{
+    if (_name != other._name)
+    {
+        return false;
+    }
+    else
+    {
+        return _shape.similar(other._shape);
+    }
+}
+
 std::string
-OneCenter::to_string() const
+OneCenterComponent::to_string() const
 {
     return "{" + _name + ":" + _shape.to_string() + "}";
 }
 
 std::string
-OneCenter::label() const
+OneCenterComponent::label() const
 {
     return _shape.label();
 }
 
-VOneCenterComponents
-OneCenter::components() const
+std::optional<OneCenterComponent>
+OneCenterComponent::shift(const char axis,
+                          const int  value,
+                          const int  center) const
 {
-    VOneCenterComponents tcomps;
-    
-    for (const auto& tcomp : _shape.components())
+    if (const auto tcomp = _shape.shift(axis, value))
     {
-        tcomps.push_back(OneCenterComponent(_name, tcomp));
+        return OneCenterComponent(_name, *tcomp);
     }
-    
-    return tcomps;
+    else
+    {
+        return std::nullopt;
+    }
 }

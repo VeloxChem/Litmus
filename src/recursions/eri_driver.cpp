@@ -16,7 +16,6 @@
 
 #include "eri_driver.hpp"
 
-#include <array>
 #include <iostream>
 #include <algorithm>
 

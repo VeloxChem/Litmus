@@ -18,6 +18,7 @@
 #define eri_driver_hpp
 
 #include <optional>
+#include <array>
 #include <set>
 
 #include "graph.hpp"

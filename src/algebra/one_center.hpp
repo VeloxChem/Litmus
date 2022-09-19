@@ -18,7 +18,7 @@
 #define one_center_hpp
 
 #include "tensor.hpp"
-#include "two_center_pair_component.hpp"
+#include "one_center_component.hpp"
 
 #include <string>
 
@@ -49,9 +49,14 @@ public:
     OneCenter(const std::string& name,
               const int          angmom);
     
-    /// Creates a two center pair from the given two center pair component.
-    /// @param t2pcomp The two center pair component to create two center pair.
-    //TwoCenterPair(const TwoCenterPairComponent& t2pcomp);
+    /// Creates a one center expansion from the given one center expansion component.
+    /// @param tcomp The one center expansion component to create one center expansion.
+    OneCenter(const OneCenterComponent& tcomp);
+    
+    /// Retrieves tensor order along requested center.
+    /// @param index The index of center to retrieve axial value.
+    /// @return The tensor order of requested center in one center expansion.
+    int operator[](const int index) const;
     
     /// Compares this one center expansion with other one center expansion.
     /// @param other The other one center expansion to compare.
@@ -72,6 +77,10 @@ public:
     /// @return The tensorial shape of one center expansion.
     int shape() const {return _shape.order();};
     
+    /// Gets number of centers  in one center expansion.
+    /// @return The number of centers in one center expansion.
+    int centers() const {return 1;};
+    
     /// Creates primitive textual representation of this one center expansion.
     /// @return The string with primitive textual representation of one center expansion.
     std::string to_string() const;
@@ -80,9 +89,9 @@ public:
     /// @return The string with primitive textual label of one center expansion.
     std::string label() const;
     
-    /// Creates a vector with two center pair components of this two center pair.
-    /// @return The vector of two center pair components.
-    //VTwoCenterPairComponents components() const;
+    /// Creates a vector with one center expansion components of this one center expansion.
+    /// @return The vector of one center expansion components.
+    VOneCenterComponents components() const;
 };
 
 #endif /* one_center_hpp */
