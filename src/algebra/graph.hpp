@@ -26,7 +26,7 @@
 #include "generics.hpp"
 #include "signature.hpp"
 
-/// Recursion group class.
+/// Graph class.
 template <class T>
 class Graph
 {

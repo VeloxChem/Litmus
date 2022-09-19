@@ -17,6 +17,7 @@
 #ifndef t2c_defs_hpp
 #define t2c_defs_hpp
 
+#include "container.hpp"
 #include "recursion_group.hpp"
 #include "recursion_expansion.hpp"
 #include "recursion_term.hpp"
@@ -42,6 +43,8 @@ using R2CDist = RecursionExpansion<T2CIntegral>;
 using R2Group = RecursionGroup<T2CIntegral>;
 
 using V2Groups = VRecursionGroups<T2CIntegral>;
+
+using R2GroupContainer = Container<R2Group>; 
 
 using I1CPair = OneCenter;
 

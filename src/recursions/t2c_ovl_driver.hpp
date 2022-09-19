@@ -80,35 +80,23 @@ public:
     R2Group apply_ket_vrr(const V2CTerms&      rterms,
                                 ST2CIntegrals& sints) const;
     
-    /// Recursively applies horizontal recursion to bra side of given graph.
-    /// @param rgraph The recursion graph.
+    /// Recursively applies vertical recursion to bra side of given recursion groups container.
+    /// @param rgroups The recursion groups container.
     /// @param sints The set of overlap integrals (updated by selecting recursion).
-    //void apply_bra_hrr(R4Graph&       rgraph,
-    //                   ST4CIntegrals& sints) const;
+    void apply_bra_vrr(R2GroupContainer& rgroups,
+                       ST2CIntegrals&    sints) const;
     
-    /// Recursively applies horizontal recursion to ket side of given graph.
-    /// @param rgraph The recursion graph.
+    /// Recursively applies vertical recursion to ket side of given recursion groups container.
+    /// @param rgroups The recursion groups container.
     /// @param sints The set of overlap integrals (updated by selecting recursion).
-    //void apply_ket_hrr(R4Graph&       rgraph,
-    //                   ST4CIntegrals& sints) const;
+    void apply_ket_vrr(R2GroupContainer& rgroups,
+                       ST2CIntegrals&    sints) const;
     
-    /// Recursively applies vertical recursion to bra side of given graph.
-    /// @param rgraph The recursion graph.
+    /// Recursively applies Obara-Saika recursion to recursion groups container.
+    /// @param rgroups The recursion groups container.
     /// @param sints The set of overlap integrals (updated by selecting recursion).
-    //void apply_bra_vrr(R4Graph&       rgraph,
-    //                   ST4CIntegrals& sints) const;
-    
-    /// Recursively applies vertical recursion to ket side of given graph.
-    /// @param rgraph The recursion graph.
-    /// @param sints The set of overlap integrals (updated by selecting recursion).
-    //void apply_ket_vrr(R4Graph&       rgraph,
-    //                   ST4CIntegrals& sints) const;
-    
-    /// Recursively applies Obara-Saika recursion to graph.
-    /// @param rgraph The recursion graph.
-    /// @param sints The set of overlap integrals (updated by selecting recursion).
-    //void apply_recursion(R4Graph&       rgraph,
-    //                     ST4CIntegrals& sints) const;
+    void apply_recursion(R2GroupContainer& rgroups,
+                         ST2CIntegrals&    sints) const;
     
     /// Creates recursion graph for given angular momentum values.
     /// @param anga The angular momentum of center A.

@@ -209,3 +209,22 @@ T2COverlapDriver::apply_ket_vrr(const V2CTerms&      rterms,
     
     return rgroup;
 }
+
+void
+T2COverlapDriver::apply_bra_vrr(R2GroupContainer& rgroups,
+                                ST2CIntegrals&    sints) const
+{
+    // special cases: single vertices without expansion terms
+    
+    const auto ngroups = rgroups.recursion_groups();
+    
+    for (size_t i = 0; i < ngroups; i++)
+    {
+        if (rgroups[i].empty() && (!rgroups[i].auxilary(0)))
+        {
+            const auto rgroup = apply_bra_vrr(rgroups[i].roots(), sints);
+
+            rgroups.replace(rgroup, i);
+        }
+    }
+}
