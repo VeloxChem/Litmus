@@ -17,6 +17,7 @@
 #include <iostream>
 #include <chrono>
 
+#include "t2c_ovl_driver.hpp"
 #include "eri_driver.hpp"
 #include "repository.hpp"
 #include "eri_cpu_generator.hpp"
@@ -29,30 +30,34 @@ int main(int argc, char **argv)
     
     // four-center integrals repository
     
-    Repository<R4Group, T4CIntegral> t4c_repo;
+    //Repository<R4Group, T4CIntegral> t4c_repo;
     
     // set up integrals generator parameters
     
     const int mang = 2;
     
-    const bool diag_form = false;
+    T2COverlapDriver ovl_drv;
     
-    // electron repulsion integral recursions
+    const auto vconts = ovl_drv.create_containers(mang); 
     
-    if (true)
-    {
-        EriDriver eri_drv;
-        
-        const auto graphs = eri_drv.create_graphs(mang, diag_form);
-        
-        // t4c_repo.add(eri_drv.create_graphs(mang, diag_form));
-        
-        EriCPUGenerator gen_drv;
-        
-        if (diag_form) gen_drv.set_diag_form();
-    
-        //gen_drv.generate(t4c_repo);
-    }
+//    const bool diag_form = false;
+//
+//    // electron repulsion integral recursions
+//
+//    if (true)
+//    {
+//        EriDriver eri_drv;
+//
+//        const auto graphs = eri_drv.create_graphs(mang, diag_form);
+//
+//        // t4c_repo.add(eri_drv.create_graphs(mang, diag_form));
+//
+//        EriCPUGenerator gen_drv;
+//
+//        if (diag_form) gen_drv.set_diag_form();
+//
+//        //gen_drv.generate(t4c_repo);
+//    }
     
     // print summary of integrals repository
 

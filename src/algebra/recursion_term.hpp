@@ -90,7 +90,7 @@ public:
     /// @return The integrand of recursion term.
     OperatorComponent integrand() const;
 
-    /// Gets order of four center recursion term.
+    /// Gets order of recursion term.
     /// @return The order of recursion term.
     int order() const;
     

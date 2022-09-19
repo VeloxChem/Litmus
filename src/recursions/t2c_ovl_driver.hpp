@@ -34,6 +34,11 @@ public:
     /// Creates a two center overlap integrals driver.
     T2COverlapDriver();
     
+    /// Check if recursion term is for two-center overlap integral.
+    /// @param rterm The recursion term.
+    /// @return The recursion expansion of given recursion term.
+    bool is_overlap(const R2CTerm& rterm) const;
+    
     /// Applies vertical recursion to bra side of given recursion term.
     /// @param rterm The recursion term.
     /// @param axis The axis of vertical recursion.
@@ -98,25 +103,17 @@ public:
     void apply_recursion(R2GroupContainer& rgroups,
                          ST2CIntegrals&    sints) const;
     
-    /// Creates recursion graph for given angular momentum values.
+    /// Creates recursion groups container for given angular momentum values.
     /// @param anga The angular momentum of center A.
     /// @param angb The angular momentum of center B.
-    /// @param angc The angular momentum of center C.
-    /// @param angd The angular momentum of center D.
-    /// @param diag The flag to generate only diagonal terms.
-    /// @return The recursion graph.
-    //R4Graph create_graph(const int  anga,
-    //                     const int  angb,
-    //                     const int  angc,
-    //                     const int  angd,
-    //                     const bool diag) const;
+    /// @return The recursion groups container.
+    R2GroupContainer create_container(const int anga,
+                                      const int angb) const;
     
-    /// Creates vector of recursion graphs with upper limit of angular momentum values.
+    /// Creates vector of recursion groups containers with upper limit of angular momentum values.
     /// @param mang The maximum angular momentum.
-    /// @param diag The flag to generate only diagonal terms
-    /// @return The vector of recursion graphs.
-    //V4Graphs create_graphs(const int  mang,
-    //                       const bool diag) const;
+    /// @return The vector of recursion group containers.
+    V2GroupContainers create_containers(const int mang) const;
 };
 
 #endif /* t2c_ovl_driver_hpp */

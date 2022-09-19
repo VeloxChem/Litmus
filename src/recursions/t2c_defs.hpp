@@ -44,7 +44,9 @@ using R2Group = RecursionGroup<T2CIntegral>;
 
 using V2Groups = VRecursionGroups<T2CIntegral>;
 
-using R2GroupContainer = Container<R2Group>; 
+using R2GroupContainer = Container<R2Group>;
+
+using V2GroupContainers = VContainers<R2Group>; 
 
 using I1CPair = OneCenter;
 

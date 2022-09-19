@@ -203,4 +203,7 @@ Container<T>::base() const
     }
 }
 
+template <class T>
+using VContainers = std::vector<Container<T>>;
+
 #endif /* container_hpp */
