@@ -21,6 +21,7 @@
 #include <set>
 
 #include "recursion_term.hpp"
+#include "unique_map.hpp"
 
 /// Recursion expansion class.
 template <class T>
@@ -95,6 +96,12 @@ public:
     /// @param integrals The set of integrals used to count new integrals.
     /// @return The number of new integrals in recursion expansion.
     size_t count_new_integrals(const std::set<T>& integrals) const;
+    
+    /// Counts number of new integrals in recursion expansion with respect to given integral set.
+    /// @param integrals The map of integrals used to count new integrals.
+    /// @return The number of new integrals in recursion expansion.
+    template <class U>
+    size_t count_new_integrals(const UniqueMap<U, T>& integrals) const;
     
     /// Checks if recursion expansion contains auxilary root  at specific
     /// angular center.
@@ -264,6 +271,21 @@ RecursionExpansion<T>::count_new_integrals(const std::set<T>& integrals) const
     for (const auto& tint : unique_integrals())
     {
         if (integrals.find(tint) == integrals.cend()) nints++;
+    }
+    
+    return nints;
+}
+
+template <class T>
+template <class U>
+size_t
+RecursionExpansion<T>::count_new_integrals(const UniqueMap<U, T>& integrals) const
+{
+    size_t nints = 0;
+    
+    for (const auto& tint : unique_integrals())
+    {
+        if (!integrals.find(tint)) nints++;
     }
     
     return nints;

@@ -34,7 +34,7 @@ int main(int argc, char **argv)
     
     // set up integrals generator parameters
     
-    const int mang = 2;
+    const int mang = 6;
     
     T2COverlapDriver ovl_drv;
     

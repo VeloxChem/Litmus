@@ -36,16 +36,21 @@ public:
     void add(const U& component);
     
     /// Adds set of components.
-    /// @param component The set of components to be added.
+    /// @param components The set of components to be added.
     void add(const std::set<U>& components);
     
     /// Checks if unique components map contains this component.
     /// @param component The component to be found.
-    bool find(const U& component) const
+    bool find(const U& component) const;
     
     /// Gets number of unique components in unique components map.
     /// @return The number of unique components.
     size_t size() const;
+    
+    /// Adds set of components.
+    /// @param key The key to retireve values.
+    /// @return The set of unique component values for given key.
+    const std::set<U> values(const T& key);
 };
 
 template <class T, class U>
@@ -87,7 +92,9 @@ UniqueMap<T, U>::find(const U& component) const
     
     if (auto tval = _components.find(key); tval != _components.end())
     {
-        return _components[key].find(component) != _components[key].end();
+        const auto tcomps = tval->second;
+        
+        return tcomps.find(component) != tcomps.end();
     }
     else
     {
@@ -107,6 +114,13 @@ UniqueMap<T, U>::size() const
     }
     
     return ncomps;
+}
+
+template <class T, class U>
+const std::set<U>
+UniqueMap<T, U>::values(const T& key)
+{
+    return _components[key];
 }
 
 #endif /* unique_map_hpp */

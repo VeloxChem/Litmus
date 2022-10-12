@@ -35,7 +35,7 @@ T2COverlapDriver::is_overlap(const R2CTerm& rterm) const
         return false;
     }
     
-    if (rterm.integrand() != OperatorComponent("I"))
+    if (rterm.integrand() != OperatorComponent("1"))
     {
         return false;
     }
@@ -141,8 +141,8 @@ T2COverlapDriver::ket_vrr(const R2CTerm& rterm,
 }
 
 R2CDist
-T2COverlapDriver::apply_bra_vrr(const R2CTerm&       rterm,
-                                      ST2CIntegrals& sints) const
+T2COverlapDriver::apply_bra_vrr(const R2CTerm& rterm,
+                                      R2CMap&  sints) const
 {
     R2CDist t2crt;
     
@@ -162,17 +162,15 @@ T2COverlapDriver::apply_bra_vrr(const R2CTerm&       rterm,
             }
         }
     }
-    
-    const auto vints = t2crt.unique_integrals();
         
-    sints.insert(vints.cbegin(), vints.cend());
+    sints.add(t2crt.unique_integrals());
 
     return t2crt;
 }
 
 R2CDist
-T2COverlapDriver::apply_ket_vrr(const R2CTerm&       rterm,
-                                      ST2CIntegrals& sints) const
+T2COverlapDriver::apply_ket_vrr(const R2CTerm& rterm,
+                                      R2CMap&  sints) const
 {
     R2CDist t2crt;
     
@@ -192,17 +190,15 @@ T2COverlapDriver::apply_ket_vrr(const R2CTerm&       rterm,
             }
         }
     }
-    
-    const auto vints = t2crt.unique_integrals();
         
-    sints.insert(vints.cbegin(), vints.cend());
+    sints.add(t2crt.unique_integrals());
     
     return t2crt;
 }
 
 R2Group
-T2COverlapDriver::apply_bra_vrr(const V2CTerms&      rterms,
-                                      ST2CIntegrals& sints) const
+T2COverlapDriver::apply_bra_vrr(const V2CTerms& rterms,
+                                      R2CMap&   sints) const
 {
     R2Group rgroup;
     
@@ -218,8 +214,8 @@ T2COverlapDriver::apply_bra_vrr(const V2CTerms&      rterms,
 }
 
 R2Group
-T2COverlapDriver::apply_ket_vrr(const V2CTerms&      rterms,
-                                      ST2CIntegrals& sints) const
+T2COverlapDriver::apply_ket_vrr(const V2CTerms& rterms,
+                                      R2CMap&   sints) const
 {
     R2Group rgroup;
     
@@ -236,7 +232,7 @@ T2COverlapDriver::apply_ket_vrr(const V2CTerms&      rterms,
 
 void
 T2COverlapDriver::apply_bra_vrr(R2GroupContainer& rgroups,
-                                ST2CIntegrals&    sints) const
+                                R2CMap&           sints) const
 {
     // special cases: recursion groups without expansion terms
     
@@ -287,7 +283,7 @@ T2COverlapDriver::apply_bra_vrr(R2GroupContainer& rgroups,
 
 void
 T2COverlapDriver::apply_ket_vrr(R2GroupContainer& rgroups,
-                                ST2CIntegrals&    sints) const
+                                R2CMap&           sints) const
 {
     // special cases: recursion groups without expansion terms
     
@@ -338,7 +334,7 @@ T2COverlapDriver::apply_ket_vrr(R2GroupContainer& rgroups,
 
 void
 T2COverlapDriver::apply_recursion(R2GroupContainer& rgroups,
-                                  ST2CIntegrals&    sints) const
+                                  R2CMap&           sints) const
 {
     // vertical recursions
     
@@ -376,13 +372,13 @@ T2COverlapDriver::create_container(const int anga,
     
     // apply Obara-Saika recursion
     
-    ST2CIntegrals sints;
+    R2CMap sints;
     
     R2GroupContainer rcont({r2group,});
     
     apply_recursion(rcont, sints);
     
-    std::cout << "Create recursion groups container for " << refint.label() << std::endl;
+    std::cout << "Create recursion groups container for " << refint.label() << " : " << sints.size() << std::endl;
     
     return rcont;
 }

@@ -25,6 +25,7 @@
 #include "integral.hpp"
 #include "one_center.hpp"
 #include "one_center_component.hpp"
+#include "unique_map.hpp"
 
 using T1CPair = OneCenterComponent;
 
@@ -51,5 +52,7 @@ using V2GroupContainers = VContainers<R2Group>;
 using I1CPair = OneCenter;
 
 using I2CIntegral = Integral<I1CPair, I1CPair>;
+
+using R2CMap = UniqueMap<I2CIntegral, T2CIntegral>; 
 
 #endif /* t2c_defs_hpp */
