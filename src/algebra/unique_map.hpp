@@ -120,7 +120,14 @@ template <class T, class U>
 const std::set<U>
 UniqueMap<T, U>::values(const T& key)
 {
-    return _components[key];
+    if (auto tval = _components.find(key); tval != _components.end())
+    {
+        return tval->second;
+    }
+    else
+    {
+        return std::set<U>({});
+    }
 }
 
 #endif /* unique_map_hpp */
