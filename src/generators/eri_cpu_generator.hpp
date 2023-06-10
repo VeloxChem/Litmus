@@ -24,7 +24,7 @@
 #include "eri_driver.hpp"
 #include "repository.hpp"
 
-/// Electron repulsion integrals code generator for CPU class.
+/// Electron repulsion integrals code generator for CPU.
 class EriCPUGenerator
 {
     // The diagonal form flag.
