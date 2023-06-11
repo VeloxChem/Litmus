@@ -19,9 +19,21 @@
 
 #include <fstream>
 #include <string>
+#include <tuple>
+#include <vector>
+
+using TCodeLine = std::tuple<int, int, int, std::string>;
+
+using VCodeLines = std::vector<TCodeLine>;
 
 namespace ost { // ost namespace
     
+    /// Writes vector of code lines to file stream.
+    /// @param lines the vector of code lines.
+    /// @param fstream the file stream.
+    void write_code_lines(      std::ofstream& fstream,
+                          const VCodeLines&    lines);
+
     /// Writes VeloxChem copyright titler to file stream.
     /// @param fstream the file stream.
     void write_copyright(std::ofstream& fstream);

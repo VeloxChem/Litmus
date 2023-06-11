@@ -43,6 +43,32 @@ class T2CCPUGenerator
     /// @return The map of standart integrad labels.
     std::map<Operator, std::string> _get_integrands_map() const;
     
+    /// Gets map of standart namespaces.
+    /// @return The map of standart namespaces.
+    std::map<Operator, std::string> _get_namespaces_map() const;
+    
+    /// Gets label of standart integrand.
+    /// @param integrand the integrand operator.
+    /// @return The label of standart integrand.
+    std::string _get_integrand_label(const Operator& integrand) const;
+    
+    /// Gets label of standart namespaces for integrand.
+    /// @param integrand the integrand operator.
+    /// @return The label of namespace.
+    std::string _get_namespace_label(const Operator& integrand) const;
+    
+    /// Gets vector of integrand component labels.
+    /// @param integrand the integrand operator.
+    /// @return The vecotr of integrand component labels.
+    std::vector<std::string> _get_operator_components(const Operator&    integrand,
+                                                      const std::string& label) const;
+    
+    /// Gets vector of tensor component labels.
+    /// @param tensor the Cartesian tensor.
+    /// @return The vecotr of tensor component labels.
+    std::vector<std::string> _get_tensor_components(const Tensor&      tensor,
+                                                    const std::string& label) const;
+    
     /// Gets two-center inetgral with requested label.
     /// @param label The label of requested two-center integral.
     /// @param ang_a The angular momentum of center A.
@@ -100,13 +126,7 @@ class T2CCPUGenerator
     void _write_func_docstr(      std::ofstream& fstream,
                             const I2CIntegral&   integral,
                             const bool           diagonal) const;
-    
-    /// Writes documentation strings for all matrices associates with integral.
-    /// @param fstream the file stream.
-    /// @param integral The base two center integral.
-    void _write_matrix_docstr(      std::ofstream& fstream,
-                              const I2CIntegral&   integral) const;
-    
+        
     /// Writes declaration for compute function.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
@@ -116,14 +136,6 @@ class T2CCPUGenerator
                           const I2CIntegral&   integral,
                           const bool           diagonal,
                           const bool           terminus) const;
-    
-    /// Writes documentation strings for all matrices associates with integral.
-    /// @param fstream the file stream.
-    /// @param integral The base two center integral.
-    /// @param spacer The spacer for formatting matrices.
-    void _write_matrix_decl(      std::ofstream& fstream,
-                            const I2CIntegral&   integral,
-                            const std::string&   spacer) const;
     
     /// Writes primitive functions documentation and declaration to header file.
     /// @param fstream the file stream.
@@ -196,17 +208,90 @@ class T2CCPUGenerator
     
     /// Writes declaration of primitive data.
     /// @param fstream the file stream.
-    /// @param spacer The spacer for formatting variables. 
+    /// @param spacer The size of spacer for formatting variables.
     /// @param terminus The flag to add termination symbol.
     void _write_prim_data_decl(      std::ofstream& fstream,
-                               const std::string&   spacer,
+                               const size_t         spacer,
                                const bool           terminus) const;
     
-    /// Writes declaration for GTOs dta in compute function.
+    /// Writes declaration for GTOs data in compute function.
     /// @param fstream the file stream.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _write_gtos_decl(      std::ofstream& fstream,
                           const bool           diagonal) const;
+    
+    /// Writes declaration for ket data in compute function.
+    /// @param fstream the file stream.
+    void _write_ket_data_decl(std::ofstream& fstream) const;
+    
+    /// Writes declaration of buffers for compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_buffers_decl(      std::ofstream&   fstream,
+                             const I2CIntegral&     integral) const;
+    
+    /// Writes declaration for main batches loop start in compute function.
+    /// @param fstream the file stream.
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    void _write_batches_loop_start_decl(      std::ofstream& fstream,
+                                        const bool           diagonal) const;
+    
+    /// Writes declaration for main batches loop end in compute function.
+    /// @param fstream the file stream.
+    void _write_batches_loop_end_decl(std::ofstream& fstream) const;
+    
+    /// Writes declaration of main call tree for compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    void _write_main_call_tree_decl(      std::ofstream& fstream,
+                                    const I2CIntegral&   integral,
+                                    const bool           diagonal) const;
+    
+    /// Writes declaration of call tree block for compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_prim_call_tree_block_decl(      std::ofstream& fstream,
+                                          const I2CIntegral&   integral,
+                                          const bool           diagonal) const;
+    
+    /// Writes declaration of call tree block for compute function.
+    /// @param fstream the file stream.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    /// @param bra_first The flag to set bra as expansion point.
+    void _write_prim_call_tree_block_decl(      std::ofstream&   fstream,
+                                          const TensorComponent& component,
+                                          const I2CIntegral&     integral,
+                                          const bool             bra_first,
+                                          const bool             diagonal) const;
+    
+    /// Writes declaration of call tree block for compute function.
+    /// @param fstream the file stream.
+    /// @param bra_component the integral component on bra side.
+    /// @param ket_component the integral component on ket side.
+    /// @param integral The base two center integral.
+    void _write_prim_call_tree_block_decl(      std::ofstream&   fstream,
+                                          const TensorComponent& bra_component,
+                                          const TensorComponent& ket_component,
+                                          const I2CIntegral&     integral,
+                                          const bool             diagonal) const;
+    
+    /// Writes declaration for primitives loop start in compute function.
+    /// @param fstream the file stream.
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    void _write_primitives_loop_start_decl(      std::ofstream& fstream,
+                                          const bool           diagonal) const;
+    
+    /// Writes declaration for primitives loop end in compute function.
+    /// @param fstream the file stream.
+    void _write_primitives_loop_end_decl(std::ofstream& fstream) const;
+    
+    /// Writes declaration of common variables for primitive computation function.
+    /// @param fstream the file stream.
+    /// @param spacer The size of spacer for formatting variables.
+    void _write_primitives_call_data_decl(      std::ofstream& fstream,
+                                          const size_t         spacer) const;
         
 public:
     /// Creates an electron repulsion integrals CPU code generator.

@@ -17,9 +17,11 @@
 #include "t2c_cpu_generator.hpp"
 
 #include <iostream>
+#include <iterator>
 
 #include "operator.hpp"
 #include "string_formater.hpp"
+#include "file_stream.hpp"
 
 void
 T2CCPUGenerator::generate(const std::string& label,
@@ -72,6 +74,74 @@ std::map<Operator, std::string>
 T2CCPUGenerator::_get_integrands_map() const
 {
     return std::map<Operator, std::string>({{Operator("1"), ""}, });
+}
+
+std::string
+T2CCPUGenerator::_get_integrand_label(const Operator& integrand) const
+{
+    auto labels = std::map<Operator, std::string>({// list of operators
+                                                   {Operator("1"), ""},
+                                                  });
+    
+    return labels[integrand];
+}
+
+std::string
+T2CCPUGenerator::_get_namespace_label(const Operator& integrand) const
+{
+    auto labels = std::map<Operator, std::string>({ // list of operators
+                                                   {Operator("1"), "ovlrec"},
+                                                   });
+    
+    return labels[integrand];
+}
+
+std::vector<std::string>
+T2CCPUGenerator::_get_operator_components(const Operator&    integrand,
+                                          const std::string& label) const
+{
+    if (const auto op_comps = integrand.components(); op_comps.size() == 1)
+    {
+        return std::vector<std::string>({label,});
+    }
+    else
+    {
+        std::vector<std::string> op_labels;
+        
+        for (const auto& op_comp : op_comps)
+        {
+            op_labels.push_back(label + "_" + op_comp.label());
+        }
+        
+        return op_labels;
+    }
+}
+
+std::vector<std::string>
+T2CCPUGenerator::_get_tensor_components(const Tensor&      tensor,
+                                        const std::string& label) const
+{
+    if (const auto tcomps = tensor.components(); tcomps.size() == 1)
+    {
+        return std::vector<std::string>({label,});
+    }
+    else
+    {
+        std::vector<std::string> tlabels;
+        
+        for (const auto& tcomp : tcomps)
+        {
+            tlabels.push_back(label + "_" + tcomp.label());
+        }
+        
+        return tlabels;
+    }
+}
+
+std::map<Operator, std::string>
+T2CCPUGenerator::_get_namespaces_map() const
+{
+    return std::map<Operator, std::string>({{Operator("1"), "ovlrec"},});
 }
 
 I2CIntegral
@@ -155,6 +225,16 @@ T2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral) const
         
         _write_gtos_decl(fstream, true);
         
+        _write_ket_data_decl(fstream);
+        
+        _write_buffers_decl(fstream, integral);
+        
+        _write_batches_loop_start_decl(fstream, true);
+        
+        _write_main_call_tree_decl(fstream, integral, true);
+        
+        _write_batches_loop_end_decl(fstream);
+        
         fstream << "}" << std::endl << std::endl;
     }
     
@@ -163,6 +243,16 @@ T2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral) const
     fstream << "{" << std::endl;
     
     _write_gtos_decl(fstream, false);
+    
+    _write_ket_data_decl(fstream);
+    
+    _write_buffers_decl(fstream, integral);
+    
+    _write_batches_loop_start_decl(fstream, false);
+    
+    _write_main_call_tree_decl(fstream, integral, false);
+    
+    _write_batches_loop_end_decl(fstream);
     
     fstream << "}" << std::endl << std::endl;
     
@@ -180,66 +270,56 @@ T2CCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
 {
     const auto fname = _file_name(integral) + "_hpp";
     
+    auto lines = VCodeLines();
+ 
     if (start)
     {
-        fstream << "#ifndef " << fname << std::endl;
+        lines.push_back({0, 0, 1, "#ifndef " + fname});
         
-        fstream << "#define " << fname  << std::endl;
-        
-        fstream << std::endl;
+        lines.push_back({0, 0, 2, "#define " + fname});
     }
     else
     {
-        fstream << "#endif /* " << fname << " */";
+        lines.push_back({0, 0, 1, "#endif /* " + fname + " */"});
     }
+    
+    ost::write_code_lines(fstream, lines);
 }
 
 void
 T2CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
                                      const I2CIntegral&   integral) const
 {
-    // C/C++ headers
+    auto lines = VCodeLines();
     
-    fstream << "#include <cstdint>" << std::endl;
+    lines.push_back({0, 0, 2, "#include <cstdint>"});
     
-    // custom headers
+    lines.push_back({0, 0, 1, "#include \"GtoBlock.hpp\""});
     
-    fstream << std::endl;
-
-    fstream << "#include \"GtoBlock.hpp\"" << std::endl;
+    lines.push_back({0, 0, 1, "#include \"SubMatrix.hpp\""});
     
-    fstream << "#include \"SubMatrix.hpp\"" << std::endl;
-
-    fstream << "#include \"SimdTypes.hpp\"" << std::endl;
+    lines.push_back({0, 0, 2, "#include \"SimdTypes.hpp\""});
     
-    fstream << std::endl;
+    ost::write_code_lines(fstream, lines);
 }
 
 void
 T2CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
                                      const I2CIntegral&   integral) const
 {
-    // main header
+    auto lines = VCodeLines();
     
-    fstream << "#include \"" + _file_name(integral) +  ".hpp\"" << std::endl;
+    lines.push_back({0, 0, 2, "#include \"" + _file_name(integral) +  ".hpp\""});
     
-    // C/C++ headers
+    lines.push_back({0, 0, 2, "#include <cmath>"});
     
-    fstream << std::endl;
+    lines.push_back({0, 0, 1, "#include \"BatchFunc.hpp\""});
     
-    fstream << "#include <cmath>" << std::endl;
+    lines.push_back({0, 0, 1, "#include \"MathConst.hpp\""});
     
-    // custom headers
+    lines.push_back({0, 0, 2, "#include \"T2CDistributor.hpp\""});
     
-    fstream << std::endl;
-    
-    fstream << "#include \"BatchFunc.hpp\"" << std::endl;
-    
-    fstream << "#include \"MathConst.hpp\"" << std::endl;
-
-    fstream << "#include \"T2CDistributor.hpp\"" << std::endl;
-    
-    fstream << std::endl;
+    ost::write_code_lines(fstream, lines);
 }
 
 void
@@ -247,20 +327,20 @@ T2CCPUGenerator::_write_namespace(      std::ofstream& fstream,
                                   const I2CIntegral&   integral,
                                   const bool           start) const
 {
-    auto tlabels = std::map<Operator, std::string>({{Operator("1"), "ovlrec"},});
+    const auto label = _get_namespace_label(integral.integrand());
     
-    const auto label = tlabels[integral.integrand()];
+    auto lines = VCodeLines();
     
     if (start)
     {
-        fstream << "namespace "  << label << " { // " << label << " namespace" << std::endl;
+        lines.push_back({0, 0, 2, "namespace " + label + " { // " + label + " namespace"});
     }
     else
     {
-        fstream << "} // " << label << " namespace" << std::endl;
+        lines.push_back({0, 0, 2, "} // " + label + " namespace"});
     }
     
-    fstream << std::endl;
+    ost::write_code_lines(fstream, lines);
 }
 
 void
@@ -268,72 +348,62 @@ T2CCPUGenerator::_write_func_docstr(      std::ofstream& fstream,
                                     const I2CIntegral&   integral,
                                     const bool           diagonal) const
 {
-    auto tlabels = _get_integrands_map();
-    
-    const auto label = tlabels[integral.integrand()];
-    
     const auto bra = Tensor(integral[0]);
     
     const auto ket = Tensor(integral[1]);
     
-    fstream << "/**" << std::endl;
+    const auto integrand = integral.integrand();
     
-    fstream << " Evaluates <" << bra.label() << "|" << label << "|" << ket.label() << ">  integrals for given ";
+    auto lines = VCodeLines();
     
-    if (diagonal)
+    auto label = " Evaluates <" + bra.label() + "|";
+    
+    label += _get_integrand_label(integrand);
+    
+    label += "|" + ket.label() + ">  integrals for given ";
+    
+    label += (diagonal) ? "GTOs block." : "pair of GTOs blocks.";
+    
+    lines.push_back({0, 0, 1, "/**"});
+    
+    lines.push_back({0, 0, 2, label});
+    
+    if (const auto labels = _get_operator_components(integrand, "matrix"); labels.size() == 1)
     {
-        fstream << "GTOs block." << std::endl;
+        lines.push_back({0, 1, 1, "@param matrix the pointer to matrix for storage of integrals."});
     }
     else
     {
-        fstream << "pair of GTOs blocks." << std::endl;
-    }
-    
-    fstream << std::endl;
-    
-    fstream << " @param matrix the pointer to matrix for storage of integrals."  << std::endl;
-    
-    if (diagonal)
-    {
-        fstream <<  " @param gto_block the GTOs block." << std::endl; 
-    }
-    else
-    {
-        fstream << " @param bra_gto_block the GTOs block on bra side." << std::endl;
-        
-        fstream << " @param ket_gto_block the GTOs block on ket side." << std::endl;
-    }
-    
-    fstream << " @param bra_first the index of the range [bra_first, bra_last) of GTOs on bra side." << std::endl;
-    
-    fstream << " @param bra_last the index of the range [bra_first, bra_last) of GTOs on bra side." << std::endl;
-    
-    fstream << "*/" << std::endl;
-}
-
-void
-T2CCPUGenerator::_write_matrix_docstr(      std::ofstream& fstream,
-                                      const I2CIntegral&   integral) const
-{
-    const auto op = integral.integrand();
-    
-    if (const auto op_comps = op.components(); op_comps.size() == 1)
-    {
-        fstream << " @param matrix " << std::endl;
-    }
-    else
-    {
-        for (const auto& op_comp : op_comps)
+        for (const auto& label : labels)
         {
-            fstream << " @param matrix_" << op_comp.label();
+            auto lcomp = fstr::upcase(label);
             
-            fstream << " the pointer to matrix for storage of";
+            lcomp.erase(0, lcomp.find('_') + 1);
             
-            fstream << " Cartesian integral component ";
+            lcomp = "@param " + label + "the pointer to matrix for storage of Cartesian integral component " + lcomp + ".";
             
-            fstream << fstr::upcase(op_comp.label()) << " ." << std::endl;
+            lines.push_back({0, 1, 1, lcomp});
         }
     }
+    
+    if (diagonal)
+    {
+        lines.push_back({0, 1, 1, "@param gto_block the GTOs block."});
+    }
+    else
+    {
+        lines.push_back({0, 1, 1, "@param bra_gto_block the GTOs block on bra side."});
+        
+        lines.push_back({0, 1, 1, "@param ket_gto_block the GTOs block on ket side."});
+    }
+    
+    lines.push_back({0, 1, 1, "@param bra_first the index of the range [bra_first, bra_last) of GTOs on bra side."});
+    
+    lines.push_back({0, 1, 1, "@param bra_last the index of the range [bra_first, bra_last) of GTOs on bra side."});
+    
+    lines.push_back({0, 0, 1, "*/"});
+    
+    ost::write_code_lines(fstream, lines);
 }
 
 void
@@ -342,69 +412,60 @@ T2CCPUGenerator::_write_func_decl(      std::ofstream& fstream,
                                   const bool           diagonal,
                                   const bool           terminus) const
 {
-    const auto fname = "comp" + _get_label(integral) + integral.label();
+    auto fname = "comp" + _get_label(integral) + integral.label();
     
-    const auto spacer = std::string(fname.size() + 1,  ' ');
-    
-    fstream << "auto" << std::endl;
-    
-    fstream << fname << "(";
-    
-    _write_matrix_decl(fstream, integral, spacer);
-    
-    if (diagonal)
-    {
-        fstream << spacer << "const CGtoBlock&  gto_block," << std::endl;
-    }
-    else
-    {
-        fstream << spacer << "const CGtoBlock&  bra_gto_block," << std::endl;
-        
-        fstream << spacer << "const CGtoBlock&  ket_gto_block," << std::endl;
-    }
-    
-    fstream << spacer << "const int64_t     bra_first," << std::endl;
-    
-    fstream << spacer << "const int64_t     bra_last) -> void";
-    
-    if (terminus) fstream << ";" << std::endl;
-    
-    fstream << std::endl;
-}
-
-void
-T2CCPUGenerator::_write_matrix_decl(      std::ofstream& fstream,
-                                    const I2CIntegral&   integral,
-                                    const std::string&   spacer) const
-{
-    const auto op = integral.integrand();
+    const auto fsize = fname.size() + 1;
     
     const auto padding = std::string(6, ' ');
     
-    if (const auto op_comps = op.components(); op_comps.size() == 1)
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "auto"});
+    
+    if (const auto labels = _get_operator_components(integral.integrand(), "matrix"); labels.size() == 1)
     {
-        fstream << padding << "CSubMatrix* matrix," << std::endl;
+        lines.push_back({0, 0, 1, fname + "(" + padding + "CSubMatrix* matrix,"});
     }
     else
     {
-        for (size_t i = 0; i < op_comps.size(); i++)
+        for (size_t i = 0; i < labels.size(); i++)
         {
-            if (i > 0) fstream << spacer;
-            
-            fstream << padding << "CSubMatrix* matrix_";
-            
-            fstream << op_comps[i].label() << "," << std::endl;
+            if (i == 0)
+            {
+                lines.push_back({0, 0, 1, fname + "(" + padding + "CSubMatrix* " + labels[i]});
+            }
+            else
+            {
+                lines.push_back({0, fsize, 1, padding + "CSubMatrix* " + labels[i]});
+            }
         }
     }
+    
+    if (diagonal)
+    {
+        lines.push_back({0, fsize, 1, "const CGtoBlock&  gto_block,"});
+    }
+    else
+    {
+        lines.push_back({0, fsize, 1, "const CGtoBlock&  bra_gto_block,"});
+        
+        lines.push_back({0, fsize, 1, "const CGtoBlock&  ket_gto_block,"});
+    }
+    
+    lines.push_back({0, fsize, 1, "const int64_t     bra_first,"});
+    
+    fname = (terminus) ? ";" : "";
+    
+    lines.push_back({0, fsize, 2, "const int64_t     bra_last) -> void" + fname});
+        
+    ost::write_code_lines(fstream, lines);
 }
 
 void
 T2CCPUGenerator::_write_prim_funcs_to_cpp_header(      std::ofstream& fstream,
                                                  const I2CIntegral&   integral) const
 {
-    const auto op = integral.integrand();
-    
-    if (const auto op_comps = op.components(); op_comps.size() == 1)
+    if (const auto labels = _get_operator_components(integral.integrand(), "buffer"); labels.size() == 1)
     {
         if ((integral[0] == 0) || (integral[1] == 0))
         {
@@ -460,47 +521,45 @@ void
 T2CCPUGenerator::_write_prim_func_docstr(      std::ofstream& fstream,
                                          const I2CIntegral&   integral) const
 {
-    auto tlabels = _get_integrands_map();
-    
-    const auto label = tlabels[integral.integrand()];
-    
     const auto bra = Tensor(integral[0]);
     
     const auto ket = Tensor(integral[1]);
     
-    fstream << "/**" << std::endl;
-        
-    fstream <<  " Evaluates block of primitive <" << bra.label() << "|";
-        
-    fstream << label << "|" << ket.label() << ">  integrals.";
-        
-    fstream << std::endl << std::endl;
-        
-    if ((integral[0] + integral[1]) == 0)
+    // generate function name
+    
+    auto fname = "<" + bra.label() + "|" ;
+    
+    fname += _get_integrand_label(integral.integrand());
+    
+    fname += "|" + ket.label() + ">";
+    
+    // write code
+    
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "/**"});
+    
+    lines.push_back({0, 1, 2, "Evaluates block of primitive " + fname + " integrals."});
+    
+    std::vector<std::string> labels({"buffer", });
+    
+    if (integral[0] > 0) labels = _get_tensor_components(bra, "buffer");
+    
+    if (integral[1] > 0) labels = _get_tensor_components(ket, "buffer");
+    
+    if (labels.empty())
     {
-        fstream << " @param buffer the integrals buffer." << std::endl;
+        lines.push_back({0, 1, 1, "@param buffer the integrals buffer."});
     }
-        
-    if (integral[0] > 0)
+    else
     {
-        for (const auto& bcomp : bra.components())
+        for (const auto& label : labels)
         {
-            fstream << " @param buffer_" << bcomp.label();
-                
-            fstream << " the partial integrals buffer." << std::endl;
+            lines.push_back({0, 1, 1, "@param " + label + " the partial integrals buffer."});
         }
     }
-        
-    if (integral[1] > 0)
-    {
-        
-        for (const auto& kcomp : ket.components())
-        {
-            fstream << " @param buffer_" << kcomp.label();
-                
-            fstream << " the partial integrals buffer." << std::endl;
-        }
-    }
+    
+    ost::write_code_lines(fstream, lines);
         
     _write_prim_data_docstr(fstream);
 }
@@ -511,50 +570,41 @@ T2CCPUGenerator::_write_prim_func_docstr(      std::ofstream&   fstream,
                                          const I2CIntegral&     integral,
                                          const bool             bra_first) const
 {
-    auto tlabels = _get_integrands_map();
-    
-    const auto label = tlabels[integral.integrand()];
-    
     const auto bra = Tensor(integral[0]);
     
     const auto ket = Tensor(integral[1]);
     
-    fstream << "/**" << std::endl;
+    // generate function name
     
-    if (bra_first)
+    std::string fname = "<" + bra.label();
+    
+    fname += (bra_first) ? "_" + fstr::upcase(component.label()) : "";
+    
+    fname += "|" + _get_integrand_label(integral.integrand()) + "|";
+    
+    fname += ket.label();
+    
+    fname += (bra_first) ? "" : "_" + fstr::upcase(component.label());
+    
+    fname += ">";
+    
+    // write code
+    
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "/**"});
+    
+    lines.push_back({0, 1, 2, "Evaluates block of primitive " + fname + " integrals."});
+    
+    const auto labels = (bra_first) ? _get_tensor_components(ket, "buffer")
+                                    : _get_tensor_components(bra, "buffer");
+    
+    for (const auto& label : labels)
     {
-        fstream <<  " Evaluates block of primitive <";
-        
-        fstream << bra.label() << "_" << fstr::upcase(component.label());
-        
-        fstream << "|" << label << "|" << ket.label();
-        
-        fstream << ">  integrals." <<  std::endl << std::endl;
-        
-        for (const auto& kcomp : ket.components())
-        {
-            fstream << " @param buffer_" << kcomp.label();
-        
-            fstream << " the partial integrals buffer." << std::endl;
-        }
+        lines.push_back({0, 1, 1, "@param " + label + " the partial integrals buffer."});
     }
-    else
-    {
-        fstream <<  " Evaluates block of primitive <";
-        
-        fstream  << bra.label() << "|" << label << "|";
-        
-        fstream << ket.label() << "_" << fstr::upcase(component.label());
-        
-        fstream << ">  integrals." << std::endl << std::endl;
-        
-        for (const auto& bcomp : bra.components())
-        {
-            fstream << " @param buffer_" << bcomp.label();
-        
-            fstream << " the partial integrals buffer." << std::endl;
-        }
-    }
+    
+    ost::write_code_lines(fstream, lines);
     
     _write_prim_data_docstr(fstream);
 }
@@ -565,34 +615,36 @@ T2CCPUGenerator::_write_prim_func_docstr(      std::ofstream&   fstream,
                                          const TensorComponent& ket_component,
                                          const I2CIntegral&     integral) const
 {
-    const auto op = integral.integrand();
-    
-    auto tlabels = _get_integrands_map();
-    
-    const auto label = tlabels[op];
-    
     const auto bra = Tensor(integral[0]);
     
     const auto ket = Tensor(integral[1]);
     
-    fstream << "/**" << std::endl;
-            
-    fstream <<  " Evaluates block of primitive <";
-            
-    fstream << bra.label() << "_" << fstr::upcase(bra_component.label());
-            
-    fstream << "|" << label << "|";
-            
-    fstream << ket.label() << "_" << fstr::upcase(ket_component.label());
-            
-    fstream << ">  integrals." << std::endl << std::endl;
-            
-    for (const auto& op_comp : op.components())
+    const auto integrand = integral.integrand();
+    
+    // generate function name
+    
+    std::string fname = "<" + bra.label();
+    
+    fname += "_" + fstr::upcase(bra_component.label());
+    
+    fname += "|" + _get_integrand_label(integrand) + "|";
+    
+    fname += ket.label() + "_" + fstr::upcase(ket_component.label());
+    
+    fname += ">";
+    
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "/**"});
+    
+    lines.push_back({0, 1, 2, "Evaluates block of primitive " + fname + " integrals."});
+    
+    for (const auto& label : _get_operator_components(integrand, "buffer"))
     {
-        fstream << " @param buffer_" << op_comp.label();
-                
-        fstream << " the partial integrals buffer." << std::endl;
+        lines.push_back({0, 1, 1, "@param " + label + " the partial integrals buffer."});
     }
+    
+    ost::write_code_lines(fstream, lines);
             
     _write_prim_data_docstr(fstream);
 }
@@ -600,28 +652,31 @@ T2CCPUGenerator::_write_prim_func_docstr(      std::ofstream&   fstream,
 void
 T2CCPUGenerator::_write_prim_data_docstr(std::ofstream& fstream) const
 {
-    fstream << " @param bra_exp the primitive exponent on bra side." << std::endl;
+    auto lines = VCodeLines();
     
-    fstream << " @param bra_norm the primitive normalization factor on bra side." << std::endl;
+    lines.push_back({0, 1, 1, "@param bra_exp the primitive exponent on bra side."});
     
-    fstream << " @param bra_coord the 3d coordinate of basis function on bra side." << std::endl;
+    lines.push_back({0, 1, 1, "@param bra_norm the primitive normalization factor on bra side."});
     
-    fstream << " @param ket_exps the array of primitive exponents on ket side." << std::endl;
+    lines.push_back({0, 1, 1, "@param bra_coord the 3d coordinate of basis function on bra side."});
     
-    fstream << " @param ket_norms the array of primitive normalization factors on ket side." << std::endl;
+    lines.push_back({0, 1, 1, "@param ket_exps the array of primitive exponents on ket side."});
     
-    fstream << " @param ket_coords_x the array of Cartesian X coordinates on ket side." << std::endl;
+    lines.push_back({0, 1, 1, "@param ket_norms the array of primitive normalization factors on ket side."});
     
-    fstream << " @param ket_coords_y the array of Cartesian Y coordinates on ket side." << std::endl;
+    lines.push_back({0, 1, 1, "@param ket_coords_x the array of Cartesian X coordinates on ket side."});
     
-    fstream << " @param ket_coords_z the array of Cartesian Z coordinates on ket side." << std::endl;
+    lines.push_back({0, 1, 1, "@param ket_coords_y the array of Cartesian Y coordinates on ket side."});
     
-    fstream << " @param ket_dim the end size of ket arrays." << std::endl;
+    lines.push_back({0, 1, 1, "@param ket_coords_z the array of Cartesian Z coordinates on ket side."});
     
-    fstream << " @param ket_dim the end size of ket arrays." << std::endl;
+    lines.push_back({0, 1, 1, "@param ket_dim the end size of ket arrays." });
     
-    fstream << "*/" << std::endl;
+    lines.push_back({0, 1, 1, "@param ket_dim the end size of ket arrays." });
     
+    lines.push_back({0, 0, 1, "*/"});
+    
+    ost::write_code_lines(fstream, lines);
 }
 
 void
@@ -635,48 +690,28 @@ T2CCPUGenerator::_write_prim_func_decl(      std::ofstream& fstream,
     
     const auto fname = "compPrimitive" + _get_label(integral) + integral.label();
     
-    const auto spacer = std::string(fname.size() + 1,  ' ');
+    const auto fsize = fname.size() + 1;
     
-    const auto padding = std::string(6, ' ');
+    auto lines = VCodeLines();
     
-    fstream << "auto" << std::endl;
+    lines.push_back({0, 0, 1, "auto"});
     
-    fstream << fname << "(";
+    std::vector<std::string> labels({"buffer", });
     
-    if ((integral[0] + integral[1]) == 0)
+    if (integral[0] > 0) labels = _get_tensor_components(bra, "buffer");
+    
+    if (integral[1] > 0) labels = _get_tensor_components(ket, "buffer");
+    
+    lines.push_back({0, 0, 1, fname + "(      TDoubleArray& " + labels[0] + ","});
+   
+    for (size_t i = 1; i < labels.size(); i++)
     {
-        fstream << padding << "TDoubleArray& buffer," << std::endl;
-    }
-        
-    if (integral[0] > 0)
-    {
-        const auto bra_comps = bra.components();
-        
-        for (size_t i = 0; i < bra_comps.size(); i++)
-        {
-            if (i > 0) fstream << spacer;
-            
-            fstream << padding << "TDoubleArray& buffer_";
-            
-            fstream << bra_comps[i].label() << "," << std::endl;
-        }
-    }
-        
-    if (integral[1] > 0)
-    {
-        const auto ket_comps = ket.components();
-        
-        for (size_t i = 0; i < ket_comps.size(); i++)
-        {
-            if (i > 0) fstream << spacer;
-            
-            fstream << padding << "TDoubleArray& buffer_";
-            
-            fstream << ket_comps[i].label() << "," << std::endl;
-        }
+        lines.push_back({0, fsize + 6, 1, "TDoubleArray& " + labels[i] + ","});
     }
     
-    _write_prim_data_decl(fstream, spacer, terminus);
+    ost::write_code_lines(fstream, lines);
+    
+    _write_prim_data_decl(fstream, fsize, terminus);
 }
 
 void
@@ -697,46 +732,25 @@ T2CCPUGenerator::_write_prim_func_decl(      std::ofstream&   fstream,
         fname += "_T_" + fstr::upcase(component.label());
     }
     
-    const auto spacer = std::string(fname.size() + 1,  ' ');
+    const auto fsize = fname.size() + 1;
     
-    const auto padding = std::string(6, ' ');
+    auto lines = VCodeLines();
     
-    fstream << "auto" << std::endl;
+    lines.push_back({0, 0, 1, "auto"});
     
-    fstream << fname << "(";
+    const auto labels = (bra_first) ? _get_tensor_components(integral[1], "buffer")
+                                    : _get_tensor_components(integral[0], "buffer");
     
-    if (bra_first)
+    lines.push_back({0, 0, 1, fname + "(      TDoubleArray& " + labels[0] + ","});
+   
+    for (size_t i = 1; i < labels.size(); i++)
     {
-        const auto ket = Tensor(integral[1]);
-        
-        const auto ket_comps = ket.components();
-        
-        for (size_t i = 0; i < ket_comps.size(); i++)
-        {
-            if (i > 0) fstream << spacer;
-            
-            fstream << padding << "TDoubleArray& buffer_";
-            
-            fstream << ket_comps[i].label() << "," << std::endl;
-        }
-    }
-    else
-    {
-        const auto bra = Tensor(integral[0]);
-        
-        const auto bra_comps = bra.components();
-        
-        for (size_t i = 0; i < bra_comps.size(); i++)
-        {
-            if (i > 0) fstream << spacer;
-            
-            fstream << padding << "TDoubleArray& buffer_";
-            
-            fstream << bra_comps[i].label() << "," << std::endl;
-        }
+        lines.push_back({0, fsize + 6, 1, "TDoubleArray& " + labels[i] + ","});
     }
     
-    _write_prim_data_decl(fstream, spacer, terminus);
+    ost::write_code_lines(fstream, lines);
+    
+    _write_prim_data_decl(fstream, fsize, terminus);
 }
 
 void
@@ -751,110 +765,564 @@ T2CCPUGenerator::_write_prim_func_decl(      std::ofstream&   fstream,
     fname += "_" + fstr::upcase(bra_component.label());
    
     fname += "_" + fstr::upcase(ket_component.label());
+    
+    const auto fsize = fname.size() + 1;
+    
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "auto"});
+    
+    const auto labels = _get_operator_components(integral.integrand(), "buffer");
+    
+    lines.push_back({0, 0, 1, fname + "(      TDoubleArray& " + labels[0] + ","});
    
-    const auto spacer = std::string(fname.size() + 1,  ' ');
-    
-    const auto padding = std::string(6, ' ');
-    
-    fstream << "auto" << std::endl;
-    
-    fstream << fname << "(";
-    
-    const auto op = integral.integrand();
-    
-    const auto op_comps = op.components();
-    
-    for (size_t i = 0; i < op_comps.size(); i++)
+    for (size_t i = 1; i < labels.size(); i++)
     {
-        if (i > 0) fstream << spacer;
-        
-        fstream << padding << "TDoubleArray& buffer_";
-        
-        fstream << op_comps[i].label() << "," << std::endl;
+        lines.push_back({0, fsize + 6, 1, "TDoubleArray& " + labels[i] + ","});
     }
     
-    _write_prim_data_decl(fstream, spacer, terminus);
+    ost::write_code_lines(fstream, lines);
+    
+    _write_prim_data_decl(fstream, fsize, terminus);
 }
 
 void
 T2CCPUGenerator::_write_prim_data_decl(      std::ofstream& fstream,
-                                       const std::string&   spacer, 
+                                       const size_t         spacer,
                                        const bool           terminus) const
 {
-    fstream << spacer << "const double        bra_exp," << std::endl;
+    auto lines = VCodeLines();
     
-    fstream << spacer << "const double        bra_norm," << std::endl;
+    lines.push_back({0, spacer, 1, "const double        bra_exp,"});
     
-    fstream << spacer << "const TPoint3D&     bra_coord," << std::endl;
+    lines.push_back({0, spacer, 1, "const double        bra_norm,"});
     
-    fstream << spacer << "const TDoubleArray& ket_exps," << std::endl;
+    lines.push_back({0, spacer, 1, "const TPoint3D&     bra_coord,"});
     
-    fstream << spacer << "const TDoubleArray& ket_norms," << std::endl;
+    lines.push_back({0, spacer, 1, "const TDoubleArray& ket_exps,"});
     
-    fstream << spacer << "const TDoubleArray& ket_coords_x," << std::endl;
+    lines.push_back({0, spacer, 1, "const TDoubleArray& ket_norms,"});
     
-    fstream << spacer << "const TDoubleArray& ket_coords_y," << std::endl;
+    lines.push_back({0, spacer, 1, "const TDoubleArray& ket_coords_x,"});
     
-    fstream << spacer << "const TDoubleArray& ket_coords_z," << std::endl;
+    lines.push_back({0, spacer, 1, "const TDoubleArray& ket_coords_y,"});
     
-    fstream << spacer << "const int64_t       ket_dim) -> void";
+    lines.push_back({0, spacer, 1, "const TDoubleArray& ket_coords_z,"});
     
-    if (terminus) fstream << ";" << std::endl;
+    if (terminus)
+    {
+        lines.push_back({0, spacer, 2, "const int64_t       ket_dim) -> void;"});
+    }
+    else
+    {
+        lines.push_back({0, spacer, 1, "const int64_t       ket_dim) -> void"});
+    }
     
-    fstream << std::endl;
+    ost::write_code_lines(fstream, lines);
 }
-
 
 void
 T2CCPUGenerator::_write_gtos_decl(      std::ofstream& fstream,
                                   const bool           diagonal) const
 {
-    const auto spacer = std::string(4, ' ');
+    auto lines = VCodeLines();
     
     if (diagonal)
     {
-        fstream << spacer << "// intialize GTOs data" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "// intialize GTOs data"});
         
-        fstream << spacer << "const auto gto_coords = gto_block.getCoordinates();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto gto_coords = gto_block.getCoordinates();"});
        
-        fstream << spacer << "const auto gto_exps = gto_block.getExponents();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto gto_exps = gto_block.getExponents();"});
        
-        fstream << spacer << "const auto gto_norms = gto_block.getNormalizationFactors();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto gto_norms = gto_block.getNormalizationFactors();"});
         
-        fstream << spacer << "const auto gto_indexes = gto_block.getOrbitalIndexes();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto gto_indexes = gto_block.getOrbitalIndexes();"});
        
-        fstream << spacer << "const auto ncgtos = gto_block.getNumberOfBasisFunctions();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto ncgtos = gto_block.getNumberOfBasisFunctions();"});
 
-        fstream << spacer << "const auto npgtos = gto_block.getNumberOfPrimitives();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto npgtos = gto_block.getNumberOfPrimitives();"});
     }
     else
     {
-        fstream << spacer << "// intialize GTOs data on bra side" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "// intialize GTOs data on bra side"});
         
-        fstream << spacer << "const auto bra_gto_coords = bra_gto_block.getCoordinates();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto bra_gto_coords = bra_gto_block.getCoordinates();"});
        
-        fstream << spacer << "const auto bra_gto_exps = bra_gto_block.getExponents();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto bra_gto_exps = bra_gto_block.getExponents();"});
        
-        fstream << spacer << "const auto bra_gto_norms = bra_gto_block.getNormalizationFactors();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto bra_gto_norms = bra_gto_block.getNormalizationFactors();"});
         
-        fstream << spacer << "const auto bra_gto_indexes = bra_gto_block.getOrbitalIndexes();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto bra_gto_indexes = bra_gto_block.getOrbitalIndexes();"});
        
-        fstream << spacer << "const auto bra_ncgtos = bra_gto_block.getNumberOfBasisFunctions();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto bra_ncgtos = bra_gto_block.getNumberOfBasisFunctions();"});
 
-        fstream << spacer << "const auto bra_npgtos = bra_gto_block.getNumberOfPrimitives();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto bra_npgtos = bra_gto_block.getNumberOfPrimitives();"});
         
-        fstream << spacer << "// intialize GTOs data on ket side" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "// intialize GTOs data on ket side"});
         
-        fstream << spacer << "const auto ket_gto_coords = ket_gto_block.getCoordinates();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto ket_gto_coords = ket_gto_block.getCoordinates();"});
        
-        fstream << spacer << "const auto ket_gto_exps = ket_gto_block.getExponents();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto ket_gto_exps = ket_gto_block.getExponents();"});
        
-        fstream << spacer << "const auto ket_gto_norms = ket_gto_block.getNormalizationFactors();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto ket_gto_norms = ket_gto_block.getNormalizationFactors();"});
         
-        fstream << spacer << "const auto ket_gto_indexes = ket_gto_block.getOrbitalIndexes();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto ket_gto_indexes = ket_gto_block.getOrbitalIndexes();"});
        
-        fstream << spacer << "const auto ket_ncgtos = ket_gto_block.getNumberOfBasisFunctions();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto ket_ncgtos = ket_gto_block.getNumberOfBasisFunctions();"});
 
-        fstream << spacer << "const auto ket_npgtos = ket_gto_block.getNumberOfPrimitives();" << std::endl << std::endl;
+        lines.push_back({1, 0, 2, "const auto ket_npgtos = ket_gto_block.getNumberOfPrimitives();"});
     }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_ket_data_decl(std::ofstream& fstream) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({1, 0, 2, "// initialize aligned arrays for ket side"});
+    
+    lines.push_back({1, 0, 2, "alignas(64) TDoubleArray ket_coords_x;"});
+    
+    lines.push_back({1, 0, 2, "alignas(64) TDoubleArray ket_coords_y;"});
+    
+    lines.push_back({1, 0, 2, "alignas(64) TDoubleArray ket_coords_z;"});
+    
+    lines.push_back({1, 0, 2, "alignas(64) TDoubleArray ket_exps;"});
+    
+    lines.push_back({1, 0, 2, "alignas(64) TDoubleArray ket_norms;"});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_buffers_decl(      std::ofstream&   fstream,
+                                     const I2CIntegral&     integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({1, 0, 2, "// initialize contracted integrals buffer"});
+    
+    auto labels = _get_operator_components(integral.integrand(), "buffer");
+
+    if (labels.size() == 1)
+    {
+        const auto bra = Tensor(integral[0]);
+        
+        const auto ket = Tensor(integral[1]);
+        
+        if ((integral[0] == 0) || (integral[1] == 0))
+        {
+            if (integral[0] > 0) labels = _get_tensor_components(bra, "buffer");
+            
+            if (integral[1] > 0) labels = _get_tensor_components(ket, "buffer");
+        }
+        else
+        {
+            if (integral[0] >= integral[1])
+            {
+                labels = _get_tensor_components(ket, "buffer");
+            }
+            else
+            {
+                labels = _get_tensor_components(bra, "buffer");
+            }
+        }
+    }
+    
+    for (const auto& label : labels)
+    {
+        lines.push_back({1, 0, 2, "alignas(64) TDoubleArray " + label + ";"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_batches_loop_start_decl(      std::ofstream& fstream,
+                                                const bool           diagonal) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({1, 0, 2, "// loop over integral batches"});
+    
+    if (diagonal)
+    {
+        lines.push_back({1, 0, 2, "const auto nbatches = batch::getNumberOfBatches(ncgtos, simd_width);"});
+    }
+    else
+    {
+        lines.push_back({1, 0, 2, "const auto nbatches = batch::getNumberOfBatches(ket_ncgtos, simd_width);"});
+    }
+        
+    lines.push_back({1, 0, 1, "for (int64_t i = 0; i < nbatches; i++)"});
+        
+    lines.push_back({1, 0, 1, "{"});
+    
+    if (diagonal)
+    {
+        lines.push_back({2, 0, 2, "const auto [ket_first, ket_last] = batch::getBatchRange(i, ncgtos, simd_width);"});
+    }
+    else
+    {
+        lines.push_back({2, 0, 2, "const auto [ket_first, ket_last] = batch::getBatchRange(i, ket_ncgtos, simd_width);"});
+    }
+            
+    lines.push_back({2, 0, 2, "const auto ket_dim = ket_last - ket_first;"});
+            
+    lines.push_back({2, 0, 1, "simd::loadCoordinates(ket_coords_x,"});
+        
+    lines.push_back({2, 22, 1, "ket_coords_y,"});
+        
+    lines.push_back({2, 22, 1, "ket_coords_z,"});
+    
+    if (diagonal)
+    {
+        lines.push_back({2, 22, 1, "gto_coords,"});
+    }
+    else
+    {
+        lines.push_back({2, 22, 1, "ket_gto_coords,"});
+    }
+        
+    lines.push_back({2, 22, 1, "ket_first,"});
+        
+    lines.push_back({2, 22, 2, "ket_last);"});
+        
+    lines.push_back({2, 0, 1, "for (int64_t j = bra_first; j < bra_last; j++) "});
+        
+    lines.push_back({2, 0, 1, "{"});
+        
+    if (diagonal)
+    {
+        lines.push_back({3, 0, 2, "const auto bra_coord = gto_coords[j];"});
+    }
+    else
+    {
+        lines.push_back({3, 0, 2, "const auto bra_coord = bra_gto_coords[j];"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_batches_loop_end_decl(std::ofstream& fstream) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({2, 0, 2, "}"});
+    
+    lines.push_back({1, 0, 2, "}"});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_main_call_tree_decl(      std::ofstream& fstream,
+                                            const I2CIntegral&   integral,
+                                            const bool           diagonal) const
+{
+    if (const auto labels = _get_operator_components(integral.integrand(), "buffer"); labels.size() == 1)
+    {
+        if ((integral[0] == 0) || (integral[1] == 0))
+        {
+            _write_prim_call_tree_block_decl(fstream, integral, diagonal);
+        }
+        else
+        {
+            if (integral[0] >= integral[1])
+            {
+                const auto bra = Tensor(integral[0]);
+                
+                for (const auto& bcomp: bra.components())
+                {
+                    _write_prim_call_tree_block_decl(fstream, bcomp, integral, true, diagonal);
+                    
+                    fstream << std::endl;
+                }
+            }
+            else
+            {
+                const auto ket = Tensor(integral[1]);
+                
+                for (const auto& kcomp: ket.components())
+                {
+                    _write_prim_call_tree_block_decl(fstream, kcomp, integral, false, diagonal);
+                    
+                    fstream << std::endl;
+                }
+            }
+        }
+    }
+    else
+    {
+        const auto bra = Tensor(integral[0]);
+        
+        const auto ket = Tensor(integral[1]);
+        
+        for (const auto& bcomp: bra.components())
+        {
+            for (const auto& kcomp: ket.components())
+            {
+                _write_prim_call_tree_block_decl(fstream, bcomp, kcomp, integral, diagonal);
+                
+                fstream << std::endl; 
+            }
+        }
+    }
+}
+
+void
+T2CCPUGenerator::_write_prim_call_tree_block_decl(      std::ofstream& fstream,
+                                                  const I2CIntegral&   integral,
+                                                  const bool           diagonal) const
+{
+    const auto bra = Tensor(integral[0]);
+    
+    const auto ket = Tensor(integral[1]);
+    
+    std::vector<std::string> labels({"buffer", });
+    
+    if (integral[0] > 0) labels = _get_tensor_components(bra, "buffer");
+    
+    if (integral[1] > 0) labels = _get_tensor_components(ket, "buffer");
+    
+    auto lines = VCodeLines();
+    
+    lines.push_back({3, 0, 2, "// compute primitive integrals block"});
+    
+    for (const auto& label : labels)
+    {
+        lines.push_back({3, 0, 2, "simd::zero(" + label + ");"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+    
+    lines.clear();
+    
+    _write_primitives_loop_start_decl(fstream, diagonal);
+    
+    auto fname = _get_namespace_label(integral.integrand());
+    
+    fname += "::compPrimitive" + _get_label(integral) + integral.label();
+    
+    const auto fsize = fname.size() + 1;
+    
+    lines.push_back({5, 0, 1, fname + "(" + labels[0] + ","});
+   
+    for (size_t i = 1; i < labels.size(); i++)
+    {
+        lines.push_back({5, fsize, 1, labels[i] + ","});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+    
+    _write_primitives_call_data_decl(fstream, fsize);
+    
+    // write primitives loop end
+    
+    _write_primitives_loop_end_decl(fstream);
+}
+
+void
+T2CCPUGenerator::_write_prim_call_tree_block_decl(      std::ofstream&   fstream,
+                                                  const TensorComponent& component,
+                                                  const I2CIntegral&     integral,
+                                                  const bool             bra_first,
+                                                  const bool             diagonal) const
+{
+    const auto labels = (bra_first) ? _get_tensor_components(integral[1], "buffer")
+                                    : _get_tensor_components(integral[0], "buffer");
+    
+    auto lines = VCodeLines();
+    
+    lines.push_back({3, 0, 2, "// compute primitive integrals block (" + fstr::upcase(component.label()) + ")"});
+    
+    for (const auto& label : labels)
+    {
+        lines.push_back({3, 0, 2, "simd::zero(" + label + ");"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+    
+    lines.clear();
+    
+    _write_primitives_loop_start_decl(fstream, diagonal);
+    
+    auto fname = _get_namespace_label(integral.integrand());
+    
+    fname += "::compPrimitive" + _get_label(integral) + integral.label();
+    
+    if (bra_first)
+    {
+        fname += "_" + fstr::upcase(component.label()) + "_T";
+    }
+    else
+    {
+        fname += "_T_" + fstr::upcase(component.label());
+    }
+    
+    const auto fsize = fname.size() + 1;
+    
+    lines.push_back({5, 0, 1, fname + "(" + labels[0] + ","});
+   
+    for (size_t i = 1; i < labels.size(); i++)
+    {
+        lines.push_back({5, fsize, 1, labels[i] + ","});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+    
+    _write_primitives_call_data_decl(fstream, fsize);
+    
+    // write primitives loop end
+    
+    _write_primitives_loop_end_decl(fstream);
+}
+
+void
+T2CCPUGenerator::_write_prim_call_tree_block_decl(      std::ofstream&   fstream,
+                                                  const TensorComponent& bra_component,
+                                                  const TensorComponent& ket_component,
+                                                  const I2CIntegral&     integral,
+                                                  const bool             diagonal) const
+{
+   
+    
+    const auto labels = _get_operator_components(integral.integrand(), "buffer");
+    
+    auto lines = VCodeLines();
+    
+    lines.push_back({3, 0, 2, "// compute primitive integrals block (" +
+                   
+                    fstr::upcase(bra_component.label()) + "_" +
+                   
+                    fstr::upcase(ket_component.label()) + ")"});
+    
+    for (const auto& label : labels)
+    {
+        lines.push_back({3, 0, 2, "simd::zero(" + label + ");"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+    
+    lines.clear();
+    
+    _write_primitives_loop_start_decl(fstream, diagonal);
+    
+    auto fname = _get_namespace_label(integral.integrand());
+    
+    fname += "compPrimitive" + _get_label(integral) + integral.label();
+    
+    fname += "_" + fstr::upcase(bra_component.label());
+   
+    fname += "_" + fstr::upcase(ket_component.label());
+    
+    const auto fsize = fname.size() + 1;
+    
+    lines.push_back({5, 0, 1, fname + "(" + labels[0] + ","});
+   
+    for (size_t i = 1; i < labels.size(); i++)
+    {
+        lines.push_back({5, fsize, 1, labels[i] + ","});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+    
+    _write_primitives_call_data_decl(fstream, fsize);
+    
+    // write primitives loop end
+    
+    _write_primitives_loop_end_decl(fstream);
+}
+
+void
+T2CCPUGenerator::_write_primitives_loop_start_decl(      std::ofstream& fstream,
+                                                   const bool           diagonal) const
+{
+    auto lines = VCodeLines();
+    
+    if (diagonal)
+    {
+        lines.push_back({3, 0, 1, "for (int64_t k = 0; k < npgtos; k++)"});
+        
+        lines.push_back({3, 0, 1, "{"});
+        
+        lines.push_back({4, 0, 2, "simd::loadPrimitiveGTOsData(ket_exps, gto_exps, k, ncgtos, ket_first, ket_last);"});
+            
+        lines.push_back({4, 0, 2, "simd::loadPrimitiveGTOsData(ket_norms, gto_norms, k, ncgtos, ket_first, ket_last);"});
+            
+        lines.push_back({4, 0, 1, "for (int64_t l = 0; l < npgtos; l++)"});
+        
+        lines.push_back({4, 0, 1, "{"});
+        
+        lines.push_back({5, 0, 2, "const auto bra_index = l * ncgtos + j;"});
+                
+        lines.push_back({5, 0, 2, "const auto bra_exp = gto_exps[bra_index];"});
+                
+        lines.push_back({5, 0, 2, "const auto bra_norm = gto_norms[bra_index];"});
+    }
+    else
+    {
+        lines.push_back({3, 0, 1, "for (int64_t k = 0; k < ket_npgtos; k++)"});
+        
+        lines.push_back({3, 0, 1, "{"});
+        
+        lines.push_back({4, 0, 2, "simd::loadPrimitiveGTOsData(ket_exps, ket_gto_exps, k, ket_ncgtos, ket_first, ket_last);"});
+            
+        lines.push_back({4, 0, 2, "simd::loadPrimitiveGTOsData(ket_norms, ket_gto_norms, k, ket_ncgtos, ket_first, ket_last);"});
+            
+        lines.push_back({4, 0, 1, "for (int64_t l = 0; l < bra_npgtos; l++)"});
+        
+        lines.push_back({4, 0, 1, "{"});
+        
+        lines.push_back({5, 0, 2, "const auto bra_index = l * bra_ncgtos + j;"});
+                
+        lines.push_back({5, 0, 2, "const auto bra_exp = bra_gto_exps[bra_index];"});
+                
+        lines.push_back({5, 0, 2, "const auto bra_norm = bra_gto_norms[bra_index];"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_primitives_loop_end_decl(std::ofstream& fstream) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({4, 0, 1, "}"});
+    
+    lines.push_back({3, 0, 1, "}"});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_primitives_call_data_decl(      std::ofstream& fstream,
+                                                  const size_t         spacer) const
+{
+    auto lines = VCodeLines();
+   
+    lines.push_back({5, spacer, 1, "bra_exp,"});
+    
+    lines.push_back({5, spacer, 1, "bra_norm,"});
+    
+    lines.push_back({5, spacer, 1, "bra_coord,"});
+    
+    lines.push_back({5, spacer, 1, "ket_exps,"});
+    
+    lines.push_back({5, spacer, 1, "ket_norms,"});
+    
+    lines.push_back({5, spacer, 1, "ket_coords_x,"});
+    
+    lines.push_back({5, spacer, 1, "ket_coords_y,"});
+    
+    lines.push_back({5, spacer, 1, "ket_coords_z,"});
+    
+    lines.push_back({5, spacer, 1, "ket_dim);"});
+    
+    ost::write_code_lines(fstream, lines);
 }

@@ -18,6 +18,17 @@
 
 namespace ost { // ost namespace
     
+    void write_code_lines(      std::ofstream& fstream, 
+                          const VCodeLines&    lines)
+    {
+        for (const auto& [nspacers, offset, nends, str] : lines)
+        {
+            fstream << std::string(4 * nspacers + offset, ' ') << str;
+            
+            for (int i = 0; i < nends; i++) fstream << std::endl;
+        }
+    }
+
     void
     write_copyright(std::ofstream& fstream)
     {
