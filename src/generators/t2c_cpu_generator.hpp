@@ -78,6 +78,21 @@ class T2CCPUGenerator
     std::vector<std::string> _get_tensor_components(const Tensor&      tensor,
                                                     const std::string& label) const;
     
+    /// Select integrals components with predefined bra or ket side components.
+    /// @param component the tensor component.
+    /// @param integral The base two center integral.
+    /// @param bra_first The flag to set bra as expansion point.
+    std::vector<T2CIntegral> _select_operator_components(const TensorComponent& component,
+                                                         const I2CIntegral&     integral,
+                                                         const bool             bra_first) const;
+    /// Writes documentation string for primitive compute function.
+    /// @param bra_component the tensor component.
+    /// @param ket_component the tensor component.
+    /// @param integral The base two center integral.
+    std::vector<T2CIntegral> _select_operator_components(const TensorComponent& bra_component,
+                                                         const TensorComponent& ket_component,
+                                                         const I2CIntegral&     integral) const;
+    
     /// Gets two-center inetgral with requested label.
     /// @param label The label of requested two-center integral.
     /// @param ang_a The angular momentum of center A.
@@ -151,6 +166,12 @@ class T2CCPUGenerator
     /// @param integral The base two center integral.
     void _write_prim_funcs_to_cpp_header(      std::ofstream& fstream,
                                          const I2CIntegral&   integral) const;
+    
+    /// Writes primitive function implementation to C++ code file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_prim_funcs_to_cpp_file(      std::ofstream& fstream,
+                                       const I2CIntegral&   integral) const;
     
     /// Writes documentation string for primitive compute function.
     /// @param fstream the file stream.
@@ -330,6 +351,114 @@ class T2CCPUGenerator
                                        const I2CIntegral&     integral,
                                        const bool             bra_first,
                                        const bool             diagonal) const;
+    
+    /// Writes declaration of of block distribution call tree  for compute function.
+    /// @param fstream the file stream.
+    /// @param bra_component the integral component on bra side.
+    /// @param ket_component the integral component on ket side.
+    /// @param integral The base two center integral.
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    void _write_block_distributor_decl(      std::ofstream&   fstream,
+                                       const TensorComponent& bra_component,
+                                       const TensorComponent& ket_component,
+                                       const I2CIntegral&     integral,
+                                       const bool             diagonal) const;
+    
+    /// Writes body of primitive compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_prim_func_body(      std::ofstream& fstream,
+                                const I2CIntegral&   integral) const;
+    
+    /// Writes body of primitive compute function.
+    /// @param fstream the file stream.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    /// @param bra_first The flag to set bra as expansion point.
+    void _write_prim_func_body(      std::ofstream&   fstream,
+                               const TensorComponent& component,
+                               const I2CIntegral&     integral,
+                               const bool             bra_first) const;
+    
+    /// Writes body of primitive compute function.
+    /// @param fstream the file stream.
+    /// @param bra_component the integral component on bra side.
+    /// @param ket_component the integral component on ket side.
+    /// @param integral The base two center integral.
+    void _write_prim_func_body(      std::ofstream&   fstream,
+                               const TensorComponent& bra_component,
+                               const TensorComponent& ket_component,
+                               const I2CIntegral&     integral) const;
+    
+    /// Writes common data definitions in primitive compute function.
+    /// @param fstream the file stream.
+    void _write_prim_func_common_data(std::ofstream& fstream) const;
+    
+    /// Writes buffers for primitive compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_prim_func_buffers(      std::ofstream& fstream,
+                                  const I2CIntegral&   integral) const;
+    
+    /// Writes buffers for primitive compute function.
+    /// @param fstream the file stream.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    /// @param bra_first The flag to set bra as expansion point.
+    void _write_prim_func_buffers(      std::ofstream&   fstream,
+                                  const TensorComponent& component,
+                                  const I2CIntegral&     integral,
+                                  const bool             bra_first) const;
+    
+    /// Writes buffers for primitive compute function.
+    /// @param fstream the file stream.
+    /// @param bra_component the integral component on bra side.
+    /// @param ket_component the integral component on ket side.
+    /// @param integral The base two center integral.
+    void _write_prim_func_buffers(      std::ofstream&   fstream,
+                                  const TensorComponent& bra_component,
+                                  const TensorComponent& ket_component,
+                                  const I2CIntegral&     integral) const;
+    
+    /// Writes main loop pragma for primitive compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_prim_func_pragma(      std::ofstream& fstream,
+                                 const I2CIntegral&   integral) const;
+    
+    /// Writes main loop pragma for primitive compute function.
+    /// @param fstream the file stream.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    /// @param bra_first The flag to set bra as expansion point.
+    void _write_prim_func_pragma(      std::ofstream&   fstream,
+                                 const TensorComponent& component,
+                                 const I2CIntegral&     integral,
+                                 const bool             bra_first) const;
+    
+    /// Writes main loop pragma for primitive compute function.
+    /// @param fstream the file stream.
+    /// @param bra_component the integral component on bra side.
+    /// @param ket_component the integral component on ket side.
+    /// @param integral The base two center integral.
+    void _write_prim_func_pragma(      std::ofstream&   fstream,
+                                 const TensorComponent& bra_component,
+                                 const TensorComponent& ket_component,
+                                 const I2CIntegral&     integral) const;
+    
+    /// Writes common pragma variables for primitive compute function.
+    /// @param fstream the file stream.
+    void _write_prim_func_common_pragma(std::ofstream& fstream) const;
+    
+    /// Writes main loop start for primitive compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_prim_func_loop_start(      std::ofstream& fstream,
+                                     const I2CIntegral&    integral) const;
+    
+    /// Writes main loop end for primitive compute function.
+    /// @param fstream the file stream.
+    void _write_prim_func_loop_end(std::ofstream& fstream) const;
         
 public:
     /// Creates an electron repulsion integrals CPU code generator.

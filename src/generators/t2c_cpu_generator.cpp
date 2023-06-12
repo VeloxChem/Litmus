@@ -189,6 +189,47 @@ T2CCPUGenerator::_get_tensor_components(const Tensor&      tensor,
     }
 }
 
+std::vector<T2CIntegral>
+T2CCPUGenerator::_select_operator_components(const TensorComponent& component,
+                                             const I2CIntegral&     integral,
+                                             const bool             bra_first) const
+{
+    std::vector<T2CIntegral> tcomps;
+    
+    for (const auto& tcomp : integral.components<T1CPair, T1CPair>())
+    {
+        if (bra_first)
+        {
+            if (tcomp.bra().shape() == component) tcomps.push_back(tcomp);
+        }
+        else
+        {
+            if (tcomp.ket().shape() == component) tcomps.push_back(tcomp);
+        }
+    }
+        
+    return tcomps;
+}
+
+std::vector<T2CIntegral>
+T2CCPUGenerator::_select_operator_components(const TensorComponent& bra_component,
+                                             const TensorComponent& ket_component,
+                                             const I2CIntegral&     integral) const
+{
+    std::vector<T2CIntegral> tcomps;
+    
+    for (const auto& tcomp : integral.components<T1CPair, T1CPair>())
+    {
+        if ((tcomp.bra().shape() == bra_component) &&
+            (tcomp.ket().shape() == ket_component))
+        {
+            tcomps.push_back(tcomp);
+        }
+    }
+        
+    return tcomps;
+}
+
 I2CIntegral
 T2CCPUGenerator::_get_integral(const std::string& label,
                                const int          ang_a,
@@ -305,7 +346,7 @@ T2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral) const
     
     fstream << "}" << std::endl << std::endl;
     
-    //_write_prim_funcs_to_cpp_header(fstream, integral);
+    _write_prim_funcs_to_cpp_file(fstream, integral);
 
     _write_namespace(fstream, integral, false);
 
@@ -571,6 +612,62 @@ T2CCPUGenerator::_write_prim_funcs_to_cpp_header(      std::ofstream& fstream,
                 _write_prim_func_docstr(fstream, bcomp, kcomp, integral);
                 
                 _write_prim_func_decl(fstream, bcomp, kcomp, integral, true);
+            }
+        }
+    }
+}
+
+void
+T2CCPUGenerator::_write_prim_funcs_to_cpp_file(      std::ofstream& fstream,
+                                                 const I2CIntegral&   integral) const
+{
+    if (const auto labels = _get_operator_components(integral.integrand(), "buffer"); labels.size() == 1)
+    {
+        if ((integral[0] == 0) || (integral[1] == 0))
+        {
+            _write_prim_func_decl(fstream, integral, false);
+            
+            _write_prim_func_body(fstream, integral); 
+        }
+        else
+        {
+            if (integral[0] >= integral[1])
+            {
+                const auto bra = Tensor(integral[0]);
+                
+                for (const auto& bcomp: bra.components())
+                {
+                    _write_prim_func_decl(fstream, bcomp, integral, true, false);
+                    
+                    _write_prim_func_body(fstream, bcomp, integral, true);
+                }
+            }
+            else
+            {
+                const auto ket = Tensor(integral[1]);
+                
+                for (const auto& kcomp: ket.components())
+                {
+                    _write_prim_func_decl(fstream, kcomp, integral, false, false);
+                    
+                    _write_prim_func_body(fstream, kcomp, integral, false);
+                }
+            }
+        }
+    }
+    else
+    {
+        const auto bra = Tensor(integral[0]);
+        
+        const auto ket = Tensor(integral[1]);
+        
+        for (const auto& bcomp: bra.components())
+        {
+            for (const auto& kcomp: ket.components())
+            {
+                _write_prim_func_decl(fstream, bcomp, kcomp, integral, false);
+                
+                _write_prim_func_body(fstream, bcomp, kcomp, integral);
             }
         }
     }
@@ -1331,6 +1428,8 @@ T2CCPUGenerator::_write_prim_call_tree_block_decl(      std::ofstream&   fstream
     // write primitives loop end
     
     _write_primitives_loop_end_decl(fstream);
+    
+    _write_block_distributor_decl(fstream, bra_component, ket_component, integral, diagonal);
 }
 
 void
@@ -1492,7 +1591,7 @@ T2CCPUGenerator::_write_block_distributor_decl(      std::ofstream& fstream,
                 const auto findex = std::to_string(pair.first);
               
                 lines.push_back({3, 0, 1, "t2cfunc::distribute(matrix, " + flabel +
-                                           ", bra_gto_indexes, ket_gto_indexes,"});
+                                          ", bra_gto_indexes, ket_gto_indexes,"});
                     
                 lines.push_back({3, 20, 2, "0, " + findex + ", j, ket_first, ket_last, ang_order);"});
             }
@@ -1512,8 +1611,6 @@ T2CCPUGenerator::_write_block_distributor_decl(      std::ofstream&   fstream,
     const auto labels = (bra_first) ? _get_tensor_components(integral[1], "buffer")
                                     : _get_tensor_components(integral[0], "buffer");
     
-    auto lines = VCodeLines();
-    
     const auto bra_mom = (bra_first) ? SphericalMomentum(integral[0])
                                      : SphericalMomentum(integral[1]);
     
@@ -1523,6 +1620,8 @@ T2CCPUGenerator::_write_block_distributor_decl(      std::ofstream&   fstream,
     const auto index = _get_tensor_component_index(component);
     
     const auto bra_pairs = bra_mom.select_pairs(index);
+    
+    auto lines = VCodeLines();
     
     for (int i = 0; i < labels.size(); i++)
     {
@@ -1568,6 +1667,409 @@ T2CCPUGenerator::_write_block_distributor_decl(      std::ofstream&   fstream,
             }
         }
     }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_block_distributor_decl(      std::ofstream&   fstream,
+                                               const TensorComponent& bra_component,
+                                               const TensorComponent& ket_component,
+                                               const I2CIntegral&     integral,
+                                               const bool             diagonal) const
+{
+    const auto labels = _get_operator_components(integral.integrand(), "buffer");
+    
+    const auto matrices = _get_operator_components(integral.integrand(), "matrix");
+    
+    const auto bra_mom = SphericalMomentum(integral[0]);
+    
+    const auto bra_index = _get_tensor_component_index(bra_component);
+    
+    const auto bra_pairs = bra_mom.select_pairs(bra_index);
+    
+    const auto ket_mom = SphericalMomentum(integral[1]);
+    
+    const auto ket_index = _get_tensor_component_index(ket_component);
+    
+    const auto ket_pairs = ket_mom.select_pairs(ket_index);
+    
+    auto lines = VCodeLines();
+    
+    for (int i = 0; i < labels.size(); i++)
+    {
+        for (const auto& bra_pair : bra_pairs)
+        {
+            for (const auto& ket_pair : ket_pairs)
+            {
+                const auto lfactor = _combine_factors(bra_pair.second,
+                                                      ket_pair.second);
+                
+                auto flabel = labels[i];
+                
+                flabel += (lfactor == "1.0")  ? "" : ", "  + lfactor;
+                
+                auto ijlabel = std::to_string(bra_pair.first) + ", " + std::to_string(ket_pair.first);
+                
+                if  (integral[0] ==  integral[1])
+                {
+                    if (diagonal)
+                    {
+                        lines.push_back({3, 0, 1, "t2cfunc::distribute(" + matrices[i] + ", " + flabel +
+                                                  ", gto_indexes,"});
+                        
+                        lines.push_back({3, 20, 2, ijlabel + ", j, ket_first, ket_last);"});
+                    }
+                    else
+                    {
+                        const auto msymm = _get_matrix_symmetry(integral.integrand());
+                        
+                        lines.push_back({3, 0, 1, "t2cfunc::distribute(" + matrices[i] + ", " + flabel +
+                                                  ", bra_gto_indexes, ket_gto_indexes,"});
+                        
+                        lines.push_back({3, 20, 2, ijlabel + ", j, ket_first, ket_last, " + msymm + ");"});
+                    }
+                }
+                else
+                {
+                    lines.push_back({3, 0, 1, "t2cfunc::distribute(" + matrices[i] + ", " + flabel +
+                                              ", bra_gto_indexes, ket_gto_indexes,"});
+                    
+                    lines.push_back({3, 20, 2, ijlabel + ", j, ket_first, ket_last, ang_order);"});
+                }
+            }
+        }
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_prim_func_body(      std::ofstream& fstream,
+                                       const I2CIntegral&   integral) const
+{
+    fstream << "{" << std::endl;
+    
+    _write_prim_func_common_data(fstream);
+    
+    _write_prim_func_buffers(fstream, integral);
+    
+    _write_prim_func_pragma(fstream, integral);
+    
+    _write_prim_func_loop_start(fstream, integral);
+    
+    // ...
+    
+    _write_prim_func_loop_end(fstream);
+    
+    fstream << "}" << std::endl << std::endl;
+}
+
+void
+T2CCPUGenerator::_write_prim_func_body(      std::ofstream&   fstream,
+                                       const TensorComponent& component,
+                                       const I2CIntegral&     integral,
+                                       const bool             bra_first) const
+{
+    fstream << "{" << std::endl;
+    
+    _write_prim_func_common_data(fstream);
+    
+    _write_prim_func_buffers(fstream, component, integral, bra_first);
+    
+    _write_prim_func_pragma(fstream, component, integral, bra_first);
+    
+    _write_prim_func_loop_start(fstream, integral);
+    
+    // ...
+    
+    _write_prim_func_loop_end(fstream);
+    
+    fstream << "}" << std::endl << std::endl;
+}
+
+void
+T2CCPUGenerator::_write_prim_func_body(      std::ofstream&   fstream,
+                                       const TensorComponent& bra_component,
+                                       const TensorComponent& ket_component,
+                                       const I2CIntegral&     integral) const
+{
+    fstream << "{" << std::endl;
+    
+    _write_prim_func_common_data(fstream);
+    
+    _write_prim_func_buffers(fstream, bra_component, ket_component, integral);
+    
+    _write_prim_func_pragma(fstream, bra_component, ket_component, integral);
+    
+    _write_prim_func_loop_start(fstream, integral);
+    
+    // ...
+    
+    _write_prim_func_loop_end(fstream);
+    
+    fstream << "}" << std::endl << std::endl;
+}
+
+void
+T2CCPUGenerator::_write_prim_func_common_data(std::ofstream& fstream) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({1, 0, 2, "// set up math constants"});
+    
+    lines.push_back({1, 0, 2, "const auto fpi = mathconst::getPiValue();"});
+    
+    lines.push_back({1, 0, 2, "// set up coordinates for bra side"});
+    
+    lines.push_back({1, 0, 2, "const auto bra_rx = bra_coord[0];"});
+    
+    lines.push_back({1, 0, 2, "const auto bra_ry = bra_coord[1];"});
+    
+    lines.push_back({1, 0, 2, "const auto bra_rz = bra_coord[2];"});
+    
+    lines.push_back({1, 0, 2, "// set up coordinates for ket side"});
+    
+    lines.push_back({1, 0, 2, "auto ket_rx = ket_coords_x.data();"});
+    
+    lines.push_back({1, 0, 2, "auto ket_ry = ket_coords_y.data();"});
+    
+    lines.push_back({1, 0, 2, "auto ket_rz = ket_coords_z.data();"});
+    
+    lines.push_back({1, 0, 2, "// set exponents and normalization factors on ket side"});
+    
+    lines.push_back({1, 0, 2, "auto ket_fe = ket_exps.data();"});
+    
+    lines.push_back({1, 0, 2, "auto ket_fn = ket_norms.data();"});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_prim_func_buffers(      std::ofstream& fstream,
+                                          const I2CIntegral&   integral) const
+{
+    const auto bra = Tensor(integral[0]);
+    
+    const auto ket = Tensor(integral[1]);
+    
+    std::vector<std::string> labels({"buffer", });
+    
+    if (integral[0] > 0) labels = _get_tensor_components(bra, "buffer");
+    
+    if (integral[1] > 0) labels = _get_tensor_components(ket, "buffer");
+    
+    std::vector<std::string> flabels({"fints", });
+    
+    if (integral[0] > 0) flabels = _get_tensor_components(bra, "fints");
+    
+    if (integral[1] > 0) flabels = _get_tensor_components(ket, "fints");
+    
+    auto lines = VCodeLines();
+    
+    lines.push_back({1, 0, 2, "// set up pointer to integrals buffer(s)"});
+    
+    for (size_t i = 0; i < labels.size(); i++)
+    {
+        lines.push_back({1, 0, 2, "auto " + flabels[i] + " = " + labels[i] + ".data();"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_prim_func_buffers(      std::ofstream&   fstream,
+                                          const TensorComponent& component,
+                                          const I2CIntegral&     integral,
+                                          const bool             bra_first) const
+{
+    const auto labels  = (bra_first) ? _get_tensor_components(integral[1], "buffer")
+                                    : _get_tensor_components(integral[0], "buffer");
+    
+    const auto flabels = (bra_first) ? _get_tensor_components(integral[1], "fints")
+                                     : _get_tensor_components(integral[0], "fints");
+    
+    auto lines = VCodeLines();
+    
+    lines.push_back({1, 0, 2, "// set up pointer to integrals buffer(s)"});
+    
+    for (size_t i = 0; i < labels.size(); i++)
+    {
+        lines.push_back({1, 0, 2, "auto " + flabels[i] + " = " + labels[i] + ".data();"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_prim_func_buffers(      std::ofstream&   fstream,
+                                          const TensorComponent& bra_component,
+                                          const TensorComponent& ket_component,
+                                          const I2CIntegral&     integral) const
+{
+    const auto labels  = _get_operator_components(integral.integrand(), "buffer");
+    
+    const auto flabels = _get_operator_components(integral.integrand(), "fints");
+    
+    auto lines = VCodeLines();
+    
+    lines.push_back({1, 0, 2, "// set up pointer to integrals buffer(s)"});
+    
+    for (size_t i = 0; i < labels.size(); i++)
+    {
+        lines.push_back({1, 0, 2, "auto " + flabels[i] + " = " + labels[i] + ".data();"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+
+void
+T2CCPUGenerator::_write_prim_func_pragma(      std::ofstream& fstream,
+                                         const I2CIntegral&   integral) const
+{
+    const auto bra = Tensor(integral[0]);
+    
+    const auto ket = Tensor(integral[1]);
+    
+    std::vector<std::string> labels({"fints", });
+    
+    if (integral[0] > 0) labels = _get_tensor_components(bra, "fints");
+    
+    if (integral[1] > 0) labels = _get_tensor_components(ket, "fints");
+    
+    auto lines = VCodeLines();
+    
+    for (size_t i = 0; i < labels.size(); i++)
+    {
+        if (i == 0)
+        {
+            lines.push_back({1, 0, 1, "#pragma omp simd aligned(" + labels[i] + ",\\"});
+        }
+        else
+        {
+            lines.push_back({1, 25, 1, labels[i] + ",\\"});
+        }
+    }
+    
+    ost::write_code_lines(fstream, lines);
+    
+    _write_prim_func_common_pragma(fstream);
+}
+
+void
+T2CCPUGenerator::_write_prim_func_pragma(      std::ofstream&   fstream,
+                                         const TensorComponent& component,
+                                         const I2CIntegral&     integral,
+                                         const bool             bra_first) const
+{
+    const auto labels = (bra_first) ? _get_tensor_components(integral[1], "fints")
+                                    : _get_tensor_components(integral[0], "fints");
+    
+    auto lines = VCodeLines();
+    
+    for (size_t i = 0; i < labels.size(); i++)
+    {
+        if (i == 0)
+        {
+            lines.push_back({1, 0, 1, "#pragma omp simd aligned(" + labels[i] + ",\\"});
+        }
+        else
+        {
+            lines.push_back({1, 25, 1, labels[i] + ",\\"});
+        }
+    }
+    
+    ost::write_code_lines(fstream, lines);
+    
+    _write_prim_func_common_pragma(fstream);
+}
+
+void
+T2CCPUGenerator::_write_prim_func_pragma(      std::ofstream&   fstream,
+                                         const TensorComponent& bra_component,
+                                         const TensorComponent& ket_component,
+                                         const I2CIntegral&     integral) const
+{
+    const auto labels = _get_operator_components(integral.integrand(), "fints");
+    
+    auto lines = VCodeLines();
+    
+    for (size_t i = 0; i < labels.size(); i++)
+    {
+        if (i == 0)
+        {
+            lines.push_back({1, 0, 1, "#pragma omp simd aligned(" + labels[i] + ",\\"});
+        }
+        else
+        {
+            lines.push_back({1, 25, 1, labels[i] + ",\\"});
+        }
+    }
+    
+    ost::write_code_lines(fstream, lines);
+ 
+    _write_prim_func_common_pragma(fstream);
+}
+
+void
+T2CCPUGenerator::_write_prim_func_common_pragma(std::ofstream& fstream) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({1, 25, 1, "ket_fe,\\"});
+    
+    lines.push_back({1, 25, 1, "ket_fn,\\"});
+    
+    lines.push_back({1, 25, 1, "ket_rx,\\"});
+    
+    lines.push_back({1, 25, 1, "ket_ry,\\"});
+    
+    lines.push_back({1, 25, 2, "ket_rz : 64)"});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_prim_func_loop_start(      std::ofstream& fstream,
+                                             const I2CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+
+    lines.push_back({1, 0, 1, "for (int64_t i = 0; i < ket_dim; i++)"});
+    
+    lines.push_back({1, 0, 1, "{"});
+    
+    lines.push_back({2, 0, 2, "const auto abx = bra_rx - ket_rx[i];"});
+    
+    lines.push_back({2, 0, 2, "const auto aby = bra_ry - ket_ry[i];"});
+    
+    lines.push_back({2, 0, 2, "const auto abz = bra_rz - ket_rz[i];"});
+    
+    lines.push_back({2, 0, 2, "const auto fnu = 1.0 / (bra_exp + ket_fe[i]);"});
+    
+    lines.push_back({2, 0, 2, "const auto fzu = bra_exp * ket_fe[i] * fnu;"});
+    
+    lines.push_back({2, 0, 2, "auto fr2 = fzu * (abx * abx + aby * aby + abz * abz);"});
+    
+    if ((integral.integrand() == Operator("1")) && ((integral[0] + integral[1]) == 0))
+    {
+        lines.push_back({2, 0, 1, "fints[i] += bra_norm * ket_fn[i] * std::pow(fnu * fpi, 1.50) * std::exp(-fr2);"});
+    }
+    else
+    {
+        lines.push_back({2, 0, 2, "fss = bra_norm * ket_fn[i] * std::pow(fnu * fpi, 1.50) * std::exp(-fr2);"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_prim_func_loop_end(std::ofstream& fstream) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({1, 0, 1, "}"});
     
     ost::write_code_lines(fstream, lines);
 }
