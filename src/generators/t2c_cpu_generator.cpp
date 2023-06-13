@@ -24,6 +24,8 @@
 #include "file_stream.hpp"
 #include "spherical_momentum.hpp"
 
+#include "t2c_ovl_driver.hpp"
+
 void
 T2CCPUGenerator::generate(const std::string& label,
                           const int          angmom) const
@@ -189,12 +191,12 @@ T2CCPUGenerator::_get_tensor_components(const Tensor&      tensor,
     }
 }
 
-std::vector<T2CIntegral>
-T2CCPUGenerator::_select_operator_components(const TensorComponent& component,
+VT2CIntegrals
+T2CCPUGenerator::_select_integral_components(const TensorComponent& component,
                                              const I2CIntegral&     integral,
                                              const bool             bra_first) const
 {
-    std::vector<T2CIntegral> tcomps;
+    VT2CIntegrals tcomps;
     
     for (const auto& tcomp : integral.components<T1CPair, T1CPair>())
     {
@@ -211,12 +213,12 @@ T2CCPUGenerator::_select_operator_components(const TensorComponent& component,
     return tcomps;
 }
 
-std::vector<T2CIntegral>
-T2CCPUGenerator::_select_operator_components(const TensorComponent& bra_component,
+VT2CIntegrals
+T2CCPUGenerator::_select_integral_components(const TensorComponent& bra_component,
                                              const TensorComponent& ket_component,
                                              const I2CIntegral&     integral) const
 {
-    std::vector<T2CIntegral> tcomps;
+    VT2CIntegrals tcomps;
     
     for (const auto& tcomp : integral.components<T1CPair, T1CPair>())
     {
@@ -1758,7 +1760,9 @@ T2CCPUGenerator::_write_prim_func_body(      std::ofstream& fstream,
     
     _write_prim_func_loop_start(fstream, integral);
     
-    // ...
+    const auto tcomps = integral.components<T1CPair, T1CPair>();
+    
+    _write_simd_code(fstream, tcomps, integral);
     
     _write_prim_func_loop_end(fstream);
     
@@ -1781,7 +1785,9 @@ T2CCPUGenerator::_write_prim_func_body(      std::ofstream&   fstream,
     
     _write_prim_func_loop_start(fstream, integral);
     
-    // ...
+    const auto tcomps = _select_integral_components(component, integral, bra_first);
+    
+    _write_simd_code(fstream, tcomps, integral);
     
     _write_prim_func_loop_end(fstream);
     
@@ -1804,7 +1810,9 @@ T2CCPUGenerator::_write_prim_func_body(      std::ofstream&   fstream,
     
     _write_prim_func_loop_start(fstream, integral);
     
-    // ...
+    const auto tcomps = _select_integral_components(bra_component, ket_component, integral);
+    
+    _write_simd_code(fstream, tcomps, integral); 
     
     _write_prim_func_loop_end(fstream);
     
@@ -2072,4 +2080,25 @@ T2CCPUGenerator::_write_prim_func_loop_end(std::ofstream& fstream) const
     lines.push_back({1, 0, 1, "}"});
     
     ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_simd_code(      std::ofstream& fstream,
+                                  const VT2CIntegrals& components,
+                                  const I2CIntegral&   integral) const
+{
+    R2Group rgroup;
+    
+    // Overlap inntegrals
+    
+    if (integral.integrand() == Operator("1"))
+    {
+        T2COverlapDriver t2c_ovl_drv;
+        
+        rgroup = t2c_ovl_drv.create_recursion(components);
+    }
+    
+    // ... other integrals
+    
+    // write simd code
 }

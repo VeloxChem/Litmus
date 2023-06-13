@@ -114,6 +114,11 @@ public:
     /// @param mang The maximum angular momentum.
     /// @return The vector of recursion group containers.
     V2GroupContainers create_containers(const int mang) const;
+    
+    /// Creates recursion group from vector of overlap integral components.
+    /// @param vints The  vector of overlap integral components.
+    /// @return The recursion group.
+    R2Group create_recursion(const VT2CIntegrals& vints) const;
 };
 
 #endif /* t2c_ovl_driver_hpp */

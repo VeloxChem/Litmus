@@ -82,16 +82,16 @@ class T2CCPUGenerator
     /// @param component the tensor component.
     /// @param integral The base two center integral.
     /// @param bra_first The flag to set bra as expansion point.
-    std::vector<T2CIntegral> _select_operator_components(const TensorComponent& component,
-                                                         const I2CIntegral&     integral,
-                                                         const bool             bra_first) const;
+    VT2CIntegrals _select_integral_components(const TensorComponent& component,
+                                              const I2CIntegral&     integral,
+                                              const bool             bra_first) const;
     /// Writes documentation string for primitive compute function.
     /// @param bra_component the tensor component.
     /// @param ket_component the tensor component.
     /// @param integral The base two center integral.
-    std::vector<T2CIntegral> _select_operator_components(const TensorComponent& bra_component,
-                                                         const TensorComponent& ket_component,
-                                                         const I2CIntegral&     integral) const;
+    VT2CIntegrals _select_integral_components(const TensorComponent& bra_component,
+                                              const TensorComponent& ket_component,
+                                              const I2CIntegral&     integral) const;
     
     /// Gets two-center inetgral with requested label.
     /// @param label The label of requested two-center integral.
@@ -459,6 +459,14 @@ class T2CCPUGenerator
     /// Writes main loop end for primitive compute function.
     /// @param fstream the file stream.
     void _write_prim_func_loop_end(std::ofstream& fstream) const;
+    
+    /// Writes simd code generated for selected set of integral components.
+    /// @param fstream the file stream.
+    /// @param components the vector of integral component.
+    /// @param integral the base integral.
+    void _write_simd_code(      std::ofstream& fstream,
+                          const VT2CIntegrals& components,
+                          const I2CIntegral&   integral) const;
         
 public:
     /// Creates an electron repulsion integrals CPU code generator.

@@ -398,3 +398,20 @@ T2COverlapDriver::create_containers(const int mang) const
     
     return vconts;
 }
+
+R2Group
+T2COverlapDriver::create_recursion(const VT2CIntegrals& vints) const
+{
+    // create reference group
+    
+    R2Group r2group;
+    
+    for (const auto& tcomp : vints)
+    {
+        r2group.add(R2CDist(R2CTerm(tcomp)));
+    }
+    
+    // ...
+    
+    return r2group;
+}
