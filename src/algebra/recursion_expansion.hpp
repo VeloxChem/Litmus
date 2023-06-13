@@ -63,6 +63,9 @@ public:
     /// @return true if this recursion expansion is less than other recursion expansion, false otherwise.
     bool operator<(const RecursionExpansion<T>& other) const;
     
+    /// Simplifies recursion expansion.
+    void simplify();
+    
     /// Reduces order of recursion expansion by given order.
     /// @param order The order to be substracted from recursion expansion terms.
     void reduce(const int32_t order);
@@ -189,6 +192,45 @@ RecursionExpansion<T>::operator<(const RecursionExpansion<T>& other) const
     {
         return _expansion < other._expansion;
     }
+}
+
+template <class T>
+void
+RecursionExpansion<T>::simplify()
+{
+    SRecursionTerms<T> rterms;
+    
+    for (size_t i = 0; i < _expansion.size(); i++)
+    {
+        auto rterm = _expansion[i];
+        
+        rterm.prefactor(Fraction(0));
+        
+        rterms.insert(rterm);
+    }
+    
+    VRecursionTerms<T> new_expansion;
+    
+    for (const auto& rterm : rterms)
+    {
+        auto frac = Fraction(0);
+        
+        for (size_t i = 0; i < _expansion.size(); i++)
+        {
+            if (rterm.same_base(_expansion[i]))
+            {
+                frac = frac + _expansion[i].prefactor();
+            }
+        }
+        
+        auto mterm = rterm;
+        
+        mterm.prefactor(frac);
+        
+        new_expansion.push_back(mterm);
+    }
+    
+    _expansion = new_expansion; 
 }
 
 template <class T>

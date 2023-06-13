@@ -76,6 +76,9 @@ public:
     /// Reduces order of this recursion term to minimal possible.
     void reduce();
     
+    /// Simplifies the recursion expansions in recursion group.
+    void simplify();
+    
     /// Cheks if recursion group contains the given recursion expansion.
     /// @param rexp The recursion expansion to check.
     /// @return Ture if recursion group contains given recursion expansion, false otherwise.
@@ -161,7 +164,7 @@ RecursionGroup<T>::RecursionGroup(const VRecursionExpansions<T>& expansions)
 
     : _expansions(expansions)
 {
-        std::sort(_expansions.begin(), _expansions.end());
+        //std::sort(_expansions.begin(), _expansions.end());
 }
 
 template <class T>
@@ -218,7 +221,7 @@ RecursionGroup<T>::add(const RecursionExpansion<T>& expansion)
 {
     _expansions.push_back(expansion);
     
-    std::sort(_expansions.begin(), _expansions.end());
+    //std::sort(_expansions.begin(), _expansions.end());
 }
 
 template <class T>
@@ -233,6 +236,16 @@ RecursionGroup<T>::reduce()
         {
             _expansions[i].reduce(morder); 
         }
+    }
+}
+
+template <class T>
+void
+RecursionGroup<T>::simplify()
+{
+    for (size_t i = 0; i < _expansions.size(); i++)
+    {
+        _expansions[i].simplify();
     }
 }
 
@@ -260,7 +273,7 @@ RecursionGroup<T>::merge(const RecursionGroup<T>& other)
         if (!contains(tval)) _expansions.push_back(tval);
     }
     
-    std::sort(_expansions.begin(), _expansions.end());
+    //std::sort(_expansions.begin(), _expansions.end());
 }
 
 template <class T>

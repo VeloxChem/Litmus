@@ -71,10 +71,19 @@ public:
     /// @return true if this recursion term is less than other recursion term, false otherwise.
     bool operator<(const RecursionTerm<T>& other) const;
     
+    /// Sets fractional prefactor of recursion term.
+    /// @param factor The fractional prefactor of recursion term.
+    void prefactor(const Fraction& factor);
+    
     /// Checks if this recursion term is similar to other recursion term.
     /// @param other The other recursion term to compare.
     /// @return True if recursion terms  are similar, false otherwise.
     bool similar(const RecursionTerm<T>& other) const;
+    
+    /// Checks if this recursion term has same base as the other recursion term.
+    /// @param other The other recursion term to compare.
+    /// @return True if recursion terms  have same base, false otherwise.
+    bool same_base(const RecursionTerm<T>& other) const;
     
     /// Gets bra side of recursion term.
     /// @return The bra side of recursion term.
@@ -253,10 +262,34 @@ RecursionTerm<T>::operator<(const RecursionTerm<T>& other) const
 }
 
 template <class T>
+void
+RecursionTerm<T>::prefactor(const Fraction& factor)
+{
+    _prefactor = factor; 
+}
+
+template <class T>
 bool
 RecursionTerm<T>::similar(const RecursionTerm<T>& other) const
 {
     return _integral.similar(other._integral); 
+}
+
+template <class T>
+bool
+RecursionTerm<T>::same_base(const RecursionTerm<T>& other) const
+{
+    if (_integral != other._integral)
+    {
+        return false;
+    }
+    
+    if (_factors != other._factors)
+    {
+        return false;
+    }
+    
+    return true;
 }
 
 template <class T>
@@ -448,6 +481,9 @@ RecursionTerm<T>::auxilary(const int center) const
 
 template <class T>
 using VRecursionTerms = std::vector<RecursionTerm<T>>;
+
+template <class T>
+using SRecursionTerms = std::set<RecursionTerm<T>>;
 
 template <class T>
 using MRecursionTerms = std::vector<std::vector<RecursionTerm<T>>>;

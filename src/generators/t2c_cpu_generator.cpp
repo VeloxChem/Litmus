@@ -252,6 +252,69 @@ T2CCPUGenerator::_get_integral(const std::string& label,
 }
 
 std::string
+T2CCPUGenerator::_get_factor_label(const R2CTerm& rterm,
+                                   const bool     first) const
+{
+    const auto pre_fact = rterm.prefactor();
+    
+    auto plabel = pre_fact.label();
+    
+    if (plabel == "1.0")  plabel = "";
+    
+    if (plabel == "-1.0") plabel = "-";
+    
+    if (pre_fact.denominator() != 1)
+    {
+        if (pre_fact.numerator() < 0) plabel.erase(0, 1);
+        
+        plabel = "(" + plabel + ")";
+        
+        if (pre_fact.numerator() < 0) plabel = "-" + plabel;
+    }
+    
+    const auto facts = rterm.factors();
+    
+    std::string flabel;
+    
+    for (const auto& fact : facts)
+    {
+        const auto norder = rterm.factor_order(fact);
+        
+        for (size_t n = 0; n < norder; n++)
+        {
+            flabel += " * " + fact.label();
+        }
+    }
+    
+    // remove multiplication for special cases
+    
+    if ((pre_fact == Fraction(1)) || (pre_fact == Fraction(-1)))
+    {
+        flabel.erase(0, 3);
+    }
+    
+    // merge labels
+    
+    flabel = plabel + flabel;
+    
+    if (!first)
+    {
+        if (flabel[0] == '-')
+        {
+            flabel.insert(1, " ");
+        }
+        else
+        {
+            flabel = "+ " + flabel;
+        }
+        
+        flabel = " " + flabel;
+    }
+    
+    return flabel;
+}
+
+std::string
 T2CCPUGenerator::_file_name(const I2CIntegral& integral) const
 {
     return _get_label(integral) + "Rec" + integral.label();
@@ -390,7 +453,9 @@ T2CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"SubMatrix.hpp\""});
     
-    lines.push_back({0, 0, 2, "#include \"SimdTypes.hpp\""});
+    lines.push_back({0, 0, 1, "#include \"SimdTypes.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"MatrixType.hpp\""});
     
     ost::write_code_lines(fstream, lines);
 }
@@ -498,6 +563,11 @@ T2CCPUGenerator::_write_func_docstr(      std::ofstream& fstream,
     
     lines.push_back({0, 1, 1, "@param bra_last the index of the range [bra_first, bra_last) of GTOs on bra side."});
     
+    if ((!diagonal) && (integral[0] == integral[1]))
+    {
+        lines.push_back({0, 1, 1, "@param mat_type the matrix type."});
+    }
+    
     lines.push_back({0, 0, 1, "*/"});
     
     ost::write_code_lines(fstream, lines);
@@ -558,8 +628,17 @@ T2CCPUGenerator::_write_func_decl(      std::ofstream& fstream,
     
     fname = (terminus) ? ";" : "";
     
-    lines.push_back({0, fsize, 2, "const int64_t     bra_last) -> void" + fname});
+    if ((!diagonal) && (integral[0] == integral[1]))
+    {
+        lines.push_back({0, fsize, 1, "const int64_t     bra_last," + fname});
         
+        lines.push_back({0, fsize, 2, "const mat_t       mat_type) -> void" + fname});
+    }
+    else
+    {
+        lines.push_back({0, fsize, 2, "const int64_t     bra_last) -> void" + fname});
+    }
+    
     ost::write_code_lines(fstream, lines);
 }
 
@@ -1540,11 +1619,9 @@ T2CCPUGenerator::_write_block_distributor_decl(      std::ofstream& fstream,
         }
         else
         {
-            const auto msymm = _get_matrix_symmetry(integral.integrand());
-            
             lines.push_back({3, 0, 1, "t2cfunc::distribute(matrix, buffer, bra_gto_indexes, ket_gto_indexes,"});
             
-            lines.push_back({3, 20, 1, "0, 0, j, ket_first, ket_last, " + msymm + ");"});
+            lines.push_back({3, 20, 1, "0, 0, j, ket_first, ket_last, mat_type);"});
         }
     }
     
@@ -1651,11 +1728,9 @@ T2CCPUGenerator::_write_block_distributor_decl(      std::ofstream&   fstream,
                     }
                     else
                     {
-                        const auto msymm = _get_matrix_symmetry(integral.integrand());
-                        
                         lines.push_back({3, 0, 1, "t2cfunc::distribute(matrix, " + flabel + ", bra_gto_indexes, ket_gto_indexes,"});
                         
-                        lines.push_back({3, 20, 2, ijlabel + ", j, ket_first, ket_last, " + msymm + ");"});
+                        lines.push_back({3, 20, 2, ijlabel + ", j, ket_first, ket_last, mat_type);"});
                     }
                 }
                 else
@@ -1724,12 +1799,10 @@ T2CCPUGenerator::_write_block_distributor_decl(      std::ofstream&   fstream,
                     }
                     else
                     {
-                        const auto msymm = _get_matrix_symmetry(integral.integrand());
-                        
                         lines.push_back({3, 0, 1, "t2cfunc::distribute(" + matrices[i] + ", " + flabel +
                                                   ", bra_gto_indexes, ket_gto_indexes,"});
                         
-                        lines.push_back({3, 20, 2, ijlabel + ", j, ket_first, ket_last, " + msymm + ");"});
+                        lines.push_back({3, 20, 2, ijlabel + ", j, ket_first, ket_last, mat_type);"});
                     }
                 }
                 else
@@ -1762,7 +1835,17 @@ T2CCPUGenerator::_write_prim_func_body(      std::ofstream& fstream,
     
     const auto tcomps = integral.components<T1CPair, T1CPair>();
     
-    _write_simd_code(fstream, tcomps, integral);
+    const auto bra = Tensor(integral[0]);
+    
+    const auto ket = Tensor(integral[1]);
+    
+    std::vector<std::string> labels({"fints", });
+    
+    if (integral[0] > 0) labels = _get_tensor_components(bra, "fints");
+    
+    if (integral[1] > 0) labels = _get_tensor_components(ket, "fints");
+    
+    _write_simd_code(fstream, labels, tcomps, integral);
     
     _write_prim_func_loop_end(fstream);
     
@@ -1787,7 +1870,10 @@ T2CCPUGenerator::_write_prim_func_body(      std::ofstream&   fstream,
     
     const auto tcomps = _select_integral_components(component, integral, bra_first);
     
-    _write_simd_code(fstream, tcomps, integral);
+    const auto labels = (bra_first) ? _get_tensor_components(integral[1], "fints")
+                                    : _get_tensor_components(integral[0], "fints");
+    
+    _write_simd_code(fstream, labels, tcomps, integral);
     
     _write_prim_func_loop_end(fstream);
     
@@ -1812,7 +1898,9 @@ T2CCPUGenerator::_write_prim_func_body(      std::ofstream&   fstream,
     
     const auto tcomps = _select_integral_components(bra_component, ket_component, integral);
     
-    _write_simd_code(fstream, tcomps, integral); 
+    const auto labels = _get_operator_components(integral.integrand(), "fints");
+    
+    _write_simd_code(fstream, labels, tcomps, integral);
     
     _write_prim_func_loop_end(fstream);
     
@@ -1892,7 +1980,7 @@ T2CCPUGenerator::_write_prim_func_buffers(      std::ofstream&   fstream,
                                           const bool             bra_first) const
 {
     const auto labels  = (bra_first) ? _get_tensor_components(integral[1], "buffer")
-                                    : _get_tensor_components(integral[0], "buffer");
+                                     : _get_tensor_components(integral[0], "buffer");
     
     const auto flabels = (bra_first) ? _get_tensor_components(integral[1], "fints")
                                      : _get_tensor_components(integral[0], "fints");
@@ -2033,7 +2121,7 @@ T2CCPUGenerator::_write_prim_func_common_pragma(std::ofstream& fstream) const
     
     lines.push_back({1, 25, 1, "ket_ry,\\"});
     
-    lines.push_back({1, 25, 2, "ket_rz : 64)"});
+    lines.push_back({1, 25, 1, "ket_rz : 64)"});
     
     ost::write_code_lines(fstream, lines);
 }
@@ -2048,25 +2136,43 @@ T2CCPUGenerator::_write_prim_func_loop_start(      std::ofstream& fstream,
     
     lines.push_back({1, 0, 1, "{"});
     
-    lines.push_back({2, 0, 2, "const auto abx = bra_rx - ket_rx[i];"});
+    lines.push_back({2, 0, 2, "const auto ab_x = bra_rx - ket_rx[i];"});
     
-    lines.push_back({2, 0, 2, "const auto aby = bra_ry - ket_ry[i];"});
+    lines.push_back({2, 0, 2, "const auto ab_y = bra_ry - ket_ry[i];"});
     
-    lines.push_back({2, 0, 2, "const auto abz = bra_rz - ket_rz[i];"});
+    lines.push_back({2, 0, 2, "const auto ab_z = bra_rz - ket_rz[i];"});
     
-    lines.push_back({2, 0, 2, "const auto fnu = 1.0 / (bra_exp + ket_fe[i]);"});
+    lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / (bra_exp + ket_fe[i]);"});
     
-    lines.push_back({2, 0, 2, "const auto fzu = bra_exp * ket_fe[i] * fnu;"});
+    lines.push_back({2, 0, 2, "auto fz_0 = bra_exp * ket_fe[i] * fnu;"});
     
-    lines.push_back({2, 0, 2, "auto fr2 = fzu * (abx * abx + aby * aby + abz * abz);"});
+    lines.push_back({2, 0, 2, "fz_0 *= (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
+    
+    if (integral[0] > 0)
+    {
+        lines.push_back({2, 0, 2, "const auto rpa_x = -ket_fe[i] * abx * fnu;"});
+        
+        lines.push_back({2, 0, 2, "const auto rpa_y = -ket_fe[i] * aby * fnu;"});
+        
+        lines.push_back({2, 0, 2, "const auto rpa_z = -ket_fe[i] * abz * fnu;"});
+    }
+    
+    if (integral[1] > 0)
+    {
+        lines.push_back({2, 0, 2, "const auto rpb_x = bra_exp * abx * fnu;"});
+        
+        lines.push_back({2, 0, 2, "const auto rpb_y = bra_exp * aby * fnu;"});
+        
+        lines.push_back({2, 0, 2, "const auto rpb_z = bra_exp * abz * fnu;"});
+    }
     
     if ((integral.integrand() == Operator("1")) && ((integral[0] + integral[1]) == 0))
     {
-        lines.push_back({2, 0, 1, "fints[i] += bra_norm * ket_fn[i] * std::pow(fnu * fpi, 1.50) * std::exp(-fr2);"});
+        lines.push_back({2, 0, 1, "fints[i] += bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
     }
     else
     {
-        lines.push_back({2, 0, 2, "fss = bra_norm * ket_fn[i] * std::pow(fnu * fpi, 1.50) * std::exp(-fr2);"});
+        lines.push_back({2, 0, 2, "fss = bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
     }
     
     ost::write_code_lines(fstream, lines);
@@ -2083,9 +2189,10 @@ T2CCPUGenerator::_write_prim_func_loop_end(std::ofstream& fstream) const
 }
 
 void
-T2CCPUGenerator::_write_simd_code(      std::ofstream& fstream,
-                                  const VT2CIntegrals& components,
-                                  const I2CIntegral&   integral) const
+T2CCPUGenerator::_write_simd_code(      std::ofstream&            fstream,
+                                  const std::vector<std::string>& labels,
+                                  const VT2CIntegrals&            components,
+                                  const I2CIntegral&              integral) const
 {
     R2Group rgroup;
     
@@ -2100,5 +2207,42 @@ T2CCPUGenerator::_write_simd_code(      std::ofstream& fstream,
     
     // ... other integrals
     
-    // write simd code
+    // generate simd code
+    
+    auto lines = VCodeLines();
+    
+    for (size_t i = 0; i < labels.size(); i++)
+    {
+        const auto rdist = rgroup[i];
+        
+        const auto nterms = rdist.terms();
+        
+        auto nbatches = nterms / 5;
+        
+        if ((nterms % 5) != 0) nbatches++;
+        
+        for (size_t j = 0; j < nbatches; j++)
+        {
+            const auto sterm = 5 * j;
+            
+            const auto eterm = ((sterm + 5) > nterms) ? nterms : sterm + 5;
+            
+            std::string simd_str;
+            
+            for (size_t k = sterm; k < eterm; k++)
+            {
+                simd_str += _get_factor_label(rdist[k], k == sterm);
+            }
+            
+            if ((eterm - sterm) > 1) simd_str = "(" + simd_str + ")";
+            
+            int shift = 2;
+            
+            if ((labels.size() == (i + 1)) && (nbatches == (j + 1))) shift = 1;
+            
+            lines.push_back({2, 0, shift, labels[i] + "[i] += fss * " + simd_str + ";"});
+        }
+    }
+    
+    ost::write_code_lines(fstream, lines);
 }

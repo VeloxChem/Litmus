@@ -102,6 +102,12 @@ class T2CCPUGenerator
                               const int          ang_a,
                               const int          ang_b) const;
     
+    /// Gets recursion factors label.
+    /// @param rterm The recursion term.
+    /// @param first The position of recursion term in code line.
+    std::string _get_factor_label(const R2CTerm& rterm,
+                                  const bool     first) const;
+    
     /// Gets file name of file with recursion functions for two center integral.
     /// @param integral The base two center integral.
     /// @return The file name.
@@ -462,12 +468,14 @@ class T2CCPUGenerator
     
     /// Writes simd code generated for selected set of integral components.
     /// @param fstream the file stream.
+    /// @param labels the vector of labels for integral components.
     /// @param components the vector of integral component.
     /// @param integral the base integral.
-    void _write_simd_code(      std::ofstream& fstream,
-                          const VT2CIntegrals& components,
-                          const I2CIntegral&   integral) const;
-        
+    void _write_simd_code(      std::ofstream&            fstream,
+                          const std::vector<std::string>& labels,
+                          const VT2CIntegrals&            components,
+                          const I2CIntegral&              integral) const;
+    
 public:
     /// Creates an electron repulsion integrals CPU code generator.
     T2CCPUGenerator() = default;

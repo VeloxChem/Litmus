@@ -68,6 +68,18 @@ public:
     /// @return The recursion expansion of given recursion term.
     R2CDist apply_ket_vrr(const R2CTerm& rterm,
                                 R2CMap&  sints) const;
+    
+    /// Applies vertical recursion to bra side recursion term containing overlap
+    /// integral.
+    /// @param rterm The recursion term with overlap integral.
+    /// @return The recursion expansion of given recursion term.
+    R2CDist apply_bra_vrr(const R2CTerm& rterm) const;
+    
+    /// Applies vertical recursion to ket side recursion term containing overlap
+    /// integral.
+    /// @param rterm The recursion term with overlap integral.
+    /// @return The recursion expansion of given recursion term.
+    R2CDist apply_ket_vrr(const R2CTerm& rterm) const;
         
     /// Applies vertical recursion to bra side of given vector of recursion terms containing
     /// overlap integral.
@@ -102,6 +114,19 @@ public:
     /// @param sints The map of overlap integrals (updated by selecting recursion).
     void apply_recursion(R2GroupContainer& rgroups,
                          R2CMap&           sints) const;
+    
+    /// Recursively applies Obara-Saika recursion to recursion expansion.
+    /// @param rdist The recursion expansion.
+    void apply_recursion(R2CDist& rdist) const;
+    
+    
+    /// Recursively applies vertical recursion to bra side of given recursion expansion.
+    /// @param rdist The recursion expansion.
+    void apply_bra_vrr(R2CDist& rdist) const;
+    
+    /// Recursively applies vertical recursion to ket side of given recursion expansion.
+    /// @param rdist The recursion expansion.
+    void apply_ket_vrr(R2CDist& rdist) const;
     
     /// Creates recursion groups container for given angular momentum values.
     /// @param anga The angular momentum of center A.

@@ -172,7 +172,7 @@ Fraction::to_string() const
 }
 
 std::string
-Fraction::label() const
+Fraction::label(std::string spacer) const
 {
     if (_denominator == 1)
     {

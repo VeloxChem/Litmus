@@ -169,6 +169,29 @@ T2COverlapDriver::apply_bra_vrr(const R2CTerm& rterm,
 }
 
 R2CDist
+T2COverlapDriver::apply_bra_vrr(const R2CTerm& rterm) const
+{
+    R2CDist t2crt;
+    
+    size_t nints = 4;
+    
+    for (const auto axis : "xyz")
+    {
+        if (const auto trec = bra_vrr(rterm, axis))
+        {
+            if (const auto nterms = trec->terms(); nterms < nints)
+            {
+                t2crt = *trec;
+                
+                nints = nterms;
+            }
+        }
+    }
+    
+    return t2crt;
+}
+
+R2CDist
 T2COverlapDriver::apply_ket_vrr(const R2CTerm& rterm,
                                       R2CMap&  sints) const
 {
@@ -192,6 +215,29 @@ T2COverlapDriver::apply_ket_vrr(const R2CTerm& rterm,
     }
         
     sints.add(t2crt.unique_integrals());
+    
+    return t2crt;
+}
+
+R2CDist
+T2COverlapDriver::apply_ket_vrr(const R2CTerm& rterm) const
+{
+    R2CDist t2crt;
+    
+    size_t nints = 3;
+    
+    for (const auto axis : "xyz")
+    {
+        if (const auto trec = ket_vrr(rterm, axis))
+        {
+            if (const auto nterms = trec->terms(); nterms < nints)
+            {
+                t2crt = *trec;
+                
+                nints = nterms;
+            }
+        }
+    }
     
     return t2crt;
 }
@@ -343,6 +389,170 @@ T2COverlapDriver::apply_recursion(R2GroupContainer& rgroups,
     apply_ket_vrr(rgroups, sints);
 }
 
+void
+T2COverlapDriver::apply_recursion(R2CDist& rdist) const
+{
+    // vertical recursions on bra side
+    
+    apply_bra_vrr(rdist);
+    
+    // vertical recursions on ket side
+    
+    apply_ket_vrr(rdist);
+}
+
+void
+T2COverlapDriver::apply_bra_vrr(R2CDist& rdist) const
+{
+    if (!rdist.auxilary(0))
+    {
+        R2CDist new_dist(rdist.root());
+        
+        V2CTerms rec_terms;
+        
+        // set up initial terms for recursion expansion
+        
+        if (const auto nterms = rdist.terms(); nterms > 0)
+        {
+            for (size_t i = 0; i < nterms; i++)
+            {
+                if (const auto rterm = rdist[i]; is_overlap(rterm))
+                {
+                    if (rterm.auxilary(0))
+                    {
+                        new_dist.add(rterm);
+                    }
+                    else
+                    {
+                        rec_terms.push_back(rterm);
+                    }
+                }
+                else
+                {
+                    new_dist.add(rterm);
+                }
+            }
+        }
+        else
+        {
+            if (const auto rterm = rdist.root(); is_overlap(rterm))
+            {
+                rec_terms.push_back(rterm);
+            }
+        }
+        
+        // apply recursion until only
+            
+        while (!rec_terms.empty())
+        {
+            V2CTerms new_terms;
+            
+            for (size_t i = 0; i < rec_terms.size(); i++)
+            {
+                const auto cdist = apply_bra_vrr(rec_terms[i]);
+                
+                if (const auto nterms = cdist.terms(); nterms > 0)
+                {
+                    for (size_t j = 0; j < nterms; j++)
+                    {
+                        if (const auto rterm = cdist[j]; rterm.auxilary(0))
+                        {
+                            new_dist.add(rterm);
+                        }
+                        else
+                        {
+                            new_terms.push_back(rterm);
+                        }
+                    }
+                }
+            }
+            
+            rec_terms = new_terms;
+        }
+        
+        // update recursion distribution
+        
+        std::cout << "AFTER BRA: " << new_dist.terms() << std::endl; 
+        
+        rdist = new_dist; 
+    }
+}
+
+void
+T2COverlapDriver::apply_ket_vrr(R2CDist& rdist) const
+{
+    if (!rdist.auxilary(1))
+    {
+        R2CDist new_dist(rdist.root());
+        
+        V2CTerms rec_terms;
+        
+        // set up initial terms for recursion expansion
+        
+        if (const auto nterms = rdist.terms(); nterms > 0)
+        {
+            for (size_t i = 0; i < nterms; i++)
+            {
+                if (const auto rterm = rdist[i]; is_overlap(rterm))
+                {
+                    if (rterm.auxilary(1))
+                    {
+                        new_dist.add(rterm);
+                    }
+                    else
+                    {
+                        rec_terms.push_back(rterm);
+                    }
+                }
+                else
+                {
+                    new_dist.add(rterm);
+                }
+            }
+        }
+        else
+        {
+            if (const auto rterm = rdist.root(); is_overlap(rterm))
+            {
+                rec_terms.push_back(rterm);
+            }
+        }
+        
+        // apply recursion until only
+            
+        while (!rec_terms.empty())
+        {
+            V2CTerms new_terms;
+            
+            for (size_t i = 0; i < rec_terms.size(); i++)
+            {
+                const auto cdist = apply_ket_vrr(rec_terms[i]);
+                
+                if (const auto nterms = cdist.terms(); nterms > 0)
+                {
+                    for (size_t j = 0; j < nterms; j++)
+                    {
+                        if (const auto rterm = cdist[j]; rterm.auxilary(1))
+                        {
+                            new_dist.add(rterm);
+                        }
+                        else
+                        {
+                            new_terms.push_back(rterm);
+                        }
+                    }
+                }
+            }
+            
+            rec_terms = new_terms;
+        }
+        
+        // update recursion distribution
+        
+        rdist = new_dist;
+    }
+}
+
 R2GroupContainer
 T2COverlapDriver::create_container(const int anga,
                                    const int angb) const
@@ -408,10 +618,25 @@ T2COverlapDriver::create_recursion(const VT2CIntegrals& vints) const
     
     for (const auto& tcomp : vints)
     {
-        r2group.add(R2CDist(R2CTerm(tcomp)));
+        auto rdist = R2CDist(R2CTerm(tcomp));
+        
+        apply_recursion(rdist);
+        
+        std::cout << "*** RECURSION FOR INTEGRAL COMPONENT: " << rdist.root().label() << std::endl;
+
+        std::cout << " NUMBER OF TERMS:" << rdist.terms() << std::endl;
+
+        for (size_t i = 0; i < rdist.terms(); i++)
+        {
+            std::cout << " RECURSION TERM (" << i << "): " << rdist[i].label() << std::endl;
+        }
+        
+        std::cout << std::endl << std::endl; 
+        
+        r2group.add(rdist);
     }
     
-    // ...
+    r2group.simplify(); 
     
     return r2group;
 }
