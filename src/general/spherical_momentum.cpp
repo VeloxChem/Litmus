@@ -122,7 +122,7 @@ SphericalMomentum::get_factors(const int angmom) const
     {
         return std::vector<std::string>({"f3_5 = std::sqrt(2.5)",
                                          "f3_15 = 2.0 * std::sqrt(15.0)",
-                                         "f3 = std::sqrt(1.5)"});
+                                         "f3_3 = std::sqrt(1.5)"});
     }
     
     if (angmom == 4)

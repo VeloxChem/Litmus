@@ -314,6 +314,18 @@ T2CCPUGenerator::_get_factor_label(const R2CTerm& rterm,
     return flabel;
 }
 
+bool
+T2CCPUGenerator::_find_factor(const R2Group&     rgroup,
+                              const std::string& label) const
+{
+    for (const auto& fact : rgroup.factors())
+    {
+        if (fact.label() == label) return true;
+    }
+    
+    return false;
+}
+
 std::string
 T2CCPUGenerator::_file_name(const I2CIntegral& integral) const
 {
@@ -630,7 +642,7 @@ T2CCPUGenerator::_write_func_decl(      std::ofstream& fstream,
     
     if ((!diagonal) && (integral[0] == integral[1]))
     {
-        lines.push_back({0, fsize, 1, "const int64_t     bra_last," + fname});
+        lines.push_back({0, fsize, 1, "const int64_t     bra_last,"});
         
         lines.push_back({0, fsize, 2, "const mat_t       mat_type) -> void" + fname});
     }
@@ -906,8 +918,6 @@ T2CCPUGenerator::_write_prim_data_docstr(std::ofstream& fstream) const
     lines.push_back({0, 1, 1, "@param ket_coords_y the array of Cartesian Y coordinates on ket side."});
     
     lines.push_back({0, 1, 1, "@param ket_coords_z the array of Cartesian Z coordinates on ket side."});
-    
-    lines.push_back({0, 1, 1, "@param ket_dim the end size of ket arrays." });
     
     lines.push_back({0, 1, 1, "@param ket_dim the end size of ket arrays." });
     
@@ -2144,27 +2154,9 @@ T2CCPUGenerator::_write_prim_func_loop_start(      std::ofstream& fstream,
     
     lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / (bra_exp + ket_fe[i]);"});
     
-    lines.push_back({2, 0, 2, "auto fz_0 = bra_exp * ket_fe[i] * fnu;"});
+    lines.push_back({2, 0, 2, "auto fz_0 = bra_exp * ket_fe[i] * fe_0;"});
     
     lines.push_back({2, 0, 2, "fz_0 *= (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
-    
-    if (integral[0] > 0)
-    {
-        lines.push_back({2, 0, 2, "const auto rpa_x = -ket_fe[i] * abx * fnu;"});
-        
-        lines.push_back({2, 0, 2, "const auto rpa_y = -ket_fe[i] * aby * fnu;"});
-        
-        lines.push_back({2, 0, 2, "const auto rpa_z = -ket_fe[i] * abz * fnu;"});
-    }
-    
-    if (integral[1] > 0)
-    {
-        lines.push_back({2, 0, 2, "const auto rpb_x = bra_exp * abx * fnu;"});
-        
-        lines.push_back({2, 0, 2, "const auto rpb_y = bra_exp * aby * fnu;"});
-        
-        lines.push_back({2, 0, 2, "const auto rpb_z = bra_exp * abz * fnu;"});
-    }
     
     if ((integral.integrand() == Operator("1")) && ((integral[0] + integral[1]) == 0))
     {
@@ -2172,7 +2164,7 @@ T2CCPUGenerator::_write_prim_func_loop_start(      std::ofstream& fstream,
     }
     else
     {
-        lines.push_back({2, 0, 2, "fss = bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
+        lines.push_back({2, 0, 2, "const auto fss = bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
     }
     
     ost::write_code_lines(fstream, lines);
@@ -2207,10 +2199,42 @@ T2CCPUGenerator::_write_simd_code(      std::ofstream&            fstream,
     
     // ... other integrals
     
-    // generate simd code
-    
     auto lines = VCodeLines();
+
+    // prefactors
     
+    if (_find_factor(rgroup, "rpa_x"))
+    {
+        lines.push_back({2, 0, 2, "const auto rpa_x = -ket_fe[i] * ab_x * fe_0;"});
+    }
+    
+    if (_find_factor(rgroup, "rpa_y"))
+    {
+        lines.push_back({2, 0, 2, "const auto rpa_y = -ket_fe[i] * ab_y * fe_0;"});
+    }
+    
+    if (_find_factor(rgroup, "rpa_z"))
+    {
+        lines.push_back({2, 0, 2, "const auto rpa_z = -ket_fe[i] * ab_z * fe_0;"});
+    }
+    
+    if (_find_factor(rgroup, "rpb_x"))
+    {
+        lines.push_back({2, 0, 2, "const auto rpb_x = bra_exp * ab_x * fe_0;"});
+    }
+    
+    if (_find_factor(rgroup, "rpb_y"))
+    {
+        lines.push_back({2, 0, 2, "const auto rpb_y = bra_exp * ab_y * fe_0;"});
+    }
+    
+    if (_find_factor(rgroup, "rpb_z"))
+    {
+        lines.push_back({2, 0, 2, "const auto rpb_z = bra_exp * ab_z * fe_0;"});
+    }
+    
+    // generate loop simd code
+
     for (size_t i = 0; i < labels.size(); i++)
     {
         const auto rdist = rgroup[i];

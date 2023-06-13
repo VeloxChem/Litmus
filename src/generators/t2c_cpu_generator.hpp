@@ -107,6 +107,12 @@ class T2CCPUGenerator
     /// @param first The position of recursion term in code line.
     std::string _get_factor_label(const R2CTerm& rterm,
                                   const bool     first) const;
+    /// Checks if factors is needed by recursion group.
+    /// @param rgroup The recursion group.
+    /// @param label The label of factor to find.
+    /// @return True if factor is found, False otherwise.
+    bool _find_factor(const R2Group&     rgroup,
+                      const std::string& label) const;
     
     /// Gets file name of file with recursion functions for two center integral.
     /// @param integral The base two center integral.
