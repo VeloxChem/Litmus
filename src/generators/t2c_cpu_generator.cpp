@@ -539,7 +539,7 @@ T2CCPUGenerator::_write_prim_funcs_to_cpp_header(      std::ofstream& fstream,
 {
     T2CDocuDriver docs_drv;
     
-    if (integral.is_simple_integrand())
+    if (integral.is_simple_integrand() && integral.is_simple())
     {
         if ((integral[0] == 0) || (integral[1] == 0))
         {
@@ -647,50 +647,7 @@ T2CCPUGenerator::_write_prim_funcs_to_cpp_file(      std::ofstream& fstream,
     }
 }
 
-void
-T2CCPUGenerator::_write_prim_func_docstr(      std::ofstream&   fstream,
-                                         const TensorComponent& component,
-                                         const I2CIntegral&     integral,
-                                         const bool             bra_first) const
-{
-    const auto bra = Tensor(integral[0]);
-    
-    const auto ket = Tensor(integral[1]);
-    
-    // generate function name
-    
-    std::string fname = "<" + bra.label();
-    
-    fname += (bra_first) ? "_" + fstr::upcase(component.label()) : "";
-    
-    fname += "|" + t2c::integrand_label(integral.integrand()) + "|";
-    
-    fname += ket.label();
-    
-    fname += (bra_first) ? "" : "_" + fstr::upcase(component.label());
-    
-    fname += ">";
-    
-    // write code
-    
-    auto lines = VCodeLines();
-    
-    lines.push_back({0, 0, 1, "/**"});
-    
-    lines.push_back({0, 1, 2, "Evaluates block of primitive " + fname + " integrals."});
-    
-    const auto labels = (bra_first) ? t2c::tensor_components(ket, "buffer")
-                                    : t2c::tensor_components(bra, "buffer");
-    
-    for (const auto& label : labels)
-    {
-        lines.push_back({0, 1, 1, "@param " + label + " the partial integrals buffer."});
-    }
-    
-    ost::write_code_lines(fstream, lines);
-    
-    _write_prim_data_docstr(fstream);
-}
+
 
 void
 T2CCPUGenerator::_write_prim_func_docstr(      std::ofstream&   fstream,

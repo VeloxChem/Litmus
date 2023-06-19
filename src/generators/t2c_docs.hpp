@@ -38,6 +38,15 @@ class T2CDocuDriver
     /// @return The primitive compute string.
     std::string _get_prim_compute_str(const I2CIntegral& integral) const;
     
+    /// Generates primitive compute string.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    /// @param bra_first The flag to set bra as expansion point.
+    /// @return The primitive compute string.
+    std::string _get_prim_compute_str(const TensorComponent& component,
+                                      const I2CIntegral&     integral,
+                                      const bool             bra_first) const;
+    
     /// Generates vector of matrix strings.
     /// @param integral The base two center integral.
     /// @return The vector of matrix strings.
@@ -66,6 +75,13 @@ class T2CDocuDriver
     /// @return The vector of primitive buffer strings.
     std::vector<std::string> _get_prim_buffer_str(const I2CIntegral& integral) const;
     
+    /// Generates vector of primitive buffer strings.
+    /// @param integral The base two center integral.
+    /// @param bra_first The flag to set bra as expansion point.
+    /// @return The vector of primitive buffer strings.
+    std::vector<std::string> _get_prim_buffer_str(const I2CIntegral& integral,
+                                                  const bool         bra_first) const;
+    
     /// Generates vector of primitive common variable strings.
     /// @return The vector of primitive  common variable strings.
     std::vector<std::string> _get_prim_variables_str() const;
@@ -87,6 +103,26 @@ public:
     /// @param integral The base two center integral.
     void write_prim_doc_str(      std::ofstream& fstream,
                             const I2CIntegral&   integral) const;
+    
+    /// Writes documentation string for primitive compute function.
+    /// @param fstream the file stream.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    /// @param bra_first The flag to set bra as expansion point.
+    void write_prim_doc_str(      std::ofstream&   fstream,
+                                 const TensorComponent& component,
+                                 const I2CIntegral&     integral,
+                                 const bool             bra_first) const;
+    
+    /// Writes documentation string for primitive compute function.
+    /// @param fstream the file stream.
+    /// @param bra_component the integral component on bra side.
+    /// @param ket_component the integral component on ket side.
+    /// @param integral The base two center integral.
+    void _write_prim_doc_str(      std::ofstream&   fstream,
+                                 const TensorComponent& bra_component,
+                                 const TensorComponent& ket_component,
+                                 const I2CIntegral&     integral) const;
 };
 
 #endif /* t2c_docs_hpp */

@@ -137,14 +137,6 @@ class T2CCPUGenerator
     void _write_namespace(      std::ofstream& fstream,
                           const I2CIntegral&   integral,
                           const bool           start) const;
-    
-    /// Writes documentation string for compute function.
-    /// @param fstream the file stream.
-    /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
-    void _write_func_docstr(      std::ofstream& fstream,
-                            const I2CIntegral&   integral,
-                            const bool           diagonal) const;
         
     /// Writes declaration for compute function.
     /// @param fstream the file stream.
@@ -167,32 +159,6 @@ class T2CCPUGenerator
     /// @param integral The base two center integral.
     void _write_prim_funcs_to_cpp_file(      std::ofstream& fstream,
                                        const I2CIntegral&   integral) const;
-    
-    /// Writes documentation string for primitive compute function.
-    /// @param fstream the file stream.
-    /// @param integral The base two center integral.
-    void _write_prim_func_docstr(      std::ofstream& fstream,
-                                 const I2CIntegral&   integral) const;
-    
-    /// Writes documentation string for primitive compute function.
-    /// @param fstream the file stream.
-    /// @param component the integral component.
-    /// @param integral The base two center integral.
-    /// @param bra_first The flag to set bra as expansion point.
-    void _write_prim_func_docstr(      std::ofstream&   fstream,
-                                 const TensorComponent& component,
-                                 const I2CIntegral&     integral,
-                                 const bool             bra_first) const;
-    
-    /// Writes documentation string for primitive compute function.
-    /// @param fstream the file stream.
-    /// @param bra_component the integral component on bra side.
-    /// @param ket_component the integral component on ket side.
-    /// @param integral The base two center integral.
-    void _write_prim_func_docstr(      std::ofstream&   fstream,
-                                 const TensorComponent& bra_component,
-                                 const TensorComponent& ket_component,
-                                 const I2CIntegral&     integral) const;
     
     /// Writes documentation string for primitive data.
     /// @param fstream the file stream.
