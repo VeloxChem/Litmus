@@ -51,11 +51,6 @@ class T2CCPUGenerator
     /// @return The standart capitalized label of integral.
     std::string _get_label(const I2CIntegral& integral) const;
     
-    /// Gets label of standart integrand.
-    /// @param integrand the integrand operator.
-    /// @return The label of standart integrand.
-    std::string _get_integrand_label(const Operator& integrand) const;
-    
     /// Gets label of standart namespaces for integrand.
     /// @param integrand the integrand operator.
     /// @return The label of namespace.
@@ -65,18 +60,6 @@ class T2CCPUGenerator
     /// @param integrand the integrand operator.
     /// @return The symmetry of integrand.
     std::string _get_matrix_symmetry(const Operator& integrand) const;
-    
-    /// Gets vector of integrand component labels.
-    /// @param integrand the integrand operator.
-    /// @return The vecotr of integrand component labels.
-    std::vector<std::string> _get_operator_components(const Operator&    integrand,
-                                                      const std::string& label) const;
-    
-    /// Gets vector of tensor component labels.
-    /// @param tensor the Cartesian tensor.
-    /// @return The vecotr of tensor component labels.
-    std::vector<std::string> _get_tensor_components(const Tensor&      tensor,
-                                                    const std::string& label) const;
     
     /// Select integrals components with predefined bra or ket side components.
     /// @param component the tensor component.

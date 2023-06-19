@@ -93,7 +93,15 @@ public:
     
     /// Gets order of integral.
     /// @return The order of integral.
-    int32_t order() const; 
+    int32_t order() const;
+    
+    /// Checks if integrals are without prefix operators.
+    /// @return True if integral is simple, False otherwise.
+    bool is_simple() const;
+    
+    /// Checks if integral has simple integrand.
+    /// @return True if integrand is simple, False otherwise.
+    bool is_simple_integrand() const;
     
     /// Creates primitive textual label of this integral.
     /// @return The string with primitive textual label of integral.
@@ -260,6 +268,20 @@ int32_t
 Integral<T, U>::order() const
 {
     return _order;
+}
+
+template <class T, class U>
+bool
+Integral<T, U>::is_simple() const
+{
+    return _prefixes.empty();
+}
+
+template <class T, class U>
+bool
+Integral<T, U>::is_simple_integrand() const
+{
+    return _integrand.components().size() == 1;
 }
 
 template <class T, class U>
