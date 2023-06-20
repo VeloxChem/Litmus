@@ -138,4 +138,60 @@ prim_compute_func_name(const TensorComponent& bra_component,
     return {label.size() + 1, label};
 }
 
+std::string
+namespace_label(const I2CIntegral& integral)
+{
+    auto labels = TMapOfStrings({ {Operator("1"), "ovlrec"},
+                                  {Operator("T"), "kinrec"},
+                                });
+    
+    return labels[integral.integrand()];
+}
+
+int
+tensor_component_index(const TensorComponent& component)
+{
+    const auto tcomps = Tensor(component).components();
+        
+    for (int i = 0; i < tcomps.size(); i++)
+    {
+            if (tcomps[i] == component) return  i;
+    }
+        
+    return -1;
+}
+
+std::string
+combine_factors(const std::string& bra_factor,
+                const std::string& ket_factor)
+{
+    auto bra_label = bra_factor;
+        
+    auto ket_label = ket_factor;
+        
+    // get signs
+        
+    int bra_sign = (bra_factor[0] == '-') ? -1 : 1;
+        
+    int ket_sign = (ket_factor[0] == '-') ? -1 : 1;
+        
+    //  combinne symbolic factor
+        
+    if (bra_sign < 0) bra_label.erase(0, 1);
+        
+    if (ket_sign < 0) ket_label.erase(0, 1);
+        
+    std::string label;
+        
+    if (bra_label != "1.0") label = bra_label;
+        
+    if (ket_label != "1.0") label = (label.empty()) ? ket_label : label + " * " + ket_label;
+        
+    if (label.empty()) label = "1.0";
+        
+    if (bra_sign * ket_sign < 0) label.insert(0, "-");
+        
+    return label;
+}
+
 } // t2c namespace

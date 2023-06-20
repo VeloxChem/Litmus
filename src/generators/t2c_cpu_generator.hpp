@@ -30,26 +30,9 @@
 // Two-center integrals code generator for CPU.
 class T2CCPUGenerator
 {
-    /// Gets index of tensor componnent in it's component wwise expansion.
-    /// @param component The tensor component to find index.
-    /// @return The index of tensor component.
-    int _get_tensor_component_index(const TensorComponent& component) const;
-    
-    /// Combines two symbolic factors into  one.
-    /// @param bra_factor The  symbolic factor on bra side.
-    /// @param ket_factor The  symbolic factor on ket side. 
-    /// @return The combined  factor.
-    std::string _combine_factors(const std::string& bra_factor,
-                                 const std::string& ket_factor) const;
-    
     /// Checks if recursion is available for two-center inetgral with given label.
     /// @param label The label of requested two-center integral.
     bool _is_available(const std::string& label) const;
-    
-    /// Gets label of standart namespaces for integrand.
-    /// @param integrand the integrand operator.
-    /// @return The label of namespace.
-    std::string _get_namespace_label(const Operator& integrand) const;
     
     /// Gets symmetry  of matrix  for integrand.
     /// @param integrand the integrand operator.
@@ -149,28 +132,6 @@ class T2CCPUGenerator
     /// @param fstream the file stream.
     void _write_prim_data_docstr(std::ofstream& fstream) const;
     
-    /// Writes declaration for GTOs data in compute function.
-    /// @param fstream the file stream.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
-    void _write_gtos_decl(      std::ofstream& fstream,
-                          const bool           diagonal) const;
-    
-    /// Writes declaration for  spherical momentum factors in compute function.
-    /// @param fstream the file stream.
-    /// @param integral The base two center integral.
-    void _write_angmom_decl(      std::ofstream& fstream,
-                            const I2CIntegral&   integral) const;
-    
-    /// Writes declaration for ket data in compute function.
-    /// @param fstream the file stream.
-    void _write_ket_data_decl(std::ofstream& fstream) const;
-    
-    /// Writes declaration of buffers for compute function.
-    /// @param fstream the file stream.
-    /// @param integral The base two center integral.
-    void _write_buffers_decl(      std::ofstream&   fstream,
-                             const I2CIntegral&     integral) const;
-    
     /// Writes declaration for main batches loop start in compute function.
     /// @param fstream the file stream.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
@@ -188,86 +149,6 @@ class T2CCPUGenerator
     void _write_main_call_tree_decl(      std::ofstream& fstream,
                                     const I2CIntegral&   integral,
                                     const bool           diagonal) const;
-    
-    /// Writes declaration of call tree block for compute function.
-    /// @param fstream the file stream.
-    /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
-    void _write_prim_call_tree_block_decl(      std::ofstream& fstream,
-                                          const I2CIntegral&   integral,
-                                          const bool           diagonal) const;
-    
-    /// Writes declaration of call tree block for compute function.
-    /// @param fstream the file stream.
-    /// @param component the integral component.
-    /// @param integral The base two center integral.
-    /// @param bra_first The flag to set bra as expansion point.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
-    void _write_prim_call_tree_block_decl(      std::ofstream&   fstream,
-                                          const TensorComponent& component,
-                                          const I2CIntegral&     integral,
-                                          const bool             bra_first,
-                                          const bool             diagonal) const;
-    
-    /// Writes declaration of call tree block for compute function.
-    /// @param fstream the file stream.
-    /// @param bra_component the integral component on bra side.
-    /// @param ket_component the integral component on ket side.
-    /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
-    void _write_prim_call_tree_block_decl(      std::ofstream&   fstream,
-                                          const TensorComponent& bra_component,
-                                          const TensorComponent& ket_component,
-                                          const I2CIntegral&     integral,
-                                          const bool             diagonal) const;
-    
-    /// Writes declaration for primitives loop start in compute function.
-    /// @param fstream the file stream.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
-    void _write_primitives_loop_start_decl(      std::ofstream& fstream,
-                                          const bool           diagonal) const;
-    
-    /// Writes declaration for primitives loop end in compute function.
-    /// @param fstream the file stream.
-    void _write_primitives_loop_end_decl(std::ofstream& fstream) const;
-    
-    /// Writes declaration of common variables for primitive computation function.
-    /// @param fstream the file stream.
-    /// @param spacer The size of spacer for formatting variables.
-    void _write_primitives_call_data_decl(      std::ofstream& fstream,
-                                          const size_t         spacer) const;
-    
-    /// Writes declaration of block distribution call tree for compute function.
-    /// @param fstream the file stream.
-    /// @param integral The base two center integral.
-    ///@param diagonal The flag to indicate diagonal or full form of compute function.
-    void _write_block_distributor_decl(      std::ofstream& fstream,
-                                       const I2CIntegral&   integral,
-                                       const bool           diagonal) const;
-    
-    /// Writes declaration of block distribution call tree for compute function.
-    /// @param fstream the file stream.
-    /// @param component the integral component.
-    /// @param integral The base two center integral.
-    /// @param bra_first The flag to set bra as expansion point.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
-    void _write_block_distributor_decl(      std::ofstream&   fstream,
-                                       const TensorComponent& component,
-                                       const I2CIntegral&     integral,
-                                       const bool             bra_first,
-                                       const bool             diagonal) const;
-    
-    /// Writes declaration of of block distribution call tree  for compute function.
-    /// @param fstream the file stream.
-    /// @param bra_component the integral component on bra side.
-    /// @param ket_component the integral component on ket side.
-    /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
-    void _write_block_distributor_decl(      std::ofstream&   fstream,
-                                       const TensorComponent& bra_component,
-                                       const TensorComponent& ket_component,
-                                       const I2CIntegral&     integral,
-                                       const bool             diagonal) const;
     
     /// Writes body of primitive compute function.
     /// @param fstream the file stream.

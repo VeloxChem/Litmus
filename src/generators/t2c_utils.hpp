@@ -77,7 +77,23 @@ std::pair<size_t, std::string> prim_compute_func_name(const TensorComponent& bra
                                                       const TensorComponent& ket_component,
                                                       const I2CIntegral&     integral);
 
+/// Gets recursion namespace label of standart integral.
+/// @param integral The base two center integral.
+/// @return The recursion namespace label of standart integral.
+std::string namespace_label(const I2CIntegral& integral);
 
+
+/// Gets index of tensor componnent in it's component wwise expansion.
+/// @param component The tensor component to find index.
+/// @return The index of tensor component.
+int tensor_component_index(const TensorComponent& component);
+
+/// Combines two symbolic factors into  one.
+/// @param bra_factor The  symbolic factor on bra side.
+/// @param ket_factor The  symbolic factor on ket side.
+/// @return The combined  factor.
+std::string combine_factors(const std::string& bra_factor,
+                            const std::string& ket_factor);
 
 } // t2c namespace
 
