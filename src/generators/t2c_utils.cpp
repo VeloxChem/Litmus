@@ -16,14 +16,33 @@
 
 #include "t2c_utils.hpp"
 
+#include "string_formater.hpp"
+
 namespace t2c { // t2c namespace
+
+std::string
+integral_label(const I2CIntegral& integral)
+{
+    if (integral.is_simple())
+    {
+        auto labels = TMapOfStrings({ {Operator("1"), "Overlap"},
+                                      {Operator("T"), "KineticEnergy"},
+        });
+        
+        return labels[integral.integrand()];
+    }
+    else
+    {
+        return std::string();
+    }
+}
 
 std::string
 integrand_label(const Operator& integrand)
 {
-    auto labels = std::map<Operator, std::string>({ {Operator("1"), ""},
-                                                    {Operator("T"), "T"},
-                                                  });
+    auto labels = TMapOfStrings({ {Operator("1"), ""},
+                                  {Operator("T"), "T"},
+                                 });
         
     return labels[integrand];
 }
@@ -68,6 +87,55 @@ tensor_components(const Tensor&      tensor,
             
         return tlabels;
     }
+}
+
+std::pair<size_t, std::string>
+compute_func_name(const I2CIntegral& integral)
+{
+    const auto label = "comp" + t2c::integral_label(integral) + integral.label();
+        
+    return {label.size() + 1, label};
+}
+
+std::pair<size_t, std::string>
+prim_compute_func_name(const I2CIntegral& integral)
+{
+    const auto label = "compPrimitive" + t2c::integral_label(integral) + integral.label();
+    
+    return {label.size() + 1, label};
+}
+
+std::pair<size_t, std::string>
+prim_compute_func_name(const TensorComponent& component,
+                       const I2CIntegral&     integral,
+                       const bool             bra_first)
+{
+    auto label = "compPrimitive" + t2c::integral_label(integral) + integral.label();
+    
+    if (bra_first)
+    {
+        label += "_" + fstr::upcase(component.label()) + "_T";
+    }
+    else
+    {
+        label += "_T_" + fstr::upcase(component.label());
+    }
+    
+    return {label.size() + 1, label};
+}
+
+std::pair<size_t, std::string>
+prim_compute_func_name(const TensorComponent& bra_component,
+                       const TensorComponent& ket_component,
+                       const I2CIntegral&     integral)
+{
+    auto label = "compPrimitive" + t2c::integral_label(integral) + integral.label();
+    
+    label += "_" + fstr::upcase(bra_component.label());
+   
+    label += "_" + fstr::upcase(ket_component.label());
+    
+    return {label.size() + 1, label};
 }
 
 } // t2c namespace

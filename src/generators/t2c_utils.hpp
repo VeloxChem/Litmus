@@ -21,7 +21,14 @@
 
 #include "t2c_defs.hpp"
 
+using TMapOfStrings = std::map<Operator, std::string>; 
+
 namespace t2c { // t2c namespace
+
+/// Gets standart capitalized label of integral.
+/// @param integral The base two center integral.
+/// @return The standart capitalized label of integral.
+std::string integral_label(const I2CIntegral& integral);
 
 /// Gets label of standart integrand.
 /// @param integrand the integrand operator.
@@ -41,6 +48,36 @@ std::vector<std::string> integrand_components(const Operator&    integrand,
 /// @return The vecotr of tensor component labels.
 std::vector<std::string> tensor_components(const Tensor&      tensor,
                                            const std::string& label);
+
+/// Generates compute function  name.
+/// @param integral The base two center integral.
+/// @return The compute function name.
+std::pair<size_t, std::string> compute_func_name(const I2CIntegral& integral);
+
+/// Generates primitive compute function name.
+/// @param integral The base two center integral.
+/// @return The primitive compute function name.
+std::pair<size_t, std::string> prim_compute_func_name(const I2CIntegral& integral);
+
+/// Generates primitive compute function name.
+/// @param component the integral component.
+/// @param integral The base two center integral.
+/// @param bra_first The flag to set bra as expansion point.
+/// @return The primitive compute function name.
+std::pair<size_t, std::string> prim_compute_func_name(const TensorComponent& component,
+                                                      const I2CIntegral&     integral,
+                                                      const bool             bra_first);
+
+/// Generates primitive compute function name.
+/// @param bra_component the integral component on bra side.
+/// @param ket_component the integral component on ket side.
+/// @param integral The base two center integral.
+/// @return The primitive compute function name.
+std::pair<size_t, std::string> prim_compute_func_name(const TensorComponent& bra_component,
+                                                      const TensorComponent& ket_component,
+                                                      const I2CIntegral&     integral);
+
+
 
 } // t2c namespace
 

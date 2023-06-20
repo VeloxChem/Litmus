@@ -110,12 +110,30 @@ T2CDocuDriver::write_prim_doc_str(      std::ofstream&   fstream,
 }
 
 void
-T2CDocuDriver::_write_prim_doc_str(      std::ofstream&   fstream,
-                                   const TensorComponent& bra_component,
-                                   const TensorComponent& ket_component,
-                                   const I2CIntegral&     integral) const
+T2CDocuDriver::write_prim_doc_str(      std::ofstream&   fstream,
+                                  const TensorComponent& bra_component,
+                                  const TensorComponent& ket_component,
+                                  const I2CIntegral&     integral) const
 {
+    auto lines = VCodeLines();
     
+    lines.push_back({0, 0, 1, "/**"});
+    
+    lines.push_back({0, 1, 2, _get_prim_compute_str(bra_component, ket_component, integral)});
+    
+    for (const auto& label : _get_prim_buffer_str(integral))
+    {
+        lines.push_back({0, 1, 1, label});
+    }
+    
+    for (const auto& label : _get_prim_variables_str())
+    {
+        lines.push_back({0, 1, 1, label});
+    }
+    
+    lines.push_back({0, 0, 1, "*/"});
+    
+    ost::write_code_lines(fstream, lines);
 }
 
 std::string
@@ -175,6 +193,28 @@ T2CDocuDriver::_get_prim_compute_str(const TensorComponent& component,
     label += (bra_first) ? "" : "_" + fstr::upcase(component.label());
     
     label += ">  integrals.";
+    
+    return label;
+}
+
+std::string
+T2CDocuDriver::_get_prim_compute_str(const TensorComponent& bra_component,
+                                     const TensorComponent& ket_component,
+                                     const I2CIntegral&     integral) const
+{
+    const auto bra = Tensor(integral[0]);
+    
+    const auto ket = Tensor(integral[1]);
+    
+    auto label = "Evaluates block of primitive <" + bra.label();
+    
+    label += "_" + fstr::upcase(bra_component.label());
+    
+    label += "|" + t2c::integrand_label(integral.integrand()) + "|";
+    
+    label += ket.label() + "_" + fstr::upcase(ket_component.label());
+    
+    label += "> integrals.";
     
     return label;
 }
@@ -259,30 +299,44 @@ T2CDocuDriver::_get_matrix_type_str(const I2CIntegral& integral,
 std::vector<std::string>
 T2CDocuDriver::_get_prim_buffer_str(const I2CIntegral& integral) const
 {
-    std::vector<std::string> vstr;
-    
-    if (integral[0] > 0)
+    if (integral.is_simple_integrand() && integral.is_simple())
     {
-        for(const auto& label : t2c::tensor_components(Tensor(integral[0]), "buffer"))
+        std::vector<std::string> vstr;
+        
+        if (integral[0] > 0)
+        {
+            for(const auto& label : t2c::tensor_components(Tensor(integral[0]), "buffer"))
+            {
+                vstr.push_back("@param " + label + " the partial integrals buffer.");
+            }
+        }
+        
+        if (integral[1] > 0)
+        {
+            for(const auto& label : t2c::tensor_components(Tensor(integral[1]), "buffer"))
+            {
+                vstr.push_back("@param " + label + " the partial integrals buffer.");
+            }
+        }
+        
+        if (vstr.empty())
+        {
+            vstr.push_back("@param buffer the integrals buffer.");
+        }
+        
+        return vstr;
+    }
+    else
+    {
+        std::vector<std::string> vstr;
+        
+        for (const auto& label : t2c::integrand_components(integral.integrand(), "buffer"))
         {
             vstr.push_back("@param " + label + " the partial integrals buffer.");
         }
+        
+        return vstr;
     }
-    
-    if (integral[1] > 0)
-    {
-        for(const auto& label : t2c::tensor_components(Tensor(integral[1]), "buffer"))
-        {
-            vstr.push_back("@param " + label + " the partial integrals buffer.");
-        }
-    }
-    
-    if (vstr.empty())
-    {
-        vstr.push_back("@param buffer the integrals buffer.");
-    }
-    
-    return vstr;
 }
 
 std::vector<std::string>

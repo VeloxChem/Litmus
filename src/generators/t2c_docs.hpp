@@ -47,6 +47,15 @@ class T2CDocuDriver
                                       const I2CIntegral&     integral,
                                       const bool             bra_first) const;
     
+    /// Generates primitive compute string.
+    /// @param bra_component the integral component on bra side.
+    /// @param ket_component the integral component on ket side.
+    /// @param integral The base two center integral.
+    /// @return The primitive compute string.
+    std::string _get_prim_compute_str(const TensorComponent& bra_component,
+                                      const TensorComponent& ket_component,
+                                      const I2CIntegral&     integral) const;
+    
     /// Generates vector of matrix strings.
     /// @param integral The base two center integral.
     /// @return The vector of matrix strings.
@@ -119,10 +128,10 @@ public:
     /// @param bra_component the integral component on bra side.
     /// @param ket_component the integral component on ket side.
     /// @param integral The base two center integral.
-    void _write_prim_doc_str(      std::ofstream&   fstream,
-                                 const TensorComponent& bra_component,
-                                 const TensorComponent& ket_component,
-                                 const I2CIntegral&     integral) const;
+    void write_prim_doc_str(      std::ofstream&   fstream,
+                            const TensorComponent& bra_component,
+                            const TensorComponent& ket_component,
+                            const I2CIntegral&     integral) const;
 };
 
 #endif /* t2c_docs_hpp */

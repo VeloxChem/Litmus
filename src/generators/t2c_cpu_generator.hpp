@@ -46,11 +46,6 @@ class T2CCPUGenerator
     /// @param label The label of requested two-center integral.
     bool _is_available(const std::string& label) const;
     
-    /// Gets standart capitalized label of integral.
-    /// @param integral The base two center integral.
-    /// @return The standart capitalized label of integral.
-    std::string _get_label(const I2CIntegral& integral) const;
-    
     /// Gets label of standart namespaces for integrand.
     /// @param integrand the integrand operator.
     /// @return The label of namespace.
@@ -138,16 +133,6 @@ class T2CCPUGenerator
                           const I2CIntegral&   integral,
                           const bool           start) const;
         
-    /// Writes declaration for compute function.
-    /// @param fstream the file stream.
-    /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
-    /// @param terminus The flag to add termination symbol.
-    void _write_func_decl(      std::ofstream& fstream,
-                          const I2CIntegral&   integral,
-                          const bool           diagonal,
-                          const bool           terminus) const;
-    
     /// Writes primitive functions documentation and declaration to header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
@@ -163,47 +148,6 @@ class T2CCPUGenerator
     /// Writes documentation string for primitive data.
     /// @param fstream the file stream.
     void _write_prim_data_docstr(std::ofstream& fstream) const;
-    
-    /// Writes declaration of primitive compute function.
-    /// @param fstream the file stream.
-    /// @param integral The base two center integral.
-    /// @param terminus The flag to add termination symbol.
-    void _write_prim_func_decl(      std::ofstream& fstream,
-                               const I2CIntegral&   integral,
-                               const bool           terminus) const;
-    
-    /// Writes declaration of primitive compute function.
-    /// @param fstream the file stream.
-    /// @param component the integral component.
-    /// @param integral The base two center integral.
-    /// @param bra_first The flag to set bra as expansion point.
-    /// @param terminus The flag to add termination symbol.
-    void _write_prim_func_decl(      std::ofstream&   fstream,
-                               const TensorComponent& component,
-                               const I2CIntegral&     integral,
-                               const bool             bra_first,
-                               const bool             terminus) const;
-    
-    /// Writes declatation of primitive compute function.
-    /// @param fstream the file stream.
-    /// @param bra_component the integral component on bra side.
-    /// @param ket_component the integral component on ket side.
-    /// @param integral The base two center integral.
-    /// @param terminus The flag to add termination symbol.
-    void _write_prim_func_decl(      std::ofstream&   fstream,
-                               const TensorComponent& bra_component,
-                               const TensorComponent& ket_component,
-                               const I2CIntegral&     integral,
-                               const bool             terminus) const;
-    
-    
-    /// Writes declaration of primitive data.
-    /// @param fstream the file stream.
-    /// @param spacer The size of spacer for formatting variables.
-    /// @param terminus The flag to add termination symbol.
-    void _write_prim_data_decl(      std::ofstream& fstream,
-                               const size_t         spacer,
-                               const bool           terminus) const;
     
     /// Writes declaration for GTOs data in compute function.
     /// @param fstream the file stream.
