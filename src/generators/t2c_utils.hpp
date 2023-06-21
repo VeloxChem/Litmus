@@ -95,6 +95,19 @@ int tensor_component_index(const TensorComponent& component);
 std::string combine_factors(const std::string& bra_factor,
                             const std::string& ket_factor);
 
+/// Checks if factors is needed by recursion group.
+/// @param rgroup The recursion group.
+/// @param label The label of factor to find.
+/// @return True if factor is found, False otherwise.
+bool find_factor(const R2Group&     rgroup,
+                 const std::string& label);
+
+/// Gets recursion factors label.
+/// @param rterm The recursion term.
+/// @param first The position of recursion term in code line.
+std::string get_factor_label(const R2CTerm& rterm,
+                             const bool     first);
+
 } // t2c namespace
 
 #endif /* t2c_utils_hpp */

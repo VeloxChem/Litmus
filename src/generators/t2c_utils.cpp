@@ -194,4 +194,79 @@ combine_factors(const std::string& bra_factor,
     return label;
 }
 
+bool
+find_factor(const R2Group&     rgroup,
+            const std::string& label)
+{
+    for (const auto& fact : rgroup.factors())
+    {
+        if (fact.label() == label) return true;
+    }
+    
+    return false;
+}
+
+std::string
+get_factor_label(const R2CTerm& rterm,
+                 const bool     first)
+{
+    const auto pre_fact = rterm.prefactor();
+        
+    auto plabel = pre_fact.label();
+        
+    if (plabel == "1.0")  plabel = "";
+        
+    if (plabel == "-1.0") plabel = "-";
+        
+    if (pre_fact.denominator() != 1)
+    {
+        if (pre_fact.numerator() < 0) plabel.erase(0, 1);
+            
+        plabel = "(" + plabel + ")";
+            
+        if (pre_fact.numerator() < 0) plabel = "-" + plabel;
+    }
+        
+    const auto facts = rterm.factors();
+        
+    std::string flabel;
+        
+    for (const auto& fact : facts)
+    {
+        const auto norder = rterm.factor_order(fact);
+            
+        for (size_t n = 0; n < norder; n++)
+        {
+            flabel += " * " + fact.label();
+        }
+    }
+        
+    // remove multiplication for special cases
+        
+    if ((pre_fact == Fraction(1)) || (pre_fact == Fraction(-1)))
+    {
+        flabel.erase(0, 3);
+    }
+        
+    // merge labels
+        
+    flabel = plabel + flabel;
+        
+    if (!first)
+    {
+        if (flabel[0] == '-')
+        {
+            flabel.insert(1, " ");
+        }
+        else
+        {
+            flabel = "+ " + flabel;
+        }
+            
+        flabel = " " + flabel;
+    }
+        
+    return flabel;
+}
+
 } // t2c namespace
