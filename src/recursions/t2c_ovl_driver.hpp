@@ -56,22 +56,6 @@ public:
     /// Applies vertical recursion to bra side recursion term containing overlap
     /// integral.
     /// @param rterm The recursion term with overlap integral.
-    /// @param sints The map of overlap integrals (updated by selecting recursion).
-    /// @return The recursion expansion of given recursion term.
-    R2CDist apply_bra_vrr(const R2CTerm& rterm,
-                                R2CMap&  sints) const;
-    
-    /// Applies vertical recursion to ket side recursion term containing overlap
-    /// integral.
-    /// @param rterm The recursion term with overlap integral.
-    /// @param sints The map of overlap integrals (updated by selecting recursion).
-    /// @return The recursion expansion of given recursion term.
-    R2CDist apply_ket_vrr(const R2CTerm& rterm,
-                                R2CMap&  sints) const;
-    
-    /// Applies vertical recursion to bra side recursion term containing overlap
-    /// integral.
-    /// @param rterm The recursion term with overlap integral.
     /// @return The recursion expansion of given recursion term.
     R2CDist apply_bra_vrr(const R2CTerm& rterm) const;
     
@@ -81,40 +65,6 @@ public:
     /// @return The recursion expansion of given recursion term.
     R2CDist apply_ket_vrr(const R2CTerm& rterm) const;
         
-    /// Applies vertical recursion to bra side of given vector of recursion terms containing
-    /// overlap integral.
-    /// @param rterms The vector of recursion terms with overlap integral.
-    /// @param sints The map of overlap integrals (updated by selecting recursion).
-    /// @return The recursion group.
-    R2Group apply_bra_vrr(const V2CTerms& rterms,
-                                R2CMap&   sints) const;
-    
-    /// Applies vertical recursion to ket side of given vector of recursion terms containing
-    /// overlap integral.
-    /// @param rterms The vector of recursion terms with overlap integral.
-    /// @param sints The map of overlap integrals (updated by selecting recursion).
-    /// @return The recursion group.
-    R2Group apply_ket_vrr(const V2CTerms& rterms,
-                                R2CMap&   sints) const;
-    
-    /// Recursively applies vertical recursion to bra side of given recursion groups container.
-    /// @param rgroups The recursion groups container.
-    /// @param sints The map of overlap integrals (updated by selecting recursion).
-    void apply_bra_vrr(R2GroupContainer& rgroups,
-                       R2CMap&           sints) const;
-    
-    /// Recursively applies vertical recursion to ket side of given recursion groups container.
-    /// @param rgroups The recursion groups container.
-    /// @param sints The map of overlap integrals (updated by selecting recursion).
-    void apply_ket_vrr(R2GroupContainer& rgroups,
-                       R2CMap&           sints) const;
-    
-    /// Recursively applies Obara-Saika recursion to recursion groups container.
-    /// @param rgroups The recursion groups container.
-    /// @param sints The map of overlap integrals (updated by selecting recursion).
-    void apply_recursion(R2GroupContainer& rgroups,
-                         R2CMap&           sints) const;
-    
     /// Recursively applies Obara-Saika recursion to recursion expansion.
     /// @param rdist The recursion expansion.
     void apply_recursion(R2CDist& rdist) const;
@@ -127,18 +77,6 @@ public:
     /// Recursively applies vertical recursion to ket side of given recursion expansion.
     /// @param rdist The recursion expansion.
     void apply_ket_vrr(R2CDist& rdist) const;
-    
-    /// Creates recursion groups container for given angular momentum values.
-    /// @param anga The angular momentum of center A.
-    /// @param angb The angular momentum of center B.
-    /// @return The recursion groups container.
-    R2GroupContainer create_container(const int anga,
-                                      const int angb) const;
-    
-    /// Creates vector of recursion groups containers with upper limit of angular momentum values.
-    /// @param mang The maximum angular momentum.
-    /// @return The vector of recursion group containers.
-    V2GroupContainers create_containers(const int mang) const;
     
     /// Creates recursion group from vector of overlap integral components.
     /// @param vints The  vector of overlap integral components.
