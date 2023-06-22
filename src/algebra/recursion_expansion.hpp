@@ -65,7 +65,7 @@ public:
     
     /// Creates new recursion expansion by splitting off recursion terms containing given integral.
     /// @param integral The other recursion expansion to compare.
-    /// @return true if this recursion expansion is less than other recursion expansion, false otherwise.
+    /// @return The new recursion expansion.
     RecursionExpansion<T> split(const T& integral) const;
     
     /// Simplifies recursion expansion.
@@ -197,6 +197,23 @@ RecursionExpansion<T>::operator<(const RecursionExpansion<T>& other) const
     {
         return _expansion < other._expansion;
     }
+}
+
+template <class T>
+RecursionExpansion<T>
+RecursionExpansion<T>::split(const T& integral) const
+{
+    VRecursionTerms<T> rterms;
+    
+    for (const auto& rterm : _expansion)
+    {
+        if (rterm.integral() == integral)
+        {
+            rterms.push_back(rterm);
+        }
+    }
+    
+    return RecursionExpansion<T>(_root, rterms);
 }
 
 template <class T>

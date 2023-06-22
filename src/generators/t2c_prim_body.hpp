@@ -139,6 +139,21 @@ class T2CPrimFuncBodyDriver
     void _add_simd_lines(      VCodeLines&               lines,
                          const std::vector<std::string>& labels,
                          const R2Group&                  rgroup) const;
+    
+    /// Adds block of  simd code lines for given reccursion distribution.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param label The label of integral components.
+    /// @param integral The integral  component.
+    /// @param rdist  The recursion distribution.
+    void _add_simd_lines_block(      VCodeLines&  lines,
+                               const std::string& label,
+                               const T2CIntegral& integral,
+                               const R2CDist&     rdist) const;
+    
+    /// Generates standard label  of auxilary integral.
+    /// @param integral The integral  component.
+    /// @return The label of auxilary integral.
+    std::string _get_aux_label(const T2CIntegral& integral) const;
 
 public:
     /// Creates a two-center compute function body generator.
@@ -169,6 +184,8 @@ public:
                               const TensorComponent& bra_component,
                               const TensorComponent& ket_component,
                               const I2CIntegral&     integral) const;
+    
+    
 };
 
 #endif /* t2c_prim_body_hpp */

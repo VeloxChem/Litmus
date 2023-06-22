@@ -521,39 +521,60 @@ T2CPrimFuncBodyDriver::_add_simd_lines(      VCodeLines&               lines,
     {
         const auto rdist = rgroup[i];
         
-        for (const auto& tint : rgroup[i].unique_integrals())
+        for (const auto& tint : rdist.unique_integrals())
         {
-            std::cout << tint.label() << " (" << tint.integrand().name() << ") : ";
+            const auto tdist = rdist.split(tint);
+            
+            _add_simd_lines_block(lines, labels[i], tint, tdist);
         }
-        
-        std::cout << std::endl;
-        
-//        const auto nterms = rdist.terms();
-//
-//        auto nbatches = nterms / 5;
-//
-//        if ((nterms % 5) != 0) nbatches++;
-//
-//        for (size_t j = 0; j < nbatches; j++)
-//        {
-//            const auto sterm = 5 * j;
-//
-//            const auto eterm = ((sterm + 5) > nterms) ? nterms : sterm + 5;
-//
-//            std::string simd_str;
-//
-//            for (size_t k = sterm; k < eterm; k++)
-//            {
-//                simd_str += t2c::get_factor_label(rdist[k], k == sterm);
-//            }
-//
-//            if ((eterm - sterm) > 1) simd_str = "(" + simd_str + ")";
-//
-//            int shift = 2;
-//
-//            if ((labels.size() == (i + 1)) && (nbatches == (j + 1))) shift = 1;
-//
-//            lines.push_back({2, 0, shift, labels[i] + "[i] += fss * " + simd_str + ";"});
-//        }
     }
+}
+
+void
+T2CPrimFuncBodyDriver::_add_simd_lines_block(      VCodeLines&  lines,
+                                             const std::string& label,
+                                             const T2CIntegral& integral,
+                                             const R2CDist&     rdist) const
+{
+    const auto tlabel = _get_aux_label(integral);
+    
+    const auto nterms = rdist.terms();
+
+    auto nbatches = nterms / 5;
+
+    if ((nterms % 5) != 0) nbatches++;
+
+    for (size_t i = 0; i < nbatches; i++)
+    {
+        const auto sterm = 5 * i;
+    
+        const auto eterm = ((sterm + 5) > nterms) ? nterms : sterm + 5;
+    
+        std::string simd_str;
+    
+        for (size_t j = sterm; j < eterm; j++)
+        {
+            simd_str += t2c::get_factor_label(rdist[j], j == sterm);
+        }
+    
+        if ((eterm - sterm) > 1) simd_str = "(" + simd_str + ")";
+
+        lines.push_back({2, 0, 2, label + "[i] += " + tlabel + " * " + simd_str + ";"});
+    }
+}
+
+std::string
+T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral) const
+{
+    if (integral.integrand() == OperatorComponent("1"))
+    {
+        return std::string("fss");
+    }
+    
+    if (integral.integrand() == OperatorComponent("T"))
+    {
+        return std::string("ftt");
+    }
+    
+    return std::string();
 }

@@ -174,6 +174,8 @@ T2CKineticEnergyDriver::ket_vrr(const R2CTerm& rterm,
             
             const auto nb = r2val[1][axis];
             
+            x4val = x4val.replace(OperatorComponent("1"));
+            
             x4val.add(Factor("zeta", "fz"), Fraction{2});
             
             x4val.add(Factor("1/k_e", "fke"), Fraction(-nb, 2));
