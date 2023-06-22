@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include "axes.hpp"
+#include "t2c_ovl_driver.hpp"
 
 T2CKineticEnergyDriver::T2CKineticEnergyDriver()
 {
@@ -57,86 +58,65 @@ T2CKineticEnergyDriver::bra_vrr(const R2CTerm& rterm,
         
         // first recursion term
         
-        auto r1val = *tval;
-        
-        const auto coord = _rxyz[axes::to_index(axis)];
-        
-        r1val.add(Factor("PA", "rpa", coord), Fraction(1));
-        
-        t2crt.add(r1val);
+        auto x1val = rterm.replace(OperatorComponent("1"));
+            
+        x1val.add(Factor("zeta", "fz"), Fraction(2));
+            
+        t2crt.add(x1val);
         
         // second recursion term
         
-        if (const auto r2val = tval->shift(axis, -1, 0))
-        {
-            auto x2val = *r2val;
-            
-            const auto na = r1val[0][axis];
-            
-            x2val.add(Factor("1/eta", "fe"), Fraction(na, 2));
-            
-            t2crt.add(x2val);
-        }
+        auto r2val = *tval;
+        
+        const auto coord = _rxyz[axes::to_index(axis)];
+        
+        r2val.add(Factor("PA", "rpa", coord), Fraction(1));
+        
+        t2crt.add(r2val);
         
         // third recursion term
         
-        if (const auto r3val = tval->shift(axis, -1, 1))
+        if (const auto r3val = tval->shift(axis, -1, 0))
         {
             auto x3val = *r3val;
             
-            const auto nb = r1val[1][axis];
+            const auto na = r2val[0][axis];
             
-            x3val.add(Factor("1/eta", "fe"), Fraction(nb, 2));
+            x3val.add(Factor("1/eta", "fe"), Fraction(na, 2));
             
             t2crt.add(x3val);
         }
         
-        // fourth term
+        // fourth recursion term
         
-        if (rterm.auxilary(0) && rterm.auxilary(1))
+        if (const auto r4val = tval->shift(axis, -1, 1))
         {
-            auto x4val = rterm.replace(OperatorComponent("1"));
+            auto x4val = *r4val;
             
-            x4val.add(Factor("zeta", "fz"), Fraction{3});
+            const auto nb = r2val[1][axis];
             
-            t2crt.add(x4val);
-            
-            x4val = rterm.replace(OperatorComponent("1"));
-            
-            x4val.add(Factor("zeta", "fz"), Fraction{1});
-            
-            x4val.add(Factor("zeta", "fz"), Fraction{-2});
-            
-            x4val.add(Factor("AB^2", "r2ab"), Fraction{1});
-            
-            t2crt.add(x4val);
-        }
-        else
-        {
-            auto x4val = rterm.replace(OperatorComponent("1"));
-            
-            x4val.add(Factor("zeta", "fz"), Fraction(2));
+            x4val.add(Factor("1/eta", "fe"), Fraction(nb, 2));
             
             t2crt.add(x4val);
         }
         
-        // fifth term
+        // fifth recursion term
         
         if (const auto r5val = tval->shift(axis, -1, 0))
         {
             auto x5val = *r5val;
             
-            const auto na = r1val[0][axis];
+            const auto na = r2val[0][axis];
             
             x5val = x5val.replace(OperatorComponent("1"));
-         
+            
             x5val.add(Factor("zeta", "fz"), Fraction{2});
             
             x5val.add(Factor("1/b_e", "fbe"), Fraction(-na, 2));
             
             t2crt.add(x5val);
         }
-       
+        
         return t2crt;
     }
     else
@@ -157,25 +137,48 @@ T2CKineticEnergyDriver::ket_vrr(const R2CTerm& rterm,
         
         // first recursion term
         
-        auto r1val = *tval;
+        auto x1val = rterm.replace(OperatorComponent("1"));
+            
+        x1val.add(Factor("zeta", "fz"), Fraction(2));
         
-        const auto coord = _rxyz[axes::to_index(axis)];
-        
-        r1val.add(Factor("PB", "rpb", coord), Fraction(1));
-        
-        t2crt.add(r1val);
+        t2crt.add(x1val);
         
         // second recursion term
         
-        if (const auto r2val = tval->shift(axis, -1, 1))
+        auto r2val = *tval;
+        
+        const auto coord = _rxyz[axes::to_index(axis)];
+        
+        r2val.add(Factor("PB", "rpb", coord), Fraction(1));
+        
+        t2crt.add(r2val);
+        
+        // third recursion term
+        
+        if (const auto r3val = tval->shift(axis, -1, 1))
         {
-            auto x2val = *r2val;
+            auto x3val = *r3val;
             
-            const auto nb = r1val[1][axis];
+            const auto nb = r2val[1][axis];
             
-            x2val.add(Factor("1/eta", "fe"), Fraction(nb, 2));
+            x3val.add(Factor("1/eta", "fe"), Fraction(nb, 2));
             
-            t2crt.add(x2val);
+            t2crt.add(x3val);
+        }
+        
+        // fourth recursion term
+        
+        if (const auto r4val = tval->shift(axis, -1, 1))
+        {
+            auto x4val = *r4val;
+            
+            const auto nb = r2val[1][axis];
+            
+            x4val.add(Factor("zeta", "fz"), Fraction{2});
+            
+            x4val.add(Factor("1/k_e", "fke"), Fraction(-nb, 2));
+            
+            t2crt.add(x4val);
         }
         
         return t2crt;
@@ -191,7 +194,7 @@ T2CKineticEnergyDriver::apply_bra_vrr(const R2CTerm& rterm) const
 {
     R2CDist t2crt;
     
-    size_t nints = 4;
+    size_t nints = 6;
     
     for (const auto axis : "xyz")
     {
@@ -214,7 +217,7 @@ T2CKineticEnergyDriver::apply_ket_vrr(const R2CTerm& rterm) const
 {
     R2CDist t2crt;
     
-    size_t nints = 3;
+    size_t nints = 5;
     
     for (const auto axis : "xyz")
     {
@@ -298,7 +301,7 @@ T2CKineticEnergyDriver::apply_bra_vrr(R2CDist& rdist) const
                 {
                     for (size_t j = 0; j < nterms; j++)
                     {
-                        if (const auto rterm = cdist[j]; rterm.auxilary(0))
+                        if (const auto rterm = cdist[j]; (rterm.auxilary(0) || (!is_kinetic_energy(rterm))))
                         {
                             new_dist.add(rterm);
                         }
@@ -373,7 +376,7 @@ T2CKineticEnergyDriver::apply_ket_vrr(R2CDist& rdist) const
                 {
                     for (size_t j = 0; j < nterms; j++)
                     {
-                        if (const auto rterm = cdist[j]; rterm.auxilary(1))
+                        if (const auto rterm = cdist[j]; (rterm.auxilary(1) || (!is_kinetic_energy(rterm))))
                         {
                             new_dist.add(rterm);
                         }
@@ -397,6 +400,10 @@ T2CKineticEnergyDriver::apply_ket_vrr(R2CDist& rdist) const
 R2Group
 T2CKineticEnergyDriver::create_recursion(const VT2CIntegrals& vints) const
 {
+    // create overlap integrals driver
+    
+    T2COverlapDriver ovl_drv;
+    
     // create reference group
     
     R2Group r2group;
@@ -405,7 +412,13 @@ T2CKineticEnergyDriver::create_recursion(const VT2CIntegrals& vints) const
     {
         auto rdist = R2CDist(R2CTerm(tcomp));
         
+        // apply kinetic energy recursion
+        
         apply_recursion(rdist);
+        
+        // apply overlap recursion
+        
+        ovl_drv.apply_recursion(rdist);
         
         std::cout << "*** RECURSION FOR INTEGRAL COMPONENT: " << rdist.root().label() << std::endl;
 
@@ -413,7 +426,14 @@ T2CKineticEnergyDriver::create_recursion(const VT2CIntegrals& vints) const
 
         for (size_t i = 0; i < rdist.terms(); i++)
         {
-            std::cout << " RECURSION TERM (" << i << "): " << rdist[i].label() << std::endl;
+            std::cout << " RECURSION TERM (" << i << "): " << rdist[i].integrand().name() << " Factors: " ;
+            
+            for (const auto& fact : rdist[i].factors())
+            {
+                std::cout << fact.label() << " , ";
+            }
+            
+            std::cout << std::endl;
         }
 
         std::cout << std::endl << std::endl;

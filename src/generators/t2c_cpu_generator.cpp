@@ -63,7 +63,7 @@ T2CCPUGenerator::_is_available(const std::string& label) const
 {
     if (fstr::lowercase(label) == "overlap") return true;
     
-    if (fstr::lowercase(label) == "kinetic_energy") return true;
+    if (fstr::lowercase(label) == "kinetic energy") return true;
     
     return false;
 }
@@ -86,7 +86,7 @@ T2CCPUGenerator::_get_integral(const std::string& label,
     
     // kinetic energy integrals
     
-    if (fstr::lowercase(label) == "kinetic_energy")
+    if (fstr::lowercase(label) == "kinetic energy")
     {
         return I2CIntegral(bra, ket, Operator("T"));
     }

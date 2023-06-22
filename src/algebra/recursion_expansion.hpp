@@ -63,6 +63,11 @@ public:
     /// @return true if this recursion expansion is less than other recursion expansion, false otherwise.
     bool operator<(const RecursionExpansion<T>& other) const;
     
+    /// Creates new recursion expansion by splitting off recursion terms containing given integral.
+    /// @param integral The other recursion expansion to compare.
+    /// @return true if this recursion expansion is less than other recursion expansion, false otherwise.
+    RecursionExpansion<T> split(const T& integral) const;
+    
     /// Simplifies recursion expansion.
     void simplify();
     

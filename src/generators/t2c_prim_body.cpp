@@ -19,6 +19,9 @@
 #include "file_stream.hpp"
 #include "t2c_utils.hpp"
 #include "t2c_ovl_driver.hpp"
+#include "t2c_kin_driver.hpp"
+
+#include <iostream>
 
 void
 T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream& fstream,
@@ -434,7 +437,7 @@ T2CPrimFuncBodyDriver::_add_simd_code(      VCodeLines&               lines,
     const auto rgroup = _generate_integral_group(components, integral);
     
     _add_prefactors(lines, rgroup);
-    
+        
     _add_simd_lines(lines, labels, rgroup);
 }
 
@@ -451,6 +454,15 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
         T2COverlapDriver t2c_ovl_drv;
         
         rgroup = t2c_ovl_drv.create_recursion(components);
+    }
+    
+    // Kinetic energy inntegrals
+    
+    if (integral.integrand() == Operator("T"))
+    {
+        T2CKineticEnergyDriver t2c_kin_drv;
+        
+        rgroup = t2c_kin_drv.create_recursion(components);
     }
     
     // ... other integrals
@@ -498,36 +510,50 @@ T2CPrimFuncBodyDriver::_add_simd_lines(      VCodeLines&               lines,
                                        const std::vector<std::string>& labels,
                                        const R2Group&                  rgroup) const
 {
+    if (rgroup.empty())
+    {
+        lines.push_back({2, 0, 1, "// PLEASE IMPLEMENT MANUALLY"});
+        
+        return;
+    }
+    
     for (size_t i = 0; i < labels.size(); i++)
     {
         const auto rdist = rgroup[i];
         
-        const auto nterms = rdist.terms();
-        
-        auto nbatches = nterms / 5;
-        
-        if ((nterms % 5) != 0) nbatches++;
-        
-        for (size_t j = 0; j < nbatches; j++)
+        for (const auto& tint : rgroup[i].unique_integrals())
         {
-            const auto sterm = 5 * j;
-            
-            const auto eterm = ((sterm + 5) > nterms) ? nterms : sterm + 5;
-            
-            std::string simd_str;
-            
-            for (size_t k = sterm; k < eterm; k++)
-            {
-                simd_str += t2c::get_factor_label(rdist[k], k == sterm);
-            }
-            
-            if ((eterm - sterm) > 1) simd_str = "(" + simd_str + ")";
-            
-            int shift = 2;
-            
-            if ((labels.size() == (i + 1)) && (nbatches == (j + 1))) shift = 1;
-            
-            lines.push_back({2, 0, shift, labels[i] + "[i] += fss * " + simd_str + ";"});
+            std::cout << tint.label() << " (" << tint.integrand().name() << ") : ";
         }
+        
+        std::cout << std::endl;
+        
+//        const auto nterms = rdist.terms();
+//
+//        auto nbatches = nterms / 5;
+//
+//        if ((nterms % 5) != 0) nbatches++;
+//
+//        for (size_t j = 0; j < nbatches; j++)
+//        {
+//            const auto sterm = 5 * j;
+//
+//            const auto eterm = ((sterm + 5) > nterms) ? nterms : sterm + 5;
+//
+//            std::string simd_str;
+//
+//            for (size_t k = sterm; k < eterm; k++)
+//            {
+//                simd_str += t2c::get_factor_label(rdist[k], k == sterm);
+//            }
+//
+//            if ((eterm - sterm) > 1) simd_str = "(" + simd_str + ")";
+//
+//            int shift = 2;
+//
+//            if ((labels.size() == (i + 1)) && (nbatches == (j + 1))) shift = 1;
+//
+//            lines.push_back({2, 0, shift, labels[i] + "[i] += fss * " + simd_str + ";"});
+//        }
     }
 }
