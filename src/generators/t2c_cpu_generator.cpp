@@ -126,7 +126,7 @@ T2CCPUGenerator::_write_cpp_header(const I2CIntegral& integral) const
         decl_drv.write_func_decl(fstream, integral, true, true);
     }
     
-    docs_drv.write_doc_str(fstream, integral, true);
+    docs_drv.write_doc_str(fstream, integral, false);
     
     decl_drv.write_func_decl(fstream, integral, false, true);
     
@@ -165,7 +165,7 @@ T2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral) const
     
     decl_drv.write_func_decl(fstream, integral, false, false);
     
-    func_drv.write_func_body(fstream, integral, true);
+    func_drv.write_func_body(fstream, integral, false);
     
     _write_prim_funcs_to_cpp_file(fstream, integral);
 

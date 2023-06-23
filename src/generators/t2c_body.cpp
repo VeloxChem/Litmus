@@ -194,6 +194,8 @@ T2CFuncBodyDriver::_get_buffers_def(const I2CIntegral& integral) const
         
         if ((integral[0] == 0) || (integral[1] == 0))
         {
+            labels = {"buffer", }; 
+            
             if (integral[0] > 0) labels = t2c::tensor_components(bra, "buffer");
             
             if (integral[1] > 0) labels = t2c::tensor_components(ket, "buffer");

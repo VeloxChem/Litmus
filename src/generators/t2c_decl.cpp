@@ -143,11 +143,11 @@ T2CDeclDriver::_get_matrix_str(const I2CIntegral& integral) const
     {
         if (i == 0)
         {
-            vstr.push_back(name + "(" + std::string(6, ' ') + "CSubMatrix* " + labels[i]);
+            vstr.push_back(name + "(" + std::string(6, ' ') + "CSubMatrix* " + labels[i] + ",");
         }
         else
         {
-            vstr.push_back(std::string(nsize + 6, ' ') + "CSubMatrix* " + labels[i]);
+            vstr.push_back(std::string(nsize + 6, ' ') + "CSubMatrix* " + labels[i] + ",");
         }
     }
     

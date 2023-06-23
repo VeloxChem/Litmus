@@ -41,11 +41,6 @@ T2CDocuDriver::write_doc_str(      std::ofstream& fstream,
         lines.push_back({0, 1, 1, label});
     }
     
-    for (const auto& label : _get_gto_blocks_str(integral, diagonal))
-    {
-        lines.push_back({0, 1, 1, label});
-    }
-    
     if (const auto label = _get_matrix_type_str(integral, diagonal);
         !label.empty())
     {
@@ -345,7 +340,7 @@ T2CDocuDriver::_get_prim_buffer_str(const I2CIntegral& integral,
 {
     std::vector<std::string> vstr;
     
-    const auto tensor = (bra_first) ? Tensor(integral[0]) : Tensor(integral[1]);
+    const auto tensor = (bra_first) ? Tensor(integral[1]) : Tensor(integral[0]);
 
     for (const auto& label : t2c::tensor_components(tensor, "buffer"))
     {
