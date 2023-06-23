@@ -66,13 +66,13 @@ T2CKineticEnergyDriver::bra_vrr(const R2CTerm& rterm,
         
         // second recursion term
         
-        auto r2val = *tval;
+        auto x2val = *tval;
         
         const auto coord = _rxyz[axes::to_index(axis)];
         
-        r2val.add(Factor("PA", "rpa", coord), Fraction(1));
+        x2val.add(Factor("PA", "rpa", coord), Fraction(1));
         
-        t2crt.add(r2val);
+        t2crt.add(x2val);
         
         // third recursion term
         
@@ -80,7 +80,7 @@ T2CKineticEnergyDriver::bra_vrr(const R2CTerm& rterm,
         {
             auto x3val = *r3val;
             
-            const auto na = r2val[0][axis];
+            const auto na = x2val[0][axis];
             
             x3val.add(Factor("1/eta", "fe"), Fraction(na, 2));
             
@@ -93,7 +93,7 @@ T2CKineticEnergyDriver::bra_vrr(const R2CTerm& rterm,
         {
             auto x4val = *r4val;
             
-            const auto nb = r2val[1][axis];
+            const auto nb = x2val[1][axis];
             
             x4val.add(Factor("1/eta", "fe"), Fraction(nb, 2));
             
@@ -106,7 +106,7 @@ T2CKineticEnergyDriver::bra_vrr(const R2CTerm& rterm,
         {
             auto x5val = *r5val;
             
-            const auto na = r2val[0][axis];
+            const auto na = x2val[0][axis];
             
             x5val = x5val.replace(OperatorComponent("1"));
             
@@ -145,13 +145,13 @@ T2CKineticEnergyDriver::ket_vrr(const R2CTerm& rterm,
         
         // second recursion term
         
-        auto r2val = *tval;
+        auto x2val = *tval;
         
         const auto coord = _rxyz[axes::to_index(axis)];
         
-        r2val.add(Factor("PB", "rpb", coord), Fraction(1));
+        x2val.add(Factor("PB", "rpb", coord), Fraction(1));
         
-        t2crt.add(r2val);
+        t2crt.add(x2val);
         
         // third recursion term
         
@@ -159,7 +159,7 @@ T2CKineticEnergyDriver::ket_vrr(const R2CTerm& rterm,
         {
             auto x3val = *r3val;
             
-            const auto nb = r2val[1][axis];
+            const auto nb = x2val[1][axis];
             
             x3val.add(Factor("1/eta", "fe"), Fraction(nb, 2));
             
@@ -172,7 +172,7 @@ T2CKineticEnergyDriver::ket_vrr(const R2CTerm& rterm,
         {
             auto x4val = *r4val;
             
-            const auto nb = r2val[1][axis];
+            const auto nb = x2val[1][axis];
             
             x4val = x4val.replace(OperatorComponent("1"));
             
@@ -422,23 +422,23 @@ T2CKineticEnergyDriver::create_recursion(const VT2CIntegrals& vints) const
         
         ovl_drv.apply_recursion(rdist);
         
-        std::cout << "*** RECURSION FOR INTEGRAL COMPONENT: " << rdist.root().label() << std::endl;
-
-        std::cout << " NUMBER OF TERMS:" << rdist.terms() << std::endl;
-
-        for (size_t i = 0; i < rdist.terms(); i++)
-        {
-            std::cout << " RECURSION TERM (" << i << "): " << rdist[i].integrand().name() << " Factors: " ;
-            
-            for (const auto& fact : rdist[i].factors())
-            {
-                std::cout << fact.label() << " , ";
-            }
-            
-            std::cout << std::endl;
-        }
-
-        std::cout << std::endl << std::endl;
+//        std::cout << "*** RECURSION FOR INTEGRAL COMPONENT: " << rdist.root().label() << std::endl;
+//
+//        std::cout << " NUMBER OF TERMS:" << rdist.terms() << std::endl;
+//
+//        for (size_t i = 0; i < rdist.terms(); i++)
+//        {
+//            std::cout << " RECURSION TERM (" << i << "): " << rdist[i].integrand().name() << " Factors: " ;
+//            
+//            for (const auto& fact : rdist[i].factors())
+//            {
+//                std::cout << fact.label() << " , ";
+//            }
+//            
+//            std::cout << std::endl;
+//        }
+//
+//        std::cout << std::endl << std::endl;
         
         r2group.add(rdist);
     }

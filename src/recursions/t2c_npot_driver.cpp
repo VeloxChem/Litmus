@@ -14,13 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "t2c_ovl_driver.hpp"
+#include "t2c_npot_driver.hpp"
 
 #include <iostream>
 
 #include "axes.hpp"
 
-T2COverlapDriver::T2COverlapDriver()
+T2CNuclearPotentialDriver::T2CNuclearPotentialDriver()
 {
     _rxyz = {TensorComponent(1, 0, 0),
              TensorComponent(0, 1, 0),
@@ -28,28 +28,35 @@ T2COverlapDriver::T2COverlapDriver()
 }
 
 bool
-T2COverlapDriver::is_overlap(const R2CTerm& rterm) const
+T2CNuclearPotentialDriver::is_nuclear_potential(const R2CTerm& rterm) const
 {
     if (!(rterm.prefixes()).empty())
     {
         return false;
     }
     
-    if (rterm.integrand() != OperatorComponent("1"))
+    if (rterm.integrand() != OperatorComponent("A"))
     {
         return false;
     }
     else
     {
-        return true;
+        if (rterm.integrand().shape() == TensorComponent(0, 0, 0))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
 
 std::optional<R2CDist>
-T2COverlapDriver::bra_vrr(const R2CTerm& rterm,
-                          const char     axis) const
+T2CNuclearPotentialDriver::bra_vrr(const R2CTerm& rterm,
+                                   const char     axis) const
 {
-    if (!is_overlap(rterm)) return std::nullopt;
+    if (!is_nuclear_potential(rterm)) return std::nullopt;
     
     if (const auto tval = rterm.shift(axis, -1, 0))
     {
@@ -67,28 +74,57 @@ T2COverlapDriver::bra_vrr(const R2CTerm& rterm,
         
         // second recursion term
         
-        if (const auto r2val = tval->shift(axis, -1, 0))
+        if (const auto r2val = tval->shift_order(1))
         {
             auto x2val = *r2val;
             
-            const auto na = x1val[0][axis];
-            
-            x2val.add(Factor("1/eta", "fe"), Fraction(na, 2));
+            x2val.add(Factor("PC", "rpc", coord), Fraction(-1));
             
             t2crt.add(x2val);
         }
         
-        // third recursion term
+        // third and fourth recursion terms
         
-        if (const auto r3val = tval->shift(axis, -1, 1))
+        if (const auto r3val = tval->shift(axis, -1, 0))
         {
             auto x3val = *r3val;
             
-            const auto nb = x1val[1][axis];
+            const auto na = x1val[0][axis];
             
-            x3val.add(Factor("1/eta", "fe"), Fraction(nb, 2));
+            x3val.add(Factor("1/eta", "fe"), Fraction(na, 2));
             
             t2crt.add(x3val);
+            
+            if (const auto r4val = r3val->shift_order(1))
+            {
+                auto x4val = *r4val;
+                
+                x4val.add(Factor("1/eta", "fe"), Fraction(-na, 2));
+                
+                t2crt.add(x4val);
+            }
+        }
+        
+        // fifth and sixth recursion terms
+        
+        if (const auto r5val = tval->shift(axis, -1, 1))
+        {
+            auto x5val = *r5val;
+            
+            const auto nb = x1val[1][axis];
+            
+            x5val.add(Factor("1/eta", "fe"), Fraction(nb, 2));
+            
+            t2crt.add(x5val);
+            
+            if (const auto r6val = r5val->shift_order(1))
+            {
+                auto x6val = *r6val;
+                
+                x6val.add(Factor("1/eta", "fe"), Fraction(-nb, 2));
+                
+                t2crt.add(x6val);
+            }
         }
         
         return t2crt;
@@ -100,10 +136,10 @@ T2COverlapDriver::bra_vrr(const R2CTerm& rterm,
 }
 
 std::optional<R2CDist>
-T2COverlapDriver::ket_vrr(const R2CTerm& rterm,
-                          const char     axis) const
+T2CNuclearPotentialDriver::ket_vrr(const R2CTerm& rterm,
+                                   const char     axis) const
 {
-    if (!is_overlap(rterm)) return std::nullopt;
+    if (!is_nuclear_potential(rterm)) return std::nullopt;
     
     if (const auto tval = rterm.shift(axis, -1, 1))
     {
@@ -121,15 +157,35 @@ T2COverlapDriver::ket_vrr(const R2CTerm& rterm,
         
         // second recursion term
         
-        if (const auto r2val = tval->shift(axis, -1, 1))
+        if (const auto r2val = tval->shift_order(1))
         {
             auto x2val = *r2val;
             
-            const auto nb = x1val[1][axis];
-            
-            x2val.add(Factor("1/eta", "fe"), Fraction(nb, 2));
+            x2val.add(Factor("PC", "rpc", coord), Fraction(-1));
             
             t2crt.add(x2val);
+        }
+        
+        // third and fourth recursion terms
+        
+        if (const auto r3val = tval->shift(axis, -1, 1))
+        {
+            auto x3val = *r3val;
+            
+            const auto nb = x1val[1][axis];
+            
+            x3val.add(Factor("1/eta", "fe"), Fraction(nb, 2));
+            
+            t2crt.add(x3val);
+            
+            if (const auto r4val = r3val->shift_order(1))
+            {
+                auto x4val = *r4val;
+                
+                x4val.add(Factor("1/eta", "fe"), Fraction(-nb, 2));
+                
+                t2crt.add(x4val);
+            }
         }
         
         return t2crt;
@@ -141,7 +197,7 @@ T2COverlapDriver::ket_vrr(const R2CTerm& rterm,
 }
 
 R2CDist
-T2COverlapDriver::apply_bra_vrr(const R2CTerm& rterm) const
+T2CNuclearPotentialDriver::apply_bra_vrr(const R2CTerm& rterm) const
 {
     R2CDist t2crt;
     
@@ -164,7 +220,7 @@ T2COverlapDriver::apply_bra_vrr(const R2CTerm& rterm) const
 }
 
 R2CDist
-T2COverlapDriver::apply_ket_vrr(const R2CTerm& rterm) const
+T2CNuclearPotentialDriver::apply_ket_vrr(const R2CTerm& rterm) const
 {
     R2CDist t2crt;
     
@@ -187,7 +243,7 @@ T2COverlapDriver::apply_ket_vrr(const R2CTerm& rterm) const
 }
 
 void
-T2COverlapDriver::apply_recursion(R2CDist& rdist) const
+T2CNuclearPotentialDriver::apply_recursion(R2CDist& rdist) const
 {
     // vertical recursions on bra side
     
@@ -199,7 +255,7 @@ T2COverlapDriver::apply_recursion(R2CDist& rdist) const
 }
 
 void
-T2COverlapDriver::apply_bra_vrr(R2CDist& rdist) const
+T2CNuclearPotentialDriver::apply_bra_vrr(R2CDist& rdist) const
 {
     if (!rdist.auxilary(0))
     {
@@ -213,7 +269,7 @@ T2COverlapDriver::apply_bra_vrr(R2CDist& rdist) const
         {
             for (size_t i = 0; i < nterms; i++)
             {
-                if (const auto rterm = rdist[i]; is_overlap(rterm))
+                if (const auto rterm = rdist[i]; is_nuclear_potential(rterm))
                 {
                     if (rterm.auxilary(0))
                     {
@@ -232,7 +288,7 @@ T2COverlapDriver::apply_bra_vrr(R2CDist& rdist) const
         }
         else
         {
-            if (const auto rterm = rdist.root(); is_overlap(rterm))
+            if (const auto rterm = rdist.root(); is_nuclear_potential(rterm))
             {
                 rec_terms.push_back(rterm);
             }
@@ -269,12 +325,12 @@ T2COverlapDriver::apply_bra_vrr(R2CDist& rdist) const
         
         // update recursion distribution
         
-        rdist = new_dist; 
+        rdist = new_dist;
     }
 }
 
 void
-T2COverlapDriver::apply_ket_vrr(R2CDist& rdist) const
+T2CNuclearPotentialDriver::apply_ket_vrr(R2CDist& rdist) const
 {
     if (!rdist.auxilary(1))
     {
@@ -288,7 +344,7 @@ T2COverlapDriver::apply_ket_vrr(R2CDist& rdist) const
         {
             for (size_t i = 0; i < nterms; i++)
             {
-                if (const auto rterm = rdist[i]; is_overlap(rterm))
+                if (const auto rterm = rdist[i]; is_nuclear_potential(rterm))
                 {
                     if (rterm.auxilary(1))
                     {
@@ -307,7 +363,7 @@ T2COverlapDriver::apply_ket_vrr(R2CDist& rdist) const
         }
         else
         {
-            if (const auto rterm = rdist.root(); is_overlap(rterm))
+            if (const auto rterm = rdist.root(); is_nuclear_potential(rterm))
             {
                 rec_terms.push_back(rterm);
             }
@@ -349,7 +405,7 @@ T2COverlapDriver::apply_ket_vrr(R2CDist& rdist) const
 }
 
 R2Group
-T2COverlapDriver::create_recursion(const VT2CIntegrals& vints) const
+T2CNuclearPotentialDriver::create_recursion(const VT2CIntegrals& vints) const
 {
     // create reference group
     
@@ -361,21 +417,21 @@ T2COverlapDriver::create_recursion(const VT2CIntegrals& vints) const
         
         apply_recursion(rdist);
         
-//        std::cout << "*** RECURSION FOR INTEGRAL COMPONENT: " << rdist.root().label() << std::endl;
-//
-//        std::cout << " NUMBER OF TERMS:" << rdist.terms() << std::endl;
-//
-//        for (size_t i = 0; i < rdist.terms(); i++)
-//        {
-//            std::cout << " RECURSION TERM (" << i << "): " << rdist[i].label() << std::endl;
-//        }
-//
-//        std::cout << std::endl << std::endl;
+        std::cout << "*** RECURSION FOR INTEGRAL COMPONENT: " << rdist.root().label() << std::endl;
+
+        std::cout << " NUMBER OF TERMS:" << rdist.terms() << std::endl;
+
+        for (size_t i = 0; i < rdist.terms(); i++)
+        {
+            std::cout << " RECURSION TERM (" << i << "): " << rdist[i].label() << std::endl;
+        }
+
+        std::cout << std::endl << std::endl;
         
         r2group.add(rdist);
     }
     
-    r2group.simplify(); 
+    r2group.simplify();
     
     return r2group;
 }
