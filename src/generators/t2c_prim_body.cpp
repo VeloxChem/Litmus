@@ -365,19 +365,56 @@ T2CPrimFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
     
     lines.push_back({2, 0, 2, "const auto ab_z = bra_rz - ket_rz[i];"});
     
+    if (integral.integrand() == Operator("1"))
+    {
+        _add_overlap_vars(lines, integral);
+    }
+    
+    if (integral.integrand() == Operator("T"))
+    {
+        _add_kinetic_energy_vars(lines, integral);
+    }
+}
+
+void
+T2CPrimFuncBodyDriver::_add_overlap_vars(      VCodeLines&  lines,
+                                         const I2CIntegral& integral) const
+{
     lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / (bra_exp + ket_fe[i]);"});
     
     lines.push_back({2, 0, 2, "auto fz_0 = bra_exp * ket_fe[i] * fe_0;"});
     
     lines.push_back({2, 0, 2, "fz_0 *= (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
     
-    if ((integral.integrand() == Operator("1")) && ((integral[0] + integral[1]) == 0))
+    if ((integral[0] + integral[1]) == 0)
     {
         lines.push_back({2, 0, 1, "fints[i] += bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
     }
     else
     {
         lines.push_back({2, 0, 2, "const auto fss = bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
+    }
+}
+
+void
+T2CPrimFuncBodyDriver::_add_kinetic_energy_vars(      VCodeLines&  lines,
+                                                const I2CIntegral& integral) const
+{
+    lines.push_back({2, 0, 2, "const auto r2ab = ab_x * ab_x + ab_y * ab_y + ab_z * ab_z;"});
+    
+    lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / (bra_exp + ket_fe[i]);"});
+    
+    lines.push_back({2, 0, 2, "const auto fz_0 = bra_exp * ket_fe[i] * fe_0;"});
+    
+    lines.push_back({2, 0, 2, "const auto fss = bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0 * r2ab);"});
+    
+    if ((integral[0] + integral[1]) == 0)
+    {
+        lines.push_back({2, 0, 1, "fints[i] += fz_0 * (3.0 - 2.0 * fz_0 * r2ab) * fss;"});
+    }
+    else
+    {
+        lines.push_back({2, 0, 2, "const auto ftt = fz_0 * (3.0 - 2.0 * fz_0 * r2ab) * fss;"});
     }
 }
 
@@ -503,6 +540,16 @@ T2CPrimFuncBodyDriver::_add_prefactors(      VCodeLines& lines,
     {
         lines.push_back({2, 0, 2, "const auto rpb_z = bra_exp * ab_z * fe_0;"});
     }
+    
+    if (t2c::find_factor(rgroup, "fke_0"))
+    {
+        lines.push_back({2, 0, 2, "const auto fke_0 = 1.0 / ket_fe[i];"});
+    }
+    
+    if (t2c::find_factor(rgroup, "fbe_0"))
+    {
+        lines.push_back({2, 0, 2, "const auto fbe_0 = 1.0 / bra_exp;"});
+    }
 }
 
 void
@@ -510,12 +557,7 @@ T2CPrimFuncBodyDriver::_add_simd_lines(      VCodeLines&               lines,
                                        const std::vector<std::string>& labels,
                                        const R2Group&                  rgroup) const
 {
-    if (rgroup.empty())
-    {
-        lines.push_back({2, 0, 1, "// PLEASE IMPLEMENT MANUALLY"});
-        
-        return;
-    }
+    if (rgroup.empty()) return;
     
     for (size_t i = 0; i < labels.size(); i++)
     {

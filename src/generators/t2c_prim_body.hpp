@@ -90,6 +90,18 @@ class T2CPrimFuncBodyDriver
     void _add_loop_start(      VCodeLines&  lines,
                          const I2CIntegral& integral) const;
     
+    /// Adds overlap integral variables after the main loop start for primitive compute function.
+    /// @param lines The code lines container to which loop start are added.
+    /// @param integral The base two center integral.
+    void _add_overlap_vars(      VCodeLines&  lines,
+                           const I2CIntegral& integral) const;
+    
+    /// Adds kinetic energy integral variables after the main loop start for primitive compute function.
+    /// @param lines The code lines container to which loop start are added.
+    /// @param integral The base two center integral.
+    void _add_kinetic_energy_vars(      VCodeLines&  lines,
+                                  const I2CIntegral& integral) const;
+    
     /// Adds main loop end for primitive compute function.
     /// @param lines The code lines container to which loop end are added.
     void _add_loop_end(VCodeLines&  lines) const;
