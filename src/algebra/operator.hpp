@@ -68,8 +68,12 @@ public:
     
     /// Compares this operator with other operator.
     /// @param other The other operator to compare.
-    /// @return true if this operator is less than other operator, false otherwise.
+    /// @returntrue if this operator is less than other operator, false otherwise.
     bool operator<(const Operator& other) const;
+    
+    /// Gets  the shape of operator.
+    /// @return The tensorial shape of operator.
+    Tensor shape() const;
     
     /// Creates primitive textual representation of this operator.
     /// @return The string with primitive textual representation of operator.

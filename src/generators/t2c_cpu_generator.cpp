@@ -65,6 +65,8 @@ T2CCPUGenerator::_is_available(const std::string& label) const
     
     if (fstr::lowercase(label) == "kinetic energy") return true;
     
+    if (fstr::lowercase(label) == "nuclear potential") return true;
+    
     return false;
 }
 
@@ -89,6 +91,13 @@ T2CCPUGenerator::_get_integral(const std::string& label,
     if (fstr::lowercase(label) == "kinetic energy")
     {
         return I2CIntegral(bra, ket, Operator("T"));
+    }
+    
+    // nuclear potential integrals
+    
+    if (fstr::lowercase(label) == "nuclear potential")
+    {
+        return I2CIntegral(bra, ket, Operator("A"));
     }
     
     return I2CIntegral();

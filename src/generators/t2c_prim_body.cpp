@@ -20,6 +20,7 @@
 #include "t2c_utils.hpp"
 #include "t2c_ovl_driver.hpp"
 #include "t2c_kin_driver.hpp"
+#include "t2c_npot_driver.hpp"
 
 #include <iostream>
 
@@ -502,6 +503,16 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
         rgroup = t2c_kin_drv.create_recursion(components);
     }
     
+    // Nuclear potential inntegrals
+    
+    if (const auto integrand = integral.integrand();
+        (integrand == Operator("A")) && (integrand.shape() == Tensor(0)))
+    {
+        T2CNuclearPotentialDriver t2c_npot_drv;
+        
+        rgroup = t2c_npot_drv.create_recursion(components);
+    }
+    
     // ... other integrals
     
     return rgroup;
@@ -616,6 +627,11 @@ T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral) const
     if (integral.integrand() == OperatorComponent("T"))
     {
         return std::string("ftt");
+    }
+    
+    if (integral.integrand() == OperatorComponent("A"))
+    {
+        return std::string("fss * bf_values[" + std::to_string(integral.order()) +  "][i]" );
     }
     
     return std::string();

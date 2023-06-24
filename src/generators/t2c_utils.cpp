@@ -27,6 +27,7 @@ integral_label(const I2CIntegral& integral)
     {
         auto labels = TMapOfStrings({ {Operator("1"), "Overlap"},
                                       {Operator("T"), "KineticEnergy"},
+                                      {Operator("A"), "NuclearPotential"}
         });
         
         return labels[integral.integrand()];
@@ -42,6 +43,7 @@ integrand_label(const Operator& integrand)
 {
     auto labels = TMapOfStrings({ {Operator("1"), ""},
                                   {Operator("T"), "T"},
+                                  {Operator("A"), "A"},
                                  });
         
     return labels[integrand];
@@ -143,6 +145,7 @@ namespace_label(const I2CIntegral& integral)
 {
     auto labels = TMapOfStrings({ {Operator("1"), "ovlrec"},
                                   {Operator("T"), "kinrec"},
+                                  {Operator("A"), "npotrec"},
                                 });
     
     return labels[integral.integrand()];
