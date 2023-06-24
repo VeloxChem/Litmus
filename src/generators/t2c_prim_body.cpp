@@ -37,6 +37,11 @@ T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
+    for (const auto& label : _get_special_vars_str(integral, true))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
     for (const auto& label : _get_buffers_str(integral))
     {
         lines.push_back({1, 0, 2, label});
@@ -46,7 +51,7 @@ T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream& fstream,
     
     _add_loop_start(lines, integral);
     
-     const auto tcomps = integral.components<T1CPair, T1CPair>();
+    const auto tcomps = integral.components<T1CPair, T1CPair>();
    
     std::vector<std::string> labels({"fints", });
     
@@ -74,6 +79,11 @@ T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream&   fstream,
     lines.push_back({0, 0, 1, "{"});
     
     for (const auto& label : _get_common_data_str())
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    for (const auto& label : _get_special_vars_str(integral, true))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -112,6 +122,11 @@ T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream&   fstream,
     lines.push_back({0, 0, 1, "{"});
     
     for (const auto& label : _get_common_data_str())
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    for (const auto& label : _get_special_vars_str(integral, true))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -375,6 +390,11 @@ T2CPrimFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
     {
         _add_kinetic_energy_vars(lines, integral);
     }
+    
+    if (integral.integrand() == Operator("A"))
+    {
+        _add_nuclear_potential_vars(lines, integral);
+    }
 }
 
 void
@@ -416,6 +436,26 @@ T2CPrimFuncBodyDriver::_add_kinetic_energy_vars(      VCodeLines&  lines,
     else
     {
         lines.push_back({2, 0, 2, "const auto ftt = fz_0 * (3.0 - 2.0 * fz_0 * r2ab) * fss;"});
+    }
+}
+
+void
+T2CPrimFuncBodyDriver::_add_nuclear_potential_vars(      VCodeLines&  lines,
+                                                   const I2CIntegral& integral) const
+{
+    lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / (bra_exp + ket_fe[i]);"});
+    
+    lines.push_back({2, 0, 2, "auto fz_0 = bra_exp * ket_fe[i] * fe_0;"});
+    
+    lines.push_back({2, 0, 2, "fz_0 *= (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
+    
+    if ((integral[0] + integral[1]) == 0)
+    {
+        lines.push_back({2, 0, 1, "fints[i] += bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
+    }
+    else
+    {
+        lines.push_back({2, 0, 2, "const auto fss = bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
     }
 }
 
@@ -635,4 +675,29 @@ T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral) const
     }
     
     return std::string();
+}
+
+std::vector<std::string>
+T2CPrimFuncBodyDriver:: _get_special_vars_str(const I2CIntegral& integral,
+                                              const bool         geom_form) const
+{
+    std::vector<std::string> vstr;
+    
+    // nuclear potential integrals
+    
+    if (integral.integrand() == Operator("A"))
+    {
+        if (geom_form)
+        {
+            vstr.push_back("// set up coordinates for C center");
+                
+            vstr.push_back("const auto c_rx = point[0];");
+                
+            vstr.push_back("const auto c_ry = point[1];");
+                
+            vstr.push_back("const auto c_rz = point[2];");
+        }
+    }
+    
+    return vstr;
 }

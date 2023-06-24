@@ -34,6 +34,11 @@ T2CDeclDriver::write_func_decl(      std::ofstream& fstream,
         lines.push_back({0, 0, 1, label});
     }
     
+    for (const auto& label : _get_special_vars_str(integral, true))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
     for (const auto& label : _get_gto_blocks_str(integral, diagonal))
     {
         lines.push_back({0, 0, 1, label});
@@ -155,6 +160,36 @@ T2CDeclDriver::_get_matrix_str(const I2CIntegral& integral) const
 }
 
 std::vector<std::string>
+T2CDeclDriver::_get_special_vars_str(const I2CIntegral& integral,
+                                     const bool         geom_form) const
+{
+    std::vector<std::string> vstr;
+    
+    const auto [nsize, name] = t2c::compute_func_name(integral);
+    
+    // nuclear potential integrals
+    
+    if (integral.integrand() == Operator("A"))
+    {
+        if (geom_form)
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const double charge,");
+            
+            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
+        }
+        else
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const std::vector<double>& charges,");
+            
+            vstr.push_back(std::string(nsize, ' ') + "const std::vector<TPoint3D>& points,");
+        }
+    }
+    
+    return vstr;
+}
+
+
+std::vector<std::string>
 T2CDeclDriver::_get_gto_blocks_str(const I2CIntegral& integral,
                                    const bool         diagonal) const
 {
@@ -229,6 +264,11 @@ T2CDeclDriver::_get_prim_buffer_str(const I2CIntegral& integral,
         vstr.push_back(std::string(nsize + 6, ' ') + "TDoubleArray& " + labels[i] + ",");
     }
     
+    for (const auto& line : _get_special_vars_str(integral, true))
+    {
+        vstr.push_back(line);
+    }
+    
     _add_prim_variables(vstr, std::string(nsize, ' '), terminus); 
     
     return vstr;
@@ -254,6 +294,11 @@ T2CDeclDriver::_get_prim_buffer_str(const TensorComponent& component,
         vstr.push_back(std::string(nsize + 6, ' ') + "TDoubleArray& " + labels[i] + ",");
     }
     
+    for (const auto& line : _get_special_vars_str(integral, true))
+    {
+        vstr.push_back(line);
+    }
+    
     _add_prim_variables(vstr, std::string(nsize, ' '), terminus);
     
     return vstr;
@@ -277,6 +322,11 @@ T2CDeclDriver::_get_prim_buffer_str(const TensorComponent& bra_component,
     for (size_t i = 1; i < labels.size(); i++)
     {
         vstr.push_back(std::string(nsize + 6, ' ') + "TDoubleArray& " + labels[i] + ",");
+    }
+    
+    for (const auto& line : _get_special_vars_str(integral, true))
+    {
+        vstr.push_back(line);
     }
     
     _add_prim_variables(vstr, std::string(nsize, ' '), terminus);

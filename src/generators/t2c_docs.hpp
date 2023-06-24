@@ -61,6 +61,13 @@ class T2CDocuDriver
     /// @return The vector of matrix strings.
     std::vector<std::string> _get_matrix_str(const I2CIntegral& integral) const;
     
+    /// Generates vector of special variable strings.
+    /// @param integral The base two center integral.
+    /// @param geom_form The geometrical form of special parameters.
+    /// @return The vector of special variable strings.
+    std::vector<std::string> _get_special_vars_str(const I2CIntegral& integral,
+                                                   const bool         geom_form) const;
+    
     /// Generates vector of GTOs block strings.
     /// @param integral The base two center integral.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.

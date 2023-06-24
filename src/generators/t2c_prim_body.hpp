@@ -102,6 +102,12 @@ class T2CPrimFuncBodyDriver
     void _add_kinetic_energy_vars(      VCodeLines&  lines,
                                   const I2CIntegral& integral) const;
     
+    /// Adds nuclear potential integral variables after the main loop start for primitive compute function.
+    /// @param lines The code lines container to which loop start are added.
+    /// @param integral The base two center integral.
+    void _add_nuclear_potential_vars(      VCodeLines&  lines,
+                                     const I2CIntegral& integral) const;
+    
     /// Adds main loop end for primitive compute function.
     /// @param lines The code lines container to which loop end are added.
     void _add_loop_end(VCodeLines&  lines) const;
@@ -166,6 +172,13 @@ class T2CPrimFuncBodyDriver
     /// @param integral The integral  component.
     /// @return The label of auxilary integral.
     std::string _get_aux_label(const T2CIntegral& integral) const;
+    
+    /// Generates vector of special variable strings.
+    /// @param integral The base two center integral.
+    /// @param geom_form The geometrical form of special parameters.
+    /// @return The vector of special variable strings.
+    std::vector<std::string> _get_special_vars_str(const I2CIntegral& integral,
+                                                   const bool         geom_form) const;
 
 public:
     /// Creates a two-center compute function body generator.

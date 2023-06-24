@@ -36,7 +36,17 @@ T2CDocuDriver::write_doc_str(      std::ofstream& fstream,
         lines.push_back({0, 1, 1, label});
     }
     
+    for (const auto& label : _get_special_vars_str(integral, true))
+    {
+        lines.push_back({0, 1, 1, label});
+    }
+    
     for (const auto& label : _get_gto_blocks_str(integral, diagonal))
+    {
+        lines.push_back({0, 1, 1, label});
+    }
+    
+    for (const auto& label : _get_indexes_str())
     {
         lines.push_back({0, 1, 1, label});
     }
@@ -63,6 +73,11 @@ T2CDocuDriver::write_prim_doc_str(      std::ofstream& fstream,
     lines.push_back({0, 1, 2, _get_prim_compute_str(integral)});
     
     for (const auto& label : _get_prim_buffer_str(integral))
+    {
+        lines.push_back({0, 1, 1, label});
+    }
+    
+    for (const auto& label : _get_special_vars_str(integral, true))
     {
         lines.push_back({0, 1, 1, label});
     }
@@ -94,6 +109,11 @@ T2CDocuDriver::write_prim_doc_str(      std::ofstream&   fstream,
         lines.push_back({0, 1, 1, label});
     }
     
+    for (const auto& label : _get_special_vars_str(integral, true))
+    {
+        lines.push_back({0, 1, 1, label});
+    }
+    
     for (const auto& label : _get_prim_variables_str())
     {
         lines.push_back({0, 1, 1, label});
@@ -117,6 +137,11 @@ T2CDocuDriver::write_prim_doc_str(      std::ofstream&   fstream,
     lines.push_back({0, 1, 2, _get_prim_compute_str(bra_component, ket_component, integral)});
     
     for (const auto& label : _get_prim_buffer_str(integral))
+    {
+        lines.push_back({0, 1, 1, label});
+    }
+    
+    for (const auto& label : _get_special_vars_str(integral, true))
     {
         lines.push_back({0, 1, 1, label});
     }
@@ -234,6 +259,33 @@ T2CDocuDriver::_get_matrix_str(const I2CIntegral& integral) const
             
             vstr.push_back("@param " + label + "the pointer to matrix for storage " +
                            "of Cartesian integral component " + lcomp + ".");
+        }
+    }
+    
+    return vstr;
+}
+
+std::vector<std::string>
+T2CDocuDriver::_get_special_vars_str(const I2CIntegral& integral,
+                                     const bool         geom_form) const
+{
+    std::vector<std::string> vstr;
+    
+    // nuclear potential integrals
+    
+    if (integral.integrand() == Operator("A"))
+    {
+        if (geom_form)
+        {
+            vstr.push_back("@param charge the charge of external point.");
+            
+            vstr.push_back("@param point the coordinates of external point.");
+        }
+        else
+        {
+            vstr.push_back("@param charges the vector of charges.");
+            
+            vstr.push_back("@param points the vector of coordinates of external points.");
         }
     }
     
