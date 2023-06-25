@@ -127,6 +127,16 @@ class T2CFuncBodyDriver
     
     /// Adds primitive function call definitions to code lines container.
     /// @param lines The code lines container to which primitives loop start definition are added.
+    /// @param integral The base two center integral.
+    /// @param geom_form The geometrical form of special parameters.
+    /// @param spacer The size of formatting shift.
+    void _add_prim_call_special_vars(      VCodeLines&  lines,
+                                     const I2CIntegral& integral,
+                                     const bool         geom_form,
+                                     const size_t       spacer) const;
+    
+    /// Adds primitive function call definitions to code lines container.
+    /// @param lines The code lines container to which primitives loop start definition are added.
     /// @param spacer The size of formatting shift.
     void _add_prim_call_data(      VCodeLines& lines,
                              const size_t      spacer) const;

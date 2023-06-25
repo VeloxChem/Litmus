@@ -464,23 +464,19 @@ void
 T2CPrimFuncBodyDriver::_add_nuclear_potential_vars(      VCodeLines&  lines,
                                                    const I2CIntegral& integral) const
 {
-    lines.push_back({2, 0, 2, "const auto fxi_0 = bra_exp + ket_fe[i]);"});
+    lines.push_back({2, 0, 2, "const auto fxi_0 = bra_exp + ket_fe[i];"});
     
-    lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / f_xi;"});
+    lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / fxi_0;"});
     
-    lines.push_back({2, 0, 2, "auto fz_0 = bra_exp * ket_fe[i] * fe_0;"});
-    
-    lines.push_back({2, 0, 2, "fz_0 *= (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
-    
-    lines.push_back({2, 0, 2, "const auto fss = 2.0 * std::sqrt(fxi_0 / fpi) * bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
+    lines.push_back({2, 0, 2, "const auto fz_0 = bra_exp * ket_fe[i] * fe_0 * (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
     
     if ((integral[0] + integral[1]) == 0)
     {
-        lines.push_back({2, 0, 1, "fints[i] += bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
+        lines.push_back({2, 0, 1, "fints[i] += b0_vals[i] * 2.0 * charge * std::sqrt(fxi_0 / fpi) * bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
     }
     else
     {
-        lines.push_back({2, 0, 2, "const auto fss = bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
+        lines.push_back({2, 0, 2, "const auto fss = 2.0 * charge * std::sqrt(fxi_0 / fpi) * bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
     }
 }
 
@@ -626,6 +622,21 @@ T2CPrimFuncBodyDriver::_add_prefactors(      VCodeLines& lines,
     {
         lines.push_back({2, 0, 2, "const auto fbe_0 = 1.0 / bra_exp;"});
     }
+    
+    if (t2c::find_factor(rgroup, "rpc_x"))
+    {
+        lines.push_back({2, 0, 2, "const auto rpc_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
+    }
+    
+    if (t2c::find_factor(rgroup, "rpc_y"))
+    {
+        lines.push_back({2, 0, 2, "const auto rpc_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
+    }
+
+    if (t2c::find_factor(rgroup, "rpc_z"))
+    {
+        lines.push_back({2, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
+    }
 }
 
 void
@@ -675,7 +686,7 @@ T2CPrimFuncBodyDriver::_add_simd_lines_block(      VCodeLines&  lines,
             simd_str += t2c::get_factor_label(rdist[j], j == sterm);
         }
     
-        if ((eterm - sterm) > 1) simd_str = "(" + simd_str + ")";
+        if (((eterm - sterm) > 1) || (simd_str[0] == '-')) simd_str = "(" + simd_str + ")";
 
         lines.push_back({2, 0, 2, label + "[i] += " + tlabel + " * " + simd_str + ";"});
     }
@@ -696,7 +707,7 @@ T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral) const
     
     if (integral.integrand() == OperatorComponent("A"))
     {
-        return std::string("fss * bf_values[" + std::to_string(integral.order()) +  "][i]" );
+        return std::string("fss * b" + std::to_string(integral.order()) + "_vals[i]");
     }
     
     return std::string();
@@ -742,7 +753,7 @@ T2CPrimFuncBodyDriver::_get_boys_vars_str(const I2CIntegral& integral) const
                 
         vstr.push_back("const CBoysFunc<" + std::to_string(order) + "> bf_table;");
                 
-        vstr.push_back("TDoubleArray bf_args;");
+        vstr.push_back("alignas(64) TDoubleArray bf_args;");
                 
         vstr.push_back("TDoubleArray2D<" + std::to_string(order + 1) + "> bf_values;");
         
@@ -777,16 +788,18 @@ T2CPrimFuncBodyDriver::_add_boys_compute_lines(      VCodeLines&  lines,
         
         lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / fxi_0;"});
         
-        lines.push_back({2, 0, 2, "const auto cp_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
+        lines.push_back({2, 0, 2, "const auto rpc_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
 
-        lines.push_back({2, 0, 2, "const auto cp_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
+        lines.push_back({2, 0, 2, "const auto rpc_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
 
-        lines.push_back({2, 0, 2, "const auto cp_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
+        lines.push_back({2, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
         
-        lines.push_back({2, 0, 1, "targs[i] = fxi_0 * (cp_x * cp_x + cp_y * cp_y + cp_z * cp_z);"});
+        lines.push_back({2, 0, 1, "targs[i] = fxi_0 * (rpc_x * rpc_x + rpc_y * rpc_y + rpc_z * rpc_z);"});
         
         lines.push_back({1, 0, 2, "}"});
         
-        lines.push_back({1, 0, 2, "bf_table.compute(bf_values, bf_args, ket_dim)"});
+        const auto order = t2c::boys_order(integral);
+        
+        lines.push_back({1, 0, 2, "bf_table.compute<" + std::to_string(order + 1) + ">(bf_values, bf_args, ket_dim);"});
     }
 }

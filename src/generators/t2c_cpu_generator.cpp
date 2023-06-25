@@ -239,6 +239,11 @@ T2CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"MathConst.hpp\""});
     
+    if (integral.integrand() == Operator("A"))
+    {
+        lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
+    }
+    
     lines.push_back({0, 0, 2, "#include \"T2CDistributor.hpp\""});
     
     ost::write_code_lines(fstream, lines);

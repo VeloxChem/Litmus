@@ -396,6 +396,8 @@ T2CFuncBodyDriver::_add_loop_call_tree(      VCodeLines&  lines,
         }
     }
     
+    _add_prim_call_special_vars(lines, integral, true, nsize);
+    
     _add_prim_call_data(lines, nsize); 
     
     _add_prim_loop_end(lines);
@@ -439,6 +441,8 @@ T2CFuncBodyDriver::_add_loop_call_tree(      VCodeLines&      lines,
             lines.push_back({5, nsize, 1, labels[i] + ","});
         }
     }
+    
+    _add_prim_call_special_vars(lines, integral, true, nsize);
     
     _add_prim_call_data(lines, nsize);
     
@@ -486,6 +490,8 @@ T2CFuncBodyDriver::_add_loop_call_tree(      VCodeLines&      lines,
             lines.push_back({5, nsize, 1, labels[i] + ","});
         }
     }
+    
+    _add_prim_call_special_vars(lines, integral, true, nsize); 
     
     _add_prim_call_data(lines, nsize);
     
@@ -546,6 +552,28 @@ T2CFuncBodyDriver::_add_prim_loop_end(VCodeLines& lines) const
     lines.push_back({4, 0, 1, "}"});
     
     lines.push_back({3, 0, 2, "}"});
+}
+
+void
+T2CFuncBodyDriver::_add_prim_call_special_vars(      VCodeLines&  lines,
+                                               const I2CIntegral& integral,
+                                               const bool         geom_form,
+                                               const size_t       spacer) const
+{
+    // nuclear potential integrals
+    
+    if (geom_form)
+    {
+        lines.push_back({5, spacer, 1, "charge,"});
+        
+        lines.push_back({5, spacer, 1, "point,"});
+    }
+    else
+    {
+        lines.push_back({5, spacer, 1, "charges,"});
+        
+        lines.push_back({5, spacer, 1, "points,"});
+    }
 }
 
 void
