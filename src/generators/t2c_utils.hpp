@@ -108,6 +108,11 @@ bool find_factor(const R2Group&     rgroup,
 std::string get_factor_label(const R2CTerm& rterm,
                              const bool     first);
 
+/// Gets Boys function order for given integral.
+/// @param integral The base two center integral.
+/// @return The Boys function order of integral.
+int boys_order(const I2CIntegral& integral);
+
 } // t2c namespace
 
 #endif /* t2c_utils_hpp */

@@ -272,4 +272,12 @@ get_factor_label(const R2CTerm& rterm,
     return flabel;
 }
 
+int
+boys_order(const I2CIntegral& integral)
+{
+    auto order = integral[0] + integral[1];
+    
+    return order;
+}
+
 } // t2c namespace

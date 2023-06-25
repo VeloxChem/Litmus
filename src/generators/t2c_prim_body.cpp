@@ -47,6 +47,13 @@ T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
+    for (const auto& label : _get_boys_vars_str(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    _add_boys_compute_lines(lines, integral);
+    
     _add_func_pragma(lines, integral);
     
     _add_loop_start(lines, integral);
@@ -93,6 +100,13 @@ T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream&   fstream,
         lines.push_back({1, 0, 2, label});
     }
     
+    for (const auto& label : _get_boys_vars_str(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    _add_boys_compute_lines(lines, integral);
+    
     _add_func_pragma(lines, component, integral, bra_first);
     
     _add_loop_start(lines, integral);
@@ -135,6 +149,13 @@ T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream&   fstream,
     {
         lines.push_back({1, 0, 2, label});
     }
+    
+    for (const auto& label : _get_boys_vars_str(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    _add_boys_compute_lines(lines, integral);
     
     _add_func_pragma(lines, bra_component, ket_component, integral);
     
@@ -443,11 +464,15 @@ void
 T2CPrimFuncBodyDriver::_add_nuclear_potential_vars(      VCodeLines&  lines,
                                                    const I2CIntegral& integral) const
 {
-    lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / (bra_exp + ket_fe[i]);"});
+    lines.push_back({2, 0, 2, "const auto fxi_0 = bra_exp + ket_fe[i]);"});
+    
+    lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / f_xi;"});
     
     lines.push_back({2, 0, 2, "auto fz_0 = bra_exp * ket_fe[i] * fe_0;"});
     
     lines.push_back({2, 0, 2, "fz_0 *= (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
+    
+    lines.push_back({2, 0, 2, "const auto fss = 2.0 * std::sqrt(fxi_0 / fpi) * bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
     
     if ((integral[0] + integral[1]) == 0)
     {
@@ -678,7 +703,7 @@ T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral) const
 }
 
 std::vector<std::string>
-T2CPrimFuncBodyDriver:: _get_special_vars_str(const I2CIntegral& integral,
+T2CPrimFuncBodyDriver::_get_special_vars_str(const I2CIntegral& integral,
                                               const bool         geom_form) const
 {
     std::vector<std::string> vstr;
@@ -700,4 +725,68 @@ T2CPrimFuncBodyDriver:: _get_special_vars_str(const I2CIntegral& integral,
     }
     
     return vstr;
+}
+
+std::vector<std::string>
+T2CPrimFuncBodyDriver::_get_boys_vars_str(const I2CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    const auto order = t2c::boys_order(integral);
+    
+    // nuclear potential integrals
+    
+    if (integral.integrand() == Operator("A"))
+    {
+        vstr.push_back("// set up Boys function variables");
+                
+        vstr.push_back("const CBoysFunc<" + std::to_string(order) + "> bf_table;");
+                
+        vstr.push_back("TDoubleArray bf_args;");
+                
+        vstr.push_back("TDoubleArray2D<" + std::to_string(order + 1) + "> bf_values;");
+        
+        for (size_t i = 0; i < (order + 1); i++)
+        {
+            vstr.push_back("auto b" + std::to_string(i) + "_vals = bf_values[" + std::to_string(i) + "].data();");
+        }
+        
+        vstr.push_back("auto targs = bf_args.data();"); 
+    }
+    
+    return vstr;
+}
+
+void
+T2CPrimFuncBodyDriver::_add_boys_compute_lines(      VCodeLines&  lines,
+                                               const I2CIntegral& integral) const
+{
+    // nuclear potential integrals
+    
+    if (integral.integrand() == Operator("A"))
+    {
+        lines.push_back({1, 0, 2, "// compute Boys function values"});
+        
+        lines.push_back({1, 0, 1, "#pragma omp simd aligned(targs, ket_fe, ket_rx, ket_ry, ket_rz : 64)"});
+        
+        lines.push_back({1, 0, 1, "for (int64_t i = 0; i < ket_dim; i++)"});
+        
+        lines.push_back({1, 0, 1, "{"});
+        
+        lines.push_back({2, 0, 2, "const auto fxi_0 = bra_exp + ket_fe[i];"});
+        
+        lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / fxi_0;"});
+        
+        lines.push_back({2, 0, 2, "const auto cp_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
+
+        lines.push_back({2, 0, 2, "const auto cp_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
+
+        lines.push_back({2, 0, 2, "const auto cp_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
+        
+        lines.push_back({2, 0, 1, "targs[i] = fxi_0 * (cp_x * cp_x + cp_y * cp_y + cp_z * cp_z);"});
+        
+        lines.push_back({1, 0, 2, "}"});
+        
+        lines.push_back({1, 0, 2, "bf_table.compute(bf_values, bf_args, ket_dim)"});
+    }
 }

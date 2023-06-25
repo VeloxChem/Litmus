@@ -179,6 +179,17 @@ class T2CPrimFuncBodyDriver
     /// @return The vector of special variable strings.
     std::vector<std::string> _get_special_vars_str(const I2CIntegral& integral,
                                                    const bool         geom_form) const;
+    
+    /// Generates vector of Boys function variables strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of special variable strings.
+    std::vector<std::string> _get_boys_vars_str(const I2CIntegral& integral) const;
+    
+    /// Adds Boys function computation code lines.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param integral The base two center integral.
+    void _add_boys_compute_lines(      VCodeLines&  lines,
+                                 const I2CIntegral& integral) const;
 
 public:
     /// Creates a two-center compute function body generator.
