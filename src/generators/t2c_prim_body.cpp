@@ -21,6 +21,7 @@
 #include "t2c_ovl_driver.hpp"
 #include "t2c_kin_driver.hpp"
 #include "t2c_npot_driver.hpp"
+#include "t2c_npot_geom_driver.hpp"
 
 #include <iostream>
 
@@ -567,11 +568,21 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
     // Nuclear potential inntegrals
     
     if (const auto integrand = integral.integrand();
-        (integrand == Operator("A")) && (integrand.shape() == Tensor(0)))
+        (integrand.name() == "A") && (integrand.shape() == Tensor(0)))
     {
         T2CNuclearPotentialDriver t2c_npot_drv;
         
         rgroup = t2c_npot_drv.create_recursion(components);
+    }
+    
+    // Nuclear potential geometrical derivative inntegrals
+    
+    if (const auto integrand = integral.integrand();
+        (integrand.name() == "AG") && (integrand.shape() != Tensor(0)))
+    {
+        T2CNuclearPotentialGeometryDriver t2c_npot_geom_drv;
+        
+        rgroup = t2c_npot_geom_drv.create_recursion(components);
     }
     
     // ... other integrals
@@ -719,9 +730,7 @@ T2CPrimFuncBodyDriver::_get_special_vars_str(const I2CIntegral& integral,
 {
     std::vector<std::string> vstr;
     
-    // nuclear potential integrals
-    
-    if (integral.integrand() == Operator("A"))
+    if (t2c::need_boys(integral))
     {
         if (geom_form)
         {
@@ -743,12 +752,10 @@ T2CPrimFuncBodyDriver::_get_boys_vars_str(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    const auto order = t2c::boys_order(integral);
-    
-    // nuclear potential integrals
-    
-    if (integral.integrand() == Operator("A"))
+    if (t2c::need_boys(integral))
     {
+        const auto order = t2c::boys_order(integral);
+        
         vstr.push_back("// set up Boys function variables");
                 
         vstr.push_back("const CBoysFunc<" + std::to_string(order) + "> bf_table;");
@@ -774,7 +781,7 @@ T2CPrimFuncBodyDriver::_add_boys_compute_lines(      VCodeLines&  lines,
 {
     // nuclear potential integrals
     
-    if (integral.integrand() == Operator("A"))
+    if (t2c::need_boys(integral))
     {
         lines.push_back({1, 0, 2, "// compute Boys function values"});
         

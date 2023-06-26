@@ -75,6 +75,10 @@ public:
     /// @return The tensorial shape of operator.
     Tensor shape() const;
     
+    /// Gets  the name of operator.
+    /// @return The name of operator.
+    std::string name() const;
+    
     /// Creates primitive textual representation of this operator.
     /// @return The string with primitive textual representation of operator.
     std::string to_string() const;

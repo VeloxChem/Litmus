@@ -135,6 +135,14 @@ public:
                                                   const int  index,
                                                   const bool noscalar = false) const;
     
+    /// Creates an optional integral component from this integral component by shifting axial value
+    /// of operator along the selected axis.
+    /// @param axis The axis to shift axial value.
+    /// @param value The value to shift axial value.
+    /// @return The optional integral component.
+    std::optional<IntegralComponent> shift_operator(const char axis,
+                                                    const int  value) const;
+    
     /// Creates an optional integral component from this integral component by shifting order
     /// of integral.
     /// @param value The value to shift axial value.
@@ -411,6 +419,21 @@ IntegralComponent<T,U>::shift_prefix(const char axis,
             return IntegralComponent<T, U>(_bra, _ket, _integrand, _order, new_prefixes);
         }
         
+        return std::nullopt;
+    }
+}
+
+template <class T, class U>
+std::optional<IntegralComponent<T, U>>
+IntegralComponent<T,U>::shift_operator(const char axis,
+                                       const int  value) const
+{
+    if (const auto opcomp = _integrand.shift(axis, value))
+    {
+        return IntegralComponent<T, U>(_bra, _ket, *opcomp, _order, _prefixes);
+    }
+    else
+    {
         return std::nullopt;
     }
 }

@@ -38,10 +38,12 @@ class T2CCPUGenerator
     /// @param label The label of requested two-center integral.
     /// @param ang_a The angular momentum of center A.
     /// @param ang_b The angular momentum of center B.
+    /// @param op_shape The shape of operator.
     /// @return The two-center integral.
     I2CIntegral _get_integral(const std::string& label,
                               const int          ang_a,
-                              const int          ang_b) const;
+                              const int          ang_b,
+                              const int          op_shape = 0) const;
     
     /// Gets file name of file with recursion functions for two center integral.
     /// @param integral The base two center integral.

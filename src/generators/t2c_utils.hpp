@@ -113,6 +113,11 @@ std::string get_factor_label(const R2CTerm& rterm,
 /// @return The Boys function order of integral.
 int boys_order(const I2CIntegral& integral);
 
+/// Checks if Boys function is needed for given integral.
+/// @param integral The base two center integral.
+/// @return True if Boys function is needed by given integral, False otherwise.
+bool need_boys(const I2CIntegral& integral);
+
 } // t2c namespace
 
 #endif /* t2c_utils_hpp */

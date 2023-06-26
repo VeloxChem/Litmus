@@ -185,6 +185,24 @@ T2CDeclDriver::_get_special_vars_str(const I2CIntegral& integral,
         }
     }
     
+    // nuclear potential first derrivative integrals
+    
+    if (integral.integrand() == Operator("AG", Tensor(1)))
+    {
+        if (geom_form)
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& dipole,");
+            
+            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
+        }
+        else
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const std::vector<TPoint3D>& dipoles,");
+            
+            vstr.push_back(std::string(nsize, ' ') + "const std::vector<TPoint3D>& points,");
+        }
+    }
+    
     return vstr;
 }
 

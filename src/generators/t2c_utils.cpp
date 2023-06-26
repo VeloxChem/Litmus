@@ -23,19 +23,29 @@ namespace t2c { // t2c namespace
 std::string
 integral_label(const I2CIntegral& integral)
 {
-    if (integral.is_simple())
+    const auto integrand = integral.integrand();
+    
+    if (integrand.name() == "AG")
     {
-        auto labels = TMapOfStrings({ {Operator("1"), "Overlap"},
-                                      {Operator("T"), "KineticEnergy"},
-                                      {Operator("A"), "NuclearPotential"}
-        });
-        
-        return labels[integral.integrand()];
+        return "NuclearPotentialGeom0" + std::to_string(integrand.shape().order()) + "0";
     }
-    else
+    
+    if (integrand.name() == "A")
     {
-        return std::string();
+        return "NuclearPotential";
     }
+    
+    if (integrand.name() == "T")
+    {
+        return "KineticEnergy";
+    }
+    
+    if (integrand.name() == "1")
+    {
+        return "Overlap";
+    }
+    
+    return std::string();
 }
 
 std::string
@@ -143,12 +153,29 @@ prim_compute_func_name(const TensorComponent& bra_component,
 std::string
 namespace_label(const I2CIntegral& integral)
 {
-    auto labels = TMapOfStrings({ {Operator("1"), "ovlrec"},
-                                  {Operator("T"), "kinrec"},
-                                  {Operator("A"), "npotrec"},
-                                });
+    const auto integrand = integral.integrand();
     
-    return labels[integral.integrand()];
+    if (integrand.name() == "AG")
+    {
+        return "geom_npotrec";
+    }
+    
+    if (integrand.name() == "A")
+    {
+        return "npotrec";
+    }
+    
+    if (integrand.name() == "T")
+    {
+        return "kinrec";
+    }
+    
+    if (integrand.name() == "1")
+    {
+        return "ovlrec";
+    }
+    
+    return std::string();
 }
 
 int
@@ -275,9 +302,39 @@ get_factor_label(const R2CTerm& rterm,
 int
 boys_order(const I2CIntegral& integral)
 {
-    auto order = integral[0] + integral[1];
+    const auto integrand = integral.integrand();
     
-    return order;
+    const auto order = integral[0] + integral[1];
+    
+    if (integrand.name() == "AG")
+    {
+        return order + integrand.shape().order();
+    }
+    
+    if (integrand.name() == "A")
+    {
+        return order;
+    }
+    
+    return -1;
+}
+
+bool
+need_boys(const I2CIntegral& integral)
+{
+    const auto integrand = integral.integrand();
+    
+    if (integrand.name() == "AG")
+    {
+        return true;
+    }
+    
+    if (integrand.name() == "A")
+    {
+        return true;
+    }
+    
+    return false;
 }
 
 } // t2c namespace

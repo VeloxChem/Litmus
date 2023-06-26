@@ -289,6 +289,24 @@ T2CDocuDriver::_get_special_vars_str(const I2CIntegral& integral,
         }
     }
     
+    // nuclear potential first derivative integrals
+    
+    if (integral.integrand() == Operator("AG", Tensor(1)))
+    {
+        if (geom_form)
+        {
+            vstr.push_back("@param dipole the charge of external point.");
+            
+            vstr.push_back("@param point the coordinates of external point.");
+        }
+        else
+        {
+            vstr.push_back("@param dipoles the vector of charges.");
+            
+            vstr.push_back("@param points the vector of coordinates of external points.");
+        }
+    }
+    
     return vstr;
 }
 

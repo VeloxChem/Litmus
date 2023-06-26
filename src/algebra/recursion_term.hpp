@@ -166,6 +166,14 @@ public:
     /// @return The optional recursion term.
     std::optional<RecursionTerm> shift_order(const int value) const;
     
+    /// Creates an optional recursion term from this recursion term by shifting axial value
+    /// along the selected axis on integrand.
+    /// @param axis The axis to shift axial value.
+    /// @param value The value to shift axial value.
+    /// @return The optional recursion term.
+    std::optional<RecursionTerm> shift_operator(const char axis,
+                                                const int  value) const;
+    
     /// Adds new factor or updates order of existing factor in this recursion term.
     /// @param factor The factor to scale recurion term.
     /// @param multiplier The fractional multiplier accompanying factor to add.
@@ -432,6 +440,21 @@ std::optional<RecursionTerm<T>>
 RecursionTerm<T>::shift_order(const int value) const
 {
     if (const auto tint = _integral.shift_order(value))
+    {
+        return RecursionTerm<T>(*tint, _factors, _prefactor);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template <class T>
+std::optional<RecursionTerm<T>>
+RecursionTerm<T>::shift_operator(const char axis,
+                                 const int  value) const
+{
+    if (const auto tint = _integral.shift_operator(axis, value))
     {
         return RecursionTerm<T>(*tint, _factors, _prefactor);
     }

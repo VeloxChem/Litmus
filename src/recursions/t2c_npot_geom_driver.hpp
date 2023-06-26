@@ -14,8 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef t2c_kin_driver_hpp
-#define t2c_kin_driver_hpp
+#ifndef t2c_npot_geom_driver_hpp
+#define t2c_npot_geom_driver_hpp
 
 #include <optional>
 #include <array>
@@ -23,20 +23,20 @@
 #include "tensor_component.hpp"
 #include "t2c_defs.hpp"
 
-/// Two center kinetic energy integrals driver class.
-class T2CKineticEnergyDriver
+/// Two center nuclear potential integrals driver class.
+class T2CNuclearPotentialGeometryDriver
 {
     /// Cartesian coordinate tensor components.
     std::array<TensorComponent, 3> _rxyz;
     
 public:
     /// Creates a two center overlap integrals driver.
-    T2CKineticEnergyDriver();
+    T2CNuclearPotentialGeometryDriver();
     
-    /// Check if recursion term is for two-center kinetic energy integral.
+    /// Check if recursion term is for two-center nuclear potential integral geometrical derivative.
     /// @param rterm The recursion term.
-    /// @return True if reccursion expansion belongs to kinetic energy recursion, False otherwise.
-    bool is_kinetic_energy(const R2CTerm& rterm) const;
+    /// @return True if reccursion expansion belongs to nuclear potential recursion, False otherwise.
+    bool is_nuclear_potential_geom(const R2CTerm& rterm) const;
     
     /// Applies vertical recursion to bra side of given recursion term.
     /// @param rterm The recursion term.
@@ -52,15 +52,15 @@ public:
     std::optional<R2CDist> ket_vrr(const R2CTerm& rterm,
                                    const char     axis) const;
         
-    /// Applies vertical recursion to bra side recursion term containing overlap
+    /// Applies vertical recursion to bra side recursion term containing nuclear potential
     /// integral.
-    /// @param rterm The recursion term with overlap integral.
+    /// @param rterm The recursion term with nuclear potential integral.
     /// @return The recursion expansion of given recursion term.
     R2CDist apply_bra_vrr(const R2CTerm& rterm) const;
     
-    /// Applies vertical recursion to ket side recursion term containing overlap
+    /// Applies vertical recursion to ket side recursion term containing nuclear potential
     /// integral.
-    /// @param rterm The recursion term with overlap integral.
+    /// @param rterm The recursion term with nuclear potential integral.
     /// @return The recursion expansion of given recursion term.
     R2CDist apply_ket_vrr(const R2CTerm& rterm) const;
         
@@ -76,10 +76,10 @@ public:
     /// @param rdist The recursion expansion.
     void apply_ket_vrr(R2CDist& rdist) const;
     
-    /// Creates recursion group from vector of kinetic energy integral components.
-    /// @param vints The  vector of kinetic energy integral components.
+    /// Creates recursion group from vector of nuclear potential integral components.
+    /// @param vints The  vector of nuclear potnetial integral components.
     /// @return The recursion group.
     R2Group create_recursion(const VT2CIntegrals& vints) const;
 };
 
-#endif /* t2c_kin_driver_hpp */
+#endif /* t2c_npot_geom_driver_hpp */

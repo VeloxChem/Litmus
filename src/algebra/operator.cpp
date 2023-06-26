@@ -108,6 +108,12 @@ Operator::operator<(const Operator& other) const
     }
 }
 
+std::string
+Operator::name() const
+{
+    return _name;
+}
+
 Tensor
 Operator::shape() const
 {
