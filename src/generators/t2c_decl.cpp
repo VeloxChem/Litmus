@@ -203,6 +203,42 @@ T2CDeclDriver::_get_special_vars_str(const I2CIntegral& integral,
         }
     }
     
+    // nuclear potential second derrivative integrals
+    
+    if (integral.integrand() == Operator("AG", Tensor(2)))
+    {
+        if (geom_form)
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const T2Tensor& quadrupole,");
+            
+            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
+        }
+        else
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const std::vector<T2Tensor>& quadrupoles,");
+            
+            vstr.push_back(std::string(nsize, ' ') + "const std::vector<TPoint3D>& points,");
+        }
+    }
+    
+    // nuclear potential third derrivative integrals
+    
+    if (integral.integrand() == Operator("AG", Tensor(3)))
+    {
+        if (geom_form)
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const T3Tensor& octupole,");
+            
+            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
+        }
+        else
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const std::vector<T3Tensor>& octupoles,");
+            
+            vstr.push_back(std::string(nsize, ' ') + "const std::vector<TPoint3D>& points,");
+        }
+    }
+    
     return vstr;
 }
 

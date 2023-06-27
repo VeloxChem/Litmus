@@ -34,7 +34,7 @@ void
 T2CCPUGenerator::generate(const std::string& label,
                           const int          angmom) const
 {
-    const int geom = 4;
+    const int geom = 1;
     
     if (_is_available(label))
     {
