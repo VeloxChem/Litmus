@@ -560,19 +560,41 @@ T2CFuncBodyDriver::_add_prim_call_special_vars(      VCodeLines&  lines,
                                                const bool         geom_form,
                                                const size_t       spacer) const
 {
-    // nuclear potential integrals
+    const auto integrand = integral.integrand();
     
-    if (geom_form)
+    if (integrand.name() ==  "A")
     {
-        lines.push_back({5, spacer, 1, "charge,"});
-        
-        lines.push_back({5, spacer, 1, "point,"});
+        if (geom_form)
+        {
+            lines.push_back({5, spacer, 1, "charge,"});
+            
+            lines.push_back({5, spacer, 1, "point,"});
+        }
+        else
+        {
+            lines.push_back({5, spacer, 1, "charges,"});
+            
+            lines.push_back({5, spacer, 1, "points,"});
+        }
     }
-    else
+    
+    if (integrand.name() ==  "AG")
     {
-        lines.push_back({5, spacer, 1, "charges,"});
-        
-        lines.push_back({5, spacer, 1, "points,"});
+        if (integrand.shape() == Tensor(1))
+        {
+            if (geom_form)
+            {
+                lines.push_back({5, spacer, 1, "dipole,"});
+                
+                lines.push_back({5, spacer, 1, "point,"});
+            }
+            else
+            {
+                lines.push_back({5, spacer, 1, "dipoles,"});
+                
+                lines.push_back({5, spacer, 1, "points,"});
+            }
+        }
     }
 }
 

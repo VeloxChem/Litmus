@@ -403,19 +403,26 @@ T2CPrimFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
     
     lines.push_back({2, 0, 2, "const auto ab_z = bra_rz - ket_rz[i];"});
     
-    if (integral.integrand() == Operator("1"))
+    const auto integrand = integral.integrand();
+    
+    if (integrand.name() == "1")
     {
         _add_overlap_vars(lines, integral);
     }
     
-    if (integral.integrand() == Operator("T"))
+    if (integrand.name() == "T")
     {
         _add_kinetic_energy_vars(lines, integral);
     }
     
-    if (integral.integrand() == Operator("A"))
+    if (integrand.name() == "A")
     {
         _add_nuclear_potential_vars(lines, integral);
+    }
+    
+    if (integrand.name() == "AG")
+    {
+        _add_nuclear_potential_geom_vars(lines, integral);
     }
 }
 
@@ -482,6 +489,50 @@ T2CPrimFuncBodyDriver::_add_nuclear_potential_vars(      VCodeLines&  lines,
 }
 
 void
+T2CPrimFuncBodyDriver::_add_nuclear_potential_geom_vars(      VCodeLines&  lines,
+                                                        const I2CIntegral& integral) const
+{
+    lines.push_back({2, 0, 2, "const auto fxi_0 = bra_exp + ket_fe[i];"});
+    
+    lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / fxi_0;"});
+    
+    lines.push_back({2, 0, 2, "const auto fz_0 = bra_exp * ket_fe[i] * fe_0 * (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
+    
+    lines.push_back({2, 0, 2, "const auto rpc_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
+
+    lines.push_back({2, 0, 2, "const auto rpc_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
+
+    lines.push_back({2, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
+    
+    lines.push_back({2, 0, 2, "const auto fss = 2.0 * std::sqrt(fxi_0 / fpi) * bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
+    
+    const auto op_gdrv = integral.integrand().shape().order();
+
+    if ((integral[0] + integral[1]) == 0)
+    {
+        if (op_gdrv == 1)
+        {
+            lines.push_back({2, 0, 2, "fints_x[i] += dip_x * b1_vals[i] * 2.0 * fxi_0 * rpc_x * fss;"});
+            
+            lines.push_back({2, 0, 2, "fints_y[i] += dip_y * b1_vals[i] * 2.0 * fxi_0 * rpc_y * fss;"});
+            
+            lines.push_back({2, 0, 2, "fints_z[i] += dip_z * b1_vals[i] * 2.0 * fxi_0 * rpc_z * fss;"});
+        }
+    }
+    else
+    {
+        if (op_gdrv == 1)
+        {
+            lines.push_back({2, 0, 2, "const auto faa_x = 2.0 * fxi_0 * rpc_x * fss;"});
+            
+            lines.push_back({2, 0, 2, "const auto faa_y = 2.0 * fxi_0 * rpc_y * fss;"});
+            
+            lines.push_back({2, 0, 2, "const auto faa_z = 2.0 * fxi_0 * rpc_z * fss;"});
+        }
+    }
+}
+
+void
 T2CPrimFuncBodyDriver::_add_loop_end(VCodeLines& lines) const
 {
     lines.push_back({1, 0, 1, "}"});
@@ -536,7 +587,7 @@ T2CPrimFuncBodyDriver::_add_simd_code(      VCodeLines&               lines,
 {
     const auto rgroup = _generate_integral_group(components, integral);
     
-    _add_prefactors(lines, rgroup);
+    _add_prefactors(lines, rgroup, integral);
         
     _add_simd_lines(lines, labels, rgroup);
 }
@@ -591,8 +642,9 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
 }
 
 void
-T2CPrimFuncBodyDriver::_add_prefactors(      VCodeLines& lines,
-                                       const R2Group&    rgroup) const
+T2CPrimFuncBodyDriver::_add_prefactors(      VCodeLines&  lines,
+                                       const R2Group&     rgroup,
+                                       const I2CIntegral& integral) const
 {
     if (t2c::find_factor(rgroup, "rpa_x"))
     {
@@ -634,19 +686,26 @@ T2CPrimFuncBodyDriver::_add_prefactors(      VCodeLines& lines,
         lines.push_back({2, 0, 2, "const auto fbe_0 = 1.0 / bra_exp;"});
     }
     
-    if (t2c::find_factor(rgroup, "rpc_x"))
-    {
-        lines.push_back({2, 0, 2, "const auto rpc_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
-    }
+    // special variables, excluded for specific integrals
     
-    if (t2c::find_factor(rgroup, "rpc_y"))
+    const auto integrand = integral.integrand();
+    
+    if (integrand.name() != "AG")
     {
-        lines.push_back({2, 0, 2, "const auto rpc_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
-    }
+        if (t2c::find_factor(rgroup, "rpc_x"))
+        {
+            lines.push_back({2, 0, 2, "const auto rpc_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
+        }
+        
+        if (t2c::find_factor(rgroup, "rpc_y"))
+        {
+            lines.push_back({2, 0, 2, "const auto rpc_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
+        }
 
-    if (t2c::find_factor(rgroup, "rpc_z"))
-    {
-        lines.push_back({2, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
+        if (t2c::find_factor(rgroup, "rpc_z"))
+        {
+            lines.push_back({2, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
+        }
     }
 }
 
@@ -676,7 +735,7 @@ T2CPrimFuncBodyDriver::_add_simd_lines_block(      VCodeLines&  lines,
                                              const T2CIntegral& integral,
                                              const R2CDist&     rdist) const
 {
-    const auto tlabel = _get_aux_label(integral);
+    const auto tlabel = _get_aux_label(integral, rdist.root().integral());
     
     const auto nterms = rdist.terms();
 
@@ -699,34 +758,66 @@ T2CPrimFuncBodyDriver::_add_simd_lines_block(      VCodeLines&  lines,
     
         if (((eterm - sterm) > 1) || (simd_str[0] == '-')) simd_str = "(" + simd_str + ")";
 
-        lines.push_back({2, 0, 2, label + "[i] += " + tlabel + " * " + simd_str + ";"});
+        if (simd_str.empty())
+        {
+            lines.push_back({2, 0, 2, label + "[i] += " + tlabel + ";"});
+        }
+        else
+        {
+            lines.push_back({2, 0, 2, label + "[i] += " + tlabel + " * " + simd_str + ";"});
+        }
     }
 }
 
 std::string
-T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral) const
+T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral,
+                                      const T2CIntegral& base) const
 {
-    if (integral.integrand() == OperatorComponent("1"))
+    const auto bname = base.integrand().name();
+    
+    const auto border = base.integrand().shape().order();
+    
+    if (bname == "1")
     {
         return std::string("fss");
     }
     
-    if (integral.integrand() == OperatorComponent("T"))
+    if (bname == "T")
     {
         return std::string("ftt");
     }
     
-    if (integral.integrand() == OperatorComponent("A"))
+    if (bname == "A")
     {
         return std::string("fss * b" + std::to_string(integral.order()) + "_vals[i]");
     }
     
+    if (bname == "AG")
+    {
+        const auto tname = integral.integrand().name();
+        
+        std::string slabel;
+        
+        if (border == 1)
+        {
+            slabel = "dip_" + base.integrand().shape().label();
+        }
+        
+        std::string tlabel;
+        
+        if (tname == "A") tlabel = "fss";
+        
+        if (tname == "AG") tlabel = "faa_" + integral.integrand().shape().label();
+        
+        return std::string(slabel + " * " + tlabel + " * b" + std::to_string(integral.order()) + "_vals[i]");
+    }
+
     return std::string();
 }
 
 std::vector<std::string>
 T2CPrimFuncBodyDriver::_get_special_vars_str(const I2CIntegral& integral,
-                                              const bool         geom_form) const
+                                              const bool        geom_form) const
 {
     std::vector<std::string> vstr;
     
@@ -742,6 +833,23 @@ T2CPrimFuncBodyDriver::_get_special_vars_str(const I2CIntegral& integral,
                 
             vstr.push_back("const auto c_rz = point[2];");
         }
+    }
+    
+    const auto integrand = integral.integrand();
+    
+    if (integrand.name() == "AG")
+    {
+        if (integrand.shape().order() == 1)
+        {
+            vstr.push_back("// set up dipole components");
+                
+            vstr.push_back("const auto dip_x = dipole[0];");
+                
+            vstr.push_back("const auto dip_y = dipole[1];");
+                
+            vstr.push_back("const auto dip_z = dipole[2];");
+        }
+        
     }
     
     return vstr;

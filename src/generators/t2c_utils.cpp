@@ -308,7 +308,8 @@ boys_order(const I2CIntegral& integral)
     
     if (integrand.name() == "AG")
     {
-        return order + integrand.shape().order();
+        return order; 
+        //return order + integrand.shape().order();
     }
     
     if (integrand.name() == "A")

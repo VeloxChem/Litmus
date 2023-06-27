@@ -32,17 +32,16 @@
 
 void
 T2CCPUGenerator::generate(const std::string& label,
-                          const int          angmom) const
+                          const int          angmom,
+                          const int          op_gdrv) const
 {
-    const int geom = 4;
-    
     if (_is_available(label))
     {
         for (int i = 0; i <= angmom; i++)
         {
             for (int j = 0; j <= angmom; j++)
             {
-                const auto integral = _get_integral(label, i, j, geom);
+                const auto integral = _get_integral(label, i, j, op_gdrv);
                 
                 _write_cpp_header(integral);
                 
@@ -78,7 +77,7 @@ I2CIntegral
 T2CCPUGenerator::_get_integral(const std::string& label,
                                const int          ang_a,
                                const int          ang_b,
-                               const int          op_shape) const
+                               const int          op_gdrv) const
 {
     const auto bra = I1CPair("GA", ang_a);
     
@@ -98,18 +97,23 @@ T2CCPUGenerator::_get_integral(const std::string& label,
         return I2CIntegral(bra, ket, Operator("T"));
     }
     
-    // nuclear potential integrals
-    
-    if (fstr::lowercase(label) == "nuclear potential")
+    if (op_gdrv)
     {
-        return I2CIntegral(bra, ket, Operator("A"));
+        // nuclear potential geometrical derivative integrals
+        
+        if (fstr::lowercase(label) == "nuclear potential")
+        {
+            return I2CIntegral(bra, ket, Operator("AG", Tensor(op_gdrv)));
+        }
     }
-    
-    // nuclear potential geometrical derivative integrals
-    
-    if (fstr::lowercase(label) == "nuclear potential geom")
+    else
     {
-        return I2CIntegral(bra, ket, Operator("AG", Tensor(op_shape)));
+        // nuclear potential integrals
+        
+        if (fstr::lowercase(label) == "nuclear potential")
+        {
+            return I2CIntegral(bra, ket, Operator("A"));
+        }
     }
     
     return I2CIntegral();
@@ -251,7 +255,7 @@ T2CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"MathConst.hpp\""});
     
-    if (integral.integrand() == Operator("A"))
+    if (t2c::need_boys(integral))
     {
         lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
     }

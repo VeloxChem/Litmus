@@ -28,9 +28,11 @@ int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"t2c", "Nuclear Potential Geom"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c", "Nuclear Potential"});
     
     const int max_angmom = 4;
+    
+    const int op_gdrv = 1;
     
     // set up start timer
     
@@ -40,7 +42,7 @@ int main(int argc, char **argv)
     {
         const auto t2c_drv = T2CCPUGenerator();
         
-        t2c_drv.generate(run_type.second, max_angmom);
+        t2c_drv.generate(run_type.second, max_angmom, op_gdrv);
     }
     
 //    // four-center integrals repository
