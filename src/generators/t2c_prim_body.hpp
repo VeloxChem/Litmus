@@ -108,6 +108,12 @@ class T2CPrimFuncBodyDriver
     void _add_nuclear_potential_vars(      VCodeLines&  lines,
                                      const I2CIntegral& integral) const;
     
+    /// Adds nuclear potential geometrical derivatives integral variables after the main loop start for primitive compute function.
+    /// @param lines The code lines container to which loop start are added.
+    /// @param integral The base two center integral.
+    void _add_nuclear_potential_geom_vars(      VCodeLines&  lines,
+                                          const I2CIntegral& integral) const;
+    
     /// Adds main loop end for primitive compute function.
     /// @param lines The code lines container to which loop end are added.
     void _add_loop_end(VCodeLines&  lines) const;
@@ -147,8 +153,10 @@ class T2CPrimFuncBodyDriver
     /// Adds conditional prefactors for given recursion group.
     /// @param lines The code lines container to which simd code are added.
     /// @param rgroup The recursion group.
-    void _add_prefactors(      VCodeLines& lines,
-                         const R2Group&    rgroup) const;
+    /// @param integral The base integral.
+    void _add_prefactors(      VCodeLines&  lines,
+                         const R2Group&     rgroup,
+                         const I2CIntegral& integral) const;
     
     /// Adds simd code lines for given reccursion group.
     /// @param lines The code lines container to which simd code are added.
@@ -170,8 +178,10 @@ class T2CPrimFuncBodyDriver
     
     /// Generates standard label  of auxilary integral.
     /// @param integral The integral  component.
+    /// @param base The base integral.
     /// @return The label of auxilary integral.
-    std::string _get_aux_label(const T2CIntegral& integral) const;
+    std::string _get_aux_label(const T2CIntegral& integral,
+                               const T2CIntegral& base) const;
     
     /// Generates vector of special variable strings.
     /// @param integral The base two center integral.
