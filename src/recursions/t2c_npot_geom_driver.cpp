@@ -132,7 +132,7 @@ T2CNuclearPotentialGeometryDriver::bra_vrr(const R2CTerm& rterm,
         
         if (const auto r7val = tval->shift_operator(axis, -1))
         {
-            auto x7val = *r7val;
+            auto x7val = *(r7val->shift_order(1));
             
             const auto nc = tval->integrand()[axis];
             
@@ -211,7 +211,7 @@ T2CNuclearPotentialGeometryDriver::ket_vrr(const R2CTerm& rterm,
         
         if (const auto r5val = tval->shift_operator(axis, -1))
         {
-            auto x5val = *r5val;
+            auto x5val = *(r5val->shift_order(1));
             
             const auto nc = tval->integrand()[axis];
             

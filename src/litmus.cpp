@@ -30,9 +30,9 @@ int main(int argc, char **argv)
     
     const auto run_type = std::pair<std::string, std::string>({"t2c", "Overlap"});
     
-    const int op_shape = 0;
-    
     const int max_angmom = 4;
+    
+    const int op_gdrv = 0;
     
     // set up start timer
     
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     {
         const auto t2c_drv = T2CCPUGenerator();
         
-        t2c_drv.generate(run_type.second, max_angmom, op_shape);
+        t2c_drv.generate(run_type.second, max_angmom, op_gdrv);
     }
  
     // set up end timer & compute elapsed time

@@ -295,13 +295,31 @@ T2CDocuDriver::_get_special_vars_str(const I2CIntegral& integral,
     {
         if (geom_form)
         {
-            vstr.push_back("@param dipole the charge of external point.");
+            vstr.push_back("@param dipole the dipole of external point.");
             
             vstr.push_back("@param point the coordinates of external point.");
         }
         else
         {
-            vstr.push_back("@param dipoles the vector of charges.");
+            vstr.push_back("@param dipoles the vector of dipoles.");
+            
+            vstr.push_back("@param points the vector of coordinates of external points.");
+        }
+    }
+    
+    // nuclear potential second derivative integrals
+    
+    if (integral.integrand() == Operator("AG", Tensor(2)))
+    {
+        if (geom_form)
+        {
+            vstr.push_back("@param quadrupole the quadrupole of external point.");
+            
+            vstr.push_back("@param point the coordinates of external point.");
+        }
+        else
+        {
+            vstr.push_back("@param quadrupoles the vector of quadrupoles.");
             
             vstr.push_back("@param points the vector of coordinates of external points.");
         }
