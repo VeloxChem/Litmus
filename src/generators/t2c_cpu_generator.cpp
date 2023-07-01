@@ -21,7 +21,6 @@
 
 #include "operator.hpp"
 #include "string_formater.hpp"
-#include "file_stream.hpp"
 #include "spherical_momentum.hpp"
 
 #include "t2c_docs.hpp"
@@ -46,6 +45,10 @@ T2CCPUGenerator::generate(const std::string& label,
                 _write_cpp_header(integral);
                 
                 _write_cpp_file(integral);
+                
+                _write_cpp_prim_headers(integral);
+                
+                _write_cpp_prim_files(integral);
             }
         }
     }
@@ -154,8 +157,6 @@ T2CCPUGenerator::_write_cpp_header(const I2CIntegral& integral) const
     docs_drv.write_doc_str(fstream, integral, false);
     
     decl_drv.write_func_decl(fstream, integral, false, true);
-    
-    //_write_prim_funcs_to_cpp_header(fstream, integral);
 
     _write_namespace(fstream, integral, false);
     
@@ -191,11 +192,263 @@ T2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral) const
     decl_drv.write_func_decl(fstream, integral, false, false);
     
     func_drv.write_func_body(fstream, integral, false);
-    
-    //_write_prim_funcs_to_cpp_file(fstream, integral);
 
     _write_namespace(fstream, integral, false);
 
+    fstream.close();
+}
+
+void
+T2CCPUGenerator::_write_cpp_prim_headers(const I2CIntegral& integral) const
+{
+    if (integral.is_simple_integrand() && integral.is_simple())
+    {
+        if ((integral[0] == 0) || (integral[1] == 0))
+        {
+            _write_cpp_prim_header(integral);
+        }
+        else
+        {
+            if (integral[0] >= integral[1])
+            {
+                for (const auto& bcomp: Tensor(integral[0]).components())
+                {
+                    _write_cpp_prim_header(bcomp, integral, true);
+                }
+            }
+            else
+            {
+                for (const auto& kcomp: Tensor(integral[1]).components())
+                {
+                    _write_cpp_prim_header(kcomp, integral, false);
+                }
+            }
+        }
+    }
+    else
+    {
+        for (const auto& bcomp: Tensor(integral[0]).components())
+        {
+            for (const auto& kcomp: Tensor(integral[1]).components())
+            {
+                _write_cpp_prim_header(bcomp, kcomp, integral);
+            }
+        }
+    }
+}
+
+void
+T2CCPUGenerator::_write_cpp_prim_files(const I2CIntegral& integral) const
+{
+    if (integral.is_simple_integrand() && integral.is_simple())
+    {
+        if ((integral[0] == 0) || (integral[1] == 0))
+        {
+            _write_cpp_prim_file(integral);
+        }
+        else
+        {
+            if (integral[0] >= integral[1])
+            {
+                for (const auto& bcomp: Tensor(integral[0]).components())
+                {
+                    _write_cpp_prim_file(bcomp, integral, true);
+                }
+            }
+            else
+            {
+                for (const auto& kcomp: Tensor(integral[1]).components())
+                {
+                    _write_cpp_prim_file(kcomp, integral, false);
+                }
+            }
+        }
+    }
+    else
+    {
+        for (const auto& bcomp: Tensor(integral[0]).components())
+        {
+            for (const auto& kcomp: Tensor(integral[1]).components())
+            {
+                _write_cpp_prim_file(bcomp, kcomp, integral);
+            }
+        }
+    }
+}
+
+void
+T2CCPUGenerator::_write_cpp_prim_header(const I2CIntegral& integral) const
+{
+    auto fname = t2c::prim_file_name(integral) + ".hpp";
+    
+    std::ofstream fstream;
+           
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_hpp_prim_defines(fstream, t2c::prim_file_name(integral), true);
+    
+    _write_hpp_prim_includes(fstream, integral);
+    
+    _write_namespace(fstream, integral, true);
+    
+    T2CDocuDriver docs_drv;
+    
+    docs_drv.write_prim_doc_str(fstream, integral);
+    
+    T2CDeclDriver decl_drv;
+    
+    decl_drv.write_prim_func_decl(fstream, integral, true);
+   
+    _write_namespace(fstream, integral, false);
+    
+    _write_hpp_prim_defines(fstream, t2c::prim_file_name(integral), false);
+    
+    fstream.close();
+}
+
+void
+T2CCPUGenerator::_write_cpp_prim_header(const TensorComponent& component,
+                                        const I2CIntegral&     integral,
+                                        const bool             bra_first) const
+{
+    auto fname = t2c::prim_file_name(component, integral, bra_first) + ".hpp";
+    
+    std::ofstream fstream;
+           
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_hpp_prim_defines(fstream, t2c::prim_file_name(component, integral, bra_first), true);
+    
+    _write_hpp_prim_includes(fstream, integral);
+    
+    _write_namespace(fstream, integral, true);
+    
+    T2CDocuDriver docs_drv;
+    
+    docs_drv.write_prim_doc_str(fstream, component, integral, bra_first);
+    
+    T2CDeclDriver decl_drv;
+    
+    decl_drv.write_prim_func_decl(fstream, component, integral, bra_first, true);
+    
+    _write_namespace(fstream, integral, false);
+    
+    _write_hpp_prim_defines(fstream, t2c::prim_file_name(component, integral, bra_first), false);
+
+    fstream.close();
+}
+
+void
+T2CCPUGenerator::_write_cpp_prim_header(const TensorComponent& bra_component,
+                                        const TensorComponent& ket_component,
+                                        const I2CIntegral&     integral) const
+{
+    auto fname = t2c::prim_file_name(bra_component, ket_component, integral) + ".hpp";
+    
+    std::ofstream fstream;
+           
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_hpp_prim_defines(fstream, t2c::prim_file_name(bra_component, ket_component, integral), true);
+    
+    _write_hpp_prim_includes(fstream, integral);
+    
+    _write_namespace(fstream, integral, true);
+    
+    T2CDocuDriver docs_drv;
+    
+    docs_drv.write_prim_doc_str(fstream, bra_component, ket_component, integral);
+    
+    T2CDeclDriver decl_drv;
+
+    decl_drv.write_prim_func_decl(fstream, bra_component, ket_component, integral, true);
+    
+    _write_namespace(fstream, integral, false);
+    
+    _write_hpp_prim_defines(fstream, t2c::prim_file_name(bra_component, ket_component, integral), false);
+    
+    fstream.close();
+}
+
+void
+T2CCPUGenerator::_write_cpp_prim_file(const I2CIntegral& integral) const
+{
+    auto fname = t2c::prim_file_name(integral) + ".cpp";
+    
+    std::ofstream fstream;
+           
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_cpp_prim_includes(fstream, integral);
+    
+    _write_namespace(fstream, integral, true);
+    
+    T2CDeclDriver decl_drv;
+    
+    decl_drv.write_prim_func_decl(fstream, integral, false);
+    
+    T2CPrimFuncBodyDriver func_drv;
+    
+    func_drv.write_prim_func_body(fstream, integral);
+   
+    _write_namespace(fstream, integral, false);
+    
+    fstream.close();
+}
+
+void
+T2CCPUGenerator::_write_cpp_prim_file(const TensorComponent& component,
+                                      const I2CIntegral&     integral,
+                                      const bool             bra_first) const
+{
+    auto fname = t2c::prim_file_name(component, integral, bra_first) + ".cpp";
+    
+    std::ofstream fstream;
+           
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_cpp_prim_includes(fstream, component, integral, bra_first);
+    
+    _write_namespace(fstream, integral, true);
+    
+    T2CDeclDriver decl_drv;
+    
+    decl_drv.write_prim_func_decl(fstream, component, integral, bra_first, false);
+    
+    T2CPrimFuncBodyDriver func_drv;
+    
+    func_drv.write_prim_func_body(fstream, component, integral, bra_first);
+    
+    _write_namespace(fstream, integral, false);
+
+    fstream.close();
+}
+
+void
+T2CCPUGenerator::_write_cpp_prim_file(const TensorComponent& bra_component,
+                                      const TensorComponent& ket_component,
+                                      const I2CIntegral&     integral) const
+{
+    auto fname = t2c::prim_file_name(bra_component, ket_component, integral) + ".cpp";
+    
+    std::ofstream fstream;
+           
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_cpp_prim_includes(fstream, bra_component, ket_component, integral);
+    
+    _write_namespace(fstream, integral, true);
+    
+    T2CDeclDriver decl_drv;
+
+    decl_drv.write_prim_func_decl(fstream, bra_component, ket_component, integral, false);
+    
+    T2CPrimFuncBodyDriver func_drv;
+    
+    func_drv.write_prim_func_body(fstream, bra_component, ket_component, integral);
+    
+    _write_namespace(fstream, integral, false);
+    
     fstream.close();
 }
 
@@ -223,6 +476,29 @@ T2CCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
 }
 
 void
+T2CCPUGenerator::_write_hpp_prim_defines(      std::ofstream& fstream,
+                                         const std::string&   fname,
+                                         const bool           start) const
+{
+    const auto flabel = fname + "_hpp";
+    
+    auto lines = VCodeLines();
+ 
+    if (start)
+    {
+        lines.push_back({0, 0, 1, "#ifndef " + fname});
+        
+        lines.push_back({0, 0, 2, "#define " + fname});
+    }
+    else
+    {
+        lines.push_back({0, 0, 1, "#endif /* " + fname + " */"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
 T2CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
                                      const I2CIntegral&   integral) const
 {
@@ -232,12 +508,28 @@ T2CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"GtoBlock.hpp\""});
     
-    lines.push_back({0, 0, 1, "#include \"SubMatrix.hpp\""});
+    if (integral[0] == integral[1])
+    {
+        lines.push_back({0, 0, 1, "#include \"MatrixType.hpp\""});
+    }
+    
+    lines.push_back({0, 0, 2, "#include \"SubMatrix.hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_hpp_prim_includes(      std::ofstream& fstream,
+                                          const I2CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include <cstdint>"});
     
     lines.push_back({0, 0, 1, "#include \"SimdTypes.hpp\""});
     
-    lines.push_back({0, 0, 2, "#include \"MatrixType.hpp\""});
-    
+    lines.push_back({0, 0, 2, "#include \"Point.hpp\""});
+        
     ost::write_code_lines(fstream, lines);
 }
 
@@ -249,18 +541,130 @@ T2CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 2, "#include \"" + _file_name(integral) +  ".hpp\""});
     
-    lines.push_back({0, 0, 2, "#include <cmath>"});
+    if ((integral[0] > 1) || (integral[1] > 1))
+    {
+        lines.push_back({0, 0, 2, "#include <cmath>"});
+    }
     
     lines.push_back({0, 0, 1, "#include \"BatchFunc.hpp\""});
     
-    lines.push_back({0, 0, 1, "#include \"MathConst.hpp\""});
+    lines.push_back({0, 0, 2, "#include \"T2CDistributor.hpp\""});
+    
+    _add_prim_call_includes(lines, integral);
+
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_add_prim_call_includes(      VCodeLines&  lines,
+                                         const I2CIntegral& integral) const
+{
+    if (integral.is_simple_integrand() && integral.is_simple())
+    {
+        if ((integral[0] == 0) || (integral[1] == 0))
+        {
+            lines.push_back({0, 0, 2, "#include \"" + t2c::prim_file_name(integral) + ".hpp\""});
+        }
+        else
+        {
+            if (integral[0] >= integral[1])
+            {
+                for (const auto& bcomp: Tensor(integral[0]).components())
+                {
+                    lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(bcomp, integral, true) + ".hpp\""});
+                }
+            }
+            else
+            {
+                for (const auto& kcomp: Tensor(integral[1]).components())
+                {
+                    lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(kcomp, integral, false) + ".hpp\""});
+                }
+            }
+            
+            lines.push_back({0, 0, 1, ""});
+        }
+    }
+    else
+    {
+        for (const auto& bcomp: Tensor(integral[0]).components())
+        {
+            for (const auto& kcomp: Tensor(integral[1]).components())
+            {
+                lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(bcomp, kcomp, integral) + ".hpp\""});
+            }
+        }
+        
+        lines.push_back({0, 0, 1, ""});
+    }
+}
+
+void
+T2CCPUGenerator::_write_cpp_prim_includes(      std::ofstream& fstream,
+                                          const I2CIntegral&   integral) const
+{
+    auto fname = t2c::prim_file_name(integral) + ".hpp";
+    
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + fname + "\""});
+    
+    lines.push_back({0, 0, 2, "#include <cmath>"});
     
     if (t2c::need_boys(integral))
     {
         lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
     }
     
-    lines.push_back({0, 0, 2, "#include \"T2CDistributor.hpp\""});
+    lines.push_back({0, 0, 2, "#include \"MathConst.hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_cpp_prim_includes(       std::ofstream&  fstream,
+                                          const TensorComponent& component,
+                                          const I2CIntegral&     integral,
+                                          const bool             bra_first) const
+{
+    auto fname = t2c::prim_file_name(component, integral, bra_first) + ".hpp";
+    
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + fname + "\""});
+    
+    lines.push_back({0, 0, 2, "#include <cmath>"});
+    
+    if (t2c::need_boys(integral))
+    {
+        lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
+    }
+    
+    lines.push_back({0, 0, 2, "#include \"MathConst.hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_cpp_prim_includes(      std::ofstream&   fstream,
+                                          const TensorComponent& bra_component,
+                                          const TensorComponent& ket_component,
+                                          const I2CIntegral&     integral) const
+{
+    auto fname = t2c::prim_file_name(bra_component, ket_component, integral) + ".hpp";
+    
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + fname + "\""});
+    
+    lines.push_back({0, 0, 2, "#include <cmath>"});
+    
+    if (t2c::need_boys(integral))
+    {
+        lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
+    }
+    
+    lines.push_back({0, 0, 2, "#include \"MathConst.hpp\""});
     
     ost::write_code_lines(fstream, lines);
 }

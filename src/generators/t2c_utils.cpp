@@ -151,6 +151,45 @@ prim_compute_func_name(const TensorComponent& bra_component,
 }
 
 std::string
+prim_file_name(const I2CIntegral& integral)
+{
+    return "Primitive" + t2c::integral_label(integral) + integral.label();
+}
+
+std::string
+prim_file_name(const TensorComponent& component,
+               const I2CIntegral&     integral,
+               const bool             bra_first)
+{
+    auto label = "Primitive" + t2c::integral_label(integral) + integral.label();
+    
+    if (bra_first)
+    {
+        label += "_" + fstr::upcase(component.label()) + "_T";
+    }
+    else
+    {
+        label += "_T_" + fstr::upcase(component.label());
+    }
+    
+    return label;
+}
+
+std::string
+prim_file_name(const TensorComponent& bra_component,
+               const TensorComponent& ket_component,
+               const I2CIntegral&     integral)
+{
+    auto label = "Primitive" + t2c::integral_label(integral) + integral.label();
+    
+    label += "_" + fstr::upcase(bra_component.label());
+   
+    label += "_" + fstr::upcase(ket_component.label());
+    
+    return label;
+}
+
+std::string
 namespace_label(const I2CIntegral& integral)
 {
     const auto integrand = integral.integrand();

@@ -77,6 +77,29 @@ std::pair<size_t, std::string> prim_compute_func_name(const TensorComponent& bra
                                                       const TensorComponent& ket_component,
                                                       const I2CIntegral&     integral);
 
+/// Generates primitive file name.
+/// @param integral The base two center integral.
+/// @return The primitive file name.
+std::string prim_file_name(const I2CIntegral& integral);
+
+/// Generates primitive file name.
+/// @param component the integral component.
+/// @param integral The base two center integral.
+/// @param bra_first The flag to set bra as expansion point.
+/// @return The primitive file name.
+std::string prim_file_name(const TensorComponent& component,
+                           const I2CIntegral&     integral,
+                           const bool             bra_first);
+
+/// Generates primitive file name.
+/// @param bra_component the integral component on bra side.
+/// @param ket_component the integral component on ket side.
+/// @param integral The base two center integral.
+/// @return The primitive file name.
+std::string prim_file_name(const TensorComponent& bra_component,
+                           const TensorComponent& ket_component,
+                           const I2CIntegral&     integral);
+
 /// Gets recursion namespace label of standart integral.
 /// @param integral The base two center integral.
 /// @return The recursion namespace label of standart integral.

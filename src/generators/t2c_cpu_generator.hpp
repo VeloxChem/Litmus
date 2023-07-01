@@ -22,10 +22,10 @@
 #include <vector>
 #include <map>
 
-
 #include "operator.hpp"
 #include "tensor_component.hpp"
 #include "t2c_defs.hpp"
+#include "file_stream.hpp"
 
 // Two-center integrals code generator for CPU.
 class T2CCPUGenerator
@@ -51,12 +51,60 @@ class T2CCPUGenerator
     std::string _file_name(const I2CIntegral& integral) const;
     
     /// Writes header file for recursion.
-    /// @param integral The base four center integral.
+    /// @param integral The base two center integral.
     void _write_cpp_header(const I2CIntegral& integral) const;
     
     /// Writes C++ code file for recursion.
-    /// @param integral The base four center integral.
+    /// @param integral The base two center integral.
     void _write_cpp_file(const I2CIntegral& integral) const;
+    
+    /// Writes header files for primitive recursion.
+    /// @param integral The base two center integral.
+    void _write_cpp_prim_headers(const I2CIntegral& integral) const;
+    
+    /// Writes C++ code files for primitive recursion.
+    /// @param integral The base two center integral.
+    void _write_cpp_prim_files(const I2CIntegral& integral) const;
+    
+    /// Writes header files for specific primitive recursion.
+    /// @param integral The base two center integral.
+    void _write_cpp_prim_header(const I2CIntegral& integral) const;
+    
+    /// Writes header files for specific primitive recursion.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    /// @param bra_first The flag to set bra as expansion point.
+    void _write_cpp_prim_header(const TensorComponent& component,
+                                const I2CIntegral&     integral,
+                                const bool             bra_first) const;
+    
+    /// Writes header files for specific primitive recursion.
+    /// @param bra_component the integral component on bra side.
+    /// @param ket_component the integral component on ket side.
+    /// @param integral The base two center integral.
+    void _write_cpp_prim_header(const TensorComponent& bra_component,
+                                const TensorComponent& ket_component,
+                                const I2CIntegral&     integral) const;
+    
+    /// Writes C++ code files for specific primitive recursion.
+    /// @param integral The base two center integral.
+    void _write_cpp_prim_file(const I2CIntegral& integral) const;
+    
+    /// Writes C++ code files for specific primitive recursion.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    /// @param bra_first The flag to set bra as expansion point.
+    void _write_cpp_prim_file(const TensorComponent& component,
+                              const I2CIntegral&     integral,
+                              const bool             bra_first) const;
+    
+    /// Writes C++ code files for specific primitive recursion.
+    /// @param bra_component the integral component on bra side.
+    /// @param ket_component the integral component on ket side.
+    /// @param integral The base two center integral.
+    void _write_cpp_prim_file(const TensorComponent& bra_component,
+                              const TensorComponent& ket_component,
+                              const I2CIntegral&     integral) const;
     
     /// Writes definitions of define for header file.
     /// @param fstream the file stream.
@@ -66,17 +114,63 @@ class T2CCPUGenerator
                             const I2CIntegral&   integral,
                             const bool           start) const;
     
+    /// Writes definitions of define for primitive header file.
+    /// @param fstream the file stream.
+    /// @param fname The base file name.
+    /// @param start The flag to indicate position of define (start or end).
+    void _write_hpp_prim_defines(      std::ofstream& fstream,
+                                 const std::string&   fname,
+                                 const bool           start) const;
+    
     /// Writes definitions of includes for header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
     void _write_hpp_includes(      std::ofstream& fstream,
                              const I2CIntegral&   integral) const;
     
+    /// Writes definitions of includes for primitives header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_hpp_prim_includes(      std::ofstream& fstream,
+                                  const I2CIntegral&   integral) const;
+    
     /// Writes definitions of includes for C++ code file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
     void _write_cpp_includes(      std::ofstream& fstream,
                              const I2CIntegral&   integral) const;
+    
+    /// Adds primitive functions headers to code lines container.
+    /// @param lines The code lines container to which primitives loop start definition are added.
+    /// @param integral The base two center integral.
+    void _add_prim_call_includes(      VCodeLines&  lines,
+                                 const I2CIntegral& integral) const;
+    
+    /// Writes definitions of includes for C++ code file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_cpp_prim_includes(      std::ofstream& fstream,
+                                  const I2CIntegral&   integral) const;
+    
+    /// Writes definitions of includes for C++ code file.
+    /// @param fstream the file stream.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    /// @param bra_first The flag to set bra as expansion point.
+    void _write_cpp_prim_includes(      std::ofstream&   fstream,
+                                  const TensorComponent& component,
+                                  const I2CIntegral&     integral,
+                                  const bool             bra_first) const;
+    
+    /// Writes definitions of includes for C++ code file.
+    /// @param fstream the file stream.
+    /// @param bra_component the integral component on bra side.
+    /// @param ket_component the integral component on ket side.
+    /// @param integral The base two center integral.
+    void _write_cpp_prim_includes(      std::ofstream&   fstream,
+                                  const TensorComponent& bra_component,
+                                  const TensorComponent& ket_component,
+                                  const I2CIntegral&     integral) const;
     
     /// Writes namespace definition to file stream.
     /// @param fstream the file stream.
