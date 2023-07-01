@@ -28,7 +28,9 @@ int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"t2c", "Nuclear Potential Geom"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c", "Overlap"});
+    
+    const int op_shape = 0;
     
     const int max_angmom = 4;
     
@@ -40,45 +42,8 @@ int main(int argc, char **argv)
     {
         const auto t2c_drv = T2CCPUGenerator();
         
-        t2c_drv.generate(run_type.second, max_angmom);
+        t2c_drv.generate(run_type.second, max_angmom, op_shape);
     }
-    
-//    // four-center integrals repository
-//
-//    Repository<R4Group, T4CIntegral> t4c_repo;
-//
-//    // set up integrals generator parameters
-//
-//    const int mang = 2;
-//
-//    //T2COverlapDriver ovl_drv;
-//
-//    //const auto vconts = ovl_drv.create_containers(mang);
-//
-//    const bool diag_form = true;
-////
-////    // electron repulsion integral recursions
-////
-//    if (true)
-//    {
-//        EriDriver eri_drv;
-//
-//        const auto graphs = eri_drv.create_graphs(mang, diag_form);
-//
-//        t4c_repo.add(eri_drv.create_graphs(mang, diag_form));
-//
-//        EriCPUGenerator gen_drv;
-//
-//        if (diag_form) gen_drv.set_diag_form();
-//
-//        gen_drv.generate(t4c_repo);
-//    }
-//
-//    // print summary of integrals repository
-//
-//    t4c_repo.summary();
-//
-//    t4c_repo.details<I4CIntegral>();
  
     // set up end timer & compute elapsed time
     

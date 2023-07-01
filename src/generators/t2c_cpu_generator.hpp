@@ -105,8 +105,10 @@ public:
     /// Generates selected one-electron integrals up to given angular momentum (inclusive) )on A and B centers.
     /// @param label The label of requested two-center integral.
     /// @param angmom The maximum angular momentum of A and B centers.
+    /// @param op_shape The shape of operator.
     void generate(const std::string& label,
-                  const int          angmom) const;
+                  const int          angmom,
+                  const int          op_shape = 0) const;
 };
 
 #endif /* t2c_cpu_generator_hpp */

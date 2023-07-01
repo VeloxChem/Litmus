@@ -32,17 +32,16 @@
 
 void
 T2CCPUGenerator::generate(const std::string& label,
-                          const int          angmom) const
+                          const int          angmom,
+                          const int          op_shape) const
 {
-    const int geom = 4;
-    
     if (_is_available(label))
     {
         for (int i = 0; i <= angmom; i++)
         {
             for (int j = 0; j <= angmom; j++)
             {
-                const auto integral = _get_integral(label, i, j, geom);
+                const auto integral = _get_integral(label, i, j, op_shape);
                 
                 _write_cpp_header(integral);
                 
@@ -151,7 +150,7 @@ T2CCPUGenerator::_write_cpp_header(const I2CIntegral& integral) const
     
     decl_drv.write_func_decl(fstream, integral, false, true);
     
-    _write_prim_funcs_to_cpp_header(fstream, integral); 
+    //_write_prim_funcs_to_cpp_header(fstream, integral);
 
     _write_namespace(fstream, integral, false);
     
@@ -188,7 +187,7 @@ T2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral) const
     
     func_drv.write_func_body(fstream, integral, false);
     
-    _write_prim_funcs_to_cpp_file(fstream, integral);
+    //_write_prim_funcs_to_cpp_file(fstream, integral);
 
     _write_namespace(fstream, integral, false);
 
