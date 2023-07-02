@@ -523,11 +523,11 @@ T2CPrimFuncBodyDriver::_add_nuclear_potential_geom_vars(      VCodeLines&  lines
     {
         if (op_gdrv == 1)
         {
-            lines.push_back({2, 0, 2, "const auto faa_x = 2.0 * fxi_0 * rpc_x * fss;"});
+            lines.push_back({2, 0, 2, "const auto faa_x = dip_x * 2.0 * fxi_0 * rpc_x * fss;"});
             
-            lines.push_back({2, 0, 2, "const auto faa_y = 2.0 * fxi_0 * rpc_y * fss;"});
+            lines.push_back({2, 0, 2, "const auto faa_y = dip_y * 2.0 * fxi_0 * rpc_y * fss;"});
             
-            lines.push_back({2, 0, 2, "const auto faa_z = 2.0 * fxi_0 * rpc_z * fss;"});
+            lines.push_back({2, 0, 2, "const auto faa_z = dip_z * 2.0 * fxi_0 * rpc_z * fss;"});
         }
     }
 }
@@ -801,24 +801,17 @@ T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral,
         return std::string("fss * b" + std::to_string(integral.order()) + "_vals[i]");
     }
     
-    if (bname == "AG")
+    if ((bname == "AG") && (border == 1))
     {
-        const auto tname = integral.integrand().name();
-        
-        std::string slabel;
-        
-        if (border == 1)
+        if (iname == "A")
         {
-            slabel = "dip_" + base.integrand().shape().label();
+            return std::string("dip_" + base.integrand().shape().label() + " * fss * b" + std::to_string(integral.order()) + "_vals[i]");
         }
         
-        std::string tlabel;
-        
-        if (tname == "A") tlabel = "fss";
-        
-        if (tname == "AG") tlabel = "faa_" + integral.integrand().shape().label();
-        
-        return std::string(slabel + " * " + tlabel + " * b" + std::to_string(integral.order()) + "_vals[i]");
+        if (iname == "AG")
+        {
+            return std::string("faa_" + integral.integrand().shape().label() +  " * b" + std::to_string(integral.order() + 1) + "_vals[i]");
+        }
     }
 
     return std::string();
@@ -859,6 +852,22 @@ T2CPrimFuncBodyDriver::_get_special_vars_str(const I2CIntegral& integral,
             vstr.push_back("const auto dip_z = dipole[2];");
         }
         
+        if (integrand.shape().order() == 2)
+        {
+            vstr.push_back("// set up quadrupole components");
+                
+            vstr.push_back("const auto qpol_xx = quadrupole[0];");
+            
+            vstr.push_back("const auto qpol_xy = quadrupole[1];");
+            
+            vstr.push_back("const auto qpol_xz = quadrupole[2];");
+            
+            vstr.push_back("const auto qpol_yy = quadrupole[3];");
+            
+            vstr.push_back("const auto qpol_yz = quadrupole[4];");
+            
+            vstr.push_back("const auto qpol_zz = quadrupole[5];");
+        }
     }
     
     return vstr;
@@ -881,7 +890,11 @@ T2CPrimFuncBodyDriver::_get_boys_vars_str(const I2CIntegral& integral) const
                 
         vstr.push_back("TDoubleArray2D<" + std::to_string(order + 1) + "> bf_values;");
         
-        for (size_t i = 0; i < (order + 1); i++)
+        size_t istart = 0;
+        
+        if (integral.integrand().name() == "AG") istart = 1;
+        
+        for (size_t i = istart; i < (order + 1); i++)
         {
             vstr.push_back("auto b" + std::to_string(i) + "_vals = bf_values[" + std::to_string(i) + "].data();");
         }

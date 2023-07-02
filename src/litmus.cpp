@@ -28,11 +28,11 @@ int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"t2c", "Kinetic Energy"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c", "Nuclear Potential Geometry"});
     
     const int max_angmom = 4;
     
-    const int op_gdrv = 0;
+    const int op_gdrv = 2;
     
     // set up start timer
     

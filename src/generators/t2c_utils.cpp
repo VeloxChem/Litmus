@@ -224,7 +224,7 @@ tensor_component_index(const TensorComponent& component)
         
     for (int i = 0; i < tcomps.size(); i++)
     {
-            if (tcomps[i] == component) return  i;
+        if (tcomps[i] == component) return  i;
     }
         
     return -1;
@@ -347,14 +347,7 @@ boys_order(const I2CIntegral& integral)
     
     if (integrand.name() == "AG")
     {
-        if (order == 0)
-        {
-            return integrand.shape().order();
-        }
-        else
-        {
-            return order;
-        }
+        return order + integrand.shape().order();
     }
     
     if (integrand.name() == "A")

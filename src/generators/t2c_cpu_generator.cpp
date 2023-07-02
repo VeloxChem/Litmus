@@ -79,7 +79,7 @@ T2CCPUGenerator::_is_available(const std::string& label) const
     
     if (fstr::lowercase(label) == "nuclear potential") return true;
     
-    if (fstr::lowercase(label) == "nuclear potential geom") return true;
+    if (fstr::lowercase(label) == "nuclear potential geometry") return true;
     
     return false;
 }
@@ -108,25 +108,20 @@ T2CCPUGenerator::_get_integral(const std::string& label,
         return I2CIntegral(bra, ket, Operator("T"));
     }
     
-    if (op_gdrv > 0)
+    // nuclear potential integrals
+    
+    if (fstr::lowercase(label) == "nuclear potential")
     {
-        // nuclear potential geometrical derivative integrals
-        
-        if (fstr::lowercase(label) == "nuclear potential")
-        {
-            return I2CIntegral(bra, ket, Operator("AG", Tensor(op_gdrv)));
-        }
-    }
-    else
-    {
-        // nuclear potential integrals
-        
-        if (fstr::lowercase(label) == "nuclear potential")
-        {
-            return I2CIntegral(bra, ket, Operator("A"));
-        }
+        return I2CIntegral(bra, ket, Operator("A"));
     }
     
+    // nuclear potential geometrical derivative integrals
+        
+    if (fstr::lowercase(label) == "nuclear potential geometry")
+    {
+        return I2CIntegral(bra, ket, Operator("AG", Tensor(op_gdrv)));
+    }
+ 
     return I2CIntegral();
 }
 
@@ -529,6 +524,21 @@ T2CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
         lines.push_back({0, 0, 1, "#include \"MatrixType.hpp\""});
     }
     
+    if (integral.integrand().name() == "A")
+    {
+        lines.push_back({0, 0, 1, "#include \"Point.hpp\""});
+    }
+    
+    if (integral.integrand().name() == "AG")
+    {
+        lines.push_back({0, 0, 1, "#include \"Point.hpp\""});
+        
+        if (integral.integrand().shape().order() > 1)
+        {
+            lines.push_back({0, 0, 1, "#include \"TensorTypes.hpp\""});
+        }
+    }
+    
     lines.push_back({0, 0, 2, "#include \"SubMatrix.hpp\""});
     
     ost::write_code_lines(fstream, lines);
@@ -544,8 +554,17 @@ T2CCPUGenerator::_write_hpp_prim_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"SimdTypes.hpp\""});
     
+    if (integral.integrand().name() == "AG")
+    {
+        if (integral.integrand().shape().order() > 1)
+        {
+            lines.push_back({0, 0, 1, "#include \"TensorTypes.hpp\""});
+        }
+    }
+    
     lines.push_back({0, 0, 2, "#include \"Point.hpp\""});
-        
+    
+    
     ost::write_code_lines(fstream, lines);
 }
 
