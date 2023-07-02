@@ -1,3 +1,4 @@
 Litmus.xcodeproj/
 .DS_Store
 build/
+CMakeLists.txt

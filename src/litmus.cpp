@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"t2c", "Overlap"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c", "Kinetic Energy"});
     
     const int max_angmom = 4;
     

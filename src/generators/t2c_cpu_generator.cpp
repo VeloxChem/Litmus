@@ -40,15 +40,23 @@ T2CCPUGenerator::generate(const std::string& label,
         {
             for (int j = 0; j <= angmom; j++)
             {
-                const auto integral = _get_integral(label, i, j, op_gdrv);
-                
-                _write_cpp_header(integral);
-                
-                _write_cpp_file(integral);
-                
-                _write_cpp_prim_headers(integral);
-                
-                _write_cpp_prim_files(integral);
+                #pragma omp parallel
+                {
+                    #pragma omp single nowait
+                    {
+                        const auto integral = _get_integral(label, i, j, op_gdrv);
+                        
+                        #pragma omp task firstprivate(integral)
+                        _write_cpp_header(integral);
+                        
+                        #pragma omp task firstprivate(integral)
+                        _write_cpp_file(integral);
+                        
+                        _write_cpp_prim_headers(integral);
+                        
+                        _write_cpp_prim_files(integral);
+                    }
+                }
             }
         }
     }
@@ -205,6 +213,7 @@ T2CCPUGenerator::_write_cpp_prim_headers(const I2CIntegral& integral) const
     {
         if ((integral[0] == 0) || (integral[1] == 0))
         {
+            #pragma omp task firstprivate(integral)
             _write_cpp_prim_header(integral);
         }
         else
@@ -213,6 +222,7 @@ T2CCPUGenerator::_write_cpp_prim_headers(const I2CIntegral& integral) const
             {
                 for (const auto& bcomp: Tensor(integral[0]).components())
                 {
+                    #pragma omp task firstprivate(bcomp, integral)
                     _write_cpp_prim_header(bcomp, integral, true);
                 }
             }
@@ -220,6 +230,7 @@ T2CCPUGenerator::_write_cpp_prim_headers(const I2CIntegral& integral) const
             {
                 for (const auto& kcomp: Tensor(integral[1]).components())
                 {
+                    #pragma omp task firstprivate(kcomp, integral)
                     _write_cpp_prim_header(kcomp, integral, false);
                 }
             }
@@ -231,6 +242,7 @@ T2CCPUGenerator::_write_cpp_prim_headers(const I2CIntegral& integral) const
         {
             for (const auto& kcomp: Tensor(integral[1]).components())
             {
+                #pragma omp task firstprivate(bcomp, kcomp, integral)
                 _write_cpp_prim_header(bcomp, kcomp, integral);
             }
         }
@@ -244,6 +256,7 @@ T2CCPUGenerator::_write_cpp_prim_files(const I2CIntegral& integral) const
     {
         if ((integral[0] == 0) || (integral[1] == 0))
         {
+            #pragma omp task firstprivate(integral)
             _write_cpp_prim_file(integral);
         }
         else
@@ -252,6 +265,7 @@ T2CCPUGenerator::_write_cpp_prim_files(const I2CIntegral& integral) const
             {
                 for (const auto& bcomp: Tensor(integral[0]).components())
                 {
+                    #pragma omp task firstprivate(bcomp, integral)
                     _write_cpp_prim_file(bcomp, integral, true);
                 }
             }
@@ -259,6 +273,7 @@ T2CCPUGenerator::_write_cpp_prim_files(const I2CIntegral& integral) const
             {
                 for (const auto& kcomp: Tensor(integral[1]).components())
                 {
+                    #pragma omp task firstprivate(kcomp, integral)
                     _write_cpp_prim_file(kcomp, integral, false);
                 }
             }
@@ -270,6 +285,7 @@ T2CCPUGenerator::_write_cpp_prim_files(const I2CIntegral& integral) const
         {
             for (const auto& kcomp: Tensor(integral[1]).components())
             {
+                #pragma omp task firstprivate(bcomp, kcomp, integral)
                 _write_cpp_prim_file(bcomp, kcomp, integral);
             }
         }

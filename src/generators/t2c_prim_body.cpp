@@ -775,6 +775,8 @@ T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral,
 {
     const auto bname = base.integrand().name();
     
+    const auto iname = integral.integrand().name();
+    
     const auto border = base.integrand().shape().order();
     
     if (bname == "1")
@@ -784,7 +786,14 @@ T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral,
     
     if (bname == "T")
     {
-        return std::string("ftt");
+        if (iname == "1")
+        {
+            return std::string("fss");
+        }
+        else
+        {
+            return std::string("ftt");
+        }
     }
     
     if (bname == "A")
