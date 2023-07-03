@@ -518,6 +518,21 @@ T2CPrimFuncBodyDriver::_add_nuclear_potential_geom_vars(      VCodeLines&  lines
             
             lines.push_back({2, 0, 2, "fints_z[i] += dip_z * b1_vals[i] * 2.0 * fxi_0 * rpc_z * fss;"});
         }
+        
+        if (op_gdrv == 2)
+        {
+            lines.push_back({2, 0, 2, "fints_xx[i] += qpol_xx * fss * (4.0 * fxi_0 * fxi_0 * rpc_x * rpc_x * b2_vals[i] - 2.0 * fxi_0 *  b1_vals[i]);"});
+            
+            lines.push_back({2, 0, 2, "fints_xy[i] += qpol_xy * fss * 4.0 * fxi_0 * fxi_0 * rpc_x * rpc_y * b2_vals[i];"});
+            
+            lines.push_back({2, 0, 2, "fints_xz[i] += qpol_xz * fss * 4.0 * fxi_0 * fxi_0 * rpc_x * rpc_z * b2_vals[i];"});
+            
+            lines.push_back({2, 0, 2, "fints_yy[i] += qpol_yy * fss * (4.0 * fxi_0 * fxi_0 * rpc_y * rpc_y * b2_vals[i] - 2.0 * fxi_0 *  b1_vals[i]);"});
+            
+            lines.push_back({2, 0, 2, "fints_yz[i] += qpol_yz * fss * 4.0 * fxi_0 * fxi_0 * rpc_y * rpc_z * b2_vals[i];"});
+            
+            lines.push_back({2, 0, 2, "fints_zz[i] += qpol_zz * fss * (4.0 * fxi_0 * fxi_0 * rpc_z * rpc_z * b2_vals[i] - 2.0 * fxi_0 *  b1_vals[i]);"});
+        }
     }
     else
     {
@@ -528,6 +543,29 @@ T2CPrimFuncBodyDriver::_add_nuclear_potential_geom_vars(      VCodeLines&  lines
             lines.push_back({2, 0, 2, "const auto faa_y = dip_y * 2.0 * fxi_0 * rpc_y * fss;"});
             
             lines.push_back({2, 0, 2, "const auto faa_z = dip_z * 2.0 * fxi_0 * rpc_z * fss;"});
+        }
+        
+        if (op_gdrv == 2)
+        {
+            lines.push_back({2, 0, 2, "const auto faa_xx = qpol_xx * fss * 4.0 * fxi_0 * fxi_0 * rpc_x * rpc_x;"});
+            
+            lines.push_back({2, 0, 2, "const auto faa_xy = qpol_xy * fss * 4.0 * fxi_0 * fxi_0 * rpc_x * rpc_y;"});
+            
+            lines.push_back({2, 0, 2, "const auto faa_xz = qpol_xz * fss * 4.0 * fxi_0 * fxi_0 * rpc_x * rpcz;"});
+            
+            lines.push_back({2, 0, 2, "const auto faa_yy = qpol_yy * fss * 4.0 * fxi_0 * fxi_0 * rpc_y * rpc_y;"});
+            
+            lines.push_back({2, 0, 2, "const auto faa_yz = qpol_yz * fss * 4.0 * fxi_0 * fxi_0 * rpc_y * rpcz;"});
+            
+            lines.push_back({2, 0, 2, "const auto faa_zz = qpolzz * fss * 4.0 * fxi_0 * fxi_0 * rpc_z * rpcz;"});
+            
+            lines.push_back({2, 0, 2, "const auto faa_x = 2.0 * fxi_0 * rpc_x * fss;"});
+            
+            lines.push_back({2, 0, 2, "const auto faa_y = 2.0 * fxi_0 * rpc_y * fss;"});
+            
+            lines.push_back({2, 0, 2, "const auto faa_z = 2.0 * fxi_0 * rpc_z * fss;"});
+            
+            lines.push_back({2, 0, 2, "const auto faa = -2.0 * fxi_0 * fss;"});
         }
     }
 }
@@ -779,6 +817,8 @@ T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral,
     
     const auto border = base.integrand().shape().order();
     
+    const auto iorder = integral.integrand().shape().order();
+    
     if (bname == "1")
     {
         return std::string("fss");
@@ -806,6 +846,19 @@ T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral,
         if (iname == "A")
         {
             return std::string("dip_" + base.integrand().shape().label() + " * fss * b" + std::to_string(integral.order()) + "_vals[i]");
+        }
+        
+        if (iname == "AG")
+        {
+            return std::string("faa_" + integral.integrand().shape().label() +  " * b" + std::to_string(integral.order() + 1) + "_vals[i]");
+        }
+    }
+    
+    if ((bname == "AG") && (border == 1))
+    {
+        if (iname == "A")
+        {
+            return std::string("qpol_" + base.integrand().shape().label() + " * fss * b" + std::to_string(integral.order()) + "_vals[i]");
         }
         
         if (iname == "AG")
