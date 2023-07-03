@@ -521,17 +521,17 @@ T2CPrimFuncBodyDriver::_add_nuclear_potential_geom_vars(      VCodeLines&  lines
         
         if (op_gdrv == 2)
         {
-            lines.push_back({2, 0, 2, "fints_xx[i] += qpol_xx * fss * (4.0 * fxi_0 * fxi_0 * rpc_x * rpc_x * b2_vals[i] - 2.0 * fxi_0 *  b1_vals[i]);"});
+            lines.push_back({2, 0, 2, "fints_xx[i] += qpol_xx * fss * (4.0 * fxi_0 * fxi_0 * rpc_x * rpc_x * b2_vals[i] - 2.0 * fxi_0 * b1_vals[i]);"});
             
             lines.push_back({2, 0, 2, "fints_xy[i] += qpol_xy * fss * 4.0 * fxi_0 * fxi_0 * rpc_x * rpc_y * b2_vals[i];"});
             
             lines.push_back({2, 0, 2, "fints_xz[i] += qpol_xz * fss * 4.0 * fxi_0 * fxi_0 * rpc_x * rpc_z * b2_vals[i];"});
             
-            lines.push_back({2, 0, 2, "fints_yy[i] += qpol_yy * fss * (4.0 * fxi_0 * fxi_0 * rpc_y * rpc_y * b2_vals[i] - 2.0 * fxi_0 *  b1_vals[i]);"});
+            lines.push_back({2, 0, 2, "fints_yy[i] += qpol_yy * fss * (4.0 * fxi_0 * fxi_0 * rpc_y * rpc_y * b2_vals[i] - 2.0 * fxi_0 * b1_vals[i]);"});
             
             lines.push_back({2, 0, 2, "fints_yz[i] += qpol_yz * fss * 4.0 * fxi_0 * fxi_0 * rpc_y * rpc_z * b2_vals[i];"});
             
-            lines.push_back({2, 0, 2, "fints_zz[i] += qpol_zz * fss * (4.0 * fxi_0 * fxi_0 * rpc_z * rpc_z * b2_vals[i] - 2.0 * fxi_0 *  b1_vals[i]);"});
+            lines.push_back({2, 0, 2, "fints_zz[i] += qpol_zz * fss * (4.0 * fxi_0 * fxi_0 * rpc_z * rpc_z * b2_vals[i] - 2.0 * fxi_0 * b1_vals[i]);"});
         }
     }
     else
@@ -557,7 +557,7 @@ T2CPrimFuncBodyDriver::_add_nuclear_potential_geom_vars(      VCodeLines&  lines
             
             lines.push_back({2, 0, 2, "const auto faa_yz = qpol_yz * fss * 4.0 * fxi_0 * fxi_0 * rpc_y * rpcz;"});
             
-            lines.push_back({2, 0, 2, "const auto faa_zz = qpolzz * fss * 4.0 * fxi_0 * fxi_0 * rpc_z * rpcz;"});
+            lines.push_back({2, 0, 2, "const auto faa_zz = qpol_zz * fss * 4.0 * fxi_0 * fxi_0 * rpc_z * rpcz;"});
             
             lines.push_back({2, 0, 2, "const auto faa_x = 2.0 * fxi_0 * rpc_x * fss;"});
             
@@ -838,32 +838,59 @@ T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral,
     
     if (bname == "A")
     {
-        return std::string("fss * b" + std::to_string(integral.order()) + "_vals[i]");
+        return "fss * b" + std::to_string(integral.order()) + "_vals[i]";
     }
     
     if ((bname == "AG") && (border == 1))
     {
+        const auto torder = integral.order();
+        
         if (iname == "A")
         {
-            return std::string("dip_" + base.integrand().shape().label() + " * fss * b" + std::to_string(integral.order()) + "_vals[i]");
+            const auto dlabel = "dip_" + base.integrand().shape().label();
+            
+            return dlabel + " * fss * b" + std::to_string(torder) + "_vals[i]";
         }
         
         if (iname == "AG")
         {
-            return std::string("faa_" + integral.integrand().shape().label() +  " * b" + std::to_string(integral.order() + 1) + "_vals[i]");
+            const auto flabel = "faa_" + integral.integrand().shape().label();
+            
+            return flabel + " * b" + std::to_string(torder + 1) + "_vals[i]";
         }
     }
     
-    if ((bname == "AG") && (border == 1))
+    if ((bname == "AG") && (border == 2))
     {
+        const auto torder = integral.order();
+        
+        const auto qlabel = "qpol_" + base.integrand().shape().label();
+        
         if (iname == "A")
         {
-            return std::string("qpol_" + base.integrand().shape().label() + " * fss * b" + std::to_string(integral.order()) + "_vals[i]");
+            return qlabel + " * fss * b" + std::to_string(torder) + "_vals[i]";
         }
         
         if (iname == "AG")
         {
-            return std::string("faa_" + integral.integrand().shape().label() +  " * b" + std::to_string(integral.order() + 1) + "_vals[i]");
+            const auto flabel = "faa_" + integral.integrand().shape().label();
+            
+            if (iorder == 1)
+            {
+                return qlabel + " * " + flabel + " * b" + std::to_string(torder + 1) + "_vals[i]";
+            }
+            
+            if (iorder == 2)
+            {
+                if ((flabel == "faa_xx") || (flabel == "faa_yy") || (flabel == "faa_zz"))
+                {
+                    return "(" + flabel + " * b" + std::to_string(torder + 2) + "_vals[i] + faa * b" + std::to_string(torder + 1) + "_vals[i])"; 
+                }
+                else
+                {
+                    return flabel + " * b" + std::to_string(torder + 2) + "_vals[i]";
+                }
+            }
         }
     }
 

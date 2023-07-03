@@ -2,7 +2,7 @@ import os
 
 files = []
 
-for entry in os.scandir('/Volumes/Development/Litmus/build'):
+for entry in os.scandir('/Users/rinkevic/Development/Litmus/build'):
     if entry.is_file():
         if entry.name[-4:] == ".cpp":
             files.append(entry.name)
