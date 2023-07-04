@@ -30,10 +30,10 @@ class T2CNuclearPotentialGeometryDriver
     std::array<TensorComponent, 3> _rxyz;
     
 public:
-    /// Creates a two center overlap integrals driver.
+    /// Creates a two center geometrical derivative of nuclear potential integrals driver.
     T2CNuclearPotentialGeometryDriver();
     
-    /// Check if recursion term is for two-center nuclear potential integral geometrical derivative.
+    /// Check if recursion term is for two-center geometrical derivative of nuclear potential integral.
     /// @param rterm The recursion term.
     /// @return True if reccursion expansion belongs to nuclear potential recursion, False otherwise.
     bool is_nuclear_potential_geom(const R2CTerm& rterm) const;

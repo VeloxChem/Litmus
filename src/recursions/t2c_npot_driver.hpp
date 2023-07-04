@@ -30,7 +30,7 @@ class T2CNuclearPotentialDriver
     std::array<TensorComponent, 3> _rxyz;
     
 public:
-    /// Creates a two center overlap integrals driver.
+    /// Creates a two center nuclear potential integrals driver.
     T2CNuclearPotentialDriver();
     
     /// Check if recursion term is for two-center nuclear potential integral.
