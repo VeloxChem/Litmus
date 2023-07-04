@@ -114,6 +114,12 @@ class T2CPrimFuncBodyDriver
     void _add_nuclear_potential_geom_vars(      VCodeLines&  lines,
                                           const I2CIntegral& integral) const;
     
+    /// Adds multipole integral variables after the main loop start for primitive compute function.
+    /// @param lines The code lines container to which loop start are added.
+    /// @param integral The base two center integral.
+    void _add_multipole_vars(      VCodeLines&  lines,
+                             const I2CIntegral& integral) const;
+    
     /// Adds main loop end for primitive compute function.
     /// @param lines The code lines container to which loop end are added.
     void _add_loop_end(VCodeLines&  lines) const;

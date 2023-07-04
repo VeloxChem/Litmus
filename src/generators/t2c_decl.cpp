@@ -239,6 +239,13 @@ T2CDeclDriver::_get_special_vars_str(const I2CIntegral& integral,
         }
     }
     
+    // multipole integrals
+    
+    if (integral.integrand().name() == "r")
+    {
+        vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
+    }
+    
     return vstr;
 }
 

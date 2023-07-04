@@ -360,18 +360,7 @@ T2COverlapDriver::create_recursion(const VT2CIntegrals& vints) const
         auto rdist = R2CDist(R2CTerm(tcomp));
         
         apply_recursion(rdist);
-        
-//        std::cout << "*** RECURSION FOR INTEGRAL COMPONENT: " << rdist.root().label() << std::endl;
-//
-//        std::cout << " NUMBER OF TERMS:" << rdist.terms() << std::endl;
-//
-//        for (size_t i = 0; i < rdist.terms(); i++)
-//        {
-//            std::cout << " RECURSION TERM (" << i << "): " << rdist[i].label() << std::endl;
-//        }
-//
-//        std::cout << std::endl << std::endl;
-        
+                
         r2group.add(rdist);
     }
     

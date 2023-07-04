@@ -81,6 +81,8 @@ T2CCPUGenerator::_is_available(const std::string& label) const
     
     if (fstr::lowercase(label) == "nuclear potential geometry") return true;
     
+    if (fstr::lowercase(label) == "multipole") return true;
+    
     return false;
 }
 
@@ -120,6 +122,13 @@ T2CCPUGenerator::_get_integral(const std::string& label,
     if (fstr::lowercase(label) == "nuclear potential geometry")
     {
         return I2CIntegral(bra, ket, Operator("AG", Tensor(op_gdrv)));
+    }
+    
+    // multipole integrals
+        
+    if (fstr::lowercase(label) == "multipole")
+    {
+        return I2CIntegral(bra, ket, Operator("r", Tensor(op_gdrv)));
     }
  
     return I2CIntegral();

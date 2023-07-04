@@ -257,7 +257,7 @@ T2CDocuDriver::_get_matrix_str(const I2CIntegral& integral) const
             
             lcomp.erase(0, lcomp.find('_') + 1);
             
-            vstr.push_back("@param " + label + "the pointer to matrix for storage " +
+            vstr.push_back("@param " + label + " the pointer to matrix for storage " +
                            "of Cartesian integral component " + lcomp + ".");
         }
     }
@@ -323,6 +323,13 @@ T2CDocuDriver::_get_special_vars_str(const I2CIntegral& integral,
             
             vstr.push_back("@param points the vector of coordinates of external points.");
         }
+    }
+    
+    // multipole integrals
+    
+    if (integral.integrand().name() == "r")
+    {
+        vstr.push_back("@param point the coordinates of external point.");
     }
     
     return vstr;

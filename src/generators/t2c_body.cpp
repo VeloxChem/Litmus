@@ -596,6 +596,11 @@ T2CFuncBodyDriver::_add_prim_call_special_vars(      VCodeLines&  lines,
             }
         }
     }
+    
+    if (integrand.name() ==  "r")
+    {
+        lines.push_back({5, spacer, 1, "point,"});
+    }
 }
 
 void

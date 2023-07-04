@@ -16,6 +16,8 @@
 
 #include "t2c_utils.hpp"
 
+#include <iostream>
+
 #include "string_formater.hpp"
 
 namespace t2c { // t2c namespace
@@ -45,18 +47,47 @@ integral_label(const I2CIntegral& integral)
         return "Overlap";
     }
     
+    if (integrand.name() == "r")
+    {
+        const auto iorder = integrand.shape().order();
+        
+        if (iorder == 1)
+        {
+            return "Dipole";
+        }
+        
+        if (iorder == 2)
+        {
+            return "Quadrupole";
+        }
+        
+        if (iorder == 3)
+        {
+            return "Octupole";
+        }
+    }
+    
     return std::string();
 }
 
 std::string
 integrand_label(const Operator& integrand)
 {
-    auto labels = TMapOfStrings({ {Operator("1"), ""},
-                                  {Operator("T"), "T"},
-                                  {Operator("A"), "A"},
-                                 });
-        
-    return labels[integrand];
+    const auto iname = integrand.name();
+    
+    const auto iorder = std::to_string(integrand.shape().order());
+    
+    if (iname == "AG")
+    {
+        return iname + "(" + iorder + ")";
+    }
+    
+    if ((iname == "r") && (iorder != "1"))
+    {
+        return iname + "^" + iorder;
+    }
+    
+    return iname;
 }
 
 std::vector<std::string>
@@ -212,6 +243,11 @@ namespace_label(const I2CIntegral& integral)
     if (integrand.name() == "1")
     {
         return "ovlrec";
+    }
+    
+    if (integrand.name() == "r")
+    {
+        return "mpol";
     }
     
     return std::string();
@@ -374,6 +410,21 @@ need_boys(const I2CIntegral& integral)
     }
     
     return false;
+}
+
+void
+debug_info(R2CDist& rdist)
+{
+    std::cout << "*** RECURSION FOR INTEGRAL COMPONENT: " << rdist.root().label() << std::endl;
+    
+    std::cout << " NUMBER OF TERMS:" << rdist.terms() << std::endl;
+    
+    for (size_t i = 0; i < rdist.terms(); i++)
+    {
+        std::cout << " RECURSION TERM (" << i << "): " << rdist[i].label() << std::endl;
+    }
+    
+    std::cout << std::endl << std::endl;
 }
 
 } // t2c namespace

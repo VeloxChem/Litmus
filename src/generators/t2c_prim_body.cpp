@@ -22,6 +22,7 @@
 #include "t2c_kin_driver.hpp"
 #include "t2c_npot_driver.hpp"
 #include "t2c_npot_geom_driver.hpp"
+#include "t2c_mpol_driver.hpp"
 
 #include <iostream>
 
@@ -424,6 +425,11 @@ T2CPrimFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
     {
         _add_nuclear_potential_geom_vars(lines, integral);
     }
+    
+    if (integrand.name() == "r")
+    {
+        _add_multipole_vars(lines, integral);
+    }
 }
 
 void
@@ -571,6 +577,126 @@ T2CPrimFuncBodyDriver::_add_nuclear_potential_geom_vars(      VCodeLines&  lines
 }
 
 void
+T2CPrimFuncBodyDriver::_add_multipole_vars(      VCodeLines&  lines,
+                                           const I2CIntegral& integral) const
+{
+    lines.push_back({2, 0, 2, "const auto fxi_0 = bra_exp + ket_fe[i];"});
+        
+    lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / fxi_0;"});
+        
+    lines.push_back({2, 0, 2, "const auto fz_0 = bra_exp * ket_fe[i] * fe_0 * (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
+        
+    lines.push_back({2, 0, 2, "const auto rpc_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
+
+    lines.push_back({2, 0, 2, "const auto rpc_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
+
+    lines.push_back({2, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
+        
+    lines.push_back({2, 0, 2, "const auto fss = bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
+        
+    const auto op_gdrv = integral.integrand().shape().order();
+
+    if ((integral[0] + integral[1]) == 0)
+    {
+        if (op_gdrv == 1)
+        {
+            lines.push_back({2, 0, 2, "fints_x[i] += rpc_x * fss;"});
+                
+            lines.push_back({2, 0, 2, "fints_y[i] += rpc_y * fss;"});
+                
+            lines.push_back({2, 0, 2, "fints_z[i] += rpc_z * fss;"});
+        }
+            
+        if (op_gdrv == 2)
+        {
+            lines.push_back({2, 0, 2, "fints_xx[i] += fss * (rpc_x * rpc_x + 0.5 * fe_0);"});
+                
+            lines.push_back({2, 0, 2, "fints_xy[i] += fss * rpc_x * rpc_y;"});
+                
+            lines.push_back({2, 0, 2, "fints_xz[i] += fss * rpc_x * rpc_z;"});
+                
+            lines.push_back({2, 0, 2, "fints_yy[i] += fss * (rpc_y * rpc_y + 0.5 * fe_0);"});
+                
+            lines.push_back({2, 0, 2, "fints_yz[i] += fss * rpc_x * rpc_z;"});
+                
+            lines.push_back({2, 0, 2, "fints_zz[i] += fss * (rpc_z * rpc_z + 0.5 * fe_0);"});
+        }
+        
+        if (op_gdrv == 3)
+        {
+            lines.push_back({2, 0, 2, "fints_xxx[i] += fss * (rpc_x * rpc_x * rpc_x + 1.5 * fe_0 * rpc_x);"});
+                
+            lines.push_back({2, 0, 2, "fints_xxy[i] += fss * (rpc_x * rpc_x * rpc_y + 0.5 * fe_0 * rpc_y);"});
+                
+            lines.push_back({2, 0, 2, "fints_xxz[i] += fss * (rpc_x * rpc_x * rpc_z + 0.5 * fe_0 * rpc_z);"});
+                
+            lines.push_back({2, 0, 2, "fints_xyy[i] += fss * (rpc_x * rpc_y * rpc_y + 0.5 * fe_0 * rpc_x);"});
+                
+            lines.push_back({2, 0, 2, "fints_xyz[i] += fss * rpc_x * rpc_y * rpc_z;"});
+                
+            lines.push_back({2, 0, 2, "fints_xzz[i] += fss * (rpc_x * rpc_z * rpc_z + 0.5 * fe_0 * rpc_x);"});
+            
+            lines.push_back({2, 0, 2, "fints_yyy[i] += fss * (rpc_y * rpc_y * rpc_y + 1.5 * fe_0 * rpc_y);"});
+                
+            lines.push_back({2, 0, 2, "fints_yyz[i] += fss * (rpc_y * rpc_y * rpc_z + 0.5 * fe_0 * rpc_z);"});
+                
+            lines.push_back({2, 0, 2, "fints_yzz[i] += fss * (rpc_y * rpc_z * rpc_z + 0.5 * fe_0 * rpc_y);"});
+            
+            lines.push_back({2, 0, 2, "fints_zzz[i] += fss * (rpc_z * rpc_z * rpc_z + 1.5 * fe_0 * rpc_z);"});
+        }
+    }
+    else
+    {
+        if (op_gdrv >= 1)
+        {
+            lines.push_back({2, 0, 2, "const auto faa_x = rpc_x * fss;"});
+                
+            lines.push_back({2, 0, 2, "const auto faa_y = rpc_y * fss;"});
+                
+            lines.push_back({2, 0, 2, "const auto faa_z = rpc_z * fss;"});
+        }
+            
+        if (op_gdrv >= 2)
+        {
+            lines.push_back({2, 0, 2, "const auto faa_xx = fss * (rpc_x * rpc_x + 0.5 * fe_0);"});
+                    
+            lines.push_back({2, 0, 2, "const auto faa_xy = fss * rpc_x * rpc_y;"});
+                    
+            lines.push_back({2, 0, 2, "const auto faa_xz = fss * rpc_x * rpc_z;"});
+                    
+            lines.push_back({2, 0, 2, "const auto faa_yy = fss * (rpc_y * rpc_y + 0.5 * fe_0);"});
+                    
+            lines.push_back({2, 0, 2, "const auto faa_yz = fss * rpc_x * rpc_z;"});
+                    
+            lines.push_back({2, 0, 2, "const auto faa_zz = fss * (rpc_z * rpc_z + 0.5 * fe_0);"});
+        }
+        
+        if (op_gdrv >= 3)
+        {
+            lines.push_back({2, 0, 2, "const auto faa_xxx = fss * (rpc_x * rpc_x * rpc_x + 1.5 * fe_0 * rpc_x);"});
+                
+            lines.push_back({2, 0, 2, "const auto faa_xxy = fss * (rpc_x * rpc_x * rpc_y + 0.5 * fe_0 * rpc_y);"});
+                
+            lines.push_back({2, 0, 2, "const auto faa_xxz = fss * (rpc_x * rpc_x * rpc_z + 0.5 * fe_0 * rpc_z);"});
+                
+            lines.push_back({2, 0, 2, "const auto faa_xyy = fss * (rpc_x * rpc_y * rpc_y + 0.5 * fe_0 * rpc_x);"});
+                
+            lines.push_back({2, 0, 2, "const auto faa_xyz = fss * rpc_x * rpc_y * rpc_z;"});
+                
+            lines.push_back({2, 0, 2, "const auto faa_xzz = fss * (rpc_x * rpc_z * rpc_z + 0.5 * fe_0 * rpc_x);"});
+            
+            lines.push_back({2, 0, 2, "const auto faa_yyy = fss * (rpc_y * rpc_y * rpc_y + 1.5 * fe_0 * rpc_y);"});
+                
+            lines.push_back({2, 0, 2, "const auto faa_yyz = fss * (rpc_y * rpc_y * rpc_z + 0.5 * fe_0 * rpc_z);"});
+                
+            lines.push_back({2, 0, 2, "const auto faa_yzz = fss * (rpc_y * rpc_z * rpc_z + 0.5 * fe_0 * rpc_y);"});
+            
+            lines.push_back({2, 0, 2, "const auto faa_zzz = fss * (rpc_z * rpc_z * rpc_z + 1.5 * fe_0 * rpc_z);"});
+        }
+    }
+}
+
+void
 T2CPrimFuncBodyDriver::_add_loop_end(VCodeLines& lines) const
 {
     lines.push_back({1, 0, 1, "}"});
@@ -674,6 +800,16 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
         rgroup = t2c_npot_geom_drv.create_recursion(components);
     }
     
+    // Multipole inntegrals
+    
+    if (const auto integrand = integral.integrand();
+        (integrand.name() == "r") && (integrand.shape() != Tensor(0)))
+    {
+        T2CMultipoleDriver t2c_mpol_drv;
+        
+        rgroup = t2c_mpol_drv.create_recursion(components);
+    }
+    
     // ... other integrals
     
     return rgroup;
@@ -728,7 +864,7 @@ T2CPrimFuncBodyDriver::_add_prefactors(      VCodeLines&  lines,
     
     const auto integrand = integral.integrand();
     
-    if (integrand.name() != "AG")
+    if ((integrand.name() != "AG") || (integrand.name() != "r"))
     {
         if (t2c::find_factor(rgroup, "rpc_x"))
         {
@@ -893,6 +1029,18 @@ T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral,
             }
         }
     }
+    
+    if (bname == "r")
+    {
+        if (iname == "1")
+        {
+            return std::string("fss");
+        }
+        else
+        {
+            return "faa_" + integral.integrand().shape().label();
+        }
+    }
 
     return std::string();
 }
@@ -903,7 +1051,7 @@ T2CPrimFuncBodyDriver::_get_special_vars_str(const I2CIntegral& integral,
 {
     std::vector<std::string> vstr;
     
-    if (t2c::need_boys(integral))
+    if (t2c::need_boys(integral) || (integral.integrand().name() == "r"))
     {
         if (geom_form)
         {

@@ -141,6 +141,10 @@ int boys_order(const I2CIntegral& integral);
 /// @return True if Boys function is needed by given integral, False otherwise.
 bool need_boys(const I2CIntegral& integral);
 
+/// Prints debug infor for given recursion expansion.
+/// @param rdist The recursion expansion.
+void debug_info(R2CDist& rdist);
+
 } // t2c namespace
 
 #endif /* t2c_utils_hpp */
