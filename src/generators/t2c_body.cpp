@@ -595,6 +595,22 @@ T2CFuncBodyDriver::_add_prim_call_special_vars(      VCodeLines&  lines,
                 lines.push_back({5, spacer, 1, "points,"});
             }
         }
+        
+        if (integrand.shape() == Tensor(2))
+        {
+            if (geom_form)
+            {
+                lines.push_back({5, spacer, 1, "quadrupole,"});
+                
+                lines.push_back({5, spacer, 1, "point,"});
+            }
+            else
+            {
+                lines.push_back({5, spacer, 1, "quadrupoles,"});
+                
+                lines.push_back({5, spacer, 1, "points,"});
+            }
+        }
     }
     
     if (integrand.name() ==  "r")

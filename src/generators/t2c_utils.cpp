@@ -225,9 +225,11 @@ namespace_label(const I2CIntegral& integral)
 {
     const auto integrand = integral.integrand();
     
+    const auto iorder = std::to_string(integrand.shape().order());
+    
     if (integrand.name() == "AG")
     {
-        return "geom_npotrec";
+        return "npotg0" + iorder + "0rec";
     }
     
     if (integrand.name() == "A")
@@ -247,7 +249,11 @@ namespace_label(const I2CIntegral& integral)
     
     if (integrand.name() == "r")
     {
-        return "mpol";
+        if (iorder == "1") return "diprec";
+        
+        if (iorder == "2") return "quadrec";
+        
+        if (iorder == "3") return "octurec";
     }
     
     return std::string();

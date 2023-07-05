@@ -557,13 +557,13 @@ T2CPrimFuncBodyDriver::_add_nuclear_potential_geom_vars(      VCodeLines&  lines
             
             lines.push_back({2, 0, 2, "const auto faa_xy = qpol_xy * fss * 4.0 * fxi_0 * fxi_0 * rpc_x * rpc_y;"});
             
-            lines.push_back({2, 0, 2, "const auto faa_xz = qpol_xz * fss * 4.0 * fxi_0 * fxi_0 * rpc_x * rpcz;"});
+            lines.push_back({2, 0, 2, "const auto faa_xz = qpol_xz * fss * 4.0 * fxi_0 * fxi_0 * rpc_x * rpc_z;"});
             
             lines.push_back({2, 0, 2, "const auto faa_yy = qpol_yy * fss * 4.0 * fxi_0 * fxi_0 * rpc_y * rpc_y;"});
             
-            lines.push_back({2, 0, 2, "const auto faa_yz = qpol_yz * fss * 4.0 * fxi_0 * fxi_0 * rpc_y * rpcz;"});
+            lines.push_back({2, 0, 2, "const auto faa_yz = qpol_yz * fss * 4.0 * fxi_0 * fxi_0 * rpc_y * rpc_z;"});
             
-            lines.push_back({2, 0, 2, "const auto faa_zz = qpol_zz * fss * 4.0 * fxi_0 * fxi_0 * rpc_z * rpcz;"});
+            lines.push_back({2, 0, 2, "const auto faa_zz = qpol_zz * fss * 4.0 * fxi_0 * fxi_0 * rpc_z * rpc_z;"});
             
             lines.push_back({2, 0, 2, "const auto faa_x = 2.0 * fxi_0 * rpc_x * fss;"});
             
@@ -617,7 +617,7 @@ T2CPrimFuncBodyDriver::_add_multipole_vars(      VCodeLines&  lines,
                 
             lines.push_back({2, 0, 2, "fints_yy[i] += fss * (rpc_y * rpc_y + 0.5 * fe_0);"});
                 
-            lines.push_back({2, 0, 2, "fints_yz[i] += fss * rpc_x * rpc_z;"});
+            lines.push_back({2, 0, 2, "fints_yz[i] += fss * rpc_y * rpc_z;"});
                 
             lines.push_back({2, 0, 2, "fints_zz[i] += fss * (rpc_z * rpc_z + 0.5 * fe_0);"});
         }
@@ -666,7 +666,7 @@ T2CPrimFuncBodyDriver::_add_multipole_vars(      VCodeLines&  lines,
                     
             lines.push_back({2, 0, 2, "const auto faa_yy = fss * (rpc_y * rpc_y + 0.5 * fe_0);"});
                     
-            lines.push_back({2, 0, 2, "const auto faa_yz = fss * rpc_x * rpc_z;"});
+            lines.push_back({2, 0, 2, "const auto faa_yz = fss * rpc_y * rpc_z;"});
                     
             lines.push_back({2, 0, 2, "const auto faa_zz = fss * (rpc_z * rpc_z + 0.5 * fe_0);"});
         }
@@ -864,7 +864,7 @@ T2CPrimFuncBodyDriver::_add_prefactors(      VCodeLines&  lines,
     
     const auto integrand = integral.integrand();
     
-    if ((integrand.name() != "AG") || (integrand.name() != "r"))
+    if ((integrand.name() != "AG") && (integrand.name() != "r"))
     {
         if (t2c::find_factor(rgroup, "rpc_x"))
         {
