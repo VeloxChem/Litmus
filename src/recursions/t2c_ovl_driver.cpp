@@ -16,8 +16,6 @@
 
 #include "t2c_ovl_driver.hpp"
 
-#include <iostream>
-
 #include "axes.hpp"
 
 T2COverlapDriver::T2COverlapDriver()
