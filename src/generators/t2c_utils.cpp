@@ -27,24 +27,41 @@ integral_label(const I2CIntegral& integral)
 {
     const auto integrand = integral.integrand();
     
+    const auto prefixes = integral.prefixes();
+    
+    auto border = std::string("0");
+    
+    auto korder = std::string("0");
+    
+    const auto iorder = std::to_string(integrand.shape().order());
+    
+    if (const auto nterms = prefixes.size(); nterms > 0)
+    {
+        if (nterms >= 1) border =std::to_string(prefixes[0].shape().order());
+        
+        if (nterms >= 2) korder = std::to_string(prefixes[1].shape().order());
+    }
+    
+    std::string suffix = "Geom" + border + iorder  + korder;
+    
     if (integrand.name() == "AG")
     {
-        return "NuclearPotentialGeom0" + std::to_string(integrand.shape().order()) + "0";
+        return "NuclearPotentialGeom" + suffix;
     }
     
     if (integrand.name() == "A")
     {
-        return "NuclearPotential";
+        return (prefixes.empty()) ? "NuclearPotential" : "NuclearPotential" + suffix;
     }
     
     if (integrand.name() == "T")
     {
-        return "KineticEnergy";
+        return (prefixes.empty()) ? "KineticEnergy" : "KineticEnergy" + suffix;
     }
     
     if (integrand.name() == "1")
     {
-        return "Overlap";
+        return (prefixes.empty()) ? "Overlap" : "Overlap" + suffix;
     }
     
     if (integrand.name() == "r")
@@ -108,6 +125,70 @@ integrand_components(const Operator&    integrand,
         }
             
         return ilabels;
+    }
+}
+
+std::vector<std::string>
+integrand_components(const Tensor&      bra_tensor,
+                     const Operator&    integrand,
+                     const std::string& label)
+{
+    if (const auto icomps = integrand.components(); icomps.size() == 1)
+    {
+        return t2c::tensor_components(bra_tensor, label);
+    }
+    else
+    {
+        std::vector<std::string> labels;
+        
+        for (const auto& bcomp : bra_tensor.components())
+        {
+            for (const auto& icomp : icomps)
+            {
+                labels.push_back(label + "_" + bcomp.label() + "_" + icomp.label());
+            }
+        }
+            
+        return labels;
+    }
+}
+
+std::vector<std::string>
+integrand_components(const Tensor&      bra_tensor,
+                     const Tensor&      ket_tensor,
+                     const Operator&    integrand,
+                     const std::string& label)
+{
+    if (const auto icomps = integrand.components(); icomps.size() == 1)
+    {
+        std::vector<std::string> labels;
+        
+        for (const auto& bcomp : bra_tensor.components())
+        {
+            for (const auto& kcomp : ket_tensor.components())
+            {
+                labels.push_back(label + "_" + bcomp.label() + "_" + kcomp.label());
+            }
+        }
+            
+        return labels;
+    }
+    else
+    {
+        std::vector<std::string> labels;
+        
+        for (const auto& bcomp : bra_tensor.components())
+        {
+            for (const auto& kcomp : ket_tensor.components())
+            {
+                for (const auto& icomp : icomps)
+                {
+                    labels.push_back(label + "_" + bcomp.label() + "_" + kcomp.label() + "_" + icomp.label());
+                }
+            }
+        }
+            
+        return labels;
     }
 }
 
@@ -427,7 +508,9 @@ debug_info(R2CDist& rdist)
     
     for (size_t i = 0; i < rdist.terms(); i++)
     {
-        std::cout << " RECURSION TERM (" << i << "): " << rdist[i].label() << std::endl;
+       // std::cout << " RECURSION TERM (" << i << "): " << rdist[i].label() << std::endl;
+        
+        std::cout << " RECURSION TERM (" << i << "): " << rdist[i].integral().bra().to_string() << " : "  << rdist[i].integral().ket().to_string() << std::endl;
     }
     
     std::cout << std::endl << std::endl;

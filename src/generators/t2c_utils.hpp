@@ -42,6 +42,26 @@ std::string integrand_label(const Operator& integrand);
 std::vector<std::string> integrand_components(const Operator&    integrand,
                                               const std::string& label);
 
+/// Gets vector of integrand component labels.
+/// @param bra_tensor the Cartessian tensor.
+/// @param integrand the integrand operator.
+/// @param label the base of label.
+/// @return The vecotr of integrand component labels.
+std::vector<std::string> integrand_components(const Tensor&      bra_tensor,
+                                              const Operator&    integrand,
+                                              const std::string& label);
+
+/// Gets vector of integrand component labels.
+/// @param bra_tensor the Cartessian tensor.
+/// @param ket_tensor the Cartessian tensor.
+/// @param integrand the integrand operator.
+/// @param label the base of label.
+/// @return The vecotr of integrand component labels.
+std::vector<std::string> integrand_components(const Tensor&      bra_tensor,
+                                              const Tensor&      ket_tensor,
+                                              const Operator&    integrand,
+                                              const std::string& label);
+
 /// Gets vector of tensor component labels.
 /// @param tensor the Cartessian tensor.
 /// @param label the base of label.

@@ -32,6 +32,8 @@
 void
 T2CCPUGenerator::generate(const std::string& label,
                           const int          angmom,
+                          const int          bra_gdrv,
+                          const int          ket_gdrv,
                           const int          op_gdrv) const
 {
     if (_is_available(label))
@@ -44,7 +46,7 @@ T2CCPUGenerator::generate(const std::string& label,
                 {
                     #pragma omp single nowait
                     {
-                        const auto integral = _get_integral(label, i, j, op_gdrv);
+                        const auto integral = _get_integral(label, i, j, bra_gdrv, ket_gdrv, op_gdrv);
                         
                         #pragma omp task firstprivate(integral)
                         _write_cpp_header(integral);
@@ -90,45 +92,57 @@ I2CIntegral
 T2CCPUGenerator::_get_integral(const std::string& label,
                                const int          ang_a,
                                const int          ang_b,
+                               const int          bra_gdrv,
+                               const int          ket_gdrv,
                                const int          op_gdrv) const
 {
+    // bra and ket sides
+    
     const auto bra = I1CPair("GA", ang_a);
     
     const auto ket = I1CPair("GB", ang_b);
+    
+    // prefixes of integral bra, ket order 
+    
+    VOperators prefixes;
+    
+    if (bra_gdrv > 0) prefixes.push_back(Operator("d/dR", Tensor(bra_gdrv)));
+    
+    if (ket_gdrv > 0) prefixes.push_back(Operator("d/dR", Tensor(ket_gdrv)));
     
     // overlap integrals
     
     if (fstr::lowercase(label) == "overlap")
     {
-        return I2CIntegral(bra, ket, Operator("1"));
+        return I2CIntegral(bra, ket, Operator("1"), 0, prefixes);
     }
     
     // kinetic energy integrals
     
     if (fstr::lowercase(label) == "kinetic energy")
     {
-        return I2CIntegral(bra, ket, Operator("T"));
+        return I2CIntegral(bra, ket, Operator("T"), 0, prefixes);
     }
     
     // nuclear potential integrals
     
     if (fstr::lowercase(label) == "nuclear potential")
     {
-        return I2CIntegral(bra, ket, Operator("A"));
+        return I2CIntegral(bra, ket, Operator("A"), 0, prefixes);
     }
     
     // nuclear potential geometrical derivative integrals
         
     if (fstr::lowercase(label) == "nuclear potential geometry")
     {
-        return I2CIntegral(bra, ket, Operator("AG", Tensor(op_gdrv)));
+        return I2CIntegral(bra, ket, Operator("AG", Tensor(op_gdrv)), 0, prefixes);
     }
     
     // multipole integrals
         
     if (fstr::lowercase(label) == "multipole")
     {
-        return I2CIntegral(bra, ket, Operator("r", Tensor(op_gdrv)));
+        return I2CIntegral(bra, ket, Operator("r", Tensor(op_gdrv)), 0, prefixes);
     }
  
     return I2CIntegral();
@@ -144,34 +158,34 @@ void
 T2CCPUGenerator::_write_cpp_header(const I2CIntegral& integral) const
 {
     auto fname = _file_name(integral) + ".hpp";
-    
+        
     std::ofstream fstream;
-           
+               
     fstream.open(fname.c_str(), std::ios_base::trunc);
-    
+        
     _write_hpp_defines(fstream, integral, true);
-    
+        
     _write_hpp_includes(fstream, integral);
-    
+        
     _write_namespace(fstream, integral, true);
-    
+        
     T2CDocuDriver docs_drv;
-    
+        
     T2CDeclDriver decl_drv;
-    
-    if (integral[0] == integral[1])
+        
+    if ((integral[0] == integral[1]) && integral.is_simple())
     {
         docs_drv.write_doc_str(fstream, integral, true);
-        
+            
         decl_drv.write_func_decl(fstream, integral, true, true);
     }
-    
+        
     docs_drv.write_doc_str(fstream, integral, false);
-    
+        
     decl_drv.write_func_decl(fstream, integral, false, true);
 
     _write_namespace(fstream, integral, false);
-    
+        
     _write_hpp_defines(fstream, integral, false);
 
     fstream.close();
@@ -181,32 +195,32 @@ void
 T2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral) const
 {
     auto fname = _file_name(integral) + ".cpp";
-    
+        
     std::ofstream fstream;
-           
+        
     fstream.open(fname.c_str(), std::ios_base::trunc);
-    
+        
     _write_cpp_includes(fstream, integral);
-    
+        
     _write_namespace(fstream, integral, true);
-    
+        
     T2CDeclDriver decl_drv;
-    
+        
     T2CFuncBodyDriver func_drv;
-    
-    if (integral[0] == integral[1])
+        
+    if ((integral[0] == integral[1]) && (integral.is_simple()))
     {
         decl_drv.write_func_decl(fstream, integral, true, false);
-        
+            
         func_drv.write_func_body(fstream, integral, true);
     }
-    
+        
     decl_drv.write_func_decl(fstream, integral, false, false);
-    
+        
     func_drv.write_func_body(fstream, integral, false);
-
+        
     _write_namespace(fstream, integral, false);
-
+        
     fstream.close();
 }
 

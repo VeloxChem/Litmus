@@ -492,6 +492,11 @@ template <class T>
 bool
 RecursionTerm<T>::auxilary(const int center) const
 {
+    if (!_integral.prefixes().empty())
+    {
+        return false; 
+    }
+    
     if (_integral[center].order() == 0)
     {
         return true;

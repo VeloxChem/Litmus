@@ -17,6 +17,7 @@
 #include "t2c_ovl_driver.hpp"
 
 #include "axes.hpp"
+#include "t2c_utils.hpp"
 
 T2COverlapDriver::T2COverlapDriver()
 {
@@ -199,8 +200,76 @@ T2COverlapDriver::apply_recursion(R2CDist& rdist) const
 void
 T2COverlapDriver::apply_bra_vrr(R2CDist& rdist) const
 {
-    
-    
+    if (!rdist.auxilary(0))
+    {
+        R2CDist new_dist(rdist.root());
+            
+        V2CTerms rec_terms;
+            
+        // set up initial terms for recursion expansion
+            
+        if (const auto nterms = rdist.terms(); nterms > 0)
+        {
+            for (size_t i = 0; i < nterms; i++)
+            {
+                if (const auto rterm = rdist[i]; is_overlap(rterm))
+                {
+                    if (rterm.auxilary(0))
+                    {
+                        new_dist.add(rterm);
+                    }
+                    else
+                    {
+                        rec_terms.push_back(rterm);
+                    }
+                }
+                else
+                {
+                    new_dist.add(rterm);
+                }
+            }
+        }
+        else
+        {
+            if (const auto rterm = rdist.root(); is_overlap(rterm))
+            {
+                rec_terms.push_back(rterm);
+            }
+        }
+            
+        // apply recursion until only
+                
+        while (!rec_terms.empty())
+        {
+            V2CTerms new_terms;
+                
+            for (size_t i = 0; i < rec_terms.size(); i++)
+            {
+                const auto cdist = apply_bra_vrr(rec_terms[i]);
+                    
+                if (const auto nterms = cdist.terms(); nterms > 0)
+                {
+                    for (size_t j = 0; j < nterms; j++)
+                    {
+                        if (const auto rterm = cdist[j]; rterm.auxilary(0))
+                        {
+                            new_dist.add(rterm);
+                        }
+                        else
+                        {
+                            new_terms.push_back(rterm);
+                        }
+                    }
+                }
+            }
+                
+            rec_terms = new_terms;
+        }
+            
+        // update recursion distribution
+            
+        rdist = new_dist;
+    }
 }
 
 void
@@ -297,4 +366,24 @@ T2COverlapDriver::create_recursion(const VT2CIntegrals& vints) const
     r2group.simplify(); 
     
     return r2group;
+}
+
+void
+T2COverlapDriver::apply_recursion(R2Group& rgroup) const
+{
+    if (const auto nterms = rgroup.expansions(); nterms > 0)
+    {
+        R2Group mgroup;
+        
+        for (size_t i = 0; i < nterms; i++)
+        {
+            auto rdist = rgroup[i];
+            
+            apply_recursion(rdist);
+            
+            mgroup.add(rdist);
+        }
+        
+        rgroup = mgroup;
+    }
 }

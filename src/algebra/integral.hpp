@@ -107,6 +107,10 @@ public:
     /// @return The string with primitive textual label of integral.
     std::string label(const bool use_order = false) const;
     
+    /// Gets vector of prefix operators.
+    /// @return The vector of prefix operators.
+    VOperators prefixes() const;
+    
     /// Creates a vector with integral components of this integral.
     /// @return The vector of integral components.
     template <class V, class W>
@@ -300,6 +304,13 @@ Integral<T, U>::label(const bool use_order) const
     }
 
     return intstr;
+}
+
+template <class T, class U>
+VOperators
+Integral<T, U>::prefixes() const
+{
+    return _prefixes;
 }
 
 template <class T, class U>

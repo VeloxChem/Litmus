@@ -23,6 +23,7 @@
 #include "t2c_npot_driver.hpp"
 #include "t2c_npot_geom_driver.hpp"
 #include "t2c_mpol_driver.hpp"
+#include "t2c_center_driver.hpp"
 
 #include <iostream>
 
@@ -165,7 +166,24 @@ T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream&   fstream,
     
     const auto tcomps = _select_integral_components(bra_component, ket_component, integral);
     
-    const auto labels = t2c::integrand_components(integral.integrand(), "fints");
+    std::vector<std::string> labels;
+    
+    const auto prefixes = integral.prefixes();
+    
+    if (prefixes.empty())
+    {
+        labels = t2c::integrand_components(integral.integrand(), "fints");
+    }
+    
+    if (prefixes.size() == 1)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "fints");
+    }
+    
+    if (prefixes.size() == 2)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(),prefixes[1].shape(), integral.integrand(), "fints");
+    }
     
     _add_simd_code(lines, labels, tcomps, integral);
     
@@ -292,9 +310,30 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const TensorComponent& bra_component,
     
     vstr.push_back("// set up pointer to integrals buffer(s)");
     
-    const auto labels  = t2c::integrand_components(integral.integrand(), "buffer");
+    std::vector<std::string> labels, flabels;
     
-    const auto flabels = t2c::integrand_components(integral.integrand(), "fints");
+    const auto prefixes = integral.prefixes();
+    
+    if (prefixes.empty())
+    {
+        labels  = t2c::integrand_components(integral.integrand(), "buffer");
+        
+        flabels = t2c::integrand_components(integral.integrand(), "fints");
+    }
+    
+    if (prefixes.size() == 1)
+    {
+        labels  = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "buffer");
+        
+        flabels = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "fints");
+    }
+    
+    if (prefixes.size() == 2)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(), prefixes[1].shape(), integral.integrand(), "buffer");
+        
+        flabels = t2c::integrand_components(prefixes[0].shape(),prefixes[1].shape(), integral.integrand(), "fints");
+    }
     
     for (size_t i = 0; i < labels.size(); i++)
     {
@@ -359,7 +398,24 @@ T2CPrimFuncBodyDriver::_add_func_pragma(      VCodeLines&      lines,
                                         const TensorComponent& ket_component,
                                         const I2CIntegral&     integral) const
 {
-    const auto labels = t2c::integrand_components(integral.integrand(), "fints");
+    std::vector<std::string> labels;
+    
+    const auto prefixes = integral.prefixes();
+    
+    if (prefixes.empty())
+    {
+        labels = t2c::integrand_components(integral.integrand(), "fints");
+    }
+    
+    if (prefixes.size() == 1)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "fints");
+    }
+    
+    if (prefixes.size() == 2)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(),prefixes[1].shape(), integral.integrand(), "fints");
+    }
     
     for (size_t i = 0; i < labels.size(); i++)
     {
@@ -442,7 +498,7 @@ T2CPrimFuncBodyDriver::_add_overlap_vars(      VCodeLines&  lines,
     
     lines.push_back({2, 0, 2, "fz_0 *= (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
     
-    if ((integral[0] + integral[1]) == 0)
+    if (((integral[0] + integral[1]) == 0) && integral.is_simple())
     {
         lines.push_back({2, 0, 1, "fints[i] += bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
     }
@@ -762,13 +818,27 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
 {
     R2Group rgroup;
     
+    if (!integral.is_simple())
+    {
+        T2CCenterDriver t2c_geom_drv;
+        
+        rgroup = t2c_geom_drv.create_recursion(components);
+    }
+    
     // Overlap inntegrals
     
     if (integral.integrand() == Operator("1"))
     {
         T2COverlapDriver t2c_ovl_drv;
         
-        rgroup = t2c_ovl_drv.create_recursion(components);
+        if (integral.is_simple())
+        {
+            rgroup = t2c_ovl_drv.create_recursion(components);
+        }
+        else
+        {
+            t2c_ovl_drv.apply_recursion(rgroup);
+        }
     }
     
     // Kinetic energy inntegrals
@@ -858,6 +928,16 @@ T2CPrimFuncBodyDriver::_add_prefactors(      VCodeLines&  lines,
     if (t2c::find_factor(rgroup, "fbe_0"))
     {
         lines.push_back({2, 0, 2, "const auto fbe_0 = 1.0 / bra_exp;"});
+    }
+    
+    if (t2c::find_factor(rgroup, "tke_0"))
+    {
+        lines.push_back({2, 0, 2, "const auto tke_0 = ket_fe[i];"});
+    }
+    
+    if (t2c::find_factor(rgroup, "tbe_0"))
+    {
+        lines.push_back({2, 0, 2, "const auto tbe_0 = bra_exp;"});
     }
     
     // special variables, excluded for specific integrals

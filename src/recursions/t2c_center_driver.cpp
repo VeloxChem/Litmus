@@ -17,6 +17,7 @@
 #include "t2c_center_driver.hpp"
 
 #include "axes.hpp"
+#include "t2c_utils.hpp"
 
 T2CCenterDriver::T2CCenterDriver()
 {
@@ -29,7 +30,7 @@ bool
 T2CCenterDriver::is_auxilary(const R2CTerm& rterm,
                              const int      index) const
 {
-    if (const auto nprefixes = rterm.prefixes().size(); index > nprefixes)
+    if (const auto nprefixes = rterm.prefixes().size(); index >= nprefixes)
     {
         return true;
     }

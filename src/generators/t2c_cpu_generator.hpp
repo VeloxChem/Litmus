@@ -38,12 +38,16 @@ class T2CCPUGenerator
     /// @param label The label of requested two-center integral.
     /// @param ang_a The angular momentum of center A.
     /// @param ang_b The angular momentum of center B.
+    /// @param bra_gdrv The geometrical derivative of bra side.
+    /// @param ket_gdrv The geometrical derivative of ket side.
     /// @param op_gdrv The geometrical derivative of operator. 
     /// @return The two-center integral.
     I2CIntegral _get_integral(const std::string& label,
                               const int          ang_a,
                               const int          ang_b,
-                              const int          op_gdrv = 0) const;
+                              const int          bra_gdrv = 0,
+                              const int          ket_gdrv = 0,
+                              const int          op_gdrv  = 0) const;
     
     /// Gets file name of file with recursion functions for two center integral.
     /// @param integral The base two center integral.
@@ -199,9 +203,13 @@ public:
     /// Generates selected one-electron integrals up to given angular momentum (inclusive) )on A and B centers.
     /// @param label The label of requested two-center integral.
     /// @param angmom The maximum angular momentum of A and B centers.
+    /// @param bra_gdrv The geometrical derivative of bra side.
+    /// @param ket_gdrv The geometrical derivative of ket side.
     /// @param op_gdrv The geometrical derivative of operator. 
     void generate(const std::string& label,
                   const int          angmom,
+                  const int          bra_gdrv,
+                  const int          ket_gdrv,
                   const int          op_gdrv) const;
 };
 

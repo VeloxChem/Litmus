@@ -165,12 +165,35 @@ T2CDocuDriver::_get_compute_str(const I2CIntegral& integral,
     const auto ket = Tensor(integral[1]);
         
     const auto integrand = integral.integrand();
+    
+    const auto prefixes = integral.prefixes();
+    
+    auto bra_geom = std::string("");
+    
+    auto ket_geom = std::string("");
+    
+    if (const auto nterms = prefixes.size(); nterms > 0)
+    {
+        if (nterms >= 1)
+        {
+            const auto border = std::to_string(prefixes[0].shape().order());
+            
+            bra_geom = "d^(" + border + ")/dA^(" + border + ")";
+        }
         
-    auto label = " Evaluates <" + bra.label() + "|";
+        if (nterms >= 2)
+        {
+            const auto korder = std::to_string(prefixes[1].shape().order());
+            
+            ket_geom = "d^(" + korder + ")/dB^(" + korder + ")";
+        }
+    }
+        
+    auto label = " Evaluates <" + bra_geom + bra.label() + "|";
         
     label += t2c::integrand_label(integral.integrand());
         
-    label += "|" + ket.label() + ">  integrals for given ";
+    label += "|" + ket_geom + ket.label() + ">  integrals for given ";
         
     label += (diagonal) ? "GTOs block." : "pair of GTOs blocks.";
     
@@ -184,11 +207,11 @@ T2CDocuDriver::_get_prim_compute_str(const I2CIntegral& integral) const
     
     const auto ket = Tensor(integral[1]);
     
-    auto label = "Evaluates block of primitive <" + bra.label() + "|" ;
+    auto label = "Evaluates block of primitive <"  + bra.label() + "|" ;
     
     label += t2c::integrand_label(integral.integrand());
     
-    label += "|" + ket.label() + "> integrals.";
+    label += "|"  + ket.label() + "> integrals.";
     
     return label;
 }
@@ -226,13 +249,36 @@ T2CDocuDriver::_get_prim_compute_str(const TensorComponent& bra_component,
     
     const auto ket = Tensor(integral[1]);
     
-    auto label = "Evaluates block of primitive <" + bra.label();
+    const auto prefixes = integral.prefixes();
+    
+    auto bra_geom = std::string("");
+    
+    auto ket_geom = std::string("");
+    
+    if (const auto nterms = prefixes.size(); nterms > 0)
+    {
+        if (nterms >= 1)
+        {
+            const auto border = std::to_string(prefixes[0].shape().order());
+            
+            bra_geom = "d^(" + border + ")/dA^(" + border + ")";
+        }
+        
+        if (nterms >= 2)
+        {
+            const auto korder = std::to_string(prefixes[1].shape().order());
+            
+            ket_geom = "d^(" + korder + ")/dB^(" + korder + ")";
+        }
+    }
+    
+    auto label = "Evaluates block of primitive <" + bra_geom + bra.label();
     
     label += "_" + fstr::upcase(bra_component.label());
     
     label += "|" + t2c::integrand_label(integral.integrand()) + "|";
     
-    label += ket.label() + "_" + fstr::upcase(ket_component.label());
+    label += ket_geom +  ket.label() + "_" + fstr::upcase(ket_component.label());
     
     label += "> integrals.";
     
@@ -244,8 +290,26 @@ T2CDocuDriver::_get_matrix_str(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    if (const auto labels = t2c::integrand_components(integral.integrand(), "matrix");
-        labels.size() == 1)
+    std::vector<std::string> labels;
+    
+    const auto prefixes = integral.prefixes();
+    
+    if (prefixes.empty())
+    {
+        labels = t2c::integrand_components(integral.integrand(), "matrix");
+    }
+    
+    if (prefixes.size() == 1)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "matrix");
+    }
+    
+    if (prefixes.size() == 2)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(),prefixes[1].shape(), integral.integrand(), "matrix");
+    }
+    
+    if (labels.size() == 1)
     {
         vstr.push_back("@param matrix the pointer to matrix for storage of integrals.");
     }
@@ -420,9 +484,30 @@ T2CDocuDriver::_get_prim_buffer_str(const I2CIntegral& integral) const
     {
         std::vector<std::string> vstr;
         
-        for (const auto& label : t2c::integrand_components(integral.integrand(), "buffer"))
+        const auto prefixes = integral.prefixes();
+        
+        if (prefixes.empty())
         {
-            vstr.push_back("@param " + label + " the partial integrals buffer.");
+            for (const auto& label : t2c::integrand_components(integral.integrand(), "buffer"))
+            {
+                vstr.push_back("@param " + label + " the partial integrals buffer.");
+            }
+        }
+        
+        if (prefixes.size() == 1)
+        {
+            for (const auto& label : t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "buffer"))
+            {
+                vstr.push_back("@param " + label + " the partial integrals buffer.");
+            }
+        }
+        
+        if (prefixes.size() == 2)
+        {
+            for (const auto& label : t2c::integrand_components(prefixes[0].shape(), prefixes[1].shape(), integral.integrand(), "buffer"))
+            {
+                vstr.push_back("@param " + label + " the partial integrals buffer.");
+            }
         }
         
         return vstr;

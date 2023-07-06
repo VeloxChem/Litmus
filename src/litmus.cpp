@@ -28,11 +28,15 @@ int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"t2c", "Nuclear Potential Geometry"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c", "Overlap"});
     
     const int max_angmom = 3;
     
-    const int op_gdrv = 2;
+    const int bra_gdrv = 1;
+    
+    const int ket_gdrv = 0;
+    
+    const int op_gdrv = 3;
     
     // set up start timer
     
@@ -42,7 +46,7 @@ int main(int argc, char **argv)
     {
         const auto t2c_drv = T2CCPUGenerator();
         
-        t2c_drv.generate(run_type.second, max_angmom, op_gdrv);
+        t2c_drv.generate(run_type.second, max_angmom, bra_gdrv, ket_gdrv, op_gdrv);
     }
  
     // set up end timer & compute elapsed time

@@ -376,7 +376,24 @@ T2CDeclDriver::_get_prim_buffer_str(const TensorComponent& bra_component,
     
     const auto [nsize, name] = t2c::prim_compute_func_name(bra_component, ket_component, integral);
     
-    const auto labels = t2c::integrand_components(integral.integrand(), "buffer");
+    const auto prefixes = integral.prefixes();
+    
+    std::vector<std::string> labels;
+    
+    if (prefixes.empty())
+    {
+        labels = t2c::integrand_components(integral.integrand(), "buffer");
+    }
+    
+    if (prefixes.size() == 1)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "buffer");
+    }
+    
+    if (prefixes.size() == 2)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(), prefixes[1].shape(), integral.integrand(), "buffer");
+    }
     
     vstr.push_back(name + "(      TDoubleArray& " + labels[0] + ",");
    
