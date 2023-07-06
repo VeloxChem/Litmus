@@ -14,8 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef geom_center_driver_hpp
-#define geom_center_driver_hpp
+#ifndef t2c_center_driver_hpp
+#define t2c_center_driver_hpp
 
 #include <optional>
 #include <array>
@@ -48,7 +48,30 @@ public:
     std::optional<R2CDist> bra_ket_vrr(const R2CTerm& rterm,
                                        const char     axis,
                                        const int      index) const;
+    
+    /// Applies vertical recursion to geometrical prefix operator acting bra or ket side of given recursion term.
+    /// @param rterm The recursion term with overlap integral.
+    /// @param index The index of prefix operator.
+    /// @return The recursion expansion of given recursion term.
+    R2CDist apply_bra_ket_vrr(const R2CTerm& rterm,
+                              const int      index) const;
+    
+    
+    /// Recursively applies Obara-Saika recursion to recursion expansion.
+    /// @param rdist The recursion expansion.
+    void apply_recursion(R2CDist& rdist) const;
+    
+    /// Recursively applies vertical recursion to geometrical prefix operator acting bra or ket side of given recursion expansion.
+    /// @param rdist The recursion expansion.
+    /// @param index The index of prefix operator.
+    void apply_bra_ket_vrr(      R2CDist& rdist,
+                           const int      index) const;
+    
+    /// Creates recursion group from vector of integral components.
+    /// @param vints The  vector of integral components.
+    /// @return The recursion group.
+    R2Group create_recursion(const VT2CIntegrals& vints) const;
 };
 
 
-#endif /* geom_center_driver_hpp */
+#endif /* t2c_center_driver_hpp */
