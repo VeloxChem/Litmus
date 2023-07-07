@@ -142,7 +142,24 @@ T2CDeclDriver::_get_matrix_str(const I2CIntegral& integral) const
     
     const auto [nsize, name] = t2c::compute_func_name(integral);
     
-    const auto labels = t2c::integrand_components(integral.integrand(), "matrix");
+    std::vector<std::string> labels;
+    
+    const auto prefixes = integral.prefixes();
+    
+    if (prefixes.empty())
+    {
+        labels = t2c::integrand_components(integral.integrand(), "matrix");
+    }
+    
+    if (prefixes.size() == 1)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "matrix");
+    }
+    
+    if (prefixes.size() == 2)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(),prefixes[1].shape(), integral.integrand(), "matrix");
+    }
     
     for (size_t i = 0; i < labels.size(); i++)
     {

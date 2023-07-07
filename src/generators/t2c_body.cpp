@@ -214,7 +214,22 @@ T2CFuncBodyDriver::_get_buffers_def(const I2CIntegral& integral) const
     }
     else
     {
-        labels = t2c::integrand_components(integral.integrand(), "buffer");
+        const auto prefixes = integral.prefixes();
+        
+        if (prefixes.empty())
+        {
+            labels = t2c::integrand_components(integral.integrand(), "buffer");
+        }
+        
+        if (prefixes.size() == 1)
+        {
+            labels = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "buffer");
+        }
+        
+        if (prefixes.size() == 2)
+        {
+            labels = t2c::integrand_components(prefixes[0].shape(),prefixes[1].shape(), integral.integrand(), "buffer");
+        }
     }
     
     for (const auto& label : labels)
@@ -458,7 +473,24 @@ T2CFuncBodyDriver::_add_loop_call_tree(      VCodeLines&      lines,
                                        const I2CIntegral&     integral,
                                        const bool             diagonal) const
 {
-    const auto labels = t2c::integrand_components(integral.integrand(), "buffer");
+    const auto prefixes = integral.prefixes();
+    
+    std::vector<std::string> labels;
+    
+    if (prefixes.empty())
+    {
+        labels = t2c::integrand_components(integral.integrand(), "buffer");
+    }
+    
+    if (prefixes.size() == 1)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "buffer");
+    }
+    
+    if (prefixes.size() == 2)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(),prefixes[1].shape(), integral.integrand(), "buffer");
+    }
     
     lines.push_back({3, 0, 2, "// compute primitive integrals block (" +
                    
@@ -782,10 +814,31 @@ T2CFuncBodyDriver::_write_block_distributor(      VCodeLines&      lines,
                                             const I2CIntegral&     integral,
                                             const bool             diagonal) const
 {
-    const auto labels = t2c::integrand_components(integral.integrand(), "buffer");
+    const auto prefixes = integral.prefixes();
     
-    const auto matrices = t2c::integrand_components(integral.integrand(), "matrix");
+    std::vector<std::string> labels, matrices;
     
+    if (prefixes.empty())
+    {
+        labels = t2c::integrand_components(integral.integrand(), "buffer");
+        
+        matrices = t2c::integrand_components(integral.integrand(), "matrix");
+    }
+    
+    if (prefixes.size() == 1)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "buffer");
+        
+        matrices = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "matrix");
+    }
+    
+    if (prefixes.size() == 2)
+    {
+        labels = t2c::integrand_components(prefixes[0].shape(), prefixes[1].shape(), integral.integrand(), "buffer");
+        
+        matrices = t2c::integrand_components(prefixes[0].shape(),  prefixes[1].shape(), integral.integrand(), "matrix");
+    }
+        
     const auto bra_mom = SphericalMomentum(integral[0]);
     
     const auto bra_index = t2c::tensor_component_index(bra_component);
