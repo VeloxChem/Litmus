@@ -80,6 +80,10 @@ public:
     /// @param vints The  vector of kinetic energy integral components.
     /// @return The recursion group.
     R2Group create_recursion(const VT2CIntegrals& vints) const;
+    
+    /// Recursively applies Obara-Saika recursion to recursion group.
+    /// @param rgroup The recursion group.
+    void apply_recursion(R2Group& rgroup) const;
 };
 
 #endif /* t2c_kin_driver_hpp */
