@@ -24,7 +24,7 @@
 
 #include "operator.hpp"
 #include "tensor_component.hpp"
-#include "t2c_defs.hpp"
+#include "t4c_defs.hpp"
 #include "file_stream.hpp"
 
 // Four-center diagonal integrals code generator for CPU.
@@ -33,6 +33,32 @@ class T4CDiagCPUGenerator
     /// Checks if recursion is available for four-center diagonal inetgral with given label.
     /// @param label The label of requested two-center integral.
     bool _is_available(const std::string& label) const;
+    
+    /// Gets four-center inetgral with requested label.
+    /// @param label The label of requested two-center integral.
+    /// @param ang_a The angular momentum of center A.
+    /// @param ang_b The angular momentum of center B.
+    /// @return The four-center integral.
+    I4CIntegral _get_integral(const std::string& label,
+                              const int          ang_a,
+                              const int          ang_b) const;
+    
+    /// Gets file name of file with recursion functions for four center integral.
+    /// @param integral The base two center integral.
+    /// @return The file name.
+    std::string _file_name(const I4CIntegral& integral) const;
+    
+    /// Writes header file for recursion.
+    /// @param integral The base four center integral.
+    void _write_cpp_header(const I4CIntegral& integral) const;
+    
+    /// Writes definitions of define for header file.
+    /// @param fstream the file stream.
+    /// @param integral The base four center integral.
+    /// @param start The flag to indicate position of define (start or end).
+    void _write_hpp_defines(      std::ofstream& fstream,
+                            const I4CIntegral&   integral,
+                            const bool           start) const;
     
 public:
     /// Creates an electron repulsion integrals CPU code generator.

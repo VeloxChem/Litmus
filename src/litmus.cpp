@@ -23,6 +23,7 @@
 #include "eri_driver.hpp"
 #include "repository.hpp"
 #include "t2c_cpu_generator.hpp"
+#include "t4c_diag_cpu_generator.hpp"
 
 int main(int argc, char **argv)
 {
