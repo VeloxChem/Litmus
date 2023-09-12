@@ -28,19 +28,21 @@ int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"t2c", "Kinetic Energy"});
+    const auto run_type = std::pair<std::string, std::string>({"t4c_diag", "Electron Repulsion"});
     
     const int max_angmom = 3;
     
-    const int bra_gdrv = 1;
+    const int bra_gdrv = 0;
     
     const int ket_gdrv = 0;
     
-    const int op_gdrv = 3;
+    const int op_gdrv = 0;
     
     // set up start timer
     
     auto stime = std::chrono::high_resolution_clock::now();
+    
+    // cade: two-center integrals
     
     if (run_type.first == "t2c")
     {
@@ -48,7 +50,16 @@ int main(int argc, char **argv)
         
         t2c_drv.generate(run_type.second, max_angmom, bra_gdrv, ket_gdrv, op_gdrv);
     }
- 
+    
+    // cade: four-center diagonal integrals
+    
+    if (run_type.first == "t4c_diag")
+    {
+        const auto t4c_diag_drv = T4CDiagCPUGenerator();
+        
+        t4c_diag_drv.generate(run_type.second, max_angmom);
+    }
+    
     // set up end timer & compute elapsed time
     
     auto etime = std::chrono::high_resolution_clock::now();
