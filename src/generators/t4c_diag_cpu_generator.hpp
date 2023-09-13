@@ -60,6 +60,20 @@ class T4CDiagCPUGenerator
                             const I4CIntegral&   integral,
                             const bool           start) const;
     
+    /// Writes definitions of includes for header file.
+    /// @param fstream the file stream.
+    /// @param integral The base four center integral.
+    void _write_hpp_includes(      std::ofstream& fstream,
+                             const I4CIntegral&   integral) const;
+    
+    /// Writes namespace definition to file stream.
+    /// @param fstream the file stream.
+    /// @param integral The base four center integral.
+    /// @param start The flag to indicate position of namespace definition (start or end).
+    void _write_namespace(      std::ofstream& fstream,
+                          const I4CIntegral&   integral,
+                          const bool           start) const;
+    
 public:
     /// Creates an electron repulsion integrals CPU code generator.
     T4CDiagCPUGenerator() = default;

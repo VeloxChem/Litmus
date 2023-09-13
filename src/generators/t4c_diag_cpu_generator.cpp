@@ -18,6 +18,7 @@
 
 #include <iostream>
 
+#include "t4c_diag_docs.hpp"
 #include "string_formater.hpp"
 #include "t4c_utils.hpp"
 
@@ -108,26 +109,19 @@ T4CDiagCPUGenerator::_write_cpp_header(const I4CIntegral& integral) const
         
     _write_hpp_defines(fstream, integral, true);
         
-    //_write_hpp_includes(fstream, integral);
+    _write_hpp_includes(fstream, integral);
         
-    //_write_namespace(fstream, integral, true);
+    _write_namespace(fstream, integral, true);
         
-    //T2CDocuDriver docs_drv;
-        
-    //T2CDeclDriver decl_drv;
-        
-    //if ((integral[0] == integral[1]) && integral.is_simple())
-    //{
-    //    docs_drv.write_doc_str(fstream, integral, true);
-    //
-    //    decl_drv.write_func_decl(fstream, integral, true, true);
-    //}
-        
-    //docs_drv.write_doc_str(fstream, integral, false);
-        
-    //decl_drv.write_func_decl(fstream, integral, false, true);
+    T4CDiagDocuDriver docs_drv;
+    
+    docs_drv.write_doc_str(fstream, integral);
+    
+    T4CDiagDeclDriver decl_drv;
+    
+    decl_drv.write_func_decl(fstream, integral, true);
 
-    //_write_namespace(fstream, integral, false);
+    _write_namespace(fstream, integral, false);
         
     _write_hpp_defines(fstream, integral, false);
 
@@ -152,6 +146,42 @@ T4CDiagCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
     else
     {
         lines.push_back({0, 0, 1, "#endif /* " + fname + " */"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CDiagCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
+                                         const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "#include <cstdint>"});
+    
+    lines.push_back({0, 0, 2, "#include <vector>"});
+        
+    lines.push_back({0, 0, 2, "#include \"GtoPairBlock.hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CDiagCPUGenerator::_write_namespace(      std::ofstream& fstream,
+                                      const I4CIntegral&   integral,
+                                      const bool           start) const
+{
+    const auto label = t4c::namespace_label(integral);
+    
+    auto lines = VCodeLines();
+    
+    if (start)
+    {
+        lines.push_back({0, 0, 2, "namespace " + label + " { // " + label + " namespace"});
+    }
+    else
+    {
+        lines.push_back({0, 0, 2, "} // " + label + " namespace"});
     }
     
     ost::write_code_lines(fstream, lines);

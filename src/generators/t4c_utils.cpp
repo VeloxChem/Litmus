@@ -48,4 +48,25 @@ integral_label(const I4CIntegral& integral)
     return std::string();
 }
 
+std::string
+integrand_label(const Operator& integrand)
+{
+    const auto iname = integrand.name();
+    
+    return iname;
+}
+
+std::string
+namespace_label(const I4CIntegral& integral)
+{
+    const auto integrand = integral.integrand();
+    
+    if (integrand.name() == "1/|r-r'|")
+    {
+        return "erirec";
+    }
+    
+    return std::string();
+}
+
 } // t4c namespace

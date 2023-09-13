@@ -28,6 +28,16 @@ namespace t4c { // t4c namespace
 /// @return The standart capitalized label of integral.
 std::string integral_label(const I4CIntegral& integral);
 
+/// Gets label of standart integrand.
+/// @param integrand the integrand operator.
+/// @return The label of standart integrand.
+std::string integrand_label(const Operator& integrand);
+
+/// Gets recursion namespace label of standart integral.
+/// @param integral The base four center integral.
+/// @return The recursion namespace label of standart integral.
+std::string namespace_label(const I4CIntegral& integral);
+
 } // t4c namespace
 
 #endif /* t4c_utils_hpp */
