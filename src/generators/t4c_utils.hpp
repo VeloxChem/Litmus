@@ -18,6 +18,7 @@
 #define t4c_utils_hpp
 
 #include <string>
+#include <utility>
 
 #include "t4c_defs.hpp"
 
@@ -27,6 +28,11 @@ namespace t4c { // t4c namespace
 /// @param integral The base four center integral.
 /// @return The standart capitalized label of integral.
 std::string integral_label(const I4CIntegral& integral);
+
+/// Generates compute function  name.
+/// @param integral The base diagonal four center integral.
+/// @return The compute function name.
+std::pair<size_t, std::string> diag_compute_func_name(const I4CIntegral& integral);
 
 /// Gets label of standart integrand.
 /// @param integrand the integrand operator.

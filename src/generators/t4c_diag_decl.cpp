@@ -28,11 +28,6 @@ T4CDiagDeclDriver::write_func_decl(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "auto"});
     
-    for (const auto& label : _get_buffer_str(integral))
-    {
-        lines.push_back({0, 0, 1, label});
-    }
-    
     for (const auto& label : _get_vars_str(integral, terminus))
     {
         if  (label.find(";") == std::string::npos)
@@ -46,4 +41,21 @@ T4CDiagDeclDriver::write_func_decl(      std::ofstream& fstream,
     }
     
     ost::write_code_lines(fstream, lines);
+}
+
+std::vector<std::string>
+T4CDiagDeclDriver::_get_vars_str(const I4CIntegral& integral,
+                                 const bool         terminus) const
+{
+    std::vector<std::string> vstr;
+    
+    const auto [nsize, name] = t4c::diag_compute_func_name(integral);
+    
+    auto label = name + "(const CGtoPairBlock& gto_pair_block) -> std::vector<double>";
+    
+    if (terminus) label += ";"; 
+        
+    vstr.push_back(label);
+    
+    return vstr;
 }

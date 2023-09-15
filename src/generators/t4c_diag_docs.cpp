@@ -30,7 +30,7 @@ T4CDiagDocuDriver::write_doc_str(      std::ofstream& fstream,
         
     lines.push_back({0, 0, 2, _get_compute_str(integral)});
     
-    for (const auto& label : _get_variables_str())
+    for (const auto& label : _get_vars_str())
     {
         lines.push_back({0, 1, 1, label});
     }
@@ -70,9 +70,9 @@ T4CDiagDocuDriver::_get_vars_str() const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("@param buffer the largest integral Cartesian component storage buffer.");
-    
     vstr.push_back("@param gto_pair_block the GTOs pair block for bra and ket sides.");
+    
+    vstr.push_back("@return the vector with largest Cartesian component of electron repulsion integrals.");
     
     return vstr;
 }

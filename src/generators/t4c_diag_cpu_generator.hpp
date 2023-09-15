@@ -52,6 +52,10 @@ class T4CDiagCPUGenerator
     /// @param integral The base four center integral.
     void _write_cpp_header(const I4CIntegral& integral) const;
     
+    /// Writes C++ code file for recursion.
+    /// @param integral The base two center integral.
+    void _write_cpp_file(const I4CIntegral& integral) const;
+    
     /// Writes definitions of define for header file.
     /// @param fstream the file stream.
     /// @param integral The base four center integral.
@@ -64,6 +68,12 @@ class T4CDiagCPUGenerator
     /// @param fstream the file stream.
     /// @param integral The base four center integral.
     void _write_hpp_includes(      std::ofstream& fstream,
+                             const I4CIntegral&   integral) const;
+    
+    /// Writes definitions of includes for C++ code file.
+    /// @param fstream the file stream.
+    /// @param integral The base four center integral.
+    void _write_cpp_includes(      std::ofstream& fstream,
                              const I4CIntegral&   integral) const;
     
     /// Writes namespace definition to file stream.

@@ -19,8 +19,10 @@
 #include <iostream>
 
 #include "t4c_diag_docs.hpp"
-#include "string_formater.hpp"
+#include "t4c_diag_decl.hpp"
+#include "t4c_diag_body.hpp"
 #include "t4c_utils.hpp"
+#include "string_formater.hpp"
 
 void
 T4CDiagCPUGenerator::generate(const std::string& label,
@@ -41,8 +43,8 @@ T4CDiagCPUGenerator::generate(const std::string& label,
                         #pragma omp task firstprivate(integral)
                         _write_cpp_header(integral);
                         
-                        //#pragma omp task firstprivate(integral)
-                        //_write_cpp_file(integral);
+                        #pragma omp task firstprivate(integral)
+                        _write_cpp_file(integral);
                         
                         //_write_cpp_prim_headers(integral);
                         
@@ -129,6 +131,32 @@ T4CDiagCPUGenerator::_write_cpp_header(const I4CIntegral& integral) const
 }
 
 void
+T4CDiagCPUGenerator::_write_cpp_file(const I4CIntegral& integral) const
+{
+    auto fname = _file_name(integral) + ".cpp";
+        
+    std::ofstream fstream;
+        
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    _write_cpp_includes(fstream, integral);
+        
+    _write_namespace(fstream, integral, true);
+        
+    T4CDiagDeclDriver decl_drv;
+        
+    T4CDiagFuncBodyDriver func_drv;
+        
+    decl_drv.write_func_decl(fstream, integral, false);
+        
+    func_drv.write_func_body(fstream, integral);
+        
+    _write_namespace(fstream, integral, false);
+        
+    fstream.close();
+}
+
+void
 T4CDiagCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
                                         const I4CIntegral&   integral,
                                         const bool           start) const
@@ -163,6 +191,25 @@ T4CDiagCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
         
     lines.push_back({0, 0, 2, "#include \"GtoPairBlock.hpp\""});
     
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CDiagCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
+                                         const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + _file_name(integral) +  ".hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include <cmath>"});
+    
+    lines.push_back({0, 0, 1, "#include \"BatchFunc.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"T4CDiagDistributor.hpp\""});
+    
+    //_add_prim_call_includes(lines, integral);
+
     ost::write_code_lines(fstream, lines);
 }
 

@@ -48,6 +48,14 @@ integral_label(const I4CIntegral& integral)
     return std::string();
 }
 
+std::pair<size_t, std::string>
+diag_compute_func_name(const I4CIntegral& integral)
+{
+    const auto label = "compDiagonal" + t4c::integral_label(integral) + integral.label();
+        
+    return {label.size() + 1, label};
+}
+
 std::string
 integrand_label(const Operator& integrand)
 {

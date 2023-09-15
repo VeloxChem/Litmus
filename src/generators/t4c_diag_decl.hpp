@@ -27,6 +27,12 @@
 // Diagonal four-center functions declaration generator for CPU.
 class T4CDiagDeclDriver
 {
+    /// Generates vector of variables strings.
+    /// @param integral The base two center integral.
+    /// @param terminus The flag to add termination symbol.
+    /// @return The vector of variables strings.
+    std::vector<std::string> _get_vars_str(const I4CIntegral& integral,
+                                           const bool         terminus) const;
     
 public:
     /// Creates a diagonal four-center functions declaration generator.
