@@ -34,6 +34,11 @@ std::string integral_label(const I4CIntegral& integral);
 /// @return The compute function name.
 std::pair<size_t, std::string> diag_compute_func_name(const I4CIntegral& integral);
 
+/// Generates compute function  name.
+/// @param integral The base diagonal four center integral.
+/// @return The compute function name.
+std::pair<size_t, std::string> full_compute_func_name(const I4CIntegral& integral);
+
 /// Gets label of standart integrand.
 /// @param integrand the integrand operator.
 /// @return The label of standart integrand.
@@ -43,6 +48,27 @@ std::string integrand_label(const Operator& integrand);
 /// @param integral The base four center integral.
 /// @return The recursion namespace label of standart integral.
 std::string namespace_label(const I4CIntegral& integral);
+
+/// Generates primitive diagonal compute function name.
+/// @param component the integral component.
+/// @param integral The base two center integral.
+/// @return The primitive diagonal compute function name.
+std::pair<size_t, std::string> prim_diag_compute_func_name(const T4CIntegral& component,
+                                                           const I4CIntegral& integral);
+
+/// Generates primitive diagonal compute function name.
+/// @param component the integral component.
+/// @param integral The base two center integral.
+/// @return The primitive diagonal compute function name.
+std::pair<size_t, std::string> prim_full_compute_func_name(const T4CIntegral& component,
+                                                           const I4CIntegral& integral);
+
+/// Generates primitive file name.
+/// @param component the integral component.
+/// @param integral The base two center integral.
+/// @return The primitive file name.
+std::string prim_file_name(const T4CIntegral& component,
+                           const I4CIntegral& integral);
 
 } // t4c namespace
 

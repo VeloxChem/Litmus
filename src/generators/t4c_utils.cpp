@@ -16,6 +16,8 @@
 
 #include "t4c_utils.hpp"
 
+#include "string_formater.hpp"
+
 namespace t4c { // t2c namespace
 
 std::string
@@ -56,6 +58,14 @@ diag_compute_func_name(const I4CIntegral& integral)
     return {label.size() + 1, label};
 }
 
+std::pair<size_t, std::string>
+full_compute_func_name(const I4CIntegral& integral)
+{
+    const auto label = "compFull" + t4c::integral_label(integral) + integral.label();
+        
+    return {label.size() + 1, label};
+}
+
 std::string
 integrand_label(const Operator& integrand)
 {
@@ -75,6 +85,45 @@ namespace_label(const I4CIntegral& integral)
     }
     
     return std::string();
+}
+
+std::pair<size_t, std::string>
+prim_diag_compute_func_name(const T4CIntegral& component,
+                            const I4CIntegral& integral)
+{
+    auto label = "compPrimitiveDiag" + t4c::integral_label(integral) + integral.label();
+    
+    label += "_" + fstr::upcase(component.label());
+    
+    return {label.size() + 1, label};
+}
+
+std::pair<size_t, std::string>
+prim_full_compute_func_name(const T4CIntegral& component,
+                            const I4CIntegral& integral)
+{
+    auto label = "compPrimitiveFull" + t4c::integral_label(integral) + integral.label();
+    
+    if ((integral[0] + integral[1] + integral[2] + integral[3]) > 0)
+    {
+        label += "_" + fstr::upcase(component.label());
+    }
+    
+    return {label.size() + 1, label};
+}
+
+std::string
+prim_file_name(const T4CIntegral& component,
+               const I4CIntegral& integral)
+{
+    auto label = "PrimitiveDiag" + t4c::integral_label(integral) + integral.label();
+    
+    if ((integral[0] + integral[1] + integral[2] + integral[3]) > 0)
+    {
+        label += "_" + fstr::upcase(component.label());
+    }
+    
+    return label;
 }
 
 } // t4c namespace

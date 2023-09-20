@@ -24,6 +24,7 @@
 #include "repository.hpp"
 #include "t2c_cpu_generator.hpp"
 #include "t4c_diag_cpu_generator.hpp"
+#include "t4c_cpu_generator.hpp"
 
 int main(int argc, char **argv)
 {
@@ -43,7 +44,7 @@ int main(int argc, char **argv)
     
     auto stime = std::chrono::high_resolution_clock::now();
     
-    // cade: two-center integrals
+    // case: two-center integrals
     
     if (run_type.first == "t2c")
     {
@@ -52,13 +53,22 @@ int main(int argc, char **argv)
         t2c_drv.generate(run_type.second, max_angmom, bra_gdrv, ket_gdrv, op_gdrv);
     }
     
-    // cade: four-center diagonal integrals
+    // case: four-center diagonal integrals
     
     if (run_type.first == "t4c_diag")
     {
         const auto t4c_diag_drv = T4CDiagCPUGenerator();
         
         t4c_diag_drv.generate(run_type.second, max_angmom);
+    }
+    
+    // case: four-center integrals
+    
+    if (run_type.first == "t4c")
+    {
+        const auto t4c_drv = T4CCPUGenerator();
+        
+        t4c_drv.generate(run_type.second, max_angmom);
     }
     
     // set up end timer & compute elapsed time
