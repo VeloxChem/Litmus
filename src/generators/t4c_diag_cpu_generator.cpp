@@ -170,13 +170,13 @@ T4CDiagCPUGenerator::_write_cpp_prim_headers(const I4CIntegral& integral) const
     {
         #pragma omp task firstprivate(tcomp, integral)
         {
-            auto fname = t4c::prim_file_name(tcomp, integral) + ".hpp";
+            auto fname = t4c::diag_prim_file_name(tcomp, integral) + ".hpp";
             
             std::ofstream fstream;
                    
             fstream.open(fname.c_str(), std::ios_base::trunc);
             
-            _write_hpp_prim_defines(fstream, t4c::prim_file_name(tcomp, integral), true);
+            _write_hpp_prim_defines(fstream, t4c::diag_prim_file_name(tcomp, integral), true);
             
             _write_hpp_prim_includes(fstream, integral);
             
@@ -198,13 +198,12 @@ T4CDiagCPUGenerator::_write_cpp_prim_headers(const I4CIntegral& integral) const
             
             _write_namespace(fstream, integral, false);
             
-            _write_hpp_prim_defines(fstream, t4c::prim_file_name(tcomp, integral), false);
+            _write_hpp_prim_defines(fstream, t4c::diag_prim_file_name(tcomp, integral), false);
 
             fstream.close();
         }
     }
 }
-
 
 void
 T4CDiagCPUGenerator::_write_cpp_prim_files(const I4CIntegral& integral) const
@@ -215,7 +214,7 @@ T4CDiagCPUGenerator::_write_cpp_prim_files(const I4CIntegral& integral) const
     {
         #pragma omp task firstprivate(tcomp, integral)
         {
-            auto fname = t4c::prim_file_name(tcomp, integral) + ".cpp";
+            auto fname = t4c::diag_prim_file_name(tcomp, integral) + ".cpp";
             
             std::ofstream fstream;
                    
@@ -296,7 +295,7 @@ T4CDiagCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"BatchFunc.hpp\""});
     
-    lines.push_back({0, 0, 2, "#include \"T4CDiagDistributor.hpp\""});
+    lines.push_back({0, 0, 2, "#include \"T4CDistributor.hpp\""});
     
     _add_prim_call_includes(lines, integral);
 
@@ -330,7 +329,7 @@ T4CDiagCPUGenerator::_add_prim_call_includes(      VCodeLines&  lines,
 {
     for (const auto& tcomp : integral.diag_components<T2CPair, T2CPair>())
     {
-        lines.push_back({0, 0, 1, "#include \"" + t4c::prim_file_name(tcomp, integral) + ".hpp\""});
+        lines.push_back({0, 0, 1, "#include \"" + t4c::diag_prim_file_name(tcomp, integral) + ".hpp\""});
     }
     
     lines.push_back({0, 0, 1, ""});
@@ -377,7 +376,7 @@ T4CDiagCPUGenerator::_write_cpp_prim_includes(      std::ofstream& fstream,
                                               const T4CIntegral&   component,
                                               const I4CIntegral&   integral) const
 {
-    auto fname = t4c::prim_file_name(component, integral) + ".hpp";
+    auto fname = t4c::diag_prim_file_name(component, integral) + ".hpp";
     
     auto lines = VCodeLines();
     

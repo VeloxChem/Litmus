@@ -67,8 +67,24 @@ std::pair<size_t, std::string> prim_full_compute_func_name(const T4CIntegral& co
 /// @param component the integral component.
 /// @param integral The base two center integral.
 /// @return The primitive file name.
-std::string prim_file_name(const T4CIntegral& component,
-                           const I4CIntegral& integral);
+std::string diag_prim_file_name(const T4CIntegral& component,
+                                const I4CIntegral& integral);
+
+/// Generates primitive file name.
+/// @param component the integral component.
+/// @param integral The base two center integral.
+/// @return The primitive file name.
+std::string full_prim_file_name(const T4CIntegral& component,
+                                const I4CIntegral& integral);
+
+/// Gets Boys function order for given integral.
+/// @param integral The base two center integral.
+/// @return The Boys function order of integral.
+int boys_order(const I4CIntegral& integral);
+
+/// Prints debug infor for given recursion expansion.
+/// @param rdist The recursion expansion.
+void debug_info(const R4CDist& rdist);
 
 } // t4c namespace
 

@@ -11,6 +11,62 @@
 // Diagonal four-center primitive compute function body generators for CPU.
 class T4CDiagPrimFuncBodyDriver
 {
+    /// Generates the common data definitions in primitive compute function.
+    /// @param diagonal The form of integral: diagonal or full.
+    /// @return The vector of common primitives  data.
+    std::vector<std::string> _get_common_data_str(const bool diagonal) const;
+    
+    /// Generates vector of Boys function variables strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of special variable strings.
+    std::vector<std::string> _get_boys_vars_str(const I4CIntegral& integral) const;
+    
+    /// Adds Boys function computation code lines.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param integral The base two center integral.
+    void _add_boys_compute_lines(      VCodeLines&  lines,
+                                 const I4CIntegral& integral) const;
+    
+    /// Adds pragmas for primitive compute function.
+    /// @param lines The code lines container to which  pragma definitions are added.
+    /// @param integral The base two center integral.
+    /// @param diagonal The form of integral: diagonal or full.
+    void _add_func_pragma(      VCodeLines&  lines,
+                          const I4CIntegral& integral,
+                          const bool         diagonal) const;
+    
+    /// Adds main loop start for primitive compute function.
+    /// @param lines The code lines container to which loop start are added.
+    /// @param integral The base two center integral.
+    /// @param diagonal The form of integral: diagonal or full.
+    void _add_loop_start(      VCodeLines&  lines,
+                         const I4CIntegral& integral,
+                         const bool         diagonal) const;
+    
+    /// Adds simd code generated for selected set of integral components.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param component The integral component.
+    /// @param integral The base integral.
+    /// @param diagonal The form of integral: diagonal or full.
+    void _add_simd_code(      VCodeLines&  lines,
+                        const T4CIntegral& component,
+                        const I4CIntegral& integral,
+                        const bool         diagonal) const;
+    
+    /// Adds main loop end for primitive compute function.
+    /// @param lines The code lines container to which loop end are added.
+    /// @param diagonal The form of integral: diagonal or full.
+    void _add_loop_end(      VCodeLines& lines,
+                       const bool        diagonal) const;
+    
+    /// Generates  the recursion  group for given integral component.
+    /// @param component The integral component.
+    /// @param integral The base integral.
+    /// @param diagonal The form of integral: diagonal or full.
+    /// @return The recursion group.
+    R4Group _generate_integral_group(const T4CIntegral& component,
+                                     const I4CIntegral& integral,
+                                     const bool         diagonal) const;
     
 
 public:

@@ -27,6 +27,31 @@ T4CFullDeclDriver::write_func_decl(      std::ofstream& fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+void
+T4CFullDeclDriver::write_prim_func_decl(      std::ofstream& fstream,
+                                        const T4CIntegral&   component,
+                                        const I4CIntegral&   integral,
+                                        const bool           terminus) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "auto"});
+    
+    for (const auto& label : _get_prim_vars_str(component, integral, terminus))
+    {
+        if  (label.find(";") == std::string::npos)
+        {
+            lines.push_back({0, 0, 1, label});
+        }
+        else
+        {
+            lines.push_back({0, 0, 2, label});
+        }
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
 std::vector<std::string>
 T4CFullDeclDriver::_get_vars_str(const I4CIntegral& integral,
                                  const bool         terminus) const
@@ -46,6 +71,52 @@ T4CFullDeclDriver::_get_vars_str(const I4CIntegral& integral,
     const auto tsymbol = (terminus) ? ";" : "";
     
     vstr.push_back(std::string(nsize, ' ') + "const int64_t bra_last) -> void" +  tsymbol);
+    
+    return vstr;
+}
+
+std::vector<std::string>
+T4CFullDeclDriver::_get_prim_vars_str(const T4CIntegral& component,
+                                      const I4CIntegral& integral,
+                                      const bool         terminus) const
+{
+    std::vector<std::string> vstr;
+    
+    const auto [nsize, name] = t4c::prim_full_compute_func_name(component, integral);
+    
+    vstr.push_back(name + "(TDoubleArray& buffer,");
+   
+    vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& coords_a,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& coords_b,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const TDoubleArray& coords_c_x,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const TDoubleArray& coords_c_y,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const TDoubleArray& coords_c_z,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const TDoubleArray& coords_d_x,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const TDoubleArray& coords_d_y,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const TDoubleArray& coords_d_z,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const double bra_exp_a,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const double bra_exp_b,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const double bra_norm,");
+ 
+    vstr.push_back(std::string(nsize, ' ') + "const TDoubleArray& ket_exps_c,");
+        
+    vstr.push_back(std::string(nsize, ' ') + "const TDoubleArray& ket_exps_d,");
+        
+    vstr.push_back(std::string(nsize, ' ') + "const TDoubleArray& ket_norms,");
+    
+    const auto tsymbol = (terminus) ? ";" : "";
+    
+    vstr.push_back(std::string(nsize, ' ') + "const int64_t       ket_ndim) -> void" + tsymbol);
     
     return vstr;
 }

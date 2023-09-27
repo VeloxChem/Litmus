@@ -44,6 +44,14 @@ class T4CCPUGenerator
     /// @param integral The base two center integral.
     void _write_cpp_file(const I4CIntegral& integral) const;
     
+    /// Writes header files for primitive recursion.
+    /// @param integral The base four center integral.
+    void _write_cpp_prim_headers(const I4CIntegral& integral) const;
+    
+    /// Writes C++ code files for primitive recursion.
+    /// @param integral The base four center integral.
+    void _write_cpp_prim_files(const I4CIntegral& integral) const;
+    
     /// Writes definitions of define for header file.
     /// @param fstream the file stream.
     /// @param integral The base four center integral.
@@ -71,6 +79,28 @@ class T4CCPUGenerator
     void _write_namespace(      std::ofstream& fstream,
                           const I4CIntegral&   integral,
                           const bool           start) const;
+    
+    /// Writes definitions of define for primitive header file.
+    /// @param fstream the file stream.
+    /// @param fname The base file name.
+    /// @param start The flag to indicate position of define (start or end).
+    void _write_hpp_prim_defines(      std::ofstream& fstream,
+                                 const std::string&   fname,
+                                 const bool           start) const;
+    
+    /// Writes definitions of includes for primitives header file.
+    /// @param fstream the file stream.
+    /// @param integral The base four center integral.
+    void _write_hpp_prim_includes(      std::ofstream& fstream,
+                                  const I4CIntegral&   integral) const;
+    
+    /// Writes definitions of includes for C++ code file.
+    /// @param fstream the file stream.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    void _write_cpp_prim_includes(      std::ofstream& fstream,
+                                  const T4CIntegral&   component,
+                                  const I4CIntegral&   integral) const;
     
 public:
     /// Creates an electron repulsion integrals CPU code generator.

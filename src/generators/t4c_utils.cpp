@@ -16,6 +16,8 @@
 
 #include "t4c_utils.hpp"
 
+#include <iostream>
+
 #include "string_formater.hpp"
 
 namespace t4c { // t2c namespace
@@ -113,7 +115,7 @@ prim_full_compute_func_name(const T4CIntegral& component,
 }
 
 std::string
-prim_file_name(const T4CIntegral& component,
+diag_prim_file_name(const T4CIntegral& component,
                const I4CIntegral& integral)
 {
     auto label = "PrimitiveDiag" + t4c::integral_label(integral) + integral.label();
@@ -124,6 +126,54 @@ prim_file_name(const T4CIntegral& component,
     }
     
     return label;
+}
+
+std::string
+full_prim_file_name(const T4CIntegral& component,
+                    const I4CIntegral& integral)
+{
+    auto label = "PrimitiveFull" + t4c::integral_label(integral) + integral.label();
+    
+    if ((integral[0] + integral[1] + integral[2] + integral[3]) > 0)
+    {
+        label += "_" + fstr::upcase(component.label());
+    }
+    
+    return label;
+}
+
+int
+boys_order(const I4CIntegral& integral)
+{
+    const auto order = integral[0] + integral[1] + integral[2] + integral[3];
+        
+    return order;
+}
+
+void
+debug_info(const R4CDist& rdist)
+{
+    std::cout << "*** RECURSION FOR INTEGRAL COMPONENT: " << rdist.root().label() << std::endl;
+        
+    std::cout << " NUMBER OF TERMS:" << rdist.terms() << std::endl;
+        
+    for (size_t i = 0; i < rdist.terms(); i++)
+    {
+        // std::cout << " RECURSION TERM (" << i << "): " << rdist[i].label() << std::endl;
+            
+        std::cout << " RECURSION TERM (" << i << "): " << rdist[i].integral().bra().to_string() << " : ";
+        
+        std::cout << rdist[i].integral().ket().to_string() << " (" << rdist[i].order() << ") -> Factors: ";
+        
+        for (const auto& fact : rdist[i].factors())
+        {
+            std::cout << fact.label() << "  ";
+        }
+        
+        std::cout << std::endl;
+    }
+        
+    std::cout << std::endl << std::endl;
 }
 
 } // t4c namespace

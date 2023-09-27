@@ -148,9 +148,9 @@ T4CDiagDocuDriver::_get_prim_vars_str(const bool diagonal) const
     
     if (!diagonal)
     {
-        vstr.push_back("@param ket_exps_c the array of exponents on bra center C.");
+        vstr.push_back("@param ket_exps_c the array of exponents on ket center C.");
         
-        vstr.push_back("@param ket_exps_d the array of exponents on bra center D.");
+        vstr.push_back("@param ket_exps_d the array of exponents on ket center D.");
         
         vstr.push_back("@param ket_norms the array of normalization factors on ket side.");
     }
