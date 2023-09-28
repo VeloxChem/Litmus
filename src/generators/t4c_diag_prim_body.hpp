@@ -68,7 +68,34 @@ class T4CDiagPrimFuncBodyDriver
                                      const I4CIntegral& integral,
                                      const bool         diagonal) const;
     
-
+    
+    /// Adds block of  simd code lines for given reccursion distribution.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param integral The integral  component.
+    /// @param rdist  The recursion distribution.
+    /// @param index The unique integral index.
+    /// @param diagonal The form of integral: diagonal or full.
+    void _add_simd_lines_block(      VCodeLines&  lines,
+                               const T4CIntegral& integral,
+                               const R4CDist&     rdist,
+                               const size_t       index,
+                               const bool         diagonal) const;
+    
+    /// Generates standard label  of auxilary integral.
+    /// @param integral The integral  component.
+    /// @param base The base integral.
+    /// @param diagonal The form of integral: diagonal or full.
+    /// @return The label of auxilary integral.
+    std::string _get_aux_label(const T4CIntegral& integral,
+                               const T4CIntegral& base,
+                               const bool         diagonal) const;
+    
+    /// Adds conditional prefactors for given recursion group.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param rdist  The recursion distribution.
+    void _add_prefactors(      VCodeLines&  lines,
+                         const R4CDist&     rdist) const;
+    
 public:
     /// Creates a diagonal four-center compute function body generator.
     T4CDiagPrimFuncBodyDriver() = default;

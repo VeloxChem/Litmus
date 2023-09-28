@@ -82,6 +82,19 @@ std::string full_prim_file_name(const T4CIntegral& component,
 /// @return The Boys function order of integral.
 int boys_order(const I4CIntegral& integral);
 
+/// Gets recursion factors label.
+/// @param rterm The recursion term.
+/// @param first The position of recursion term in code line.
+std::string get_factor_label(const R4CTerm& rterm,
+                             const bool     first);
+
+/// Checks if factors is needed by recursion group.
+/// @param rdist  The recursion distribution.
+/// @param label The label of factor to find.
+/// @return True if factor is found, False otherwise.
+bool find_factor(const R4CDist&     rdist,
+                 const std::string& label);
+
 /// Prints debug infor for given recursion expansion.
 /// @param rdist The recursion expansion.
 void debug_info(const R4CDist& rdist);
