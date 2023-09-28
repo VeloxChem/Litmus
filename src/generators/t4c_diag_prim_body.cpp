@@ -79,7 +79,7 @@ T4CDiagPrimFuncBodyDriver::_get_common_data_str(const bool diagonal) const
     
     vstr.push_back("const auto fexps_b = bra_exps_b.data();");
     
-    vstr.push_back("const auto fnorms = bra_norms.data();");
+    vstr.push_back("const auto bnorms = bra_norms.data();");
     
     if (!diagonal)
     {
@@ -156,7 +156,7 @@ T4CDiagPrimFuncBodyDriver::_add_boys_compute_lines(      VCodeLines&  lines,
     
     const auto order = t4c::boys_order(integral);
     
-    lines.push_back({1, 0, 2, "bf_table.compute<" + std::to_string(order + 1) + ">(bf_values, bf_args, ket_dim);"});
+    lines.push_back({1, 0, 2, "bf_table.compute<" + std::to_string(order + 1) + ">(bf_values, bf_args, ndim);"});
 }
 
 void
@@ -165,7 +165,7 @@ T4CDiagPrimFuncBodyDriver::_add_func_pragma(      VCodeLines&  lines,
                                             const bool         diagonal) const
 {
     std::vector<std::string> labels({"fints", "ra_x", "ra_y", "ra_z", "rb_x", "rb_y", "rb_z",
-                                     "fexps_a", "fexps_b", "fnorms"});
+                                     "fexps_a", "fexps_b", "bnorms"});
     
     if (!diagonal)
     {
@@ -226,9 +226,9 @@ T4CDiagPrimFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
 
         lines.push_back({2, 0, 2, "const auto fi_ab_0 = 1.0 / fe_ab_0;"});
 
-        lines.push_back({2, 0, 2, "const auto fz_ab_0 = fexps_a[i] * fexps_b[i] * fi_ab;"});
+        lines.push_back({2, 0, 2, "const auto fz_ab_0 = fexps_a[i] * fexps_b[i] * fi_ab_0;"});
 
-        lines.push_back({2, 0, 2, "const auto fss_ab = fnorms[i] * std::pow(fi_ab_0 * fpi, 1.50) * std::exp(-fz_ab_0 * (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z));"});
+        lines.push_back({2, 0, 2, "const auto fss_ab = bnorms[i] * std::pow(fi_ab_0 * fpi, 1.50) * std::exp(-fz_ab_0 * (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z));"});
     }
     else
     {
@@ -458,7 +458,13 @@ T4CDiagPrimFuncBodyDriver::_add_prefactors(      VCodeLines&  lines,
     
     if (t4c::find_factor(rdist, "fi_abcd_0") ||
         t4c::find_factor(rdist, "fti_ab_0")  ||
-        t4c::find_factor(rdist, "fti_cd_0"))
+        t4c::find_factor(rdist, "fti_cd_0")  ||
+        t4c::find_factor(rdist, "rwp_x")     ||
+        t4c::find_factor(rdist, "rwp_y")     ||
+        t4c::find_factor(rdist, "rwp_z")     ||
+        t4c::find_factor(rdist, "rwq_x")     ||
+        t4c::find_factor(rdist, "rwq_y")     ||
+        t4c::find_factor(rdist, "rwq_z"))
     {
         lines.push_back({2, 0, 2, "const auto fi_abcd_0 = 1.0 / (fe_ab_0 + fe_cd_0);"});
     }
@@ -471,5 +477,47 @@ T4CDiagPrimFuncBodyDriver::_add_prefactors(      VCodeLines&  lines,
     if (t4c::find_factor(rdist, "fti_cd_0"))
     {
         lines.push_back({2, 0, 2, "const auto fti_cd_0 = fe_ab_0 * fi_cd_0 * fi_abcd_0;"});
+    }
+    
+    if (t4c::find_factor(rdist, "rwp_x")     ||
+        t4c::find_factor(rdist, "rwp_y")     ||
+        t4c::find_factor(rdist, "rwp_z")     ||
+        t4c::find_factor(rdist, "rwq_x")     ||
+        t4c::find_factor(rdist, "rwq_y")     ||
+        t4c::find_factor(rdist, "rwq_z"))
+    {
+        lines.push_back({2, 0, 2, "const auto fm_ac_0 = fi_ab_0 * fexps_a[i] - fi_cd_0 * fexps_c[i];"});
+        
+        lines.push_back({2, 0, 2, "const auto fm_bd_0 = fi_ab_0 * fexps_b[i] - fi_cd_0 * fexps_d[i];"});
+    }
+    
+    if (t4c::find_factor(rdist, "rwp_x"))
+    {
+        lines.push_back({2, 0, 2, "const auto rwp_x = -fe_cd_0 * fi_abcd_0 * (fm_ac_0 * ra_x[i] + fm_bd_0 * rb_x[i]);"});
+    }
+    
+    if (t4c::find_factor(rdist, "rwp_y"))
+    {
+        lines.push_back({2, 0, 2, "const auto rwp_y = -fe_cd_0 * fi_abcd_0 * (fm_ac_0 * ra_y[i] + fm_bd_0 * rb_y[i]);"});
+    }
+    
+    if (t4c::find_factor(rdist, "rwp_z"))
+    {
+        lines.push_back({2, 0, 2, "const auto rwp_z = -fe_cd_0 * fi_abcd_0 * (fm_ac_0 * ra_z[i] + fm_bd_0 * rb_z[i]);"});
+    }
+    
+    if (t4c::find_factor(rdist, "rwq_x"))
+    {
+        lines.push_back({2, 0, 2, "const auto rwq_x = fe_ab_0 * fi_abcd_0 * (fm_ac_0 * ra_x[i] + fm_bd_0 * rb_x[i]);"});
+    }
+    
+    if (t4c::find_factor(rdist, "rwq_y"))
+    {
+        lines.push_back({2, 0, 2, "const auto rwq_y = fe_ab_0 * fi_abcd_0 * (fm_ac_0 * ra_y[i] + fm_bd_0 * rb_y[i]);"});
+    }
+    
+    if (t4c::find_factor(rdist, "rwq_z"))
+    {
+        lines.push_back({2, 0, 2, "const auto rwq_z = fe_ab_0 * fi_abcd_0 * (fm_ac_0 * ra_z[i] + fm_bd_0 * rb_z[i]);"});
     }
 }

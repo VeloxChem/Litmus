@@ -210,7 +210,7 @@ T4CDiagFuncBodyDriver::_add_component_body(      VCodeLines&  lines,
     
     lines.push_back({2, 0, 2, "}"});
     
-    lines.push_back({2, 0, 2, "simd::max_update(max_buffer, buffer, ndim);"});
+    lines.push_back({2, 0, 2, "simd::max_update(max_buffer, buffer);"});
 }
 
 
