@@ -128,13 +128,13 @@ void
 T4CFullFuncBodyDriver::_add_batches_loop_body(      VCodeLines&  lines,
                                               const I4CIntegral& integral) const
 {
-    lines.push_back({2, 0, 2, "const auto [ket_first, ket_last] = batch::getBatchRange(i, ncpairs, simd_width);"});
+    lines.push_back({2, 0, 2, "const auto [ket_first, ket_last] = batch::getBatchRange(i, ket_ncpairs, simd_width);"});
     
-    lines.push_back({2, 0, 2, "const auto ket_dim = last - first;"});
+    lines.push_back({2, 0, 2, "const auto ket_dim = ket_last - ket_first;"});
 
     lines.push_back({2, 0, 2, "// load coordinates data on ket side"});
     
-    lines.push_back({2, 0, 2, "simd::loadCoordinates(coords_c_x, coords_c_y, coords_c_z, coords_d_x, coords_d_y, coords_d_z, key_gpair_coords, ket_first, ket_last);"});
+    lines.push_back({2, 0, 2, "simd::loadCoordinates(coords_c_x, coords_c_y, coords_c_z, coords_d_x, coords_d_y, coords_d_z, ket_gpair_coords, ket_first, ket_last);"});
     
     lines.push_back({2, 0, 1, "for (int64_t j = bra_first; j < bra_last; j++)"});
     
@@ -187,11 +187,11 @@ T4CFullFuncBodyDriver::_add_component_body(      VCodeLines&  lines,
     
     lines.push_back({5, 0, 2, "const auto bra_norm = bra_gpair_norms[bra_index];"});
     
-    lines.push_back({5, 0, 1, name + "(buffer, bra_coords_a, bra_coords_b, coords_c_x, coords_c_y, coords_c_z, coords_d_x, coords_d_y, coords_d_z, bra_exps_a, bra_exps_b, bra_norm, ket_exps_c, ket_exps_d, ket_norms, ket_ndim);"});
+    lines.push_back({5, 0, 1, name + "(buffer, bra_coords_a, bra_coords_b, coords_c_x, coords_c_y, coords_c_z, coords_d_x, coords_d_y, coords_d_z, bra_exp_a, bra_exp_b, bra_norm, ket_exps_c, ket_exps_d, ket_norms, ket_dim);"});
     
     lines.push_back({4, 0, 1, "}"});
     
     lines.push_back({3, 0, 2, "}"});
     
-    lines.push_back({3, 0, 2, "t4c::distribute(fock_matrices, buffer, bra_gpair_block, ket_gpair_block, j, ket_first, ket_last);"});
+    lines.push_back({3, 0, 2, "t4cfunc::distribute(fock_matrices, densities, buffer, bra_gto_pair_block, ket_gto_pair_block, j, ket_first, ket_last);"});
 }

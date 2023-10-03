@@ -30,34 +30,34 @@ class T4CDiagPrimFuncBodyDriver
     /// Adds pragmas for primitive compute function.
     /// @param lines The code lines container to which  pragma definitions are added.
     /// @param integral The base two center integral.
-    /// @param diagonal The form of integral: diagonal or full.
     void _add_func_pragma(      VCodeLines&  lines,
-                          const I4CIntegral& integral,
-                          const bool         diagonal) const;
+                          const I4CIntegral& integral) const;
     
     /// Adds main loop start for primitive compute function.
     /// @param lines The code lines container to which loop start are added.
     /// @param integral The base two center integral.
-    /// @param diagonal The form of integral: diagonal or full.
     void _add_loop_start(      VCodeLines&  lines,
-                         const I4CIntegral& integral,
-                         const bool         diagonal) const;
+                         const I4CIntegral& integral) const;
     
     /// Adds simd code generated for selected set of integral components.
     /// @param lines The code lines container to which simd code are added.
     /// @param component The integral component.
     /// @param integral The base integral.
-    /// @param diagonal The form of integral: diagonal or full.
     void _add_simd_code(      VCodeLines&  lines,
                         const T4CIntegral& component,
-                        const I4CIntegral& integral,
-                        const bool         diagonal) const;
+                        const I4CIntegral& integral) const;
+    
+    /// Adds split simd code generated for selected set of integral components.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param component The integral component.
+    /// @param integral The base integral.
+    void _add_split_simd_code(      VCodeLines&  lines,
+                              const T4CIntegral& component,
+                              const I4CIntegral& integral) const;
     
     /// Adds main loop end for primitive compute function.
     /// @param lines The code lines container to which loop end are added.
-    /// @param diagonal The form of integral: diagonal or full.
-    void _add_loop_end(      VCodeLines& lines,
-                       const bool        diagonal) const;
+    void _add_loop_end(      VCodeLines& lines) const;
     
     /// Generates  the recursion  group for given integral component.
     /// @param component The integral component.
@@ -81,6 +81,14 @@ class T4CDiagPrimFuncBodyDriver
                                const size_t       index,
                                const bool         diagonal) const;
     
+    /// Adds block of  simd code lines for given reccursion distribution.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param integral The integral  component.
+    /// @param rdist  The recursion distribution.
+    void _add_split_simd_block(      VCodeLines&  lines,
+                               const T4CIntegral& integral,
+                               const R4CDist&     rdist) const;
+    
     /// Generates standard label  of auxilary integral.
     /// @param integral The integral  component.
     /// @param base The base integral.
@@ -95,6 +103,32 @@ class T4CDiagPrimFuncBodyDriver
     /// @param rdist  The recursion distribution.
     void _add_prefactors(      VCodeLines&  lines,
                          const R4CDist&     rdist) const;
+    
+    /// Adds block of code for computation of P  and Q coordinates.
+    /// @param lines The code lines container to which simd code are added.
+    void _add_coords_compute(VCodeLines&  lines) const;
+    
+    /// Adds split loop pragma definition.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param integral The integral  component.
+    /// @param rdist  The recursion distribution.
+    void _add_split_pragma(      VCodeLines&  lines,
+                           const T4CIntegral& integral,
+                           const R4CDist&     rdist) const;
+    
+    /// Adds split loop start definition.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param integral The integral  component.
+    /// @param rdist  The recursion distribution.
+    void _add_split_loop_start(      VCodeLines&  lines,
+                               const T4CIntegral& integral,
+                               const R4CDist&     rdist) const;
+    
+    /// Adds split loop end definition.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param integral The integral  component.
+    void _add_split_loop_end(      VCodeLines&  lines,
+                             const T4CIntegral& integral) const;
     
 public:
     /// Creates a diagonal four-center compute function body generator.

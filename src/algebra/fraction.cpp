@@ -84,7 +84,14 @@ Fraction::operator+(const Fraction& other) const
                 
                    other._numerator * (cdenom / other._denominator);
     
-    return Fraction(cnumer, cdenom);
+    if (cnumer == 0)
+    {
+        return Fraction(0);
+    }
+    else
+    {
+        return Fraction(cnumer, cdenom);
+    }
 }
 
 Fraction
@@ -96,7 +103,14 @@ Fraction::operator-(const Fraction& other) const
                 
                   other._numerator * (cdenom / other._denominator);
     
-    return Fraction(cnumer, cdenom);
+    if (cnumer == 0)
+    {
+        return Fraction(0);
+    }
+    else
+    {
+        return Fraction(cnumer, cdenom);
+    }
 }
 
 Fraction

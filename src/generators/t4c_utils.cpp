@@ -151,66 +151,82 @@ boys_order(const I4CIntegral& integral)
 }
 
 std::string
-get_factor_label(const R4CTerm& rterm,
-                 const bool     first)
+get_factor_label(const R4CTerm&     rterm,
+                 const I4CIntegral& integral,
+                 const bool         first,
+                 const bool         diagonal)
 {
-    const auto pre_fact = rterm.prefactor();
-        
-    auto plabel = pre_fact.label();
-        
-    if (plabel == "1.0")  plabel = "";
-        
-    if (plabel == "-1.0") plabel = "-";
-        
-    if (pre_fact.denominator() != 1)
+    auto mterm = R4CTerm(rterm);
+    
+    if (diagonal)
     {
-        if (pre_fact.numerator() < 0) plabel.erase(0, 1);
-            
-        plabel = "(" + plabel + ")";
-            
-        if (pre_fact.numerator() < 0) plabel = "-" + plabel;
+        mterm.scale(Fraction(1, 2 * integral.order() + 1));
     }
-        
-    const auto facts = rterm.factors();
-        
-    std::string flabel;
-        
-    for (const auto& fact : facts)
+    
+    if (mterm.prefactor() != Fraction(0))
     {
-        const auto norder = rterm.factor_order(fact);
-            
-        for (size_t n = 0; n < norder; n++)
+        const auto pre_fact = mterm.prefactor();
+        
+        auto plabel = pre_fact.label();
+        
+        if (plabel == "1.0")  plabel = "";
+        
+        if (plabel == "-1.0") plabel = "-";
+        
+        if (pre_fact.denominator() != 1)
         {
-            flabel += " * " + fact.label();
-        }
-    }
-        
-    // remove multiplication for special cases
-        
-    if ((pre_fact == Fraction(1)) || (pre_fact == Fraction(-1)))
-    {
-        flabel.erase(0, 3);
-    }
-        
-    // merge labels
-        
-    flabel = plabel + flabel;
-        
-    if (!first)
-    {
-        if (flabel[0] == '-')
-        {
-            flabel.insert(1, " ");
-        }
-        else
-        {
-            flabel = "+ " + flabel;
-        }
+            if (pre_fact.numerator() < 0) plabel.erase(0, 1);
             
-        flabel = " " + flabel;
-    }
+            plabel = "(" + plabel + ")";
+            
+            if (pre_fact.numerator() < 0) plabel = "-" + plabel;
+        }
         
-    return flabel;
+        const auto facts = mterm.factors();
+        
+        std::string flabel;
+        
+        for (const auto& fact : facts)
+        {
+            const auto norder = mterm.factor_order(fact);
+            
+            for (size_t n = 0; n < norder; n++)
+            {
+                flabel += " * " + fact.label();
+            }
+        }
+        
+        // remove multiplication for special cases
+        
+        if ((pre_fact == Fraction(1)) || (pre_fact == Fraction(-1)))
+        {
+            flabel.erase(0, 3);
+        }
+        
+        // merge labels
+        
+        flabel = plabel + flabel;
+        
+        if (!first)
+        {
+            if (flabel[0] == '-')
+            {
+                flabel.insert(1, " ");
+            }
+            else
+            {
+                flabel = "+ " + flabel;
+            }
+            
+            flabel = " " + flabel;
+        }
+        
+        return flabel;
+    }
+    else
+    {
+        return std::string();
+    }
 }
 
 bool

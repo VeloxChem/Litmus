@@ -60,7 +60,9 @@ T4CFullDeclDriver::_get_vars_str(const I4CIntegral& integral,
     
     const auto [nsize, name] = t4c::full_compute_func_name(integral);
     
-    vstr.push_back(name + "(CFockMatrices* matrices,");
+    vstr.push_back(name + "(CFockMatrices* fock_matrices,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const CMatrices* densities,");
     
     vstr.push_back(std::string(nsize, ' ') + "const CGtoPairBlock& bra_gto_pair_block,");
     
@@ -116,7 +118,7 @@ T4CFullDeclDriver::_get_prim_vars_str(const T4CIntegral& component,
     
     const auto tsymbol = (terminus) ? ";" : "";
     
-    vstr.push_back(std::string(nsize, ' ') + "const int64_t       ket_ndim) -> void" + tsymbol);
+    vstr.push_back(std::string(nsize, ' ') + "const int64_t       ket_dim) -> void" + tsymbol);
     
     return vstr;
 }

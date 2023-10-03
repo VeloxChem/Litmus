@@ -102,6 +102,12 @@ class T4CCPUGenerator
                                   const T4CIntegral&   component,
                                   const I4CIntegral&   integral) const;
     
+    /// Adds primitive functions headers to code lines container.
+    /// @param lines The code lines container to which primitives loop start definition are added.
+    /// @param integral The base four center integral.
+    void _add_prim_call_includes(      VCodeLines&  lines,
+                                 const I4CIntegral& integral) const;
+    
 public:
     /// Creates an electron repulsion integrals CPU code generator.
     T4CCPUGenerator() = default;

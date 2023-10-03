@@ -101,6 +101,8 @@ T4CFullDocuDriver::_get_vars_str() const
     
     vstr.push_back("@param fock_matrices the pointer to Fock matrices.");
     
+    vstr.push_back("@param densities the AO density matrices.");
+    
     vstr.push_back("@param bra_gto_pair_block the GTOs pair block for bra side.");
     
     vstr.push_back("@param ket_gto_pair_block the GTOs pair block for ket side.");
@@ -147,7 +149,7 @@ T4CFullDocuDriver::_get_prim_vars_str() const
         
     vstr.push_back("@param ket_norms the array of normalization factors on ket side.");
      
-    vstr.push_back("@param ket_ndim the size of integrals batch on ket side.");
+    vstr.push_back("@param ket_dim the size of integrals batch on ket side.");
         
     return vstr;
 }

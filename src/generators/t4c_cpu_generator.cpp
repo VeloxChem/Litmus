@@ -27,17 +27,20 @@ T4CCPUGenerator::generate(const std::string& label,
                         {
                             #pragma omp single nowait
                             {
-                                const auto integral = _get_integral(label, i, j, k, l);
-                                
-                                #pragma omp task firstprivate(integral)
-                                _write_cpp_header(integral);
-                                
-                                #pragma omp task firstprivate(integral)
-                                _write_cpp_file(integral);
-                                
-                                _write_cpp_prim_headers(integral);
-                                
-                                _write_cpp_prim_files(integral);
+                                if ((i + j + k + l) > 0)
+                                {
+                                    const auto integral = _get_integral(label, i, j, k, l);
+                                    
+                                    #pragma omp task firstprivate(integral)
+                                    _write_cpp_header(integral);
+                                    
+                                    #pragma omp task firstprivate(integral)
+                                    _write_cpp_file(integral);
+                                    
+                                    _write_cpp_prim_headers(integral);
+                                    
+                                    _write_cpp_prim_files(integral);
+                                }
                             }
                         }
                     }
@@ -253,8 +256,12 @@ T4CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     lines.push_back({0, 0, 1, "#include <cstdint>"});
     
     lines.push_back({0, 0, 2, "#include <vector>"});
-        
-    lines.push_back({0, 0, 2, "#include \"GtoPairBlock.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"FockMatrices.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"GtoPairBlock.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"Matrices.hpp\""});
     
     ost::write_code_lines(fstream, lines);
 }
@@ -271,9 +278,9 @@ T4CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"BatchFunc.hpp\""});
     
-    lines.push_back({0, 0, 2, "#include \"T4CDiagDistributor.hpp\""});
+    lines.push_back({0, 0, 2, "#include \"T4CDistributor.hpp\""});
     
-    //_add_prim_call_includes(lines, integral);
+    _add_prim_call_includes(lines, integral);
 
     ost::write_code_lines(fstream, lines);
 }
@@ -355,4 +362,16 @@ T4CCPUGenerator::_write_cpp_prim_includes(      std::ofstream& fstream,
     lines.push_back({0, 0, 2, "#include \"MathConst.hpp\""});
     
     ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CCPUGenerator::_add_prim_call_includes(      VCodeLines&  lines,
+                                             const I4CIntegral& integral) const
+{
+    for (const auto& tcomp : integral.components<T2CPair, T2CPair>())
+    {
+        lines.push_back({0, 0, 1, "#include \"" + t4c::full_prim_file_name(tcomp, integral) + ".hpp\""});
+    }
+    
+    lines.push_back({0, 0, 1, ""});
 }

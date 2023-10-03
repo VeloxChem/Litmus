@@ -72,7 +72,7 @@ std::string diag_prim_file_name(const T4CIntegral& component,
 
 /// Generates primitive file name.
 /// @param component the integral component.
-/// @param integral The base two center integral.
+/// @param integral The base four center integral.
 /// @return The primitive file name.
 std::string full_prim_file_name(const T4CIntegral& component,
                                 const I4CIntegral& integral);
@@ -84,9 +84,13 @@ int boys_order(const I4CIntegral& integral);
 
 /// Gets recursion factors label.
 /// @param rterm The recursion term.
+/// @param integral The base four center integral.
 /// @param first The position of recursion term in code line.
-std::string get_factor_label(const R4CTerm& rterm,
-                             const bool     first);
+/// @param diagonal The form of integral: diagonal or full.
+std::string get_factor_label(const R4CTerm&     rterm,
+                             const I4CIntegral& integral,
+                             const bool         first,
+                             const bool         diagonal);
 
 /// Checks if factors is needed by recursion group.
 /// @param rdist  The recursion distribution.
