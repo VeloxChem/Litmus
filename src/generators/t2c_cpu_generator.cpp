@@ -34,7 +34,8 @@ T2CCPUGenerator::generate(const std::string& label,
                           const int          angmom,
                           const int          bra_gdrv,
                           const int          ket_gdrv,
-                          const int          op_gdrv) const
+                          const int          op_gdrv,
+                          const bool         sum_form) const
 {
     if (_is_available(label))
     {
@@ -49,14 +50,14 @@ T2CCPUGenerator::generate(const std::string& label,
                         const auto integral = _get_integral(label, i, j, bra_gdrv, ket_gdrv, op_gdrv);
                         
                         #pragma omp task firstprivate(integral)
-                        _write_cpp_header(integral);
+                        _write_cpp_header(integral, sum_form);
                         
                         #pragma omp task firstprivate(integral)
-                        _write_cpp_file(integral);
+                        _write_cpp_file(integral, sum_form);
                         
-                        _write_cpp_prim_headers(integral);
+                        _write_cpp_prim_headers(integral, sum_form);
                         
-                        _write_cpp_prim_files(integral);
+                        _write_cpp_prim_files(integral, sum_form);
                     }
                 }
             }
@@ -149,23 +150,32 @@ T2CCPUGenerator::_get_integral(const std::string& label,
 }
 
 std::string
-T2CCPUGenerator::_file_name(const I2CIntegral& integral) const
+T2CCPUGenerator::_file_name(const I2CIntegral& integral,
+                            const bool         sum_form) const
 {
-    return t2c::integral_label(integral) + "Rec" + integral.label();
+    if (sum_form)
+    {
+        return t2c::integral_label(integral) + "SumRec" + integral.label();
+    }
+    else
+    {
+        return t2c::integral_label(integral) + "Rec" + integral.label();
+    }
 }
 
 void
-T2CCPUGenerator::_write_cpp_header(const I2CIntegral& integral) const
+T2CCPUGenerator::_write_cpp_header(const I2CIntegral& integral,
+                                   const bool         sum_form) const
 {
-    auto fname = _file_name(integral) + ".hpp";
+    auto fname = _file_name(integral, sum_form) + ".hpp";
         
     std::ofstream fstream;
                
     fstream.open(fname.c_str(), std::ios_base::trunc);
         
-    _write_hpp_defines(fstream, integral, true);
+    _write_hpp_defines(fstream, integral, sum_form, true);
         
-    _write_hpp_includes(fstream, integral);
+    _write_hpp_includes(fstream, integral, sum_form);
         
     _write_namespace(fstream, integral, true);
         
@@ -175,32 +185,33 @@ T2CCPUGenerator::_write_cpp_header(const I2CIntegral& integral) const
         
     if ((integral[0] == integral[1]) && integral.is_simple())
     {
-        docs_drv.write_doc_str(fstream, integral, true);
+        docs_drv.write_doc_str(fstream, integral, sum_form, true);
             
-        decl_drv.write_func_decl(fstream, integral, true, true);
+        decl_drv.write_func_decl(fstream, integral, sum_form, true, true);
     }
         
-    docs_drv.write_doc_str(fstream, integral, false);
+    docs_drv.write_doc_str(fstream, integral, sum_form, false);
         
-    decl_drv.write_func_decl(fstream, integral, false, true);
+    decl_drv.write_func_decl(fstream, integral, sum_form, false, true);
 
     _write_namespace(fstream, integral, false);
         
-    _write_hpp_defines(fstream, integral, false);
+    _write_hpp_defines(fstream, integral, sum_form, false);
 
     fstream.close();
 }
 
 void
-T2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral) const
+T2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral,
+                                 const bool         sum_form) const
 {
-    auto fname = _file_name(integral) + ".cpp";
+    auto fname = _file_name(integral, sum_form) + ".cpp";
         
     std::ofstream fstream;
         
     fstream.open(fname.c_str(), std::ios_base::trunc);
         
-    _write_cpp_includes(fstream, integral);
+    _write_cpp_includes(fstream, integral, sum_form);
         
     _write_namespace(fstream, integral, true);
         
@@ -210,14 +221,14 @@ T2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral) const
         
     if ((integral[0] == integral[1]) && (integral.is_simple()))
     {
-        decl_drv.write_func_decl(fstream, integral, true, false);
+        decl_drv.write_func_decl(fstream, integral, sum_form, true, false);
             
-        func_drv.write_func_body(fstream, integral, true);
+        func_drv.write_func_body(fstream, integral, sum_form, true);
     }
         
-    decl_drv.write_func_decl(fstream, integral, false, false);
+    decl_drv.write_func_decl(fstream, integral, sum_form, false, false);
         
-    func_drv.write_func_body(fstream, integral, false);
+    func_drv.write_func_body(fstream, integral, sum_form, false);
         
     _write_namespace(fstream, integral, false);
         
@@ -225,14 +236,15 @@ T2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral) const
 }
 
 void
-T2CCPUGenerator::_write_cpp_prim_headers(const I2CIntegral& integral) const
+T2CCPUGenerator::_write_cpp_prim_headers(const I2CIntegral& integral,
+                                         const bool         sum_form) const
 {
     if (integral.is_simple_integrand() && integral.is_simple())
     {
         if ((integral[0] == 0) || (integral[1] == 0))
         {
-            #pragma omp task firstprivate(integral)
-            _write_cpp_prim_header(integral);
+            #pragma omp task firstprivate(integral, sum_form)
+            _write_cpp_prim_header(integral, sum_form);
         }
         else
         {
@@ -240,16 +252,16 @@ T2CCPUGenerator::_write_cpp_prim_headers(const I2CIntegral& integral) const
             {
                 for (const auto& bcomp: Tensor(integral[0]).components())
                 {
-                    #pragma omp task firstprivate(bcomp, integral)
-                    _write_cpp_prim_header(bcomp, integral, true);
+                    #pragma omp task firstprivate(bcomp, integral, sum_form)
+                    _write_cpp_prim_header(bcomp, integral, sum_form, true);
                 }
             }
             else
             {
                 for (const auto& kcomp: Tensor(integral[1]).components())
                 {
-                    #pragma omp task firstprivate(kcomp, integral)
-                    _write_cpp_prim_header(kcomp, integral, false);
+                    #pragma omp task firstprivate(kcomp, integral, sum_form)
+                    _write_cpp_prim_header(kcomp, integral, sum_form, false);
                 }
             }
         }
@@ -260,22 +272,23 @@ T2CCPUGenerator::_write_cpp_prim_headers(const I2CIntegral& integral) const
         {
             for (const auto& kcomp: Tensor(integral[1]).components())
             {
-                #pragma omp task firstprivate(bcomp, kcomp, integral)
-                _write_cpp_prim_header(bcomp, kcomp, integral);
+                #pragma omp task firstprivate(bcomp, kcomp, integral, sum_form)
+                _write_cpp_prim_header(bcomp, kcomp, integral, sum_form);
             }
         }
     }
 }
 
 void
-T2CCPUGenerator::_write_cpp_prim_files(const I2CIntegral& integral) const
+T2CCPUGenerator::_write_cpp_prim_files(const I2CIntegral& integral,
+                                       const bool         sum_form) const
 {
     if (integral.is_simple_integrand() && integral.is_simple())
     {
         if ((integral[0] == 0) || (integral[1] == 0))
         {
-            #pragma omp task firstprivate(integral)
-            _write_cpp_prim_file(integral);
+            #pragma omp task firstprivate(integral, sum_form)
+            _write_cpp_prim_file(integral, sum_form);
         }
         else
         {
@@ -283,16 +296,16 @@ T2CCPUGenerator::_write_cpp_prim_files(const I2CIntegral& integral) const
             {
                 for (const auto& bcomp: Tensor(integral[0]).components())
                 {
-                    #pragma omp task firstprivate(bcomp, integral)
-                    _write_cpp_prim_file(bcomp, integral, true);
+                    #pragma omp task firstprivate(bcomp, integral, sum_form)
+                    _write_cpp_prim_file(bcomp, integral, sum_form, true);
                 }
             }
             else
             {
                 for (const auto& kcomp: Tensor(integral[1]).components())
                 {
-                    #pragma omp task firstprivate(kcomp, integral)
-                    _write_cpp_prim_file(kcomp, integral, false);
+                    #pragma omp task firstprivate(kcomp, integral, sum_form)
+                    _write_cpp_prim_file(kcomp, integral, sum_form, false);
                 }
             }
         }
@@ -303,39 +316,40 @@ T2CCPUGenerator::_write_cpp_prim_files(const I2CIntegral& integral) const
         {
             for (const auto& kcomp: Tensor(integral[1]).components())
             {
-                #pragma omp task firstprivate(bcomp, kcomp, integral)
-                _write_cpp_prim_file(bcomp, kcomp, integral);
+                #pragma omp task firstprivate(bcomp, kcomp, integral, sum_form)
+                _write_cpp_prim_file(bcomp, kcomp, integral, sum_form);
             }
         }
     }
 }
 
 void
-T2CCPUGenerator::_write_cpp_prim_header(const I2CIntegral& integral) const
+T2CCPUGenerator::_write_cpp_prim_header(const I2CIntegral& integral,
+                                        const bool         sum_form) const
 {
-    auto fname = t2c::prim_file_name(integral) + ".hpp";
+    auto fname = t2c::prim_file_name(integral, sum_form) + ".hpp";
     
     std::ofstream fstream;
            
     fstream.open(fname.c_str(), std::ios_base::trunc);
     
-    _write_hpp_prim_defines(fstream, t2c::prim_file_name(integral), true);
+    _write_hpp_prim_defines(fstream, t2c::prim_file_name(integral, sum_form), true);
     
-    _write_hpp_prim_includes(fstream, integral);
+    _write_hpp_prim_includes(fstream, integral, sum_form);
     
     _write_namespace(fstream, integral, true);
     
     T2CDocuDriver docs_drv;
     
-    docs_drv.write_prim_doc_str(fstream, integral);
+    docs_drv.write_prim_doc_str(fstream, integral, sum_form);
     
     T2CDeclDriver decl_drv;
     
-    decl_drv.write_prim_func_decl(fstream, integral, true);
+    decl_drv.write_prim_func_decl(fstream, integral, sum_form, true);
    
     _write_namespace(fstream, integral, false);
     
-    _write_hpp_prim_defines(fstream, t2c::prim_file_name(integral), false);
+    _write_hpp_prim_defines(fstream, t2c::prim_file_name(integral, sum_form), false);
     
     fstream.close();
 }
@@ -343,31 +357,32 @@ T2CCPUGenerator::_write_cpp_prim_header(const I2CIntegral& integral) const
 void
 T2CCPUGenerator::_write_cpp_prim_header(const TensorComponent& component,
                                         const I2CIntegral&     integral,
+                                        const bool             sum_form,
                                         const bool             bra_first) const
 {
-    auto fname = t2c::prim_file_name(component, integral, bra_first) + ".hpp";
+    auto fname = t2c::prim_file_name(component, integral, sum_form, bra_first) + ".hpp";
     
     std::ofstream fstream;
            
     fstream.open(fname.c_str(), std::ios_base::trunc);
     
-    _write_hpp_prim_defines(fstream, t2c::prim_file_name(component, integral, bra_first), true);
+    _write_hpp_prim_defines(fstream, t2c::prim_file_name(component, integral, sum_form, bra_first), true);
     
-    _write_hpp_prim_includes(fstream, integral);
+    _write_hpp_prim_includes(fstream, integral, sum_form);
     
     _write_namespace(fstream, integral, true);
     
     T2CDocuDriver docs_drv;
     
-    docs_drv.write_prim_doc_str(fstream, component, integral, bra_first);
+    docs_drv.write_prim_doc_str(fstream, component, integral, sum_form, bra_first);
     
     T2CDeclDriver decl_drv;
     
-    decl_drv.write_prim_func_decl(fstream, component, integral, bra_first, true);
+    decl_drv.write_prim_func_decl(fstream, component, integral, sum_form, bra_first, true);
     
     _write_namespace(fstream, integral, false);
     
-    _write_hpp_prim_defines(fstream, t2c::prim_file_name(component, integral, bra_first), false);
+    _write_hpp_prim_defines(fstream, t2c::prim_file_name(component, integral, sum_form, bra_first), false);
 
     fstream.close();
 }
@@ -375,39 +390,41 @@ T2CCPUGenerator::_write_cpp_prim_header(const TensorComponent& component,
 void
 T2CCPUGenerator::_write_cpp_prim_header(const TensorComponent& bra_component,
                                         const TensorComponent& ket_component,
-                                        const I2CIntegral&     integral) const
+                                        const I2CIntegral&     integral,
+                                        const bool             sum_form) const
 {
-    auto fname = t2c::prim_file_name(bra_component, ket_component, integral) + ".hpp";
+    auto fname = t2c::prim_file_name(bra_component, ket_component, integral, sum_form) + ".hpp";
     
     std::ofstream fstream;
            
     fstream.open(fname.c_str(), std::ios_base::trunc);
     
-    _write_hpp_prim_defines(fstream, t2c::prim_file_name(bra_component, ket_component, integral), true);
+    _write_hpp_prim_defines(fstream, t2c::prim_file_name(bra_component, ket_component, integral, sum_form), true);
     
-    _write_hpp_prim_includes(fstream, integral);
+    _write_hpp_prim_includes(fstream, integral, sum_form);
     
     _write_namespace(fstream, integral, true);
     
     T2CDocuDriver docs_drv;
     
-    docs_drv.write_prim_doc_str(fstream, bra_component, ket_component, integral);
+    docs_drv.write_prim_doc_str(fstream, bra_component, ket_component, integral, sum_form);
     
     T2CDeclDriver decl_drv;
 
-    decl_drv.write_prim_func_decl(fstream, bra_component, ket_component, integral, true);
+    decl_drv.write_prim_func_decl(fstream, bra_component, ket_component, integral, sum_form, true);
     
     _write_namespace(fstream, integral, false);
     
-    _write_hpp_prim_defines(fstream, t2c::prim_file_name(bra_component, ket_component, integral), false);
+    _write_hpp_prim_defines(fstream, t2c::prim_file_name(bra_component, ket_component, integral, sum_form), false);
     
     fstream.close();
 }
 
 void
-T2CCPUGenerator::_write_cpp_prim_file(const I2CIntegral& integral) const
+T2CCPUGenerator::_write_cpp_prim_file(const I2CIntegral& integral,
+                                      const bool         sum_form) const
 {
-    auto fname = t2c::prim_file_name(integral) + ".cpp";
+    auto fname = t2c::prim_file_name(integral, sum_form) + ".cpp";
     
     std::ofstream fstream;
            
@@ -419,11 +436,11 @@ T2CCPUGenerator::_write_cpp_prim_file(const I2CIntegral& integral) const
     
     T2CDeclDriver decl_drv;
     
-    decl_drv.write_prim_func_decl(fstream, integral, false);
+    decl_drv.write_prim_func_decl(fstream, integral, sum_form, false);
     
     T2CPrimFuncBodyDriver func_drv;
     
-    func_drv.write_prim_func_body(fstream, integral);
+    func_drv.write_prim_func_body(fstream, integral, sum_form);
    
     _write_namespace(fstream, integral, false);
     
@@ -433,9 +450,10 @@ T2CCPUGenerator::_write_cpp_prim_file(const I2CIntegral& integral) const
 void
 T2CCPUGenerator::_write_cpp_prim_file(const TensorComponent& component,
                                       const I2CIntegral&     integral,
+                                      const bool             sum_form,
                                       const bool             bra_first) const
 {
-    auto fname = t2c::prim_file_name(component, integral, bra_first) + ".cpp";
+    auto fname = t2c::prim_file_name(component, integral, sum_form,  bra_first) + ".cpp";
     
     std::ofstream fstream;
            
@@ -447,11 +465,11 @@ T2CCPUGenerator::_write_cpp_prim_file(const TensorComponent& component,
     
     T2CDeclDriver decl_drv;
     
-    decl_drv.write_prim_func_decl(fstream, component, integral, bra_first, false);
+    decl_drv.write_prim_func_decl(fstream, component, integral, sum_form, bra_first, false);
     
     T2CPrimFuncBodyDriver func_drv;
     
-    func_drv.write_prim_func_body(fstream, component, integral, bra_first);
+    func_drv.write_prim_func_body(fstream, component, integral, sum_form, bra_first);
     
     _write_namespace(fstream, integral, false);
 
@@ -461,9 +479,10 @@ T2CCPUGenerator::_write_cpp_prim_file(const TensorComponent& component,
 void
 T2CCPUGenerator::_write_cpp_prim_file(const TensorComponent& bra_component,
                                       const TensorComponent& ket_component,
-                                      const I2CIntegral&     integral) const
+                                      const I2CIntegral&     integral,
+                                      const bool             sum_form) const
 {
-    auto fname = t2c::prim_file_name(bra_component, ket_component, integral) + ".cpp";
+    auto fname = t2c::prim_file_name(bra_component, ket_component, integral, sum_form) + ".cpp";
     
     std::ofstream fstream;
            
@@ -475,11 +494,11 @@ T2CCPUGenerator::_write_cpp_prim_file(const TensorComponent& bra_component,
     
     T2CDeclDriver decl_drv;
 
-    decl_drv.write_prim_func_decl(fstream, bra_component, ket_component, integral, false);
+    decl_drv.write_prim_func_decl(fstream, bra_component, ket_component, integral, sum_form, false);
     
     T2CPrimFuncBodyDriver func_drv;
     
-    func_drv.write_prim_func_body(fstream, bra_component, ket_component, integral);
+    func_drv.write_prim_func_body(fstream, bra_component, ket_component, integral, sum_form);
     
     _write_namespace(fstream, integral, false);
     
@@ -489,9 +508,10 @@ T2CCPUGenerator::_write_cpp_prim_file(const TensorComponent& bra_component,
 void
 T2CCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
                                     const I2CIntegral&   integral,
+                                    const bool           sum_form,
                                     const bool           start) const
 {
-    const auto fname = _file_name(integral) + "_hpp";
+    const auto fname = _file_name(integral, sum_form) + "_hpp";
     
     auto lines = VCodeLines();
  
@@ -534,11 +554,21 @@ T2CCPUGenerator::_write_hpp_prim_defines(      std::ofstream& fstream,
 
 void
 T2CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
-                                     const I2CIntegral&   integral) const
+                                     const I2CIntegral&   integral,
+                                     const bool           sum_form) const
 {
     auto lines = VCodeLines();
     
-    lines.push_back({0, 0, 2, "#include <cstdint>"});
+    if (sum_form)
+    {
+        lines.push_back({0, 0, 1, "#include <cstdint>"});
+        
+        lines.push_back({0, 0, 2, "#include <vector>"});
+    }
+    else
+    {
+        lines.push_back({0, 0, 2, "#include <cstdint>"});
+    }
     
     lines.push_back({0, 0, 1, "#include \"GtoBlock.hpp\""});
     
@@ -569,11 +599,21 @@ T2CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
 
 void
 T2CCPUGenerator::_write_hpp_prim_includes(      std::ofstream& fstream,
-                                          const I2CIntegral&   integral) const
+                                          const I2CIntegral&   integral,
+                                          const bool           sum_form) const
 {
     auto lines = VCodeLines();
     
-    lines.push_back({0, 0, 2, "#include <cstdint>"});
+    if (sum_form)
+    {
+        lines.push_back({0, 0, 1, "#include <cstdint>"});
+        
+        lines.push_back({0, 0, 2, "#include <vector>"});
+    }
+    else
+    {
+        lines.push_back({0, 0, 2, "#include <cstdint>"});
+    }
     
     lines.push_back({0, 0, 1, "#include \"SimdTypes.hpp\""});
     
@@ -593,11 +633,12 @@ T2CCPUGenerator::_write_hpp_prim_includes(      std::ofstream& fstream,
 
 void
 T2CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
-                                     const I2CIntegral&   integral) const
+                                     const I2CIntegral&   integral,
+                                     const bool           sum_form) const
 {
     auto lines = VCodeLines();
     
-    lines.push_back({0, 0, 2, "#include \"" + _file_name(integral) +  ".hpp\""});
+    lines.push_back({0, 0, 2, "#include \"" + _file_name(integral, sum_form) +  ".hpp\""});
     
     if ((integral[0] > 1) || (integral[1] > 1))
     {
@@ -608,20 +649,21 @@ T2CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 2, "#include \"T2CDistributor.hpp\""});
     
-    _add_prim_call_includes(lines, integral);
+    _add_prim_call_includes(lines, integral, sum_form);
 
     ost::write_code_lines(fstream, lines);
 }
 
 void
 T2CCPUGenerator::_add_prim_call_includes(      VCodeLines&  lines,
-                                         const I2CIntegral& integral) const
+                                         const I2CIntegral& integral,
+                                         const bool         sum_form) const
 {
     if (integral.is_simple_integrand() && integral.is_simple())
     {
         if ((integral[0] == 0) || (integral[1] == 0))
         {
-            lines.push_back({0, 0, 2, "#include \"" + t2c::prim_file_name(integral) + ".hpp\""});
+            lines.push_back({0, 0, 2, "#include \"" + t2c::prim_file_name(integral, sum_form) + ".hpp\""});
         }
         else
         {
@@ -629,14 +671,14 @@ T2CCPUGenerator::_add_prim_call_includes(      VCodeLines&  lines,
             {
                 for (const auto& bcomp: Tensor(integral[0]).components())
                 {
-                    lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(bcomp, integral, true) + ".hpp\""});
+                    lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(bcomp, integral, sum_form, true) + ".hpp\""});
                 }
             }
             else
             {
                 for (const auto& kcomp: Tensor(integral[1]).components())
                 {
-                    lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(kcomp, integral, false) + ".hpp\""});
+                    lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(kcomp, integral, sum_form, false) + ".hpp\""});
                 }
             }
             
@@ -649,7 +691,7 @@ T2CCPUGenerator::_add_prim_call_includes(      VCodeLines&  lines,
         {
             for (const auto& kcomp: Tensor(integral[1]).components())
             {
-                lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(bcomp, kcomp, integral) + ".hpp\""});
+                lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(bcomp, kcomp, integral, sum_form) + ".hpp\""});
             }
         }
         
@@ -661,7 +703,7 @@ void
 T2CCPUGenerator::_write_cpp_prim_includes(      std::ofstream& fstream,
                                           const I2CIntegral&   integral) const
 {
-    auto fname = t2c::prim_file_name(integral) + ".hpp";
+    auto fname = t2c::prim_file_name(integral, false) + ".hpp";
     
     auto lines = VCodeLines();
     
@@ -685,7 +727,7 @@ T2CCPUGenerator::_write_cpp_prim_includes(       std::ofstream&  fstream,
                                           const I2CIntegral&     integral,
                                           const bool             bra_first) const
 {
-    auto fname = t2c::prim_file_name(component, integral, bra_first) + ".hpp";
+    auto fname = t2c::prim_file_name(component, integral, false, bra_first) + ".hpp";
     
     auto lines = VCodeLines();
     
@@ -709,7 +751,7 @@ T2CCPUGenerator::_write_cpp_prim_includes(      std::ofstream&   fstream,
                                           const TensorComponent& ket_component,
                                           const I2CIntegral&     integral) const
 {
-    auto fname = t2c::prim_file_name(bra_component, ket_component, integral) + ".hpp";
+    auto fname = t2c::prim_file_name(bra_component, ket_component, integral, false) + ".hpp";
     
     auto lines = VCodeLines();
     
@@ -750,7 +792,8 @@ T2CCPUGenerator::_write_namespace(      std::ofstream& fstream,
 
 void
 T2CCPUGenerator::_write_prim_funcs_to_cpp_header(      std::ofstream& fstream,
-                                                 const I2CIntegral&   integral) const
+                                                 const I2CIntegral&   integral,
+                                                 const bool           sum_form) const
 {
     T2CDocuDriver docs_drv;
     
@@ -760,9 +803,9 @@ T2CCPUGenerator::_write_prim_funcs_to_cpp_header(      std::ofstream& fstream,
     {
         if ((integral[0] == 0) || (integral[1] == 0))
         {
-            docs_drv.write_prim_doc_str(fstream, integral);
+            docs_drv.write_prim_doc_str(fstream, integral, sum_form);
             
-            decl_drv.write_prim_func_decl(fstream, integral, true);
+            decl_drv.write_prim_func_decl(fstream, integral, sum_form, true);
         }
         else
         {
@@ -770,18 +813,18 @@ T2CCPUGenerator::_write_prim_funcs_to_cpp_header(      std::ofstream& fstream,
             {
                 for (const auto& bcomp: Tensor(integral[0]).components())
                 {
-                    docs_drv.write_prim_doc_str(fstream, bcomp, integral, true);
+                    docs_drv.write_prim_doc_str(fstream, bcomp, integral, sum_form, true);
                     
-                    decl_drv.write_prim_func_decl(fstream, bcomp, integral, true, true);
+                    decl_drv.write_prim_func_decl(fstream, bcomp, integral, sum_form, true, true);
                 }
             }
             else
             {
                 for (const auto& kcomp: Tensor(integral[1]).components())
                 {
-                    docs_drv.write_prim_doc_str(fstream, kcomp, integral, false);
+                    docs_drv.write_prim_doc_str(fstream, kcomp, integral, sum_form, false);
                     
-                    decl_drv.write_prim_func_decl(fstream, kcomp, integral, false, true);
+                    decl_drv.write_prim_func_decl(fstream, kcomp, integral, sum_form, false, true);
                 }
             }
         }
@@ -792,62 +835,11 @@ T2CCPUGenerator::_write_prim_funcs_to_cpp_header(      std::ofstream& fstream,
         {
             for (const auto& kcomp: Tensor(integral[1]).components())
             {
-                docs_drv.write_prim_doc_str(fstream, bcomp, kcomp, integral);
+                docs_drv.write_prim_doc_str(fstream, bcomp, kcomp, integral, sum_form);
                 
-                decl_drv.write_prim_func_decl(fstream, bcomp, kcomp, integral, true);
+                decl_drv.write_prim_func_decl(fstream, bcomp, kcomp, integral, sum_form, true);
             }
         }
     }
 }
 
-void
-T2CCPUGenerator::_write_prim_funcs_to_cpp_file(      std::ofstream& fstream,
-                                               const I2CIntegral&   integral) const
-{
-    T2CDeclDriver decl_drv;
-    
-    T2CPrimFuncBodyDriver func_drv;
-
-    if (integral.is_simple_integrand() && integral.is_simple())
-    {
-        if ((integral[0] == 0) || (integral[1] == 0))
-        {
-            decl_drv.write_prim_func_decl(fstream, integral, false);
-            
-            func_drv.write_prim_func_body(fstream, integral);
-        }
-        else
-        {
-            if (integral[0] >= integral[1])
-            {
-                for (const auto& bcomp: Tensor(integral[0]).components())
-                {
-                    decl_drv.write_prim_func_decl(fstream, bcomp, integral, true, false);
-                    
-                    func_drv.write_prim_func_body(fstream, bcomp, integral, true);
-                }
-            }
-            else
-            {
-                for (const auto& kcomp: Tensor(integral[1]).components())
-                {
-                    decl_drv.write_prim_func_decl(fstream, kcomp, integral, false, false);
-                    
-                    func_drv.write_prim_func_body(fstream, kcomp, integral, false);
-                }
-            }
-        }
-    }
-    else
-    {
-        for (const auto& bcomp: Tensor(integral[0]).components())
-        {
-            for (const auto& kcomp: Tensor(integral[1]).components())
-            {
-                decl_drv.write_prim_func_decl(fstream, bcomp, kcomp, integral, false);
-                
-                func_drv.write_prim_func_body(fstream, bcomp, kcomp, integral);
-            }
-        }
-    }
-}

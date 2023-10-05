@@ -29,7 +29,8 @@
 
 void
 T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream& fstream,
-                                            const I2CIntegral&   integral) const
+                                            const I2CIntegral&   integral,
+                                            const bool           sum_form) const
 {
     auto lines = VCodeLines();
     
@@ -55,23 +56,33 @@ T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    _add_boys_compute_lines(lines, integral);
-    
-    _add_func_pragma(lines, integral);
-    
-    _add_loop_start(lines, integral);
-    
+    if (sum_form)
+    {
+        _add_index_loop_start(lines, integral);
+    }
+        
+    _add_boys_compute_lines(lines, integral, sum_form);
+        
+    _add_func_pragma(lines, integral, sum_form);
+        
+    _add_loop_start(lines, integral, sum_form);
+        
     const auto tcomps = integral.components<T1CPair, T1CPair>();
-   
+       
     std::vector<std::string> labels({"fints", });
-    
+        
     if (integral[0] > 0) labels = t2c::tensor_components(Tensor(integral[0]), "fints");
-    
+        
     if (integral[1] > 0) labels = t2c::tensor_components(Tensor(integral[1]), "fints");
-    
-    _add_simd_code(lines, labels, tcomps, integral);
-    
-    _add_loop_end(lines);
+        
+    _add_simd_code(lines, labels, tcomps, integral, sum_form);
+        
+    _add_loop_end(lines, sum_form);
+
+   if (sum_form)
+   {
+       lines.push_back({1, 0, 1, "}"});
+   }
     
     lines.push_back({0, 0, 2, "}"});
     
@@ -82,6 +93,7 @@ void
 T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream&   fstream,
                                             const TensorComponent& component,
                                             const I2CIntegral&     integral,
+                                            const bool             sum_form,
                                             const bool             bra_first) const
 {
     auto lines = VCodeLines();
@@ -108,20 +120,30 @@ T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream&   fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    _add_boys_compute_lines(lines, integral);
-    
-    _add_func_pragma(lines, component, integral, bra_first);
-    
-    _add_loop_start(lines, integral);
-    
+    if (sum_form)
+    {
+        _add_index_loop_start(lines, integral);
+    }
+
+    _add_boys_compute_lines(lines, integral, sum_form);
+        
+    _add_func_pragma(lines, component, integral, sum_form, bra_first);
+        
+    _add_loop_start(lines, integral, sum_form);
+        
     const auto tcomps = _select_integral_components(component, integral, bra_first);
-    
+        
     const auto labels = (bra_first) ? t2c::tensor_components(Tensor(integral[1]), "fints")
                                     : t2c::tensor_components(Tensor(integral[0]), "fints");
-    
-    _add_simd_code(lines, labels, tcomps, integral);
-    
-    _add_loop_end(lines);
+        
+    _add_simd_code(lines, labels, tcomps, integral, sum_form);
+        
+    _add_loop_end(lines, sum_form);
+
+    if (sum_form)
+    {
+        lines.push_back({1, 0, 1, "}"});
+    }
     
     lines.push_back({0, 0, 2, "}"});
     
@@ -132,7 +154,8 @@ void
 T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream&   fstream,
                                             const TensorComponent& bra_component,
                                             const TensorComponent& ket_component,
-                                            const I2CIntegral&     integral) const
+                                            const I2CIntegral&     integral,
+                                            const bool             sum_form) const
 {
     auto lines = VCodeLines();
     
@@ -158,36 +181,46 @@ T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream&   fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    _add_boys_compute_lines(lines, integral);
-    
-    _add_func_pragma(lines, bra_component, ket_component, integral);
-    
-    _add_loop_start(lines, integral);
-    
+    if (sum_form)
+    {
+        _add_index_loop_start(lines, integral);
+    }
+        
+    _add_boys_compute_lines(lines, integral, sum_form);
+        
+    _add_func_pragma(lines, bra_component, ket_component, integral, sum_form);
+        
+    _add_loop_start(lines, integral, sum_form);
+        
     const auto tcomps = _select_integral_components(bra_component, ket_component, integral);
-    
+        
     std::vector<std::string> labels;
-    
+        
     const auto prefixes = integral.prefixes();
-    
+        
     if (prefixes.empty())
     {
         labels = t2c::integrand_components(integral.integrand(), "fints");
     }
-    
+        
     if (prefixes.size() == 1)
     {
         labels = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "fints");
     }
-    
+        
     if (prefixes.size() == 2)
     {
         labels = t2c::integrand_components(prefixes[0].shape(),prefixes[1].shape(), integral.integrand(), "fints");
     }
-    
-    _add_simd_code(lines, labels, tcomps, integral);
-    
-    _add_loop_end(lines);
+        
+    _add_simd_code(lines, labels, tcomps, integral, sum_form);
+        
+    _add_loop_end(lines, sum_form);
+
+    if (sum_form)
+    {
+        lines.push_back({1, 0, 1, "}"});
+    }
     
     lines.push_back({0, 0, 2, "}"});
     
@@ -345,8 +378,11 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const TensorComponent& bra_component,
 
 void
 T2CPrimFuncBodyDriver::_add_func_pragma(      VCodeLines&  lines,
-                                        const I2CIntegral& integral) const
+                                        const I2CIntegral& integral,
+                                        const bool         sum_form) const
 {
+    int spacer = (sum_form) ? 2 : 1;
+    
     std::vector<std::string> labels({"fints", });
     
     if (integral[0] > 0) labels = t2c::tensor_components(Tensor(integral[0]), "fints");
@@ -357,23 +393,26 @@ T2CPrimFuncBodyDriver::_add_func_pragma(      VCodeLines&  lines,
     {
         if (i == 0)
         {
-            lines.push_back({1, 0, 1, "#pragma omp simd aligned(" + labels[i] + ",\\"});
+            lines.push_back({spacer, 0, 1, "#pragma omp simd aligned(" + labels[i] + ",\\"});
         }
         else
         {
-            lines.push_back({1, 25, 1, labels[i] + ",\\"});
+            lines.push_back({spacer, 25, 1, labels[i] + ",\\"});
         }
     }
 
-    _add_common_pragma(lines);
+    _add_common_pragma(lines, sum_form);
 }
 
 void
 T2CPrimFuncBodyDriver::_add_func_pragma(      VCodeLines&      lines,
                                         const TensorComponent& component,
                                         const I2CIntegral&     integral,
+                                        const bool             sum_form,
                                         const bool             bra_first) const
 {
+    int spacer = (sum_form) ? 2 : 1;
+    
     const auto labels = (bra_first) ? t2c::tensor_components(Tensor(integral[1]), "fints")
                                     : t2c::tensor_components(Tensor(integral[0]), "fints");
         
@@ -381,23 +420,26 @@ T2CPrimFuncBodyDriver::_add_func_pragma(      VCodeLines&      lines,
     {
         if (i == 0)
         {
-            lines.push_back({1, 0, 1, "#pragma omp simd aligned(" + labels[i] + ",\\"});
+            lines.push_back({spacer, 0, 1, "#pragma omp simd aligned(" + labels[i] + ",\\"});
         }
         else
         {
-            lines.push_back({1, 25, 1, labels[i] + ",\\"});
+            lines.push_back({spacer, 25, 1, labels[i] + ",\\"});
         }
     }
     
-    _add_common_pragma(lines);
+    _add_common_pragma(lines, sum_form);
 }
 
 void
 T2CPrimFuncBodyDriver::_add_func_pragma(      VCodeLines&      lines,
                                         const TensorComponent& bra_component,
                                         const TensorComponent& ket_component,
-                                        const I2CIntegral&     integral) const
+                                        const I2CIntegral&     integral,
+                                        const bool             sum_form) const
 {
+    int spacer = (sum_form) ? 2 : 1;
+    
     std::vector<std::string> labels;
     
     const auto prefixes = integral.prefixes();
@@ -421,44 +463,50 @@ T2CPrimFuncBodyDriver::_add_func_pragma(      VCodeLines&      lines,
     {
         if (i == 0)
         {
-            lines.push_back({1, 0, 1, "#pragma omp simd aligned(" + labels[i] + ",\\"});
+            lines.push_back({spacer, 0, 1, "#pragma omp simd aligned(" + labels[i] + ",\\"});
         }
         else
         {
-            lines.push_back({1, 25, 1, labels[i] + ",\\"});
+            lines.push_back({spacer, 25, 1, labels[i] + ",\\"});
         }
     }
     
-    _add_common_pragma(lines);
+    _add_common_pragma(lines, sum_form);
 }
 
 void
-T2CPrimFuncBodyDriver::_add_common_pragma(VCodeLines& lines) const
+T2CPrimFuncBodyDriver::_add_common_pragma(      VCodeLines& lines,
+                                          const bool        sum_form) const
 {
-    lines.push_back({1, 25, 1, "ket_fe,\\"});
+    int spacer = (sum_form) ? 2 : 1;
+    
+    lines.push_back({spacer, 25, 1, "ket_fe,\\"});
         
-    lines.push_back({1, 25, 1, "ket_fn,\\"});
+    lines.push_back({spacer, 25, 1, "ket_fn,\\"});
         
-    lines.push_back({1, 25, 1, "ket_rx,\\"});
+    lines.push_back({spacer, 25, 1, "ket_rx,\\"});
         
-    lines.push_back({1, 25, 1, "ket_ry,\\"});
+    lines.push_back({spacer, 25, 1, "ket_ry,\\"});
         
-    lines.push_back({1, 25, 1, "ket_rz : 64)"});
+    lines.push_back({spacer, 25, 1, "ket_rz : 64)"});
 }
 
 void
 T2CPrimFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
-                                       const I2CIntegral& integral) const
+                                       const I2CIntegral& integral,
+                                       const bool         sum_form) const
 {
-    lines.push_back({1, 0, 1, "for (int64_t i = 0; i < ket_dim; i++)"});
+    int spacer = (sum_form) ? 2 : 1;
     
-    lines.push_back({1, 0, 1, "{"});
+    lines.push_back({spacer, 0, 1, "for (int64_t i = 0; i < ket_dim; i++)"});
     
-    lines.push_back({2, 0, 2, "const auto ab_x = bra_rx - ket_rx[i];"});
+    lines.push_back({spacer, 0, 1, "{"});
     
-    lines.push_back({2, 0, 2, "const auto ab_y = bra_ry - ket_ry[i];"});
+    lines.push_back({spacer + 1, 0, 2, "const auto ab_x = bra_rx - ket_rx[i];"});
     
-    lines.push_back({2, 0, 2, "const auto ab_z = bra_rz - ket_rz[i];"});
+    lines.push_back({spacer + 1, 0, 2, "const auto ab_y = bra_ry - ket_ry[i];"});
+    
+    lines.push_back({spacer + 1, 0, 2, "const auto ab_z = bra_rz - ket_rz[i];"});
     
     const auto integrand = integral.integrand();
     
@@ -474,7 +522,7 @@ T2CPrimFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
     
     if (integrand.name() == "A")
     {
-        _add_nuclear_potential_vars(lines, integral);
+        _add_nuclear_potential_vars(lines, integral, sum_form);
     }
     
     if (integrand.name() == "AG")
@@ -485,6 +533,34 @@ T2CPrimFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
     if (integrand.name() == "r")
     {
         _add_multipole_vars(lines, integral);
+    }
+}
+
+void
+T2CPrimFuncBodyDriver::_add_index_loop_start(      VCodeLines&  lines,
+                                             const I2CIntegral& integral) const
+{
+    const auto integrand = integral.integrand();
+    
+    if (integrand.name() == "A")
+    {
+        lines.push_back({1, 0, 2, "// loop over charges"});
+        
+        lines.push_back({1, 0, 1, "for (size_t idx = 0; idx < charges.size(); idx++)"});
+        
+        lines.push_back({1, 0, 1, "{"});
+        
+        lines.push_back({2, 0, 2, "// set up coordinates for C center"});
+            
+        lines.push_back({2, 0, 2, "const auto c_rx = points[idx][0];"});
+            
+        lines.push_back({2, 0, 2, "const auto c_ry = points[idx][1];"});
+            
+        lines.push_back({2, 0, 2, "const auto c_rz = points[idx][2];"});
+        
+        lines.push_back({2, 0, 2, "// set up charge of C center"});
+        
+        lines.push_back({2, 0, 2, "const auto charge = charges[idx];"});
     }
 }
 
@@ -532,21 +608,24 @@ T2CPrimFuncBodyDriver::_add_kinetic_energy_vars(      VCodeLines&  lines,
 
 void
 T2CPrimFuncBodyDriver::_add_nuclear_potential_vars(      VCodeLines&  lines,
-                                                   const I2CIntegral& integral) const
+                                                   const I2CIntegral& integral,
+                                                   const bool         sum_form) const
 {
-    lines.push_back({2, 0, 2, "const auto fxi_0 = bra_exp + ket_fe[i];"});
+    int spacer = (sum_form) ? 3 : 2;
     
-    lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / fxi_0;"});
+    lines.push_back({spacer, 0, 2, "const auto fxi_0 = bra_exp + ket_fe[i];"});
     
-    lines.push_back({2, 0, 2, "const auto fz_0 = bra_exp * ket_fe[i] * fe_0 * (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
+    lines.push_back({spacer, 0, 2, "const auto fe_0 = 1.0 / fxi_0;"});
+    
+    lines.push_back({spacer, 0, 2, "const auto fz_0 = bra_exp * ket_fe[i] * fe_0 * (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
     
     if ((integral[0] + integral[1]) == 0)
     {
-        lines.push_back({2, 0, 1, "fints[i] += b0_vals[i] * 2.0 * charge * std::sqrt(fxi_0 / fpi) * bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
+        lines.push_back({spacer, 0, 1, "fints[i] += b0_vals[i] * 2.0 * charge * std::sqrt(fxi_0 / fpi) * bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
     }
     else
     {
-        lines.push_back({2, 0, 2, "const auto fss = 2.0 * charge * std::sqrt(fxi_0 / fpi) * bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
+        lines.push_back({spacer, 0, 2, "const auto fss = 2.0 * charge * std::sqrt(fxi_0 / fpi) * bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
     }
 }
 
@@ -753,9 +832,12 @@ T2CPrimFuncBodyDriver::_add_multipole_vars(      VCodeLines&  lines,
 }
 
 void
-T2CPrimFuncBodyDriver::_add_loop_end(VCodeLines& lines) const
+T2CPrimFuncBodyDriver::_add_loop_end(VCodeLines& lines,
+                                     const bool  sum_form) const
 {
-    lines.push_back({1, 0, 1, "}"});
+    int spacer = (sum_form) ? 2 : 1;
+    
+    lines.push_back({spacer, 0, 1, "}"});
 }
 
 VT2CIntegrals
@@ -803,13 +885,14 @@ void
 T2CPrimFuncBodyDriver::_add_simd_code(      VCodeLines&               lines,
                                       const std::vector<std::string>& labels,
                                       const VT2CIntegrals&            components,
-                                      const I2CIntegral&              integral) const
+                                      const I2CIntegral&              integral,
+                                      const bool                      sum_form) const
 {
     const auto rgroup = _generate_integral_group(components, integral);
     
-    _add_prefactors(lines, rgroup, integral);
+    _add_prefactors(lines, rgroup, integral, sum_form);
         
-    _add_simd_lines(lines, labels, rgroup);
+    _add_simd_lines(lines, labels, rgroup, sum_form);
 }
 
 R2Group
@@ -895,56 +978,59 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
 void
 T2CPrimFuncBodyDriver::_add_prefactors(      VCodeLines&  lines,
                                        const R2Group&     rgroup,
-                                       const I2CIntegral& integral) const
+                                       const I2CIntegral& integral,
+                                       const bool         sum_form) const
 {
+    int spacer = (sum_form) ? 3 : 2;
+    
     if (t2c::find_factor(rgroup, "rpa_x"))
     {
-        lines.push_back({2, 0, 2, "const auto rpa_x = -ket_fe[i] * ab_x * fe_0;"});
+        lines.push_back({spacer, 0, 2, "const auto rpa_x = -ket_fe[i] * ab_x * fe_0;"});
     }
     
     if (t2c::find_factor(rgroup, "rpa_y"))
     {
-        lines.push_back({2, 0, 2, "const auto rpa_y = -ket_fe[i] * ab_y * fe_0;"});
+        lines.push_back({spacer, 0, 2, "const auto rpa_y = -ket_fe[i] * ab_y * fe_0;"});
     }
     
     if (t2c::find_factor(rgroup, "rpa_z"))
     {
-        lines.push_back({2, 0, 2, "const auto rpa_z = -ket_fe[i] * ab_z * fe_0;"});
+        lines.push_back({spacer, 0, 2, "const auto rpa_z = -ket_fe[i] * ab_z * fe_0;"});
     }
     
     if (t2c::find_factor(rgroup, "rpb_x"))
     {
-        lines.push_back({2, 0, 2, "const auto rpb_x = bra_exp * ab_x * fe_0;"});
+        lines.push_back({spacer, 0, 2, "const auto rpb_x = bra_exp * ab_x * fe_0;"});
     }
     
     if (t2c::find_factor(rgroup, "rpb_y"))
     {
-        lines.push_back({2, 0, 2, "const auto rpb_y = bra_exp * ab_y * fe_0;"});
+        lines.push_back({spacer, 0, 2, "const auto rpb_y = bra_exp * ab_y * fe_0;"});
     }
     
     if (t2c::find_factor(rgroup, "rpb_z"))
     {
-        lines.push_back({2, 0, 2, "const auto rpb_z = bra_exp * ab_z * fe_0;"});
+        lines.push_back({spacer, 0, 2, "const auto rpb_z = bra_exp * ab_z * fe_0;"});
     }
     
     if (t2c::find_factor(rgroup, "fke_0"))
     {
-        lines.push_back({2, 0, 2, "const auto fke_0 = 1.0 / ket_fe[i];"});
+        lines.push_back({spacer, 0, 2, "const auto fke_0 = 1.0 / ket_fe[i];"});
     }
     
     if (t2c::find_factor(rgroup, "fbe_0"))
     {
-        lines.push_back({2, 0, 2, "const auto fbe_0 = 1.0 / bra_exp;"});
+        lines.push_back({spacer, 0, 2, "const auto fbe_0 = 1.0 / bra_exp;"});
     }
     
     if (t2c::find_factor(rgroup, "tke_0"))
     {
-        lines.push_back({2, 0, 2, "const auto tke_0 = ket_fe[i];"});
+        lines.push_back({spacer, 0, 2, "const auto tke_0 = ket_fe[i];"});
     }
     
     if (t2c::find_factor(rgroup, "tbe_0"))
     {
-        lines.push_back({2, 0, 2, "const auto tbe_0 = bra_exp;"});
+        lines.push_back({spacer, 0, 2, "const auto tbe_0 = bra_exp;"});
     }
     
     // special variables, excluded for specific integrals
@@ -955,17 +1041,17 @@ T2CPrimFuncBodyDriver::_add_prefactors(      VCodeLines&  lines,
     {
         if (t2c::find_factor(rgroup, "rpc_x"))
         {
-            lines.push_back({2, 0, 2, "const auto rpc_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
+            lines.push_back({spacer, 0, 2, "const auto rpc_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
         }
         
         if (t2c::find_factor(rgroup, "rpc_y"))
         {
-            lines.push_back({2, 0, 2, "const auto rpc_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
+            lines.push_back({spacer, 0, 2, "const auto rpc_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
         }
 
         if (t2c::find_factor(rgroup, "rpc_z"))
         {
-            lines.push_back({2, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
+            lines.push_back({spacer, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
         }
     }
 }
@@ -973,7 +1059,8 @@ T2CPrimFuncBodyDriver::_add_prefactors(      VCodeLines&  lines,
 void
 T2CPrimFuncBodyDriver::_add_simd_lines(      VCodeLines&               lines,
                                        const std::vector<std::string>& labels,
-                                       const R2Group&                  rgroup) const
+                                       const R2Group&                  rgroup,
+                                       const bool                      sum_form) const
 {
     if (rgroup.empty()) return;
     
@@ -985,7 +1072,7 @@ T2CPrimFuncBodyDriver::_add_simd_lines(      VCodeLines&               lines,
         {
             const auto tdist = rdist.split(tint);
             
-            _add_simd_lines_block(lines, labels[i], tint, tdist);
+            _add_simd_lines_block(lines, labels[i], tint, tdist, sum_form);
         }
     }
 }
@@ -994,8 +1081,11 @@ void
 T2CPrimFuncBodyDriver::_add_simd_lines_block(      VCodeLines&  lines,
                                              const std::string& label,
                                              const T2CIntegral& integral,
-                                             const R2CDist&     rdist) const
+                                             const R2CDist&     rdist,
+                                             const bool         sum_form) const
 {
+    int spacer = (sum_form) ? 3 : 2;
+    
     const auto tlabel = _get_aux_label(integral, rdist.root().integral());
     
     const auto nterms = rdist.terms();
@@ -1021,11 +1111,11 @@ T2CPrimFuncBodyDriver::_add_simd_lines_block(      VCodeLines&  lines,
 
         if (simd_str.empty())
         {
-            lines.push_back({2, 0, 2, label + "[i] += " + tlabel + ";"});
+            lines.push_back({spacer, 0, 2, label + "[i] += " + tlabel + ";"});
         }
         else
         {
-            lines.push_back({2, 0, 2, label + "[i] += " + tlabel + " * " + simd_str + ";"});
+            lines.push_back({spacer, 0, 2, label + "[i] += " + tlabel + " * " + simd_str + ";"});
         }
     }
 }
@@ -1134,13 +1224,13 @@ T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral,
 
 std::vector<std::string>
 T2CPrimFuncBodyDriver::_get_special_vars_str(const I2CIntegral& integral,
-                                              const bool        geom_form) const
+                                              const bool        sum_form) const
 {
     std::vector<std::string> vstr;
     
     if (t2c::need_boys(integral) || (integral.integrand().name() == "r"))
     {
-        if (geom_form)
+        if (!sum_form)
         {
             vstr.push_back("// set up coordinates for C center");
                 
@@ -1158,30 +1248,36 @@ T2CPrimFuncBodyDriver::_get_special_vars_str(const I2CIntegral& integral,
     {
         if (integrand.shape().order() == 1)
         {
-            vstr.push_back("// set up dipole components");
+            if (!sum_form)
+            {
+                vstr.push_back("// set up dipole components");
                 
-            vstr.push_back("const auto dip_x = dipole[0];");
+                vstr.push_back("const auto dip_x = dipole[0];");
                 
-            vstr.push_back("const auto dip_y = dipole[1];");
+                vstr.push_back("const auto dip_y = dipole[1];");
                 
-            vstr.push_back("const auto dip_z = dipole[2];");
+                vstr.push_back("const auto dip_z = dipole[2];");
+            }
         }
         
         if (integrand.shape().order() == 2)
         {
-            vstr.push_back("// set up quadrupole components");
+            if (!sum_form)
+            {
+                vstr.push_back("// set up quadrupole components");
                 
-            vstr.push_back("const auto qpol_xx = quadrupole[0];");
-            
-            vstr.push_back("const auto qpol_xy = quadrupole[1];");
-            
-            vstr.push_back("const auto qpol_xz = quadrupole[2];");
-            
-            vstr.push_back("const auto qpol_yy = quadrupole[3];");
-            
-            vstr.push_back("const auto qpol_yz = quadrupole[4];");
-            
-            vstr.push_back("const auto qpol_zz = quadrupole[5];");
+                vstr.push_back("const auto qpol_xx = quadrupole[0];");
+                
+                vstr.push_back("const auto qpol_xy = quadrupole[1];");
+                
+                vstr.push_back("const auto qpol_xz = quadrupole[2];");
+                
+                vstr.push_back("const auto qpol_yy = quadrupole[3];");
+                
+                vstr.push_back("const auto qpol_yz = quadrupole[4];");
+                
+                vstr.push_back("const auto qpol_zz = quadrupole[5];");
+            }
         }
     }
     
@@ -1222,36 +1318,39 @@ T2CPrimFuncBodyDriver::_get_boys_vars_str(const I2CIntegral& integral) const
 
 void
 T2CPrimFuncBodyDriver::_add_boys_compute_lines(      VCodeLines&  lines,
-                                               const I2CIntegral& integral) const
+                                               const I2CIntegral& integral,
+                                               const bool         sum_form) const
 {
     // nuclear potential integrals
     
     if (t2c::need_boys(integral))
     {
-        lines.push_back({1, 0, 2, "// compute Boys function values"});
+        int spacer = (sum_form) ? 2 : 1;
         
-        lines.push_back({1, 0, 1, "#pragma omp simd aligned(targs, ket_fe, ket_rx, ket_ry, ket_rz : 64)"});
+        lines.push_back({spacer, 0, 2, "// compute Boys function values"});
         
-        lines.push_back({1, 0, 1, "for (int64_t i = 0; i < ket_dim; i++)"});
+        lines.push_back({spacer, 0, 1, "#pragma omp simd aligned(targs, ket_fe, ket_rx, ket_ry, ket_rz : 64)"});
         
-        lines.push_back({1, 0, 1, "{"});
+        lines.push_back({spacer, 0, 1, "for (int64_t i = 0; i < ket_dim; i++)"});
         
-        lines.push_back({2, 0, 2, "const auto fxi_0 = bra_exp + ket_fe[i];"});
+        lines.push_back({spacer, 0, 1, "{"});
         
-        lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / fxi_0;"});
+        lines.push_back({spacer + 1, 0, 2, "const auto fxi_0 = bra_exp + ket_fe[i];"});
         
-        lines.push_back({2, 0, 2, "const auto rpc_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
+        lines.push_back({spacer + 1, 0, 2, "const auto fe_0 = 1.0 / fxi_0;"});
+        
+        lines.push_back({spacer + 1, 0, 2, "const auto rpc_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
 
-        lines.push_back({2, 0, 2, "const auto rpc_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
+        lines.push_back({spacer + 1, 0, 2, "const auto rpc_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
 
-        lines.push_back({2, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
+        lines.push_back({spacer + 1, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
         
-        lines.push_back({2, 0, 1, "targs[i] = fxi_0 * (rpc_x * rpc_x + rpc_y * rpc_y + rpc_z * rpc_z);"});
+        lines.push_back({spacer + 1, 0, 1, "targs[i] = fxi_0 * (rpc_x * rpc_x + rpc_y * rpc_y + rpc_z * rpc_z);"});
         
-        lines.push_back({1, 0, 2, "}"});
+        lines.push_back({spacer, 0, 2, "}"});
         
         const auto order = t2c::boys_order(integral);
         
-        lines.push_back({1, 0, 2, "bf_table.compute<" + std::to_string(order + 1) + ">(bf_values, bf_args, ket_dim);"});
+        lines.push_back({spacer, 0, 2, "bf_table.compute<" + std::to_string(order + 1) + ">(bf_values, bf_args, ket_dim);"});
     }
 }

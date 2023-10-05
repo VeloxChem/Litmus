@@ -74,9 +74,11 @@ class T2CFuncBodyDriver
     /// Adds bra loop body definitions to code lines container.
     /// @param lines The code lines container to which bra loop body definition are added.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_bra_loop_body(      VCodeLines&  lines,
                             const I2CIntegral& integral,
+                            const bool         sum_form,
                             const bool         diagonal) const;
     
     /// Adds bra loop end definitions to code lines container.
@@ -86,20 +88,24 @@ class T2CFuncBodyDriver
     /// Adds bra loop call tree definitions to code lines container.
     /// @param lines The code lines container to which bra loop call tree definition are added.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_loop_call_tree(      VCodeLines&  lines,
                              const I2CIntegral& integral,
+                             const bool         sum_form,
                              const bool         diagonal) const;
     
     /// Adds bra loop call tree definitions to code lines container.
     /// @param lines The code lines container to which bra loop call tree definition are added.
     /// @param component the integral component.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param bra_first The flag to set bra as expansion point.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_loop_call_tree(      VCodeLines&      lines,
                              const TensorComponent& component,
                              const I2CIntegral&     integral,
+                             const bool             sum_form,
                              const bool             bra_first,
                              const bool             diagonal) const;
     
@@ -108,11 +114,13 @@ class T2CFuncBodyDriver
     /// @param bra_component the integral component on bra side.
     /// @param ket_component the integral component on ket side.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_loop_call_tree(      VCodeLines&      lines,
                              const TensorComponent& bra_component,
                              const TensorComponent& ket_component,
                              const I2CIntegral&     integral,
+                             const bool             sum_form,
                              const bool             diagonal) const;
     
     /// Adds primitives loop start definitions to code lines container.
@@ -128,11 +136,11 @@ class T2CFuncBodyDriver
     /// Adds primitive function call definitions to code lines container.
     /// @param lines The code lines container to which primitives loop start definition are added.
     /// @param integral The base two center integral.
-    /// @param geom_form The geometrical form of special parameters.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param spacer The size of formatting shift.
     void _add_prim_call_special_vars(      VCodeLines&  lines,
                                      const I2CIntegral& integral,
-                                     const bool         geom_form,
+                                     const bool         sum_form,
                                      const size_t       spacer) const;
     
     /// Adds primitive function call definitions to code lines container.
@@ -180,9 +188,11 @@ public:
     /// Writes body of compute function.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void write_func_body(      std::ofstream& fstream,
                          const I2CIntegral&   integral,
+                         const bool           sum_form, 
                          const bool           diagonal) const;
 };
 

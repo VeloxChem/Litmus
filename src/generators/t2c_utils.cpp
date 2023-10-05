@@ -214,17 +214,23 @@ tensor_components(const Tensor&      tensor,
 }
 
 std::pair<size_t, std::string>
-compute_func_name(const I2CIntegral& integral)
+compute_func_name(const I2CIntegral& integral,
+                  const bool         sum_form)
 {
-    const auto label = "comp" + t2c::integral_label(integral) + integral.label();
+    std::string prefix = (sum_form) ? "compSum" : "comp";
+    
+    const auto label = prefix  + t2c::integral_label(integral) + integral.label();
         
     return {label.size() + 1, label};
 }
 
 std::pair<size_t, std::string>
-prim_compute_func_name(const I2CIntegral& integral)
+prim_compute_func_name(const I2CIntegral& integral,
+                       const bool         sum_form)
 {
-    const auto label = "compPrimitive" + t2c::integral_label(integral) + integral.label();
+    std::string prefix = (sum_form) ? "compSum" : "comp";
+    
+    const auto label =  prefix + "Primitive" + t2c::integral_label(integral) + integral.label();
     
     return {label.size() + 1, label};
 }
@@ -232,9 +238,12 @@ prim_compute_func_name(const I2CIntegral& integral)
 std::pair<size_t, std::string>
 prim_compute_func_name(const TensorComponent& component,
                        const I2CIntegral&     integral,
+                       const bool             sum_form,
                        const bool             bra_first)
 {
-    auto label = "compPrimitive" + t2c::integral_label(integral) + integral.label();
+    std::string prefix = (sum_form) ? "compSum" : "comp";
+    
+    auto label = prefix + "Primitive" + t2c::integral_label(integral) + integral.label();
     
     if (bra_first)
     {
@@ -251,9 +260,12 @@ prim_compute_func_name(const TensorComponent& component,
 std::pair<size_t, std::string>
 prim_compute_func_name(const TensorComponent& bra_component,
                        const TensorComponent& ket_component,
-                       const I2CIntegral&     integral)
+                       const I2CIntegral&     integral,
+                       const bool             sum_form)
 {
-    auto label = "compPrimitive" + t2c::integral_label(integral) + integral.label();
+    std::string prefix = (sum_form) ? "compSum" : "comp";
+    
+    auto label = prefix + "Primitive" + t2c::integral_label(integral) + integral.label();
     
     label += "_" + fstr::upcase(bra_component.label());
    
@@ -263,17 +275,23 @@ prim_compute_func_name(const TensorComponent& bra_component,
 }
 
 std::string
-prim_file_name(const I2CIntegral& integral)
+prim_file_name(const I2CIntegral& integral,
+               const bool         sum_form)
 {
-    return "Primitive" + t2c::integral_label(integral) + integral.label();
+    std::string prefix = (sum_form) ? "Sum" : "";
+    
+    return prefix + "Primitive" + t2c::integral_label(integral) + integral.label();
 }
 
 std::string
 prim_file_name(const TensorComponent& component,
                const I2CIntegral&     integral,
+               const bool             sum_form,
                const bool             bra_first)
 {
-    auto label = "Primitive" + t2c::integral_label(integral) + integral.label();
+    std::string prefix = (sum_form) ? "Sum" : "";
+    
+    auto label = prefix + "Primitive" + t2c::integral_label(integral) + integral.label();
     
     if (bra_first)
     {
@@ -290,9 +308,12 @@ prim_file_name(const TensorComponent& component,
 std::string
 prim_file_name(const TensorComponent& bra_component,
                const TensorComponent& ket_component,
-               const I2CIntegral&     integral)
+               const I2CIntegral&     integral,
+               const bool             sum_form)
 {
-    auto label = "Primitive" + t2c::integral_label(integral) + integral.label();
+    std::string prefix = (sum_form) ? "Sum" : "";
+    
+    auto label = prefix + "Primitive" + t2c::integral_label(integral) + integral.label();
     
     label += "_" + fstr::upcase(bra_component.label());
    

@@ -22,6 +22,7 @@
 void
 T2CDeclDriver::write_func_decl(      std::ofstream& fstream,
                                const I2CIntegral&   integral,
+                               const bool           sum_form,
                                const bool           diagonal,
                                const bool           terminus) const
 {
@@ -29,22 +30,22 @@ T2CDeclDriver::write_func_decl(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "auto"});
     
-    for (const auto& label : _get_matrix_str(integral))
+    for (const auto& label : _get_matrix_str(integral, sum_form))
     {
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_special_vars_str(integral, true))
+    for (const auto& label : _get_special_vars_str(integral, sum_form))
     {
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_gto_blocks_str(integral, diagonal))
+    for (const auto& label : _get_gto_blocks_str(integral, sum_form, diagonal))
     {
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_indexes_str(integral,diagonal, terminus))
+    for (const auto& label : _get_indexes_str(integral,sum_form, diagonal, terminus))
     {
         if  (label.find(";") == std::string::npos)
         {
@@ -62,13 +63,14 @@ T2CDeclDriver::write_func_decl(      std::ofstream& fstream,
 void
 T2CDeclDriver::write_prim_func_decl(      std::ofstream& fstream,
                                     const I2CIntegral&   integral,
+                                    const bool           sum_form,
                                     const bool           terminus) const
 {
     auto lines = VCodeLines();
     
     lines.push_back({0, 0, 1, "auto"});
     
-    for (const auto& label : _get_prim_buffer_str(integral, terminus))
+    for (const auto& label : _get_prim_buffer_str(integral, sum_form, terminus))
     {
         if  (label.find(";") == std::string::npos)
         {
@@ -87,6 +89,7 @@ void
 T2CDeclDriver::write_prim_func_decl(      std::ofstream&   fstream,
                                     const TensorComponent& component,
                                     const I2CIntegral&     integral,
+                                    const bool             sum_form,
                                     const bool             bra_first,
                                     const bool             terminus) const
 {
@@ -94,7 +97,7 @@ T2CDeclDriver::write_prim_func_decl(      std::ofstream&   fstream,
     
     lines.push_back({0, 0, 1, "auto"});
     
-    for (const auto& label : _get_prim_buffer_str(component, integral, bra_first, terminus))
+    for (const auto& label : _get_prim_buffer_str(component, integral, sum_form, bra_first, terminus))
     {
         if  (label.find(";") == std::string::npos)
         {
@@ -114,13 +117,14 @@ T2CDeclDriver::write_prim_func_decl(      std::ofstream&   fstream,
                                     const TensorComponent& bra_component,
                                     const TensorComponent& ket_component,
                                     const I2CIntegral&     integral,
+                                    const bool             sum_form,
                                     const bool             terminus) const
 {
     auto lines = VCodeLines();
     
     lines.push_back({0, 0, 1, "auto"});
     
-    for (const auto& label : _get_prim_buffer_str(bra_component, ket_component, integral, terminus))
+    for (const auto& label : _get_prim_buffer_str(bra_component, ket_component, integral, sum_form, terminus))
     {
         if  (label.find(";") == std::string::npos)
         {
@@ -136,11 +140,12 @@ T2CDeclDriver::write_prim_func_decl(      std::ofstream&   fstream,
 }
 
 std::vector<std::string>
-T2CDeclDriver::_get_matrix_str(const I2CIntegral& integral) const
+T2CDeclDriver::_get_matrix_str(const I2CIntegral& integral,
+                               const bool         sum_form) const
 {
     std::vector<std::string> vstr;
     
-    const auto [nsize, name] = t2c::compute_func_name(integral);
+    const auto [nsize, name] = t2c::compute_func_name(integral, sum_form);
     
     std::vector<std::string> labels;
     
@@ -178,27 +183,27 @@ T2CDeclDriver::_get_matrix_str(const I2CIntegral& integral) const
 
 std::vector<std::string>
 T2CDeclDriver::_get_special_vars_str(const I2CIntegral& integral,
-                                     const bool         geom_form) const
+                                     const bool         sum_form) const
 {
     std::vector<std::string> vstr;
     
-    const auto [nsize, name] = t2c::compute_func_name(integral);
+    const auto [nsize, name] = t2c::compute_func_name(integral, sum_form);
     
     // nuclear potential integrals
     
     if (integral.integrand() == Operator("A"))
     {
-        if (geom_form)
-        {
-            vstr.push_back(std::string(nsize, ' ') + "const double charge,");
-            
-            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
-        }
-        else
+        if (sum_form)
         {
             vstr.push_back(std::string(nsize, ' ') + "const std::vector<double>& charges,");
             
             vstr.push_back(std::string(nsize, ' ') + "const std::vector<TPoint3D>& points,");
+        }
+        else
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const double charge,");
+            
+            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
         }
     }
     
@@ -206,17 +211,17 @@ T2CDeclDriver::_get_special_vars_str(const I2CIntegral& integral,
     
     if (integral.integrand() == Operator("AG", Tensor(1)))
     {
-        if (geom_form)
-        {
-            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& dipole,");
-            
-            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
-        }
-        else
+        if (sum_form)
         {
             vstr.push_back(std::string(nsize, ' ') + "const std::vector<TPoint3D>& dipoles,");
             
             vstr.push_back(std::string(nsize, ' ') + "const std::vector<TPoint3D>& points,");
+        }
+        else
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& dipole,");
+            
+            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
         }
     }
     
@@ -224,17 +229,17 @@ T2CDeclDriver::_get_special_vars_str(const I2CIntegral& integral,
     
     if (integral.integrand() == Operator("AG", Tensor(2)))
     {
-        if (geom_form)
-        {
-            vstr.push_back(std::string(nsize, ' ') + "const T2Tensor& quadrupole,");
-            
-            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
-        }
-        else
+        if (sum_form)
         {
             vstr.push_back(std::string(nsize, ' ') + "const std::vector<T2Tensor>& quadrupoles,");
             
             vstr.push_back(std::string(nsize, ' ') + "const std::vector<TPoint3D>& points,");
+        }
+        else
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const T2Tensor& quadrupole,");
+            
+            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
         }
     }
     
@@ -242,17 +247,17 @@ T2CDeclDriver::_get_special_vars_str(const I2CIntegral& integral,
     
     if (integral.integrand() == Operator("AG", Tensor(3)))
     {
-        if (geom_form)
-        {
-            vstr.push_back(std::string(nsize, ' ') + "const T3Tensor& octupole,");
-            
-            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
-        }
-        else
+        if (sum_form)
         {
             vstr.push_back(std::string(nsize, ' ') + "const std::vector<T3Tensor>& octupoles,");
             
             vstr.push_back(std::string(nsize, ' ') + "const std::vector<TPoint3D>& points,");
+        }
+        else
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const T3Tensor& octupole,");
+            
+            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
         }
     }
     
@@ -269,11 +274,12 @@ T2CDeclDriver::_get_special_vars_str(const I2CIntegral& integral,
 
 std::vector<std::string>
 T2CDeclDriver::_get_gto_blocks_str(const I2CIntegral& integral,
+                                   const bool         sum_form,
                                    const bool         diagonal) const
 {
     std::vector<std::string> vstr;
     
-    const auto [nsize, name] = t2c::compute_func_name(integral);
+    const auto [nsize, name] = t2c::compute_func_name(integral, sum_form);
     
     if (diagonal)
     {
@@ -296,12 +302,13 @@ T2CDeclDriver::_get_gto_blocks_str(const I2CIntegral& integral,
 
 std::vector<std::string>
 T2CDeclDriver::_get_indexes_str(const I2CIntegral& integral,
+                                const bool         sum_form,
                                 const bool         diagonal,
                                 const bool         terminus) const
 {
     std::vector<std::string> vstr;
     
-    const auto [nsize, name] = t2c::compute_func_name(integral);
+    const auto [nsize, name] = t2c::compute_func_name(integral, sum_form);
     
     vstr.push_back(std::string(nsize, ' ') + "const int64_t     bra_first,");
     
@@ -323,11 +330,12 @@ T2CDeclDriver::_get_indexes_str(const I2CIntegral& integral,
 
 std::vector<std::string>
 T2CDeclDriver::_get_prim_buffer_str(const I2CIntegral& integral,
+                                    const bool         sum_form,
                                     const bool         terminus) const
 {
     std::vector<std::string> vstr;
     
-    const auto [nsize, name] = t2c::prim_compute_func_name(integral);
+    const auto [nsize, name] = t2c::prim_compute_func_name(integral, sum_form);
     
     std::vector<std::string> labels({"buffer", });
     
@@ -342,7 +350,7 @@ T2CDeclDriver::_get_prim_buffer_str(const I2CIntegral& integral,
         vstr.push_back(std::string(nsize + 6, ' ') + "TDoubleArray& " + labels[i] + ",");
     }
     
-    for (const auto& line : _get_special_vars_str(integral, true))
+    for (const auto& line : _get_special_vars_str(integral, sum_form))
     {
         vstr.push_back(line);
     }
@@ -355,12 +363,13 @@ T2CDeclDriver::_get_prim_buffer_str(const I2CIntegral& integral,
 std::vector<std::string>
 T2CDeclDriver::_get_prim_buffer_str(const TensorComponent& component,
                                     const I2CIntegral&     integral,
+                                    const bool             sum_form,
                                     const bool             bra_first,
                                     const bool             terminus) const
 {
     std::vector<std::string> vstr;
     
-    const auto [nsize, name] = t2c::prim_compute_func_name(component, integral, bra_first);
+    const auto [nsize, name] = t2c::prim_compute_func_name(component, integral, sum_form, bra_first);
     
     const auto labels = (bra_first) ? t2c::tensor_components(integral[1], "buffer")
                                     : t2c::tensor_components(integral[0], "buffer");
@@ -372,7 +381,7 @@ T2CDeclDriver::_get_prim_buffer_str(const TensorComponent& component,
         vstr.push_back(std::string(nsize + 6, ' ') + "TDoubleArray& " + labels[i] + ",");
     }
     
-    for (const auto& line : _get_special_vars_str(integral, true))
+    for (const auto& line : _get_special_vars_str(integral, sum_form))
     {
         vstr.push_back(line);
     }
@@ -387,11 +396,12 @@ std::vector<std::string>
 T2CDeclDriver::_get_prim_buffer_str(const TensorComponent& bra_component,
                                     const TensorComponent& ket_component,
                                     const I2CIntegral&     integral,
+                                    const bool             sum_form,
                                     const bool             terminus) const
 {
     std::vector<std::string> vstr;
     
-    const auto [nsize, name] = t2c::prim_compute_func_name(bra_component, ket_component, integral);
+    const auto [nsize, name] = t2c::prim_compute_func_name(bra_component, ket_component, integral, sum_form);
     
     const auto prefixes = integral.prefixes();
     
@@ -419,7 +429,7 @@ T2CDeclDriver::_get_prim_buffer_str(const TensorComponent& bra_component,
         vstr.push_back(std::string(nsize + 6, ' ') + "TDoubleArray& " + labels[i] + ",");
     }
     
-    for (const auto& line : _get_special_vars_str(integral, true))
+    for (const auto& line : _get_special_vars_str(integral, sum_form))
     {
         vstr.push_back(line);
     }

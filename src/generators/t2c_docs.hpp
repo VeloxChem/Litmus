@@ -63,10 +63,10 @@ class T2CDocuDriver
     
     /// Generates vector of special variable strings.
     /// @param integral The base two center integral.
-    /// @param geom_form The geometrical form of special parameters.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @return The vector of special variable strings.
     std::vector<std::string> _get_special_vars_str(const I2CIntegral& integral,
-                                                   const bool         geom_form) const;
+                                                   const bool         sum_form) const;
     
     /// Generates vector of GTOs block strings.
     /// @param integral The base two center integral.
@@ -109,36 +109,44 @@ public:
     /// Writes documentation string for compute function.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void write_doc_str(      std::ofstream& fstream,
                        const I2CIntegral&   integral,
+                       const bool           sum_form,
                        const bool           diagonal) const;
     
     /// Writes documentation string for primtive compute function.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void write_prim_doc_str(      std::ofstream& fstream,
-                            const I2CIntegral&   integral) const;
+                            const I2CIntegral&   integral,
+                            const bool           sum_form) const;
     
     /// Writes documentation string for primitive compute function.
     /// @param fstream the file stream.
     /// @param component the integral component.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param bra_first The flag to set bra as expansion point.
     void write_prim_doc_str(      std::ofstream&   fstream,
-                                 const TensorComponent& component,
-                                 const I2CIntegral&     integral,
-                                 const bool             bra_first) const;
+                            const TensorComponent& component,
+                            const I2CIntegral&     integral,
+                            const bool             sum_form,
+                            const bool             bra_first) const;
     
     /// Writes documentation string for primitive compute function.
     /// @param fstream the file stream.
     /// @param bra_component the integral component on bra side.
     /// @param ket_component the integral component on ket side.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void write_prim_doc_str(      std::ofstream&   fstream,
                             const TensorComponent& bra_component,
                             const TensorComponent& ket_component,
-                            const I2CIntegral&     integral) const;
+                            const I2CIntegral&     integral,
+                            const bool             sum_form) const;
 };
 
 #endif /* t2c_docs_hpp */

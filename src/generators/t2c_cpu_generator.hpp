@@ -51,71 +51,95 @@ class T2CCPUGenerator
     
     /// Gets file name of file with recursion functions for two center integral.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @return The file name.
-    std::string _file_name(const I2CIntegral& integral) const;
+    std::string _file_name(const I2CIntegral& integral,
+                           const bool         sum_form) const;
     
     /// Writes header file for recursion.
     /// @param integral The base two center integral.
-    void _write_cpp_header(const I2CIntegral& integral) const;
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    void _write_cpp_header(const I2CIntegral& integral,
+                           const bool         sum_form) const;
     
     /// Writes C++ code file for recursion.
     /// @param integral The base two center integral.
-    void _write_cpp_file(const I2CIntegral& integral) const;
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    void _write_cpp_file(const I2CIntegral& integral,
+                         const bool         sum_form) const;
     
     /// Writes header files for primitive recursion.
     /// @param integral The base two center integral.
-    void _write_cpp_prim_headers(const I2CIntegral& integral) const;
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    void _write_cpp_prim_headers(const I2CIntegral& integral,
+                                 const bool         sum_form) const;
     
     /// Writes C++ code files for primitive recursion.
     /// @param integral The base two center integral.
-    void _write_cpp_prim_files(const I2CIntegral& integral) const;
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    void _write_cpp_prim_files(const I2CIntegral& integral,
+                               const bool         sum_form) const;
     
     /// Writes header files for specific primitive recursion.
     /// @param integral The base two center integral.
-    void _write_cpp_prim_header(const I2CIntegral& integral) const;
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    void _write_cpp_prim_header(const I2CIntegral& integral,
+                                const bool         sum_form) const;
     
     /// Writes header files for specific primitive recursion.
     /// @param component the integral component.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param bra_first The flag to set bra as expansion point.
     void _write_cpp_prim_header(const TensorComponent& component,
                                 const I2CIntegral&     integral,
+                                const bool             sum_form,
                                 const bool             bra_first) const;
     
     /// Writes header files for specific primitive recursion.
     /// @param bra_component the integral component on bra side.
     /// @param ket_component the integral component on ket side.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _write_cpp_prim_header(const TensorComponent& bra_component,
                                 const TensorComponent& ket_component,
-                                const I2CIntegral&     integral) const;
+                                const I2CIntegral&     integral,
+                                const bool             sum_form) const;
     
     /// Writes C++ code files for specific primitive recursion.
     /// @param integral The base two center integral.
-    void _write_cpp_prim_file(const I2CIntegral& integral) const;
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    void _write_cpp_prim_file(const I2CIntegral& integral,
+                              const bool         sum_form) const;
     
     /// Writes C++ code files for specific primitive recursion.
     /// @param component the integral component.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param bra_first The flag to set bra as expansion point.
     void _write_cpp_prim_file(const TensorComponent& component,
                               const I2CIntegral&     integral,
+                              const bool             sum_form,
                               const bool             bra_first) const;
     
     /// Writes C++ code files for specific primitive recursion.
     /// @param bra_component the integral component on bra side.
     /// @param ket_component the integral component on ket side.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _write_cpp_prim_file(const TensorComponent& bra_component,
                               const TensorComponent& ket_component,
-                              const I2CIntegral&     integral) const;
+                              const I2CIntegral&     integral,
+                              const bool             sum_form) const;
     
     /// Writes definitions of define for header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param start The flag to indicate position of define (start or end).
     void _write_hpp_defines(      std::ofstream& fstream,
                             const I2CIntegral&   integral,
+                            const bool           sum_form,
                             const bool           start) const;
     
     /// Writes definitions of define for primitive header file.
@@ -129,26 +153,34 @@ class T2CCPUGenerator
     /// Writes definitions of includes for header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _write_hpp_includes(      std::ofstream& fstream,
-                             const I2CIntegral&   integral) const;
+                             const I2CIntegral&   integral,
+                             const bool           sum_form) const;
     
     /// Writes definitions of includes for primitives header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _write_hpp_prim_includes(      std::ofstream& fstream,
-                                  const I2CIntegral&   integral) const;
+                                  const I2CIntegral&   integral,
+                                  const bool           sum_form) const;
     
     /// Writes definitions of includes for C++ code file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _write_cpp_includes(      std::ofstream& fstream,
-                             const I2CIntegral&   integral) const;
+                             const I2CIntegral&   integral,
+                             const bool           sum_form) const;
     
     /// Adds primitive functions headers to code lines container.
     /// @param lines The code lines container to which primitives loop start definition are added.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _add_prim_call_includes(      VCodeLines&  lines,
-                                 const I2CIntegral& integral) const;
+                                 const I2CIntegral& integral,
+                                 const bool         sum_form) const;
     
     /// Writes definitions of includes for C++ code file.
     /// @param fstream the file stream.
@@ -187,15 +219,10 @@ class T2CCPUGenerator
     /// Writes primitive functions documentation and declaration to header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _write_prim_funcs_to_cpp_header(      std::ofstream& fstream,
-                                         const I2CIntegral&   integral) const;
-    
-    /// Writes primitive function implementation to C++ code file.
-    /// @param fstream the file stream.
-    /// @param integral The base two center integral.
-    void _write_prim_funcs_to_cpp_file(      std::ofstream& fstream,
-                                       const I2CIntegral&   integral) const;
-    
+                                         const I2CIntegral&   integral,
+                                         const bool           sum_form) const;
 public:
     /// Creates an electron repulsion integrals CPU code generator.
     T2CCPUGenerator() = default;
@@ -205,12 +232,14 @@ public:
     /// @param angmom The maximum angular momentum of A and B centers.
     /// @param bra_gdrv The geometrical derivative of bra side.
     /// @param ket_gdrv The geometrical derivative of ket side.
-    /// @param op_gdrv The geometrical derivative of operator. 
+    /// @param op_gdrv The geometrical derivative of operator.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void generate(const std::string& label,
                   const int          angmom,
                   const int          bra_gdrv,
                   const int          ket_gdrv,
-                  const int          op_gdrv) const;
+                  const int          op_gdrv,
+                  const bool         sum_form) const;
 };
 
 #endif /* t2c_cpu_generator_hpp */

@@ -71,54 +71,68 @@ std::vector<std::string> tensor_components(const Tensor&      tensor,
 
 /// Generates compute function  name.
 /// @param integral The base two center integral.
+/// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
 /// @return The compute function name.
-std::pair<size_t, std::string> compute_func_name(const I2CIntegral& integral);
+std::pair<size_t, std::string> compute_func_name(const I2CIntegral& integral,
+                                                 const bool         sum_form);
 
 /// Generates primitive compute function name.
 /// @param integral The base two center integral.
+/// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
 /// @return The primitive compute function name.
-std::pair<size_t, std::string> prim_compute_func_name(const I2CIntegral& integral);
+std::pair<size_t, std::string> prim_compute_func_name(const I2CIntegral& integral,
+                                                      const bool         sum_form);
 
 /// Generates primitive compute function name.
 /// @param component the integral component.
 /// @param integral The base two center integral.
+/// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
 /// @param bra_first The flag to set bra as expansion point.
 /// @return The primitive compute function name.
 std::pair<size_t, std::string> prim_compute_func_name(const TensorComponent& component,
                                                       const I2CIntegral&     integral,
+                                                      const bool             sum_form,
                                                       const bool             bra_first);
 
 /// Generates primitive compute function name.
 /// @param bra_component the integral component on bra side.
 /// @param ket_component the integral component on ket side.
 /// @param integral The base two center integral.
+/// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
 /// @return The primitive compute function name.
 std::pair<size_t, std::string> prim_compute_func_name(const TensorComponent& bra_component,
                                                       const TensorComponent& ket_component,
-                                                      const I2CIntegral&     integral);
+                                                      const I2CIntegral&     integral,
+                                                      const bool             sum_form);
 
 /// Generates primitive file name.
 /// @param integral The base two center integral.
+/// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
 /// @return The primitive file name.
-std::string prim_file_name(const I2CIntegral& integral);
+std::string prim_file_name(const I2CIntegral& integral,
+                           const bool         sum_form);
 
 /// Generates primitive file name.
 /// @param component the integral component.
 /// @param integral The base two center integral.
+/// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
 /// @param bra_first The flag to set bra as expansion point.
 /// @return The primitive file name.
 std::string prim_file_name(const TensorComponent& component,
                            const I2CIntegral&     integral,
+                           const bool             sum_form,
                            const bool             bra_first);
 
 /// Generates primitive file name.
 /// @param bra_component the integral component on bra side.
 /// @param ket_component the integral component on ket side.
 /// @param integral The base two center integral.
+/// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
 /// @return The primitive file name.
 std::string prim_file_name(const TensorComponent& bra_component,
                            const TensorComponent& ket_component,
-                           const I2CIntegral&     integral);
+                           const I2CIntegral&     integral,
+                           const bool             sum_form);
 
 /// Gets recursion namespace label of standart integral.
 /// @param integral The base two center integral.

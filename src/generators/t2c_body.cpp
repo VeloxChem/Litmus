@@ -23,6 +23,7 @@
 void
 T2CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
                                    const I2CIntegral&   integral,
+                                   const bool           sum_form,
                                    const bool           diagonal) const
 {
     auto lines = VCodeLines();
@@ -60,7 +61,7 @@ T2CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     
     _add_bra_loop_start(lines, diagonal);
    
-    _add_bra_loop_body(lines, integral, diagonal);
+    _add_bra_loop_body(lines, integral, sum_form, diagonal);
     
     _add_bra_loop_end(lines);
     
@@ -335,13 +336,14 @@ T2CFuncBodyDriver::_add_bra_loop_end(VCodeLines& lines) const
 void
 T2CFuncBodyDriver::_add_bra_loop_body(      VCodeLines&  lines,
                                       const I2CIntegral& integral,
+                                      const bool         sum_form, 
                                       const bool         diagonal) const
 {
     if (integral.is_simple() && integral.is_simple_integrand())
     {
         if ((integral[0] == 0) || (integral[1] == 0))
         {
-            _add_loop_call_tree(lines, integral, diagonal);
+            _add_loop_call_tree(lines, integral, sum_form, diagonal);
         }
         else
         {
@@ -349,14 +351,14 @@ T2CFuncBodyDriver::_add_bra_loop_body(      VCodeLines&  lines,
             {
                 for (const auto& bcomp: Tensor(integral[0]).components())
                 {
-                    _add_loop_call_tree(lines, bcomp, integral, true, diagonal);
+                    _add_loop_call_tree(lines, bcomp, integral, sum_form, true, diagonal);
                 }
             }
             else
             {
                 for (const auto& kcomp: Tensor(integral[1]).components())
                 {
-                    _add_loop_call_tree(lines, kcomp, integral, false, diagonal);
+                    _add_loop_call_tree(lines, kcomp, integral, sum_form, false, diagonal);
                 }
             }
         }
@@ -367,7 +369,7 @@ T2CFuncBodyDriver::_add_bra_loop_body(      VCodeLines&  lines,
         {
             for (const auto& kcomp: Tensor(integral[1]).components())
             {
-                _add_loop_call_tree(lines, bcomp, kcomp, integral, diagonal);
+                _add_loop_call_tree(lines, bcomp, kcomp, integral, sum_form, diagonal);
             }
         }
     }
@@ -376,6 +378,7 @@ T2CFuncBodyDriver::_add_bra_loop_body(      VCodeLines&  lines,
 void
 T2CFuncBodyDriver::_add_loop_call_tree(      VCodeLines&  lines,
                                        const I2CIntegral& integral,
+                                       const bool         sum_form,
                                        const bool         diagonal) const
 {
     std::vector<std::string> labels({"buffer", });
@@ -393,7 +396,7 @@ T2CFuncBodyDriver::_add_loop_call_tree(      VCodeLines&  lines,
     
     _add_prim_loop_start(lines, diagonal);
     
-    auto [nsize, name] = t2c::prim_compute_func_name(integral);
+    auto [nsize, name] = t2c::prim_compute_func_name(integral, sum_form);
     
     name = t2c::namespace_label(integral) + "::" + name;
     
@@ -411,7 +414,7 @@ T2CFuncBodyDriver::_add_loop_call_tree(      VCodeLines&  lines,
         }
     }
     
-    _add_prim_call_special_vars(lines, integral, true, nsize);
+    _add_prim_call_special_vars(lines, integral, sum_form, nsize);
     
     _add_prim_call_data(lines, nsize); 
     
@@ -424,6 +427,7 @@ void
 T2CFuncBodyDriver::_add_loop_call_tree(      VCodeLines&      lines,
                                        const TensorComponent& component,
                                        const I2CIntegral&     integral,
+                                       const bool             sum_form,
                                        const bool             bra_first,
                                        const bool             diagonal) const
 {
@@ -439,7 +443,7 @@ T2CFuncBodyDriver::_add_loop_call_tree(      VCodeLines&      lines,
     
     _add_prim_loop_start(lines, diagonal);
     
-    auto [nsize, name] = t2c::prim_compute_func_name(component, integral, bra_first);
+    auto [nsize, name] = t2c::prim_compute_func_name(component, integral, sum_form, bra_first);
     
     name = t2c::namespace_label(integral) + "::" + name;
     
@@ -457,7 +461,7 @@ T2CFuncBodyDriver::_add_loop_call_tree(      VCodeLines&      lines,
         }
     }
     
-    _add_prim_call_special_vars(lines, integral, true, nsize);
+    _add_prim_call_special_vars(lines, integral, sum_form, nsize);
     
     _add_prim_call_data(lines, nsize);
     
@@ -471,6 +475,7 @@ T2CFuncBodyDriver::_add_loop_call_tree(      VCodeLines&      lines,
                                        const TensorComponent& bra_component,
                                        const TensorComponent& ket_component,
                                        const I2CIntegral&     integral,
+                                       const bool              sum_form,
                                        const bool             diagonal) const
 {
     const auto prefixes = integral.prefixes();
@@ -505,7 +510,7 @@ T2CFuncBodyDriver::_add_loop_call_tree(      VCodeLines&      lines,
     
     _add_prim_loop_start(lines, diagonal);
     
-    auto [nsize, name] = t2c::prim_compute_func_name(bra_component, ket_component, integral);
+    auto [nsize, name] = t2c::prim_compute_func_name(bra_component, ket_component, integral, sum_form);
     
     name = t2c::namespace_label(integral) + "::" + name;
     
@@ -523,7 +528,7 @@ T2CFuncBodyDriver::_add_loop_call_tree(      VCodeLines&      lines,
         }
     }
     
-    _add_prim_call_special_vars(lines, integral, true, nsize); 
+    _add_prim_call_special_vars(lines, integral, sum_form, nsize); 
     
     _add_prim_call_data(lines, nsize);
     
@@ -589,24 +594,24 @@ T2CFuncBodyDriver::_add_prim_loop_end(VCodeLines& lines) const
 void
 T2CFuncBodyDriver::_add_prim_call_special_vars(      VCodeLines&  lines,
                                                const I2CIntegral& integral,
-                                               const bool         geom_form,
+                                               const bool         sum_form,
                                                const size_t       spacer) const
 {
     const auto integrand = integral.integrand();
     
     if (integrand.name() ==  "A")
     {
-        if (geom_form)
-        {
-            lines.push_back({5, spacer, 1, "charge,"});
-            
-            lines.push_back({5, spacer, 1, "point,"});
-        }
-        else
+        if (sum_form)
         {
             lines.push_back({5, spacer, 1, "charges,"});
             
             lines.push_back({5, spacer, 1, "points,"});
+        }
+        else
+        {
+            lines.push_back({5, spacer, 1, "charge,"});
+            
+            lines.push_back({5, spacer, 1, "point,"});
         }
     }
     
@@ -614,33 +619,33 @@ T2CFuncBodyDriver::_add_prim_call_special_vars(      VCodeLines&  lines,
     {
         if (integrand.shape() == Tensor(1))
         {
-            if (geom_form)
-            {
-                lines.push_back({5, spacer, 1, "dipole,"});
-                
-                lines.push_back({5, spacer, 1, "point,"});
-            }
-            else
+            if (sum_form)
             {
                 lines.push_back({5, spacer, 1, "dipoles,"});
                 
                 lines.push_back({5, spacer, 1, "points,"});
             }
+            else
+            {
+                lines.push_back({5, spacer, 1, "dipole,"});
+                
+                lines.push_back({5, spacer, 1, "point,"});
+            }
         }
         
         if (integrand.shape() == Tensor(2))
         {
-            if (geom_form)
-            {
-                lines.push_back({5, spacer, 1, "quadrupole,"});
-                
-                lines.push_back({5, spacer, 1, "point,"});
-            }
-            else
+            if (sum_form)
             {
                 lines.push_back({5, spacer, 1, "quadrupoles,"});
                 
                 lines.push_back({5, spacer, 1, "points,"});
+            }
+            else
+            {
+                lines.push_back({5, spacer, 1, "quadrupole,"});
+                
+                lines.push_back({5, spacer, 1, "point,"});
             }
         }
     }

@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"t4c", "Electron Repulsion"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c", "Nuclear potential"});
     
     const int max_angmom = 2;
     
@@ -39,6 +39,8 @@ int main(int argc, char **argv)
     const int ket_gdrv = 0;
     
     const int op_gdrv = 0;
+    
+    const bool sum_form = true;
     
     // set up start timer
     
@@ -50,7 +52,7 @@ int main(int argc, char **argv)
     {
         const auto t2c_drv = T2CCPUGenerator();
         
-        t2c_drv.generate(run_type.second, max_angmom, bra_gdrv, ket_gdrv, op_gdrv);
+        t2c_drv.generate(run_type.second, max_angmom, bra_gdrv, ket_gdrv, op_gdrv, sum_form);
     }
     
     // case: four-center diagonal integrals

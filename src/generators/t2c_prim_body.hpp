@@ -57,17 +57,21 @@ class T2CPrimFuncBodyDriver
     /// Adds pragmas for primitive compute function.
     /// @param lines The code lines container to which  pragma definitions are added.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _add_func_pragma(      VCodeLines&    lines,
-                          const I2CIntegral&   integral) const;
+                          const I2CIntegral&   integral,
+                          const bool           sum_form) const;
     
     /// Adds pragmas for primitive compute function.
     /// @param lines The code lines container to which  pragma definitions are added.
     /// @param component the integral component.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param bra_first The flag to set bra as expansion point.
     void _add_func_pragma(      VCodeLines&      lines,
                           const TensorComponent& component,
                           const I2CIntegral&     integral,
+                          const bool             sum_form,
                           const bool             bra_first) const;
     
     /// Adds pragmas for primitive compute function.
@@ -75,20 +79,32 @@ class T2CPrimFuncBodyDriver
     /// @param bra_component the integral component on bra side.
     /// @param ket_component the integral component on ket side.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _add_func_pragma(      VCodeLines&      lines,
                           const TensorComponent& bra_component,
                           const TensorComponent& ket_component,
-                          const I2CIntegral&     integral) const;
+                          const I2CIntegral&     integral,
+                          const bool             sum_form) const;
     
     /// Adds pragmas for primitive compute function.
     /// @param lines The code lines container to which common pragma definitions are added.
-    void _add_common_pragma(VCodeLines& lines) const;
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    void _add_common_pragma(      VCodeLines& lines,
+                            const bool        sum_form) const;
     
     /// Adds main loop start for primitive compute function.
     /// @param lines The code lines container to which loop start are added.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _add_loop_start(      VCodeLines&  lines,
-                         const I2CIntegral& integral) const;
+                         const I2CIntegral& integral,
+                         const bool         sum_form) const;
+    
+    /// Adds index loop start for primitive compute function.
+    /// @param lines The code lines container to which loop start are added.
+    /// @param integral The base two center integral.
+    void _add_index_loop_start(      VCodeLines&  lines,
+                               const I2CIntegral& integral) const;
     
     /// Adds overlap integral variables after the main loop start for primitive compute function.
     /// @param lines The code lines container to which loop start are added.
@@ -105,8 +121,10 @@ class T2CPrimFuncBodyDriver
     /// Adds nuclear potential integral variables after the main loop start for primitive compute function.
     /// @param lines The code lines container to which loop start are added.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _add_nuclear_potential_vars(      VCodeLines&  lines,
-                                     const I2CIntegral& integral) const;
+                                     const I2CIntegral& integral,
+                                     const bool         sum_form) const;
     
     /// Adds nuclear potential geometrical derivatives integral variables after the main loop start for primitive compute function.
     /// @param lines The code lines container to which loop start are added.
@@ -122,7 +140,9 @@ class T2CPrimFuncBodyDriver
     
     /// Adds main loop end for primitive compute function.
     /// @param lines The code lines container to which loop end are added.
-    void _add_loop_end(VCodeLines&  lines) const;
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    void _add_loop_end(      VCodeLines&  lines,
+                       const bool         sum_form) const;
     
     /// Select integrals components with predefined bra or ket side components.
     /// @param component the tensor component.
@@ -144,10 +164,12 @@ class T2CPrimFuncBodyDriver
     /// @param labels The vector of labels for integral components.
     /// @param components The vector of integral component.
     /// @param integral The base integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _add_simd_code(      VCodeLines&               lines,
                         const std::vector<std::string>& labels,
                         const VT2CIntegrals&            components,
-                        const I2CIntegral&              integral) const;
+                        const I2CIntegral&              integral,
+                        const bool                      sum_form) const;
     
     /// Generates  the recursion  group for given vector of integral components.
     /// @param components The vector of integral component.
@@ -160,27 +182,33 @@ class T2CPrimFuncBodyDriver
     /// @param lines The code lines container to which simd code are added.
     /// @param rgroup The recursion group.
     /// @param integral The base integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _add_prefactors(      VCodeLines&  lines,
                          const R2Group&     rgroup,
-                         const I2CIntegral& integral) const;
+                         const I2CIntegral& integral,
+                         const bool         sum_form) const;
     
     /// Adds simd code lines for given reccursion group.
     /// @param lines The code lines container to which simd code are added.
     /// @param labels The vector of labels for integral components.
     /// @param rgroup The recursion group.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _add_simd_lines(      VCodeLines&               lines,
                          const std::vector<std::string>& labels,
-                         const R2Group&                  rgroup) const;
+                         const R2Group&                  rgroup,
+                         const bool                      sum_form) const;
     
     /// Adds block of  simd code lines for given reccursion distribution.
     /// @param lines The code lines container to which simd code are added.
     /// @param label The label of integral components.
     /// @param integral The integral  component.
     /// @param rdist  The recursion distribution.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _add_simd_lines_block(      VCodeLines&  lines,
                                const std::string& label,
                                const T2CIntegral& integral,
-                               const R2CDist&     rdist) const;
+                               const R2CDist&     rdist,
+                               const bool         sum_form) const;
     
     /// Generates standard label  of auxilary integral.
     /// @param integral The integral  component.
@@ -204,8 +232,10 @@ class T2CPrimFuncBodyDriver
     /// Adds Boys function computation code lines.
     /// @param lines The code lines container to which simd code are added.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _add_boys_compute_lines(      VCodeLines&  lines,
-                                 const I2CIntegral& integral) const;
+                                 const I2CIntegral& integral,
+                                 const bool         sum_form) const;
 
 public:
     /// Creates a two-center compute function body generator.
@@ -214,17 +244,21 @@ public:
     /// Writes body of primitive compute function.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void write_prim_func_body(      std::ofstream& fstream,
-                              const I2CIntegral&   integral) const;
+                              const I2CIntegral&   integral,
+                              const bool           sum_form) const;
     
     /// Writes body of primitive compute function.
     /// @param fstream the file stream.
     /// @param component the integral component.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param bra_first The flag to set bra as expansion point.
     void write_prim_func_body(      std::ofstream&   fstream,
                               const TensorComponent& component,
                               const I2CIntegral&     integral,
+                              const bool             sum_form,
                               const bool             bra_first) const;
     
     /// Writes body of primitive compute function.
@@ -232,10 +266,12 @@ public:
     /// @param bra_component the integral component on bra side.
     /// @param ket_component the integral component on ket side.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void write_prim_func_body(      std::ofstream&   fstream,
                               const TensorComponent& bra_component,
                               const TensorComponent& ket_component,
-                              const I2CIntegral&     integral) const;
+                              const I2CIntegral&     integral,
+                              const bool             sum_form) const;
     
     
 };

@@ -23,6 +23,7 @@
 void
 T2CDocuDriver::write_doc_str(      std::ofstream& fstream,
                              const I2CIntegral&   integral,
+                             const bool           sum_form,
                              const bool           diagonal) const
 {
     auto lines = VCodeLines();
@@ -36,7 +37,7 @@ T2CDocuDriver::write_doc_str(      std::ofstream& fstream,
         lines.push_back({0, 1, 1, label});
     }
     
-    for (const auto& label : _get_special_vars_str(integral, true))
+    for (const auto& label : _get_special_vars_str(integral, sum_form))
     {
         lines.push_back({0, 1, 1, label});
     }
@@ -64,7 +65,8 @@ T2CDocuDriver::write_doc_str(      std::ofstream& fstream,
 
 void
 T2CDocuDriver::write_prim_doc_str(      std::ofstream& fstream,
-                                  const I2CIntegral&   integral) const
+                                  const I2CIntegral&   integral,
+                                  const bool           sum_form) const
 {
     auto lines = VCodeLines();
     
@@ -77,7 +79,7 @@ T2CDocuDriver::write_prim_doc_str(      std::ofstream& fstream,
         lines.push_back({0, 1, 1, label});
     }
     
-    for (const auto& label : _get_special_vars_str(integral, true))
+    for (const auto& label : _get_special_vars_str(integral, sum_form))
     {
         lines.push_back({0, 1, 1, label});
     }
@@ -96,6 +98,7 @@ void
 T2CDocuDriver::write_prim_doc_str(      std::ofstream&   fstream,
                                   const TensorComponent& component,
                                   const I2CIntegral&     integral,
+                                  const bool             sum_form,
                                   const bool             bra_first) const
 {
     auto lines = VCodeLines();
@@ -109,7 +112,7 @@ T2CDocuDriver::write_prim_doc_str(      std::ofstream&   fstream,
         lines.push_back({0, 1, 1, label});
     }
     
-    for (const auto& label : _get_special_vars_str(integral, true))
+    for (const auto& label : _get_special_vars_str(integral, sum_form))
     {
         lines.push_back({0, 1, 1, label});
     }
@@ -128,7 +131,8 @@ void
 T2CDocuDriver::write_prim_doc_str(      std::ofstream&   fstream,
                                   const TensorComponent& bra_component,
                                   const TensorComponent& ket_component,
-                                  const I2CIntegral&     integral) const
+                                  const I2CIntegral&     integral,
+                                  const bool             sum_form) const
 {
     auto lines = VCodeLines();
     
@@ -141,7 +145,7 @@ T2CDocuDriver::write_prim_doc_str(      std::ofstream&   fstream,
         lines.push_back({0, 1, 1, label});
     }
     
-    for (const auto& label : _get_special_vars_str(integral, true))
+    for (const auto& label : _get_special_vars_str(integral, sum_form))
     {
         lines.push_back({0, 1, 1, label});
     }
@@ -331,7 +335,7 @@ T2CDocuDriver::_get_matrix_str(const I2CIntegral& integral) const
 
 std::vector<std::string>
 T2CDocuDriver::_get_special_vars_str(const I2CIntegral& integral,
-                                     const bool         geom_form) const
+                                     const bool         sum_form) const
 {
     std::vector<std::string> vstr;
     
@@ -339,17 +343,17 @@ T2CDocuDriver::_get_special_vars_str(const I2CIntegral& integral,
     
     if (integral.integrand() == Operator("A"))
     {
-        if (geom_form)
-        {
-            vstr.push_back("@param charge the charge of external point.");
-            
-            vstr.push_back("@param point the coordinates of external point.");
-        }
-        else
+        if (sum_form)
         {
             vstr.push_back("@param charges the vector of charges.");
             
             vstr.push_back("@param points the vector of coordinates of external points.");
+        }
+        else
+        {
+            vstr.push_back("@param charge the charge of external point.");
+            
+            vstr.push_back("@param point the coordinates of external point.");
         }
     }
     
@@ -357,17 +361,17 @@ T2CDocuDriver::_get_special_vars_str(const I2CIntegral& integral,
     
     if (integral.integrand() == Operator("AG", Tensor(1)))
     {
-        if (geom_form)
-        {
-            vstr.push_back("@param dipole the dipole of external point.");
-            
-            vstr.push_back("@param point the coordinates of external point.");
-        }
-        else
+        if (sum_form)
         {
             vstr.push_back("@param dipoles the vector of dipoles.");
             
             vstr.push_back("@param points the vector of coordinates of external points.");
+        }
+        else
+        {
+            vstr.push_back("@param dipole the dipole of external point.");
+            
+            vstr.push_back("@param point the coordinates of external point.");
         }
     }
     
@@ -375,17 +379,17 @@ T2CDocuDriver::_get_special_vars_str(const I2CIntegral& integral,
     
     if (integral.integrand() == Operator("AG", Tensor(2)))
     {
-        if (geom_form)
-        {
-            vstr.push_back("@param quadrupole the quadrupole of external point.");
-            
-            vstr.push_back("@param point the coordinates of external point.");
-        }
-        else
+        if (sum_form)
         {
             vstr.push_back("@param quadrupoles the vector of quadrupoles.");
             
             vstr.push_back("@param points the vector of coordinates of external points.");
+        }
+        else
+        {
+            vstr.push_back("@param quadrupole the quadrupole of external point.");
+            
+            vstr.push_back("@param point the coordinates of external point.");
         }
     }
     
