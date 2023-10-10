@@ -152,6 +152,13 @@ T4CDiagFuncBodyDriver::_add_batches_loop_body(      VCodeLines&  lines,
     lines.push_back({2, 0, 2, "const auto [first, last] = batch::getBatchRange(i, ncpairs, simd_width);"});
     
     lines.push_back({2, 0, 2, "const auto ndim = last - first;"});
+    
+    if ((integral[0] + integral[1] + integral[2] + integral[3]) > 0)
+    {
+        lines.push_back({2, 0, 2, "// zero maximum buffer"});
+        
+        lines.push_back({2, 0, 2, "simd::zero(max_buffer);"});
+    }
 
     lines.push_back({2, 0, 2, "// load coordinates data"});
     
