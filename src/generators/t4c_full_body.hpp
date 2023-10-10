@@ -46,6 +46,14 @@ class T4CFullFuncBodyDriver
                              const I4CIntegral& integral,
                              const T4CIntegral& component) const;
     
+    /// Adds definition of block distribution call tree for compute function.
+    /// @param lines The code lines container to which primitives loop start definition are added.
+    /// @param integral The base two center integral.
+    /// @param component The base four center integral component.
+    void _write_block_distributor(      VCodeLines&  lines,
+                                  const I4CIntegral& integral,
+                                  const T4CIntegral& component) const;
+    
 public:
     /// Creates a four-center compute function body generator.
     T4CFullFuncBodyDriver() = default;

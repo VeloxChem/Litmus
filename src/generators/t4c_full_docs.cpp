@@ -99,13 +99,19 @@ T4CFullDocuDriver::_get_vars_str() const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("@param fock_matrices the pointer to Fock matrices.");
+    vstr.push_back("@param fock_matrix the pointer to Fock matrix.");
     
-    vstr.push_back("@param densities the AO density matrices.");
+    vstr.push_back("@param density the AO density matrix.");
     
     vstr.push_back("@param bra_gto_pair_block the GTOs pair block for bra side.");
     
     vstr.push_back("@param ket_gto_pair_block the GTOs pair block for ket side.");
+                                            
+    vstr.push_back("@param diagonal the flag signaling diagonal contributions.");
+                                            
+    vstr.push_back("@param use_rs the flag to use range separated form of electron repulsion integrals.");
+                                            
+    vstr.push_back("@param omega the range separation factor.");
     
     vstr.push_back("@param bra_first the index of the range [bra_first, bra_last) of GTOs on bra side.");
     

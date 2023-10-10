@@ -3,6 +3,7 @@
 #include "string_formater.hpp"
 #include "spherical_momentum.hpp"
 #include "t4c_utils.hpp"
+#include "t2c_utils.hpp"
 
 void
 T4CFullFuncBodyDriver::write_func_body(      std::ofstream& fstream,
@@ -66,6 +67,18 @@ T4CFullFuncBodyDriver::_get_gtos_def() const
     vstr.push_back("const auto ket_nppairs = ket_gto_pair_block.getNumberOfPrimitivePairs();");
     
     vstr.push_back("const auto ket_ncpairs = ket_gto_pair_block.getNumberOfContractedPairs();");
+    
+    vstr.push_back("// set up orbital indexes on bra and ket sides");
+    
+    vstr.push_back("const auto bra_orb_indexes = bra_gto_pair_block.getOrbitalIndexes();");
+    
+    vstr.push_back("const auto ket_orb_indexes = ket_gto_pair_block.getOrbitalIndexes();");
+    
+    vstr.push_back("// angular momentum on bra and ket sides");
+    
+    vstr.push_back("const auto bra_angmom = bra_gto_pair_block.getAngularMomentums();");
+    
+    vstr.push_back("const auto ket_angmom = ket_gto_pair_block.getAngularMomentums();");
     
     return vstr;
 }
@@ -140,6 +153,16 @@ T4CFullFuncBodyDriver::_add_batches_loop_body(      VCodeLines&  lines,
     
     lines.push_back({2, 0, 1, "{"});
     
+    lines.push_back({3, 0, 2, "// skip repeating integral buffers in diagonal blocks"});
+    
+    lines.push_back({3, 0, 1, "if (diagonal)"});
+    
+    lines.push_back({3, 0, 1, "{"});
+    
+    lines.push_back({4, 0, 1, "if (ket_last < j) continue;"});
+    
+    lines.push_back({3, 0, 2, "}"});
+    
     lines.push_back({3, 0, 2, "const auto [bra_coords_a, bra_coords_b]  = bra_gpair_coords[j];"});
         
     for (const auto& tcomp : integral.components<T2CPair, T2CPair>())
@@ -187,11 +210,80 @@ T4CFullFuncBodyDriver::_add_component_body(      VCodeLines&  lines,
     
     lines.push_back({5, 0, 2, "const auto bra_norm = bra_gpair_norms[bra_index];"});
     
-    lines.push_back({5, 0, 1, name + "(buffer, bra_coords_a, bra_coords_b, coords_c_x, coords_c_y, coords_c_z, coords_d_x, coords_d_y, coords_d_z, bra_exp_a, bra_exp_b, bra_norm, ket_exps_c, ket_exps_d, ket_norms, ket_dim);"});
+    lines.push_back({5, 0, 1, name + "(buffer, use_rs, omega, bra_coords_a, bra_coords_b, coords_c_x, coords_c_y, coords_c_z, coords_d_x, coords_d_y, coords_d_z, bra_exp_a, bra_exp_b, bra_norm, ket_exps_c, ket_exps_d, ket_norms, ket_dim);"});
     
     lines.push_back({4, 0, 1, "}"});
     
     lines.push_back({3, 0, 2, "}"});
     
-    lines.push_back({3, 0, 2, "t4cfunc::distribute(fock_matrices, densities, buffer, bra_gto_pair_block, ket_gto_pair_block, j, ket_first, ket_last);"});
+    lines.push_back({3, 0, 1, "#pragma omp critical"});
+    
+    lines.push_back({3, 0, 1, "{"});
+    
+    _write_block_distributor(lines, integral, component);
+    
+    lines.push_back({3, 0, 2, "}"});
+}
+
+void
+T4CFullFuncBodyDriver::_write_block_distributor(      VCodeLines&  lines,
+                                                const I4CIntegral& integral,
+                                                const T4CIntegral& component) const
+{
+    // create angular momentum data
+    
+    const auto amom = SphericalMomentum(integral[0]);
+    
+    const auto bmom = SphericalMomentum(integral[1]);
+    
+    const auto cmom = SphericalMomentum(integral[2]);
+    
+    const auto dmom = SphericalMomentum(integral[3]);
+    
+    // set up tensor component indexes
+    
+    auto idxa = t2c::tensor_component_index(component[0]);
+    
+    auto idxb = t2c::tensor_component_index(component[1]);
+    
+    auto idxc = t2c::tensor_component_index(component[2]);
+    
+    auto idxd = t2c::tensor_component_index(component[3]);
+    
+    // select angular factor pairs
+    
+    const auto apairs = amom.select_pairs(idxa);
+    
+    const auto bpairs = bmom.select_pairs(idxb);
+    
+    const auto cpairs = cmom.select_pairs(idxc);
+    
+    const auto dpairs = dmom.select_pairs(idxd);
+    
+    for (const auto& apair : apairs)
+    {
+        for (const auto& bpair : bpairs)
+        {
+            for (const auto& cpair : cpairs)
+            {
+                for (const auto& dpair : dpairs)
+                {
+                    auto lfactor = t2c::combine_factors(apair.second, bpair.second);
+                    
+                    lfactor = t2c::combine_factors(lfactor, cpair.second);
+                    
+                    lfactor = t2c::combine_factors(lfactor, dpair.second);
+                    
+                    lfactor = (lfactor == "1.0")  ? "" : lfactor + ", ";
+                    
+                    auto label = "{"  + std::to_string(apair.first) +
+                                 ", " + std::to_string(bpair.first) +
+                                 ", " + std::to_string(cpair.first) +
+                                 ", " + std::to_string(dpair.first) + "}";
+                    
+                    lines.push_back({4, 0, 2, "t4cfunc::distribute(fock_matrix, density, buffer, bra_orb_indexes, ket_orb_indexes, bra_angmom, ket_angmom, " + lfactor + label + ", diagonal, j, ket_first, ket_last);"});
+                }
+            }
+        }
+    }
 }

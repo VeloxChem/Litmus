@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"t4c_diag", "Electron Repulsion"});
+    const auto run_type = std::pair<std::string, std::string>({"t4c", "Electron Repulsion"});
     
     const int max_angmom = 2;
     

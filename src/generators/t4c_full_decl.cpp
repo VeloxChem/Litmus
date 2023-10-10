@@ -60,13 +60,19 @@ T4CFullDeclDriver::_get_vars_str(const I4CIntegral& integral,
     
     const auto [nsize, name] = t4c::full_compute_func_name(integral);
     
-    vstr.push_back(name + "(CFockMatrices* fock_matrices,");
+    vstr.push_back(name + "(CFockMatrix* fock_matrix,");
     
-    vstr.push_back(std::string(nsize, ' ') + "const CMatrices* densities,");
+    vstr.push_back(std::string(nsize, ' ') + "const CMatrix* density,");
     
     vstr.push_back(std::string(nsize, ' ') + "const CGtoPairBlock& bra_gto_pair_block,");
     
     vstr.push_back(std::string(nsize, ' ') + "const CGtoPairBlock& ket_gto_pair_block,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const bool diagonal,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const bool use_rs,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const double omega,");
     
     vstr.push_back(std::string(nsize, ' ') + "const int64_t bra_first,");
     

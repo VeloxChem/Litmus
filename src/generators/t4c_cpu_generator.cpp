@@ -257,12 +257,12 @@ T4CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 2, "#include <vector>"});
     
-    lines.push_back({0, 0, 1, "#include \"FockMatrices.hpp\""});
+    lines.push_back({0, 0, 1, "#include \"Matrix.hpp\""});
     
-    lines.push_back({0, 0, 1, "#include \"GtoPairBlock.hpp\""});
+    lines.push_back({0, 0, 1, "#include \"FockMatrix.hpp\""});
     
-    lines.push_back({0, 0, 2, "#include \"Matrices.hpp\""});
-    
+    lines.push_back({0, 0, 2, "#include \"GtoPairBlock.hpp\""});
+
     ost::write_code_lines(fstream, lines);
 }
 
