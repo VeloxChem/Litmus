@@ -11,6 +11,11 @@
 // Four-center compute function body generators for CPU.
 class T4CFullFuncBodyDriver
 {
+    /// Generates vector of strings with spherical momentum factors in compute function.
+    /// @param integral The base four center integral.
+    /// @return The vector of strings with spherical momentum factors in compute function.
+    std::vector<std::string> _get_angmom_def(const I4CIntegral& integral) const;
+    
     /// Generates vector of strings with GTOs pairs definitions in compute function.
     /// @return The vector of strings with GTOS definitions in compute function.
     std::vector<std::string> _get_gtos_def() const;

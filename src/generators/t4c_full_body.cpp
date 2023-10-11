@@ -13,6 +13,11 @@ T4CFullFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "{"});
     
+    for (const auto& label : _get_angmom_def(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
     for (const auto& label : _get_gtos_def())
     {
         lines.push_back({1, 0, 2, label});
@@ -37,6 +42,53 @@ T4CFullFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     lines.push_back({0, 0, 2, "}"});
     
     ost::write_code_lines(fstream, lines);
+}
+
+std::vector<std::string>
+T4CFullFuncBodyDriver::_get_angmom_def(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    if ((integral[0] > 1) || (integral[1] > 1) || (integral[2] > 1) || (integral[3] > 1))
+    {
+        const auto angmom = SphericalMomentum(0);
+            
+        vstr.push_back("// spherical transformation factors");
+        
+        if (integral[0] > 1)
+        {
+            for (const auto& label : angmom.get_factors(integral[0]))
+            {
+                 vstr.push_back("const double " + label + ";");
+            }
+        }
+        
+        if ((integral[1] > 1) && (integral[0] != integral[1]))
+        {
+            for (const auto& label : angmom.get_factors(integral[1]))
+            {
+                vstr.push_back("const double " + label + ";");
+            }
+        }
+        
+        if ((integral[2] > 1) && (integral[0] != integral[2]) && (integral[1] != integral[2]))
+        {
+            for (const auto& label : angmom.get_factors(integral[2]))
+            {
+                vstr.push_back("const double " + label + ";");
+            }
+        }
+        
+        if ((integral[3] > 1) && (integral[0] != integral[3]) && (integral[1] != integral[3]) && (integral[2] != integral[3]))
+        {
+            for (const auto& label : angmom.get_factors(integral[3]))
+            {
+                vstr.push_back("const double " + label + ";");
+            }
+        }
+    }
+    
+    return vstr;
 }
 
 std::vector<std::string>
