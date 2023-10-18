@@ -274,7 +274,9 @@ T4CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 2, "#include \"" + _file_name(integral) +  ".hpp\""});
     
-    lines.push_back({0, 0, 2, "#include <cmath>"});
+    lines.push_back({0, 0, 1, "#include <cmath>"});
+    
+    lines.push_back({0, 0, 2, "#include <vector>"});
     
     lines.push_back({0, 0, 1, "#include \"BatchFunc.hpp\""});
     

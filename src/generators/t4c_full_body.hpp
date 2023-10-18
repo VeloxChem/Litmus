@@ -17,8 +17,9 @@ class T4CFullFuncBodyDriver
     std::vector<std::string> _get_angmom_def(const I4CIntegral& integral) const;
     
     /// Generates vector of strings with GTOs pairs definitions in compute function.
+    /// @param integral The base four center integral.
     /// @return The vector of strings with GTOS definitions in compute function.
-    std::vector<std::string> _get_gtos_def() const;
+    std::vector<std::string> _get_gtos_def(const I4CIntegral& integral) const;
     
     /// Generates vector of strings with variables definitions in compute function.
     /// @param integral The base four center integral.
@@ -47,17 +48,21 @@ class T4CFullFuncBodyDriver
     /// @param lines The code lines container to which loop body definition are added.
     /// @param integral The base four center integral.
     /// @param component The base four center integral component.
+    /// @param index The index of integral component.
     void _add_component_body(      VCodeLines&  lines,
                              const I4CIntegral& integral,
-                             const T4CIntegral& component) const;
+                             const T4CIntegral& component,
+                             const size_t       index) const;
     
     /// Adds definition of block distribution call tree for compute function.
     /// @param lines The code lines container to which primitives loop start definition are added.
     /// @param integral The base two center integral.
     /// @param component The base four center integral component.
+    /// @param index The index of integral component.
     void _write_block_distributor(      VCodeLines&  lines,
                                   const I4CIntegral& integral,
-                                  const T4CIntegral& component) const;
+                                  const T4CIntegral& component,
+                                  const size_t       index) const;
     
 public:
     /// Creates a four-center compute function body generator.

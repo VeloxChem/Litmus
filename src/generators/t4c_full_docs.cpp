@@ -117,6 +117,10 @@ T4CFullDocuDriver::_get_vars_str() const
     
     vstr.push_back("@param bra_last the index of the range [bra_first, bra_last) of GTOs on bra side.");
     
+    vstr.push_back("@param ket_first the index of the range [ket_first, ket_last) of GTOs on ket side.");
+    
+    vstr.push_back("@param ket_last the index of the range [ket_first, ket_last) of GTOs on ket side.");
+    
     return vstr;
 }
 
@@ -126,6 +130,10 @@ T4CFullDocuDriver::_get_prim_vars_str() const
     std::vector<std::string> vstr;
     
     vstr.push_back("@param buffer the integrals buffer.");
+    
+    vstr.push_back("@param use_rs the flag to use range separated form of electron repulsion integrals.");
+    
+    vstr.push_back("@param omega the range separation factor."); 
     
     vstr.push_back("@param coords_a the Cartesian coordinates of center A.");
     
@@ -143,17 +151,21 @@ T4CFullDocuDriver::_get_prim_vars_str() const
     
     vstr.push_back("@param coords_d_z the array of Cartesian Z coordinates on center D.");
     
-    vstr.push_back("@param bra_exps_a the array of exponent on bra center A.");
+    vstr.push_back("@param bra_exp_a the exponent on bra center A.");
     
-    vstr.push_back("@param bra_exps_b the array of exponent on bra center B.");
+    vstr.push_back("@param bra_exp_b the exponent on bra center B.");
     
-    vstr.push_back("@param bra_norm the array of normalization factor on bra side.");
+    vstr.push_back("@param bra_norm the normalization factor on bra side.");
+    
+    vstr.push_back("@param bra_ovl the overlap factor on bra side.");
     
     vstr.push_back("@param ket_exps_c the array of exponents on ket center C.");
         
     vstr.push_back("@param ket_exps_d the array of exponents on ket center D.");
         
     vstr.push_back("@param ket_norms the array of normalization factors on ket side.");
+    
+    vstr.push_back("@param ket_ovls the array of overlap factors on ket side.");
      
     vstr.push_back("@param ket_dim the size of integrals batch on ket side.");
         

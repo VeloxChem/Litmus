@@ -578,7 +578,7 @@ T4CDiagPrimFuncBodyDriver::_add_split_pragma(      VCodeLines&  lines,
                                              const T4CIntegral& integral,
                                              const R4CDist&     rdist) const
 {
-    const auto order = integral.order();
+    //const auto order = integral.order();
     
     std::string vars_str;
     

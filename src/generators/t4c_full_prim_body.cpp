@@ -89,6 +89,8 @@ T4CFullPrimFuncBodyDriver::_get_common_data_str() const
     vstr.push_back("const auto fexps_d = ket_exps_d.data();");
 
     vstr.push_back("const auto knorms = ket_norms.data();");
+    
+    vstr.push_back("const auto kovls = ket_ovls.data();");
 
     vstr.push_back("// set up bra factors");
 
@@ -104,7 +106,7 @@ T4CFullPrimFuncBodyDriver::_get_common_data_str() const
 
     vstr.push_back("const auto ab_z = ra_z - rb_z;");
 
-    vstr.push_back("const auto fss_ab = std::pow(fi_ab_0 * fpi, 1.50) * std::exp(-(bra_exp_a * bra_exp_b * fi_ab_0) * (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z));");
+    vstr.push_back("const auto fss_ab = bra_norm * bra_ovl;");
     
     return vstr;
 }
@@ -130,7 +132,7 @@ T4CFullPrimFuncBodyDriver::_add_coords_compute(VCodeLines& lines) const
 
     lines.push_back({1, 0, 2, "auto rq_z = coords_q_z.data();"});
 
-    lines.push_back({1, 0, 2, "#pragma omp simd aligned(rq_x, rq_y, rq_z, rc_x, rc_y, rc_z, rd_x, rd_y, rd_z, fexps_c, fexps_d : 64)"});
+    lines.push_back({1, 0, 1, "#pragma omp simd aligned(rq_x, rq_y, rq_z, rc_x, rc_y, rc_z, rd_x, rd_y, rd_z, fexps_c, fexps_d : 64)"});
     
     lines.push_back({1, 0, 1, "for (int64_t i = 0; i < ket_dim; i++)"});
     
@@ -184,7 +186,7 @@ T4CFullPrimFuncBodyDriver::_add_boys_compute_lines(      VCodeLines&  lines,
 {
     lines.push_back({1, 0, 2, "// compute Boys function and overlap values"});
 
-    lines.push_back({1, 0, 2, "#pragma omp simd aligned(targs, fss_abcd, rc_x, rc_y, rc_z, rd_x, rd_y, rd_z, rq_x, rq_y, rq_z, fexps_c, fexps_d, knorms : 64)"});
+    lines.push_back({1, 0, 1, "#pragma omp simd aligned(targs, fss_abcd, rc_x, rc_y, rc_z, rd_x, rd_y, rd_z, rq_x, rq_y, rq_z, fexps_c, fexps_d, knorms, kovls : 64)"});
     
     lines.push_back({1, 0, 1, "for (int64_t i = 0; i < ket_dim; i++)"});
     
@@ -208,17 +210,77 @@ T4CFullPrimFuncBodyDriver::_add_boys_compute_lines(      VCodeLines&  lines,
 
     lines.push_back({2, 0, 2, "const auto cd_z = rc_z[i] - rd_z[i];"});
 
-    lines.push_back({2, 0, 2, "fss_abcd[i] = 2.0 * fss_ab * knorms[i] * std::pow(fi_cd_0 * fpi, 1.50) *"});
+    lines.push_back({2, 0, 2, "fss_abcd[i] = 2.0 * fss_ab * knorms[i] * kovls[i] * std::sqrt(invfpi * fe_ab_0 * fe_cd_0 / (fe_ab_0 + fe_cd_0));"});
     
-    lines.push_back({2, 0, 2, "std::exp(-(fexps_c[i] * fexps_d[i] * fi_cd_0) * (cd_x * cd_x + cd_y * cd_y + cd_z * cd_z))"});
+    lines.push_back({1, 0, 2, "}"});
+    
+    lines.push_back({1, 0, 2, "// rescale Boys function arguments and overlap for range sepatation"});
+    
+    lines.push_back({1, 0, 1, "if (use_rs)"});
+    
+    lines.push_back({1, 0, 1, "{"});
+    
+    lines.push_back({2, 0, 1, "#pragma omp simd aligned(targs, fss_abcd, fexps_c, fexps_d : 64)"});
+    
+    lines.push_back({2, 0, 1, "for (int64_t i = 0; i < ket_dim; i++)"});
+    
+    lines.push_back({2, 0, 1, "{"});
+    
+    lines.push_back({3, 0, 2, "const auto fe_cd_0 = fexps_c[i] + fexps_d[i];"});
 
-    lines.push_back({2, 0, 2, "* std::sqrt(invfpi * fe_ab_0 * fe_cd_0 / (fe_ab_0 + fe_cd_0));"});
+    lines.push_back({3, 0, 2, "const auto frho = fe_ab_0 * fe_cd_0 / (fe_ab_0 + fe_cd_0);"});
+
+    lines.push_back({3, 0, 2, "targs[i] *= omega * omega / (omega * omega + frho);"});
+
+    lines.push_back({3, 0, 1, "fss_abcd[i] *= omega / std::sqrt(omega * omega + frho);"});
+    
+    lines.push_back({2, 0, 1, "}"});
     
     lines.push_back({1, 0, 2, "}"});
     
     const auto order = t4c::boys_order(integral);
     
     lines.push_back({1, 0, 2, "bf_table.compute<" + std::to_string(order + 1) + ">(bf_values, bf_args, ket_dim);"});
+    
+    lines.push_back({1, 0, 1, "if (use_rs)"});
+    
+    lines.push_back({1, 0, 1, "{"});
+    
+    lines.push_back({2, 0, 1, "#pragma omp simd aligned(fexps_c, fexps_d : 64)"});
+    
+    lines.push_back({2, 0, 1, "for (int64_t i = 0; i < ket_dim; i++)"});
+    
+    lines.push_back({2, 0, 1, "{"});
+    
+    lines.push_back({3, 0, 2, "const auto fe_cd_0 = fexps_c[i] + fexps_d[i];"});
+
+    lines.push_back({3, 0, 2, "auto frho = fe_ab_0 * fe_cd_0 / (fe_ab_0 + fe_cd_0);"});
+    
+    lines.push_back({3, 0, 2, "const auto fact = omega * omega / (omega * omega + frho);"});
+    
+    for (size_t i = 1; i <= order; i++)
+    {
+        if (i == 1)
+        {
+            lines.push_back({3, 0, 2, "b" + std::to_string(i) + "_vals[i] *= fact;"});
+        }
+        else if (i == 2)
+        {
+            lines.push_back({3, 0, 2, "frho = fact * fact;"});
+            
+            lines.push_back({3, 0, 2, "b" + std::to_string(i) + "_vals[i] *= frho;"});
+        }
+        else
+        {
+            lines.push_back({3, 0, 2, "frho *= fact;"});
+            
+            lines.push_back({3, 0, 2, "b" + std::to_string(i) + "_vals[i] *= frho;"});
+        }
+    }
+    
+    lines.push_back({2, 0, 1, "}"});
+    
+    lines.push_back({1, 0, 2, "}"});
 }
 
 void
