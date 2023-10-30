@@ -124,7 +124,11 @@ T4CFullPrimFuncBodyDriver::_add_coords_compute(VCodeLines& lines) const
 
     lines.push_back({1, 0, 2, "// compute Q center coordinates"});
 
-    lines.push_back({1, 0, 2, "TDoubleArray coords_q_x, coords_q_y, coords_q_z;"});
+    lines.push_back({1, 0, 2, "alignas(64) TDoubleArray coords_q_x;"});
+    
+    lines.push_back({1, 0, 2, "alignas(64) TDoubleArray coords_q_y;"});
+    
+    lines.push_back({1, 0, 2, "alignas(64) TDoubleArray coords_q_z;"});
 
     lines.push_back({1, 0, 2, "auto rq_x = coords_q_x.data();"});
 
@@ -173,7 +177,7 @@ T4CFullPrimFuncBodyDriver::_get_boys_vars_str(const I4CIntegral& integral) const
     
     vstr.push_back("// set up overlap values");
     
-    vstr.push_back("TDoubleArray fovl_ab_cd;");
+    vstr.push_back("alignas(64) TDoubleArray fovl_ab_cd;");
     
     vstr.push_back("auto fss_abcd = fovl_ab_cd.data();");
     
@@ -385,9 +389,9 @@ T4CFullPrimFuncBodyDriver::_add_split_pragma(      VCodeLines&  lines,
         vars_str += " rd_z,";
     }
     
-    vars_str += " b" + std::to_string(order) + "_vals";
+    //vars_str += " b" + std::to_string(order) + "_vals";
     
-    lines.push_back({1, 0, 1, "#pragma omp simd aligned(fints, fss_abcd," + vars_str + " : 64)"});
+    lines.push_back({1, 0, 1, "#pragma omp simd aligned(fints, " + vars_str + " fss_abcd : 64)"});
 }
 
 void
