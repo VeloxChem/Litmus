@@ -654,6 +654,13 @@ T2CFuncBodyDriver::_add_prim_call_special_vars(      VCodeLines&  lines,
     {
         lines.push_back({5, spacer, 1, "point,"});
     }
+    
+    if (integrand.name() ==  "G(r)")
+    {
+        lines.push_back({5, spacer, 1, "gau_exp,"});
+            
+        lines.push_back({5, spacer, 1, "gau_center,"});
+    }
 }
 
 void

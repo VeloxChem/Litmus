@@ -23,6 +23,7 @@
 #include "t2c_npot_driver.hpp"
 #include "t2c_npot_geom_driver.hpp"
 #include "t2c_mpol_driver.hpp"
+#include "t2c_three_center_overlap_driver.hpp"
 #include "t2c_center_driver.hpp"
 
 #include <iostream>
@@ -41,7 +42,7 @@ T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_special_vars_str(integral, true))
+    for (const auto& label : _get_special_vars_str(integral, sum_form))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -105,7 +106,7 @@ T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream&   fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_special_vars_str(integral, true))
+    for (const auto& label : _get_special_vars_str(integral, sum_form))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -166,7 +167,7 @@ T2CPrimFuncBodyDriver::write_prim_func_body(      std::ofstream&   fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_special_vars_str(integral, true))
+    for (const auto& label : _get_special_vars_str(integral, sum_form))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -534,6 +535,11 @@ T2CPrimFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
     {
         _add_multipole_vars(lines, integral);
     }
+    
+    if (integrand.name() == "G(r)")
+    {
+        _add_three_center_overlap_vars(lines, integral);
+    }
 }
 
 void
@@ -832,6 +838,54 @@ T2CPrimFuncBodyDriver::_add_multipole_vars(      VCodeLines&  lines,
 }
 
 void
+T2CPrimFuncBodyDriver::_add_three_center_overlap_vars(      VCodeLines&  lines,
+                                                      const I2CIntegral& integral) const
+{
+    lines.push_back({2, 0, 2, "const auto fxi_0 = bra_exp + ket_fe[i];"});
+        
+    lines.push_back({2, 0, 2, "const auto fe_0 = 1.0 / fxi_0;"});
+        
+    lines.push_back({2, 0, 2, "const auto fz_0 = bra_exp * ket_fe[i] * fe_0 * (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
+        
+    lines.push_back({2, 0, 2, "const auto rpc_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
+
+    lines.push_back({2, 0, 2, "const auto rpc_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
+
+    lines.push_back({2, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
+        
+    lines.push_back({2, 0, 2, "const auto fss_ab = bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
+        
+    lines.push_back({2, 0, 2, "const auto fe_abc_0 = 1.0 / (fxi_0 + gau_exp);"});
+    
+    lines.push_back({2, 0, 2, "const auto fg_0 = gau_exp * fxi_0 * fe_abc_0 * (rpc_x * rpc_x + rpc_y * rpc_y + rpc_z * rpc_z);"});
+    
+    const auto op_gdrv = integral.integrand().shape().order();
+    
+    if ((integral[0] + integral[1]) == 0)
+    {
+        if (op_gdrv == 0)
+        {
+            lines.push_back({2, 0, 1, "fints[i] += std::pow(fe_abc_0 * fpi, 1.50) * fss_ab * std::exp(-fg_0);"});
+        }
+        else
+        {
+            lines.push_back({2, 0, 2, "const auto fss = 2.0 * gau_exp * std::pow(fe_abc_0 * fpi, 1.50) * fss_ab * std::exp(-fg_0);"});
+        }
+    }
+    else
+    {
+        if (op_gdrv == 0)
+        {
+            lines.push_back({2, 0, 2, "const auto fss = std::pow(fe_abc_0 * fpi, 1.50) * fss_ab * std::exp(-fg_0);"});
+        }
+        else
+        {
+            lines.push_back({2, 0, 2, "const auto fss = 2.0 * gau_exp * std::pow(fe_abc_0 * fpi, 1.50) * fss_ab * std::exp(-fg_0);"});
+        }
+    }
+}
+
+void
 T2CPrimFuncBodyDriver::_add_loop_end(VCodeLines& lines,
                                      const bool  sum_form) const
 {
@@ -908,7 +962,7 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
         rgroup = t2c_geom_drv.create_recursion(components);
     }
     
-    // Overlap inntegrals
+    // Overlap integrals
     
     if (integral.integrand() == Operator("1"))
     {
@@ -924,7 +978,7 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
         }
     }
     
-    // Kinetic energy inntegrals
+    // Kinetic energy integrals
     
     if (integral.integrand() == Operator("T"))
     {
@@ -940,7 +994,7 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
         }
     }
     
-    // Nuclear potential inntegrals
+    // Nuclear potential integrals
     
     if (const auto integrand = integral.integrand();
         (integrand.name() == "A") && (integrand.shape() == Tensor(0)))
@@ -950,7 +1004,7 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
         rgroup = t2c_npot_drv.create_recursion(components);
     }
     
-    // Nuclear potential geometrical derivative inntegrals
+    // Nuclear potential geometrical derivative integrals
     
     if (const auto integrand = integral.integrand();
         (integrand.name() == "AG") && (integrand.shape() != Tensor(0)))
@@ -960,7 +1014,7 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
         rgroup = t2c_npot_geom_drv.create_recursion(components);
     }
     
-    // Multipole inntegrals
+    // Multipole integrals
     
     if (const auto integrand = integral.integrand();
         (integrand.name() == "r") && (integrand.shape() != Tensor(0)))
@@ -968,6 +1022,16 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
         T2CMultipoleDriver t2c_mpol_drv;
         
         rgroup = t2c_mpol_drv.create_recursion(components);
+    }
+    
+    // Three center overlap integrals
+    
+    if (const auto integrand = integral.integrand();
+        integrand.name() == "G(r)")
+    {
+        T2CThreeCenterOverlapDriver t2c_t3ovl_drv;
+        
+        rgroup = t2c_t3ovl_drv.create_recursion(components);
     }
     
     // ... other integrals
@@ -1052,6 +1116,65 @@ T2CPrimFuncBodyDriver::_add_prefactors(      VCodeLines&  lines,
         if (t2c::find_factor(rgroup, "rpc_z"))
         {
             lines.push_back({spacer, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
+        }
+    }
+    
+    if (integrand.name() == "G(r)")
+    {
+        const auto order = integrand.shape().order();
+        
+        if (t2c::find_factor(rgroup, "rga_x") || t2c::find_factor(rgroup, "rgb_x") || (order == 1))
+        {
+            lines.push_back({spacer, 0, 2, "const auto r_gx = fe_abc_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] + gau_exp * c_rx);"});
+        }
+        
+        if (t2c::find_factor(rgroup, "rga_y") || t2c::find_factor(rgroup, "rgb_y") || (order == 1))
+        {
+            lines.push_back({spacer, 0, 2, "const auto r_gy = fe_abc_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] + gau_exp * c_ry);"});
+        }
+        
+        if (t2c::find_factor(rgroup, "rga_z") || t2c::find_factor(rgroup, "rgb_z") || (order == 1))
+        {
+            lines.push_back({spacer, 0, 2, "const auto r_gz = fe_abc_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] + gau_exp * c_rz);"});
+        }
+        
+        if (order == 1)
+        {
+            lines.push_back({spacer, 0, 2, "const auto rgc_x = r_gx - c_rx;"});
+            
+            lines.push_back({spacer, 0, 2, "const auto rgc_y = r_gy - c_ry;"});
+            
+            lines.push_back({spacer, 0, 2, "const auto rgc_z = r_gz - c_rz;"});
+        }
+        
+        if (t2c::find_factor(rgroup, "rga_x"))
+        {
+            lines.push_back({spacer, 0, 2, "const auto rga_x = r_gx - bra_rx;"});
+        }
+        
+        if (t2c::find_factor(rgroup, "rga_y"))
+        {
+            lines.push_back({spacer, 0, 2, "const auto rga_y = r_gy - bra_ry;"});
+        }
+        
+        if (t2c::find_factor(rgroup, "rga_z"))
+        {
+            lines.push_back({spacer, 0, 2, "const auto rga_z = r_gz - bra_rz;"});
+        }
+        
+        if (t2c::find_factor(rgroup, "rgb_x"))
+        {
+            lines.push_back({spacer, 0, 2, "const auto rgb_x = r_gx - ket_rx[i];"});
+        }
+        
+        if (t2c::find_factor(rgroup, "rgb_y"))
+        {
+            lines.push_back({spacer, 0, 2, "const auto rgb_y = r_gy - ket_ry[i];"});
+        }
+        
+        if (t2c::find_factor(rgroup, "rgb_z"))
+        {
+            lines.push_back({spacer, 0, 2, "const auto rgb_z = r_gz - ket_rz[i];"});
         }
     }
 }
@@ -1218,6 +1341,19 @@ T2CPrimFuncBodyDriver::_get_aux_label(const T2CIntegral& integral,
             return "faa_" + integral.integrand().shape().label();
         }
     }
+    
+    if (bname == "G(r)")
+    {
+        if (iorder == 0)
+        {
+            return std::string("fss");
+        }
+        
+        if (iorder == 1)
+        {
+            return "fss * rgc_" + integral.integrand().shape().label();
+        }
+    }
 
     return std::string();
 }
@@ -1239,6 +1375,20 @@ T2CPrimFuncBodyDriver::_get_special_vars_str(const I2CIntegral& integral,
             vstr.push_back("const auto c_ry = point[1];");
                 
             vstr.push_back("const auto c_rz = point[2];");
+        }
+    }
+    
+    if (integral.integrand().name() == "G(r)")
+    {
+        if (!sum_form)
+        {
+            vstr.push_back("// set up coordinates for Gaussian center");
+            
+            vstr.push_back("const auto c_rx = gau_center[0];");
+            
+            vstr.push_back("const auto c_ry = gau_center[1];");
+            
+            vstr.push_back("const auto c_rz = gau_center[2];");
         }
     }
     

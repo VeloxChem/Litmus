@@ -86,6 +86,8 @@ T2CCPUGenerator::_is_available(const std::string& label) const
     
     if (fstr::lowercase(label) == "multipole") return true;
     
+    if (fstr::lowercase(label) == "three center overlap") return true;
+    
     return false;
 }
 
@@ -144,6 +146,13 @@ T2CCPUGenerator::_get_integral(const std::string& label,
     if (fstr::lowercase(label) == "multipole")
     {
         return I2CIntegral(bra, ket, Operator("r", Tensor(op_gdrv)), 0, prefixes);
+    }
+    
+    // three center integrals
+        
+    if (fstr::lowercase(label) == "three center overlap")
+    {
+        return I2CIntegral(bra, ket, Operator("G(r)", Tensor(op_gdrv)), 0, prefixes);
     }
  
     return I2CIntegral();

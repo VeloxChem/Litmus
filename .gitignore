@@ -2,3 +2,8 @@ Litmus.xcodeproj/
 .DS_Store
 build/
 CMakeLists.txt
+*~
+*.d
+*.o
+*.a
+litmus.x

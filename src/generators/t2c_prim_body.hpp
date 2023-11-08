@@ -138,6 +138,12 @@ class T2CPrimFuncBodyDriver
     void _add_multipole_vars(      VCodeLines&  lines,
                              const I2CIntegral& integral) const;
     
+    /// Adds three center overlap integral variables after the main loop start for primitive compute function.
+    /// @param lines The code lines container to which loop start are added.
+    /// @param integral The base two center integral.
+    void _add_three_center_overlap_vars(      VCodeLines&  lines,
+                                        const I2CIntegral& integral) const;
+    
     /// Adds main loop end for primitive compute function.
     /// @param lines The code lines container to which loop end are added.
     /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.

@@ -84,6 +84,21 @@ integral_label(const I2CIntegral& integral)
         }
     }
     
+    if (integrand.name() == "G(r)")
+    {
+        const auto iorder = integrand.shape().order();
+        
+        if (iorder == 0)
+        {
+            return "ThreeCenterOverlap";
+        }
+        
+        if (iorder == 1)
+        {
+            return "ThreeCenterOverlapGradient";
+        }
+    }
+    
     return std::string();
 }
 
@@ -356,6 +371,13 @@ namespace_label(const I2CIntegral& integral)
         if (iorder == "2") return "quadrec";
         
         if (iorder == "3") return "octurec";
+    }
+    
+    if (integrand.name() == "G(r)")
+    {
+        if (iorder == "0") return "t3ovlrec";
+        
+        if (iorder == "1") return "g3ovlrec";
     }
     
     return std::string();

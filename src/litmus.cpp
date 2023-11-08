@@ -30,13 +30,13 @@ int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"t4c", "Electron Repulsion"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c", "Overlap"});
     
     const int max_angmom = 2;
     
-    const int bra_gdrv = 0;
+    const int bra_gdrv = 1;
     
-    const int ket_gdrv = 0;
+    const int ket_gdrv = 1;
     
     const int op_gdrv = 0;
     

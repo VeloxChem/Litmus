@@ -400,6 +400,15 @@ T2CDocuDriver::_get_special_vars_str(const I2CIntegral& integral,
         vstr.push_back("@param point the coordinates of external point.");
     }
     
+    // three center overlap integrals
+    
+    if (integral.integrand().name() == "G(r)")
+    {
+        vstr.push_back("@param gau_exp the exponent of external Gaussian.");
+        
+        vstr.push_back("@param gau_center the coordinates of external Gaussian center.");
+    }
+    
     return vstr;
 }
 

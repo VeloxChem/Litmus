@@ -268,6 +268,15 @@ T2CDeclDriver::_get_special_vars_str(const I2CIntegral& integral,
         vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
     }
     
+    // three center overlap integrals
+    
+    if (integral.integrand().name() == "G(r)")
+    {
+        vstr.push_back(std::string(nsize, ' ') + "const double gau_exp,");
+        
+        vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& gau_center,");
+    }
+    
     return vstr;
 }
 

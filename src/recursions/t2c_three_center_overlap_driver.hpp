@@ -14,8 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef t2c_mpol_driver_hpp
-#define t2c_mpol_driver_hpp
+#ifndef t2c_three_center_overlap_driver_hpp
+#define t2c_three_center_overlap_driver_hpp
 
 #include <optional>
 #include <array>
@@ -23,20 +23,20 @@
 #include "tensor_component.hpp"
 #include "t2c_defs.hpp"
 
-/// Two center multipole integrals driver class.
-class T2CMultipoleDriver
+/// Three center overlap integrals driver class.
+class T2CThreeCenterOverlapDriver
 {
     /// Cartesian coordinate tensor components.
     std::array<TensorComponent, 3> _rxyz;
     
 public:
-    /// Creates a two center overlap integrals driver.
-    T2CMultipoleDriver();
+    /// Creates a three center overlap integrals driver.
+    T2CThreeCenterOverlapDriver();
     
-    /// Check if recursion term is for two-center multipole integral.
+    /// Check if recursion term is for three-center overlap integral.
     /// @param rterm The recursion term.
-    /// @return True if reccursion expansion belongs to multipole recursion, False otherwise.
-    bool is_multipole(const R2CTerm& rterm) const;
+    /// @return True if reccursion expansion belongs to three center overlap recursion, False otherwise.
+    bool is_three_center_overlap(const R2CTerm& rterm) const;
     
     /// Applies vertical recursion to bra side of given recursion term.
     /// @param rterm The recursion term.
@@ -82,4 +82,4 @@ public:
     R2Group create_recursion(const VT2CIntegrals& vints) const;
 };
 
-#endif /* t2c_mpol_driver_hpp */
+#endif /* t2c_three_center_overlap_driver_hpp */
