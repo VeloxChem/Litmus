@@ -56,12 +56,19 @@ std::string namespace_label(const I4CIntegral& integral);
 std::pair<size_t, std::string> prim_diag_compute_func_name(const T4CIntegral& component,
                                                            const I4CIntegral& integral);
 
-/// Generates primitive diagonal compute function name.
+/// Generates primitive compute function name.
 /// @param component the integral component.
 /// @param integral The base two center integral.
 /// @return The primitive diagonal compute function name.
 std::pair<size_t, std::string> prim_full_compute_func_name(const T4CIntegral& component,
                                                            const I4CIntegral& integral);
+
+/// Generates primitive VRR compute function name.
+/// @param component the integral component.
+/// @param integral The base two center integral.
+/// @return The primitive diagonal compute function name.
+std::pair<size_t, std::string> prim_vrr_compute_func_name(const T4CIntegral& component,
+                                                          const I4CIntegral& integral);
 
 /// Generates primitive file name.
 /// @param component the integral component.
@@ -76,6 +83,13 @@ std::string diag_prim_file_name(const T4CIntegral& component,
 /// @return The primitive file name.
 std::string full_prim_file_name(const T4CIntegral& component,
                                 const I4CIntegral& integral);
+
+/// Generates primitive VRR  file name.
+/// @param component the integral component.
+/// @param integral The base four center integral.
+/// @return The primitive file name.
+std::string full_vrr_file_name(const T4CIntegral& component,
+                               const I4CIntegral& integral);
 
 /// Gets Boys function order for given integral.
 /// @param integral The base two center integral.

@@ -114,6 +114,20 @@ prim_full_compute_func_name(const T4CIntegral& component,
     return {label.size() + 1, label};
 }
 
+std::pair<size_t, std::string>
+prim_vrr_compute_func_name(const T4CIntegral& component,
+                           const I4CIntegral& integral)
+{
+    auto label = "compPrimitiveVRR" + t4c::integral_label(integral) + integral.label();
+    
+    if ((integral[0] + integral[1] + integral[2] + integral[3]) > 0)
+    {
+        label += "_" + fstr::upcase(component.label());
+    }
+    
+    return {label.size() + 1, label};
+}
+
 std::string
 diag_prim_file_name(const T4CIntegral& component,
                const I4CIntegral& integral)
@@ -133,6 +147,20 @@ full_prim_file_name(const T4CIntegral& component,
                     const I4CIntegral& integral)
 {
     auto label = "PrimitiveFull" + t4c::integral_label(integral) + integral.label();
+    
+    if ((integral[0] + integral[1] + integral[2] + integral[3]) > 0)
+    {
+        label += "_" + fstr::upcase(component.label());
+    }
+    
+    return label;
+}
+
+std::string
+full_vrr_file_name(const T4CIntegral& component,
+                   const I4CIntegral& integral)
+{
+    auto label = "PrimitiveVRR" + t4c::integral_label(integral) + integral.label();
     
     if ((integral[0] + integral[1] + integral[2] + integral[3]) > 0)
     {
@@ -250,8 +278,6 @@ debug_info(const R4CDist& rdist)
         
     for (size_t i = 0; i < rdist.terms(); i++)
     {
-        // std::cout << " RECURSION TERM (" << i << "): " << rdist[i].label() << std::endl;
-            
         std::cout << " RECURSION TERM (" << i << "): " << rdist[i].integral().bra().to_string() << " : ";
         
         std::cout << rdist[i].integral().ket().to_string() << " (" << rdist[i].order() << ") -> Factors: ";

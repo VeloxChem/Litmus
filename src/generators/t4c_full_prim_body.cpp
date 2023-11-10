@@ -39,6 +39,42 @@ T4CFullPrimFuncBodyDriver::write_prim_func_body(      std::ofstream& fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+void
+T4CFullPrimFuncBodyDriver::write_vrr_func_body(      std::ofstream& fstream,
+                                               const T4CIntegral&   component,
+                                               const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "{"});
+    
+    for (const auto& label : _get_vrr_common_data_str())
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    _add_coords_compute(lines);
+    
+    for (const auto& label : _get_boys_vars_str(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    _add_boys_compute_lines(lines, integral);
+    
+    lines.push_back({1, 0, 2, "// set up pointer to integrals buffer"});
+    
+    lines.push_back({1, 0, 2, "auto fints = buffer.data();"});
+    
+    lines.push_back({1, 0, 2, "// compute electron repulsion integrals"});
+    
+    _add_split_simd_code(lines, component, integral);
+    
+    lines.push_back({0, 0, 2, "}"});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
 std::vector<std::string>
 T4CFullPrimFuncBodyDriver::_get_common_data_str() const
 {
@@ -105,6 +141,72 @@ T4CFullPrimFuncBodyDriver::_get_common_data_str() const
     vstr.push_back("const auto ab_y = ra_y - rb_y;");
 
     vstr.push_back("const auto ab_z = ra_z - rb_z;");
+
+    vstr.push_back("const auto fss_ab = bra_norm * bra_ovl;");
+    
+    return vstr;
+}
+
+std::vector<std::string>
+T4CFullPrimFuncBodyDriver::_get_vrr_common_data_str() const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("// set up math constants");
+        
+    vstr.push_back("const auto fpi = mathconst::getPiValue();");
+    
+    vstr.push_back("const auto invfpi = 1.0 / mathconst::getPiValue();");
+    
+    vstr.push_back("// set up coordinates for bra center A");
+
+    vstr.push_back("const auto ra_x = coords_a[0];");
+
+    vstr.push_back("const auto ra_y = coords_a[1];");
+
+    vstr.push_back("const auto ra_z = coords_a[2];");
+    
+    vstr.push_back("// set up coordinates for bra center B");
+
+    vstr.push_back("const auto rb_x = coords_b[0];");
+
+    vstr.push_back("const auto rb_y = coords_b[1];");
+
+    vstr.push_back("const auto rb_z = coords_b[2];");
+    
+    vstr.push_back("// set up coordinates for bra center C");
+
+    vstr.push_back("const auto rc_x = coords_c_x.data();");
+
+    vstr.push_back("const auto rc_y = coords_c_y.data();");
+
+    vstr.push_back("const auto rc_z = coords_c_z.data();");
+
+    vstr.push_back("// set up coordinates for bra center D");
+
+    vstr.push_back("const auto rd_x = coords_d_x.data();");
+
+    vstr.push_back("const auto rd_y = coords_d_y.data();");
+
+    vstr.push_back("const auto rd_z = coords_d_z.data();");
+
+    vstr.push_back("// set up ket side data");
+
+    vstr.push_back("const auto fexps_c = ket_exps_c.data();");
+
+    vstr.push_back("const auto fexps_d = ket_exps_d.data();");
+
+    vstr.push_back("const auto knorms = ket_norms.data();");
+    
+    vstr.push_back("const auto kovls = ket_ovls.data();");
+
+    vstr.push_back("// set up bra factors");
+
+    vstr.push_back("const auto fe_ab_0 = bra_exp_a + bra_exp_b;");
+
+    vstr.push_back("const auto fi_ab_0 = 1.0 / fe_ab_0;");
+
+    vstr.push_back("// compute bra side overlap");
 
     vstr.push_back("const auto fss_ab = bra_norm * bra_ovl;");
     
@@ -208,11 +310,11 @@ T4CFullPrimFuncBodyDriver::_add_boys_compute_lines(      VCodeLines&  lines,
 
     lines.push_back({2, 0, 2, "targs[i] = fe_ab_0 * fe_cd_0 * (rpq_x * rpq_x + rpq_y * rpq_y + rpq_z * rpq_z) / (fe_ab_0 + fe_cd_0);"});
 
-    lines.push_back({2, 0, 2, "const auto cd_x = rc_x[i] - rd_x[i];"});
+    //lines.push_back({2, 0, 2, "const auto cd_x = rc_x[i] - rd_x[i];"});
 
-    lines.push_back({2, 0, 2, "const auto cd_y = rc_y[i] - rd_y[i];"});
+    //lines.push_back({2, 0, 2, "const auto cd_y = rc_y[i] - rd_y[i];"});
 
-    lines.push_back({2, 0, 2, "const auto cd_z = rc_z[i] - rd_z[i];"});
+    //lines.push_back({2, 0, 2, "const auto cd_z = rc_z[i] - rd_z[i];"});
 
     lines.push_back({2, 0, 2, "fss_abcd[i] = 2.0 * fss_ab * knorms[i] * kovls[i] * std::sqrt(invfpi * fe_ab_0 * fe_cd_0 / (fe_ab_0 + fe_cd_0));"});
     

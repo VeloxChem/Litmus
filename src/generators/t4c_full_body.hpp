@@ -42,7 +42,9 @@ class T4CFullFuncBodyDriver
     
     /// Adds loop end definitions to code lines container.
     /// @param lines The code lines container to which loop end definition are added.
-    void _add_batches_loop_end(VCodeLines& lines) const;
+    /// @param integral The base two center integral.
+    void _add_batches_loop_end(      VCodeLines&  lines,
+                               const I4CIntegral& integral) const;
     
     /// Adds loop body definitions to code lines container.
     /// @param lines The code lines container to which loop body definition are added.

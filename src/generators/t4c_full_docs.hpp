@@ -29,6 +29,10 @@ class T4CFullDocuDriver
     /// Generates vector of variable strings.
     /// @return The vector of variable strings.
     std::vector<std::string> _get_prim_vars_str() const;
+    
+    /// Generates vector of variable strings.
+    /// @return The vector of variable strings.
+    std::vector<std::string> _get_vrr_vars_str() const;
 
 public:
     /// Creates a four-center documentation generator.
@@ -47,6 +51,14 @@ public:
     void write_prim_doc_str(      std::ofstream& fstream,
                             const T4CIntegral&   component,
                             const I4CIntegral&   integral) const;
+    
+    /// Writes documentation string for primitive VRR compute function.
+    /// @param fstream the file stream.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    void write_vrr_doc_str(      std::ofstream& fstream,
+                           const T4CIntegral&   component,
+                           const I4CIntegral&   integral) const;
 };
 
 #endif /* t4c_full_docs_hpp */

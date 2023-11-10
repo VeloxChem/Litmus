@@ -15,6 +15,10 @@ class T4CFullPrimFuncBodyDriver
     /// @return The vector of common primitives  data.
     std::vector<std::string> _get_common_data_str() const;
     
+    /// Generates the common data definitions in primitive compute function.
+    /// @return The vector of common primitives  data.
+    std::vector<std::string> _get_vrr_common_data_str() const;
+    
     /// Adds block of code for computation of P  and Q coordinates.
     /// @param lines The code lines container to which simd code are added.
     void _add_coords_compute(VCodeLines&  lines) const;
@@ -89,6 +93,14 @@ public:
     void write_prim_func_body(      std::ofstream& fstream,
                               const T4CIntegral&   component,
                               const I4CIntegral&   integral) const;
+    
+    /// Writes body of primitive VRR compute function.
+    /// @param fstream the file stream.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    void write_vrr_func_body(      std::ofstream& fstream,
+                             const T4CIntegral&   component,
+                             const I4CIntegral&   integral) const;
 };
 
 
