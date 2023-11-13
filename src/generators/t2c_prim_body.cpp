@@ -1036,6 +1036,8 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
     
     // ... other integrals
     
+    rgroup.simplify(); 
+    
     return rgroup;
 }
 

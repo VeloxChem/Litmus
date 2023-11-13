@@ -500,6 +500,10 @@ get_factor_label(const R2CTerm& rterm,
             
         flabel = " " + flabel;
     }
+    
+    // fix for special case
+    
+    if (flabel == "-") flabel = "-1.0";
         
     return flabel;
 }
