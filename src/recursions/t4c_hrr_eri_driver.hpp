@@ -38,31 +38,31 @@ public:
     /// @return True if reccursion expansion belongs to electron repulsion recursion, False otherwise.
     bool is_electron_repulsion(const R4CTerm& rterm) const;
     
-    /// Applies horizontal recursion to bra side center A of given recursion term.
+    /// Applies horizontal recursion to bra side  of given recursion term.
     /// @param rterm The recursion term.
     /// @param axis The axis of vertical recursion.
     /// @return The recursion expansion of given recursion term.
-    std::optional<R4CDist> bra_hrr_a(const R4CTerm& rterm,
-                                     const char     axis) const;
+    std::optional<R4CDist> bra_hrr(const R4CTerm& rterm,
+                                   const char     axis) const;
     
-    /// Applies horizontal recursion to ket side center C of given recursion term.
+    /// Applies horizontal recursion to ket side of given recursion term.
     /// @param rterm The recursion term.
     /// @param axis The axis of vertical recursion.
     /// @return The recursion expansion of given recursion term.
-    std::optional<R4CDist> ket_hrr_c(const R4CTerm& rterm,
-                                     const char     axis) const;
+    std::optional<R4CDist> ket_hrr(const R4CTerm& rterm,
+                                   const char     axis) const;
     
-    /// Applies horizontal recursion to bra side center A recursion term containing
+    /// Applies horizontal recursion to bra side recursion term containing
     /// electron repulsion integral.
     /// @param rterm The recursion term with electron repulsion integral.
     /// @return The recursion expansion of given recursion term.
-    R4CDist apply_bra_hrr_a(const R4CTerm& rterm) const;
+    R4CDist apply_bra_hrr(const R4CTerm& rterm) const;
     
-    /// Applies horizontal recursion to ket side center C recursion term containing
+    /// Applies horizontal recursion to ket side  recursion term containing
     /// electron repulsion integral.
     /// @param rterm The recursion term with electron repulsion integral.
     /// @return The recursion expansion of given recursion term.
-    R4CDist apply_ket_hrr_c(const R4CTerm& rterm) const;
+    R4CDist apply_ket_hrr(const R4CTerm& rterm) const;
     
     /// Recursively applies Obara-Saika recursion to recursion expansion.
     /// @param rdist The recursion expansion.
@@ -70,11 +70,11 @@ public:
     
     /// Recursively applies horizontal recursion to bra side center A of given recursion expansion.
     /// @param rdist The recursion expansion.
-    void apply_bra_hrr_a(R4CDist& rdist) const;
+    void apply_bra_hrr(R4CDist& rdist) const;
     
     /// Recursively applies horizontal recursion to ket side center C of given recursion expansion.
     /// @param rdist The recursion expansion.
-    void apply_ket_hrr_c(R4CDist& rdist) const;
+    void apply_ket_hrr(R4CDist& rdist) const;
     
     /// Creates recursion group from vector of electron repulsion integral components.
     /// @param vints The  vector of electron repulsion integral components.

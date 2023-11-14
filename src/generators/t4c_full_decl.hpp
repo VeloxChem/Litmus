@@ -36,6 +36,15 @@ class T4CFullDeclDriver
                                                const I4CIntegral& integral,
                                                const bool         terminus) const;
     
+    /// Generates vector of variables strings.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    /// @param terminus The flag to add termination symbol.
+    /// @return The vector of variables strings.
+    std::vector<std::string> _get_hrr_vars_str(const T4CIntegral& component,
+                                               const I4CIntegral& integral,
+                                               const bool         terminus) const;
+    
 public:
     /// Creates a four-center functions declaration generator.
     T4CFullDeclDriver() = default;
@@ -64,6 +73,16 @@ public:
     /// @param integral The base two center integral.
     /// @param terminus The flag to add termination symbol.
     void write_vrr_func_decl(      std::ofstream& fstream,
+                              const T4CIntegral&   component,
+                              const I4CIntegral&   integral,
+                              const bool           terminus) const;
+    
+    /// Writes declaration of primitive HRR compute function.
+    /// @param fstream the file stream.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    /// @param terminus The flag to add termination symbol.
+    void write_hrr_func_decl(      std::ofstream& fstream,
                               const T4CIntegral&   component,
                               const I4CIntegral&   integral,
                               const bool           terminus) const;

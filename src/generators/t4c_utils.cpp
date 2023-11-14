@@ -128,6 +128,20 @@ prim_vrr_compute_func_name(const T4CIntegral& component,
     return {label.size() + 1, label};
 }
 
+std::pair<size_t, std::string>
+contr_hrr_compute_func_name(const T4CIntegral& component,
+                            const I4CIntegral& integral)
+{
+    auto label = "compContractedHRR" + t4c::integral_label(integral) + integral.label();
+    
+    if ((integral[0] + integral[1] + integral[2] + integral[3]) > 0)
+    {
+        label += "_" + fstr::upcase(component.label());
+    }
+    
+    return {label.size() + 1, label};
+}
+
 std::string
 diag_prim_file_name(const T4CIntegral& component,
                const I4CIntegral& integral)
@@ -161,6 +175,20 @@ full_vrr_file_name(const T4CIntegral& component,
                    const I4CIntegral& integral)
 {
     auto label = "PrimitiveVRR" + t4c::integral_label(integral) + integral.label();
+    
+    if ((integral[0] + integral[1] + integral[2] + integral[3]) > 0)
+    {
+        label += "_" + fstr::upcase(component.label());
+    }
+    
+    return label;
+}
+
+std::string
+full_hrr_file_name(const T4CIntegral& component,
+                   const I4CIntegral& integral)
+{
+    auto label = "ContractedHRR" + t4c::integral_label(integral) + integral.label();
     
     if ((integral[0] + integral[1] + integral[2] + integral[3]) > 0)
     {

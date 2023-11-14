@@ -19,6 +19,10 @@ class T4CFullPrimFuncBodyDriver
     /// @return The vector of common primitives  data.
     std::vector<std::string> _get_vrr_common_data_str() const;
     
+    /// Generates the common data definitions in primitive compute function.
+    /// @return The vector of common primitives  data.
+    std::vector<std::string> _get_hrr_common_data_str() const;
+    
     /// Adds block of code for computation of P  and Q coordinates.
     /// @param lines The code lines container to which simd code are added.
     void _add_coords_compute(VCodeLines&  lines) const;
@@ -41,6 +45,14 @@ class T4CFullPrimFuncBodyDriver
     void _add_split_simd_code(      VCodeLines&  lines,
                               const T4CIntegral& component,
                               const I4CIntegral& integral) const;
+    
+    /// Adds split simd code generated for selected set of integral components.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param component The integral component.
+    /// @param integral The base integral.
+    void _add_split_hrr_simd_code(      VCodeLines&  lines,
+                                  const T4CIntegral& component,
+                                  const I4CIntegral& integral) const;
     
     /// Adds block of  simd code lines for given reccursion distribution.
     /// @param lines The code lines container to which simd code are added.
@@ -99,6 +111,14 @@ public:
     /// @param component the integral component.
     /// @param integral The base two center integral.
     void write_vrr_func_body(      std::ofstream& fstream,
+                             const T4CIntegral&   component,
+                             const I4CIntegral&   integral) const;
+    
+    /// Writes body of primitive HRR compute function.
+    /// @param fstream the file stream.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    void write_hrr_func_body(      std::ofstream& fstream,
                              const T4CIntegral&   component,
                              const I4CIntegral&   integral) const;
 };

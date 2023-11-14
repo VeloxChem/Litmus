@@ -2,6 +2,7 @@
 
 #include "t4c_utils.hpp"
 #include "t4c_full_eri_driver.hpp"
+#include "t4c_hrr_eri_driver.hpp"
 
 void
 T4CFullPrimFuncBodyDriver::write_prim_func_body(      std::ofstream& fstream,
@@ -69,6 +70,33 @@ T4CFullPrimFuncBodyDriver::write_vrr_func_body(      std::ofstream& fstream,
     lines.push_back({1, 0, 2, "// compute electron repulsion integrals"});
     
     _add_split_simd_code(lines, component, integral);
+    
+    lines.push_back({0, 0, 2, "}"});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CFullPrimFuncBodyDriver::write_hrr_func_body(      std::ofstream& fstream,
+                                               const T4CIntegral&   component,
+                                               const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "{"});
+    
+    for (const auto& label : _get_hrr_common_data_str())
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    lines.push_back({1, 0, 2, "// set up pointer to integrals buffer"});
+    
+    lines.push_back({1, 0, 2, "auto fints = buffer.data();"});
+    
+    lines.push_back({1, 0, 2, "// compute electron repulsion integrals"});
+    
+    _add_split_hrr_simd_code(lines, component, integral);
     
     lines.push_back({0, 0, 2, "}"});
     
@@ -212,6 +240,47 @@ T4CFullPrimFuncBodyDriver::_get_vrr_common_data_str() const
     
     return vstr;
 }
+
+std::vector<std::string>
+T4CFullPrimFuncBodyDriver::_get_hrr_common_data_str() const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("// set up coordinates for bra center A");
+
+    vstr.push_back("const auto ra_x = coords_a[0];");
+
+    vstr.push_back("const auto ra_y = coords_a[1];");
+
+    vstr.push_back("const auto ra_z = coords_a[2];");
+    
+    vstr.push_back("// set up coordinates for bra center B");
+
+    vstr.push_back("const auto rb_x = coords_b[0];");
+
+    vstr.push_back("const auto rb_y = coords_b[1];");
+
+    vstr.push_back("const auto rb_z = coords_b[2];");
+    
+    vstr.push_back("// set up coordinates for bra center C");
+
+    vstr.push_back("const auto rc_x = coords_c_x.data();");
+
+    vstr.push_back("const auto rc_y = coords_c_y.data();");
+
+    vstr.push_back("const auto rc_z = coords_c_z.data();");
+
+    vstr.push_back("// set up coordinates for bra center D");
+
+    vstr.push_back("const auto rd_x = coords_d_x.data();");
+
+    vstr.push_back("const auto rd_y = coords_d_y.data();");
+
+    vstr.push_back("const auto rd_z = coords_d_z.data();");
+
+    return vstr;
+}
+
 
 void
 T4CFullPrimFuncBodyDriver::_add_coords_compute(VCodeLines& lines) const
@@ -407,6 +476,23 @@ T4CFullPrimFuncBodyDriver::_add_split_simd_code(      VCodeLines&  lines,
 }
 
 void
+T4CFullPrimFuncBodyDriver::_add_split_hrr_simd_code(      VCodeLines&  lines,
+                                                    const T4CIntegral& component,
+                                                    const I4CIntegral& integral) const
+{
+    T4CHrrElectronRepulsionDriver t4c_eri_drv;
+    
+    const auto rdist = (t4c_eri_drv.create_recursion({component, }))[0];
+        
+    for (const auto& tint : rdist.unique_integrals())
+    {
+        const auto tdist = rdist.split(tint);
+            
+        _add_split_simd_block(lines, tint, tdist);
+    }
+}
+
+void
 T4CFullPrimFuncBodyDriver::_add_split_simd_block(      VCodeLines&  lines,
                                                  const T4CIntegral& integral,
                                                  const R4CDist&     rdist) const
@@ -429,7 +515,7 @@ T4CFullPrimFuncBodyDriver::_add_split_pragma(      VCodeLines&  lines,
                                              const T4CIntegral& integral,
                                              const R4CDist&     rdist) const
 {
-    const auto order = integral.order();
+    //const auto order = integral.order();
     
     std::string vars_str;
     

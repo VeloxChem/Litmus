@@ -70,6 +70,13 @@ std::pair<size_t, std::string> prim_full_compute_func_name(const T4CIntegral& co
 std::pair<size_t, std::string> prim_vrr_compute_func_name(const T4CIntegral& component,
                                                           const I4CIntegral& integral);
 
+/// Generates primitive HRR compute function name.
+/// @param component the integral component.
+/// @param integral The base two center integral.
+/// @return The primitive diagonal compute function name.
+std::pair<size_t, std::string> contr_hrr_compute_func_name(const T4CIntegral& component,
+                                                           const I4CIntegral& integral);
+
 /// Generates primitive file name.
 /// @param component the integral component.
 /// @param integral The base two center integral.
@@ -89,6 +96,13 @@ std::string full_prim_file_name(const T4CIntegral& component,
 /// @param integral The base four center integral.
 /// @return The primitive file name.
 std::string full_vrr_file_name(const T4CIntegral& component,
+                               const I4CIntegral& integral);
+
+/// Generates primitive HRR  file name.
+/// @param component the integral component.
+/// @param integral The base four center integral.
+/// @return The primitive file name.
+std::string full_hrr_file_name(const T4CIntegral& component,
                                const I4CIntegral& integral);
 
 /// Gets Boys function order for given integral.

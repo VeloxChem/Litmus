@@ -22,6 +22,13 @@ class T4CFullDocuDriver
     std::string _get_prim_compute_str(const T4CIntegral& component,
                                       const I4CIntegral& integral) const;
     
+    /// Generates contracted compute string.
+    /// @param component the integral component.
+    /// @param integral The base four center integral.
+    /// @return The primitive compute string.
+    std::string _get_contr_compute_str(const T4CIntegral& component,
+                                       const I4CIntegral& integral) const;
+    
     /// Generates vector of variable strings.
     /// @return The vector of variable strings.
     std::vector<std::string> _get_vars_str() const;
@@ -33,6 +40,10 @@ class T4CFullDocuDriver
     /// Generates vector of variable strings.
     /// @return The vector of variable strings.
     std::vector<std::string> _get_vrr_vars_str() const;
+    
+    /// Generates vector of variable strings.
+    /// @return The vector of variable strings.
+    std::vector<std::string> _get_hrr_vars_str() const;
 
 public:
     /// Creates a four-center documentation generator.
@@ -57,6 +68,14 @@ public:
     /// @param component the integral component.
     /// @param integral The base two center integral.
     void write_vrr_doc_str(      std::ofstream& fstream,
+                           const T4CIntegral&   component,
+                           const I4CIntegral&   integral) const;
+    
+    /// Writes documentation string for primitive HRR compute function.
+    /// @param fstream the file stream.
+    /// @param component the integral component.
+    /// @param integral The base two center integral.
+    void write_hrr_doc_str(      std::ofstream& fstream,
                            const T4CIntegral&   component,
                            const I4CIntegral&   integral) const;
 };

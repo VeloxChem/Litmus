@@ -66,6 +66,27 @@ T4CFullDocuDriver::write_vrr_doc_str(      std::ofstream& fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+void
+T4CFullDocuDriver::write_hrr_doc_str(      std::ofstream& fstream,
+                                     const T4CIntegral&   component,
+                                     const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "/**"});
+    
+    lines.push_back({0, 1, 2, _get_contr_compute_str(component, integral)});
+    
+    for (const auto& label : _get_hrr_vars_str())
+    {
+        lines.push_back({0, 1, 1, label});
+    }
+    
+    lines.push_back({0, 0, 1, "*/"});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
 std::string
 T4CFullDocuDriver::_get_compute_str(const I4CIntegral& integral) const
 {
@@ -104,6 +125,29 @@ T4CFullDocuDriver::_get_prim_compute_str(const T4CIntegral& component,
     const auto ket_b = Tensor(integral[3]);
 
     auto label = "Evaluates block of primitive <" + bra_a.label() + bra_b.label() ;
+
+    label += "|" + t4c::integrand_label(integral.integrand()) + "|";
+
+    label += ket_a.label()  + ket_b.label();
+
+    label += ">  (" +  fstr::upcase(component.label())  +  ") integrals.";
+
+    return label;
+}
+
+std::string
+T4CFullDocuDriver::_get_contr_compute_str(const T4CIntegral& component,
+                                          const I4CIntegral& integral) const
+{
+    const auto bra_a = Tensor(integral[0]);
+    
+    const auto bra_b = Tensor(integral[1]);
+        
+    const auto ket_a = Tensor(integral[2]);
+    
+    const auto ket_b = Tensor(integral[3]);
+
+    auto label = "Evaluates block of contracted <" + bra_a.label() + bra_b.label() ;
 
     label += "|" + t4c::integrand_label(integral.integrand()) + "|";
 
@@ -240,4 +284,30 @@ T4CFullDocuDriver::_get_vrr_vars_str() const
     return vstr;
 }
 
-
+std::vector<std::string>
+T4CFullDocuDriver::_get_hrr_vars_str() const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("@param buffer the integrals buffer.");
+    
+    vstr.push_back("@param coords_a the Cartesian coordinates of center A.");
+    
+    vstr.push_back("@param coords_b the Cartesian coordinates of center B.");
+    
+    vstr.push_back("@param coords_c_x the array of Cartesian X coordinates on center C.");
+    
+    vstr.push_back("@param coords_c_y the array of Cartesian Y coordinates on center C.");
+    
+    vstr.push_back("@param coords_c_z the array of Cartesian Z coordinates on center C.");
+    
+    vstr.push_back("@param coords_d_x the array of Cartesian X coordinates on center D.");
+    
+    vstr.push_back("@param coords_d_y the array of Cartesian Y coordinates on center D.");
+    
+    vstr.push_back("@param coords_d_z the array of Cartesian Z coordinates on center D.");
+    
+    vstr.push_back("@param ket_dim the size of integrals batch on ket side.");
+        
+    return vstr;
+}

@@ -26,13 +26,13 @@
 #include "t4c_diag_cpu_generator.hpp"
 #include "t4c_cpu_generator.hpp"
 #include "v4c_cpu_generator.hpp"
-
+#include "h4c_cpu_generator.hpp"
 
 int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"t2c", "Overlap"});
+    const auto run_type = std::pair<std::string, std::string>({"h4c", "Electron Repulsion"});
     
     const int max_angmom = 2;
     
@@ -82,6 +82,15 @@ int main(int argc, char **argv)
         const auto v4c_drv = V4CCPUGenerator();
         
         v4c_drv.generate(run_type.second, max_angmom);
+    }
+    
+    // case: hRR for four-center integrals
+    
+    if (run_type.first == "h4c")
+    {
+        const auto h4c_drv = H4CCPUGenerator();
+        
+        h4c_drv.generate(run_type.second, max_angmom);
     }
     
     // set up end timer & compute elapsed time

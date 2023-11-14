@@ -45,8 +45,8 @@ T4CHrrElectronRepulsionDriver::is_electron_repulsion(const R4CTerm& rterm) const
 }
 
 std::optional<R4CDist>
-T4CHrrElectronRepulsionDriver::bra_hrr_a(const R4CTerm& rterm,
-                                         const char     axis) const
+T4CHrrElectronRepulsionDriver::bra_hrr(const R4CTerm& rterm,
+                                       const char     axis) const
 {
     if (!is_electron_repulsion(rterm)) return std::nullopt;
     
@@ -60,95 +60,15 @@ T4CHrrElectronRepulsionDriver::bra_hrr_a(const R4CTerm& rterm,
         
         const auto coord = _rxyz[axes::to_index(axis)];
         
-        x1val.add(Factor("PA", "rpa", coord), Fraction(1));
+        x1val.add(Factor("BA", "rba", coord), Fraction(1));
         
         t4crt.add(x1val);
         
         // second recursion term
         
-        if (const auto r2val = tval->shift_order(1))
+        if (const auto r2val = tval->shift(axis, 1, 1))
         {
-            auto x2val = *r2val;
-            
-            x2val.add(Factor("WP", "rwp", coord), Fraction(1));
-            
-            t4crt.add(x2val);
-        }
-        
-        // third and fourth recursion terms
-        
-        if (const auto r3val = tval->shift(axis, -1, 0))
-        {
-            auto x3val = *r3val;
-            
-            const auto na = x1val[0][axis];
-            
-            x3val.add(Factor("1/eta", "fi_ab"), Fraction(na, 2));
-            
-            t4crt.add(x3val);
-            
-            if (const auto r4val = r3val->shift_order(1))
-            {
-                auto x4val = *r4val;
-                
-                x4val.add(Factor("1/eta^2", "fti_ab"), Fraction(-na, 2));
-                
-                t4crt.add(x4val);
-            }
-        }
-        
-        // fifth and sixth recursion terms
-        
-        if (const auto r5val = tval->shift(axis, -1, 1))
-        {
-            auto x5val = *r5val;
-            
-            const auto nb = x1val[1][axis];
-            
-            x5val.add(Factor("1/eta", "fi_ab"), Fraction(nb, 2));
-            
-            t4crt.add(x5val);
-            
-            if (const auto r6val = r5val->shift_order(1))
-            {
-                auto x6val = *r6val;
-                
-                x6val.add(Factor("1/eta^2", "fti_ab"), Fraction(-nb, 2));
-                
-                t4crt.add(x6val);
-            }
-        }
-        
-        // seventh recursion term
-        
-        if (const auto xval = tval->shift(axis, -1, 2))
-        {
-            if (const auto r7val = xval->shift_order(1))
-            {
-                auto x7val = *r7val;
-               
-                const auto nc = x1val[2][axis];
-               
-                x7val.add(Factor("1/(eta+nu)", "fi_abcd"), Fraction(nc, 2));
-               
-                t4crt.add(x7val);
-            }
-        }
-        
-        // eigth recursion term
-        
-        if (const auto xval = tval->shift(axis, -1, 3))
-        {
-            if (const auto r8val = xval->shift_order(1))
-            {
-                auto x8val = *r8val;
-               
-                const auto nd = x1val[3][axis];
-               
-                x8val.add(Factor("1/(eta+nu) ", "fi_abcd"), Fraction(nd, 2));
-               
-                t4crt.add(x8val);
-            }
+            t4crt.add(*r2val);
         }
         
         return t4crt;
@@ -160,8 +80,8 @@ T4CHrrElectronRepulsionDriver::bra_hrr_a(const R4CTerm& rterm,
 }
 
 std::optional<R4CDist>
-T4CHrrElectronRepulsionDriver::ket_hrr_c(const R4CTerm& rterm,
-                                         const char     axis) const
+T4CHrrElectronRepulsionDriver::ket_hrr(const R4CTerm& rterm,
+                                       const char     axis) const
 {
     if (!is_electron_repulsion(rterm)) return std::nullopt;
     
@@ -175,63 +95,15 @@ T4CHrrElectronRepulsionDriver::ket_hrr_c(const R4CTerm& rterm,
         
         const auto coord = _rxyz[axes::to_index(axis)];
         
-        x1val.add(Factor("QC", "rqc", coord), Fraction(1));
+        x1val.add(Factor("DC", "rdc", coord), Fraction(1));
         
         t4crt.add(x1val);
         
         // second recursion term
         
-        if (const auto r2val = tval->shift_order(1))
+        if (const auto r2val = tval->shift(axis, 1, 3))
         {
-            auto x2val = *r2val;
-            
-            x2val.add(Factor("WQ", "rwq", coord), Fraction(1));
-            
-            t4crt.add(x2val);
-        }
-        
-        // third and fourth recursion terms
-        
-        if (const auto r3val = tval->shift(axis, -1, 2))
-        {
-            auto x3val = *r3val;
-            
-            const auto nc = x1val[2][axis];
-            
-            x3val.add(Factor("1/nu", "fi_cd"), Fraction(nc, 2));
-            
-            t4crt.add(x3val);
-            
-            if (const auto r4val = r3val->shift_order(1))
-            {
-                auto x4val = *r4val;
-                
-                x3val.add(Factor("1/nu^2", "fti_cd"), Fraction(-nc, 2));
-                
-                t4crt.add(x3val);
-            }
-        }
-        
-        // fifth and sixth recursion terms
-        
-        if (const auto r5val = tval->shift(axis, -1, 3))
-        {
-            auto x5val = *r5val;
-            
-            const auto nd = x1val[3][axis];
-            
-            x5val.add(Factor("1/nu", "fi_cd"), Fraction(nd, 2));
-            
-            t4crt.add(x5val);
-            
-            if (const auto r6val = r5val->shift_order(1))
-            {
-                auto x6val = *r6val;
-                
-                x6val.add(Factor("1/nu^2", "fti_cd"), Fraction(-nd, 2));
-                
-                t4crt.add(x6val);
-            }
+            t4crt.add(*r2val);
         }
         
         return t4crt;
@@ -243,15 +115,15 @@ T4CHrrElectronRepulsionDriver::ket_hrr_c(const R4CTerm& rterm,
 }
 
 R4CDist
-T4CHrrElectronRepulsionDriver::apply_bra_hrr_a(const R4CTerm& rterm) const
+T4CHrrElectronRepulsionDriver::apply_bra_hrr(const R4CTerm& rterm) const
 {
     R4CDist t4crt;
     
-    size_t nints = 9;
+    size_t nints = 3;
     
     for (const auto axis : "xyz")
     {
-        if (const auto trec = bra_hrr_a(rterm, axis))
+        if (const auto trec = bra_hrr(rterm, axis))
         {
             if (const auto nterms = trec->terms(); nterms < nints)
             {
@@ -267,15 +139,15 @@ T4CHrrElectronRepulsionDriver::apply_bra_hrr_a(const R4CTerm& rterm) const
 
 
 R4CDist
-T4CHrrElectronRepulsionDriver::apply_ket_hrr_c(const R4CTerm& rterm) const
+T4CHrrElectronRepulsionDriver::apply_ket_hrr(const R4CTerm& rterm) const
 {
     R4CDist t4crt;
     
-    size_t nints = 7;
+    size_t nints = 3;
     
     for (const auto axis : "xyz")
     {
-        if (const auto trec = ket_hrr_c(rterm, axis))
+        if (const auto trec = ket_hrr(rterm, axis))
         {
             if (const auto nterms = trec->terms(); nterms < nints)
             {
@@ -294,15 +166,15 @@ T4CHrrElectronRepulsionDriver::apply_recursion(R4CDist& rdist) const
 {
     // vertical recursions on bra side center A
     
-    apply_bra_hrr_a(rdist);
+    apply_bra_hrr(rdist);
     
     // vertical recursions on ket side center C
     
-    apply_ket_hrr_c(rdist);
+    apply_ket_hrr(rdist);
 }
 
 void
-T4CHrrElectronRepulsionDriver::apply_bra_hrr_a(R4CDist& rdist) const
+T4CHrrElectronRepulsionDriver::apply_bra_hrr(R4CDist& rdist) const
 {
     if (!rdist.auxilary(0))
     {
@@ -349,7 +221,7 @@ T4CHrrElectronRepulsionDriver::apply_bra_hrr_a(R4CDist& rdist) const
                 
             for (size_t i = 0; i < rec_terms.size(); i++)
             {
-                const auto cdist = apply_bra_hrr_a(rec_terms[i]);
+                const auto cdist = apply_bra_hrr(rec_terms[i]);
                     
                 if (const auto nterms = cdist.terms(); nterms > 0)
                 {
@@ -378,7 +250,7 @@ T4CHrrElectronRepulsionDriver::apply_bra_hrr_a(R4CDist& rdist) const
 
 
 void
-T4CHrrElectronRepulsionDriver::apply_ket_hrr_c(R4CDist& rdist) const
+T4CHrrElectronRepulsionDriver::apply_ket_hrr(R4CDist& rdist) const
 {
     if (!rdist.auxilary(2))
     {
@@ -425,7 +297,7 @@ T4CHrrElectronRepulsionDriver::apply_ket_hrr_c(R4CDist& rdist) const
                 
             for (size_t i = 0; i < rec_terms.size(); i++)
             {
-                const auto cdist = apply_ket_hrr_c(rec_terms[i]);
+                const auto cdist = apply_ket_hrr(rec_terms[i]);
                     
                 if (const auto nterms = cdist.terms(); nterms > 0)
                 {
