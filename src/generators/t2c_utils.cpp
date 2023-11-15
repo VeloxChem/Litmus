@@ -522,7 +522,21 @@ boys_order(const I2CIntegral& integral)
     
     if (integrand.name() == "A")
     {
-        return order;
+        if (integral.is_simple())
+        {
+            return order;
+        }
+        else
+        {
+            auto morder = order;
+            
+            for (const auto& prefix : integral.prefixes())
+            {
+                morder += prefix.shape().order();
+            }
+            
+            return morder;
+        }
     }
     
     return -1;
