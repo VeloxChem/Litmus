@@ -625,7 +625,7 @@ T2CPrimFuncBodyDriver::_add_nuclear_potential_vars(      VCodeLines&  lines,
     
     lines.push_back({spacer, 0, 2, "const auto fz_0 = bra_exp * ket_fe[i] * fe_0 * (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
     
-    if ((integral[0] + integral[1]) == 0)
+    if (((integral[0] + integral[1]) == 0) && (integral.is_simple()))
     {
         lines.push_back({spacer, 0, 1, "fints[i] += b0_vals[i] * 2.0 * charge * std::sqrt(fxi_0 / fpi) * bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0);"});
     }

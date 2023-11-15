@@ -34,7 +34,7 @@ int main(int argc, char **argv)
     
     const auto run_type = std::pair<std::string, std::string>({"t2c", "Nuclear Potential"});
     
-    const int max_angmom = 0;
+    const int max_angmom = 2;
     
     const int bra_gdrv = 1;
     
