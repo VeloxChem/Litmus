@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     
     const int op_gdrv = 0;
     
-    const bool sum_form = false;
+    const bool sum_form = true;
     
     // set up start timer
     

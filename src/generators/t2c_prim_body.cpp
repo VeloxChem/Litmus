@@ -602,7 +602,7 @@ T2CPrimFuncBodyDriver::_add_kinetic_energy_vars(      VCodeLines&  lines,
     
     lines.push_back({2, 0, 2, "const auto fss = bra_norm * ket_fn[i] * std::pow(fe_0 * fpi, 1.50) * std::exp(-fz_0 * r2ab);"});
     
-    if (((integral[0] + integral[1]) == 0) && (integral.is_simple()))
+    if (((integral[0] + integral[1]) == 0) && integral.is_simple())
     {
         lines.push_back({2, 0, 1, "fints[i] += fz_0 * (3.0 - 2.0 * fz_0 * r2ab) * fss;"});
     }
