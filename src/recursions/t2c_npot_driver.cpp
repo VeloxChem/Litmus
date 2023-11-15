@@ -422,3 +422,23 @@ T2CNuclearPotentialDriver::create_recursion(const VT2CIntegrals& vints) const
     
     return r2group;
 }
+
+void
+T2CNuclearPotentialDriver::apply_recursion(R2Group& rgroup) const
+{
+    if (const auto nterms = rgroup.expansions(); nterms > 0)
+    {
+        R2Group mgroup;
+        
+        for (size_t i = 0; i < nterms; i++)
+        {
+            auto rdist = rgroup[i];
+            
+            apply_recursion(rdist);
+            
+            mgroup.add(rdist);
+        }
+        
+        rgroup = mgroup;
+    }
+}

@@ -1001,7 +1001,14 @@ T2CPrimFuncBodyDriver::_generate_integral_group(const VT2CIntegrals& components,
     {
         T2CNuclearPotentialDriver t2c_npot_drv;
         
-        rgroup = t2c_npot_drv.create_recursion(components);
+        if (integral.is_simple())
+        {
+            rgroup = t2c_npot_drv.create_recursion(components);
+        }
+        else
+        {
+            t2c_npot_drv.apply_recursion(rgroup);
+        }
     }
     
     // Nuclear potential geometrical derivative integrals
