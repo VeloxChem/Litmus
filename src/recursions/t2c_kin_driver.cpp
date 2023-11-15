@@ -433,6 +433,10 @@ T2CKineticEnergyDriver::apply_recursion(R2Group& rgroup) const
 {
     if (const auto nterms = rgroup.expansions(); nterms > 0)
     {
+        // create overlap integrals driver
+        
+        T2COverlapDriver ovl_drv;
+        
         R2Group mgroup;
         
         for (size_t i = 0; i < nterms; i++)
@@ -440,6 +444,10 @@ T2CKineticEnergyDriver::apply_recursion(R2Group& rgroup) const
             auto rdist = rgroup[i];
             
             apply_recursion(rdist);
+            
+            // apply overlap recursion
+            
+            ovl_drv.apply_recursion(rdist);
             
             mgroup.add(rdist);
         }

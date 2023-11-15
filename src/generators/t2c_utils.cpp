@@ -547,7 +547,7 @@ need_boys(const I2CIntegral& integral)
 }
 
 void
-debug_info(R2CDist& rdist)
+debug_info(const R2CDist& rdist)
 {
     std::cout << "*** RECURSION FOR INTEGRAL COMPONENT: " << rdist.root().label() << std::endl;
     

@@ -177,7 +177,7 @@ bool need_boys(const I2CIntegral& integral);
 
 /// Prints debug infor for given recursion expansion.
 /// @param rdist The recursion expansion.
-void debug_info(R2CDist& rdist);
+void debug_info(const R2CDist& rdist);
 
 } // t2c namespace
 
