@@ -77,7 +77,7 @@ T4CFullDocuDriver::write_hrr_doc_str(      std::ofstream& fstream,
     
     lines.push_back({0, 1, 2, _get_contr_compute_str(component, integral)});
     
-    for (const auto& label : _get_hrr_vars_str())
+    for (const auto& label : _get_hrr_vars_str(integral))
     {
         lines.push_back({0, 1, 1, label});
     }
@@ -285,11 +285,19 @@ T4CFullDocuDriver::_get_vrr_vars_str() const
 }
 
 std::vector<std::string>
-T4CFullDocuDriver::_get_hrr_vars_str() const
+T4CFullDocuDriver::_get_hrr_vars_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
     vstr.push_back("@param buffer the integrals buffer.");
+    
+    for (auto i = integral[1]; i <= (integral[0] + integral[1]); i++)
+    {
+        for (auto j = integral[2]; j <= (integral[2] + integral[3]); j++)
+        {
+            vstr.push_back("@param buffer_" + std::to_string(i) + std::to_string(j) + " the auxilary integrals buffer.");
+        }
+    }
     
     vstr.push_back("@param coords_a the Cartesian coordinates of center A.");
     

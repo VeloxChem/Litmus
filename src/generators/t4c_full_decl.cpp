@@ -258,6 +258,14 @@ T4CFullDeclDriver::_get_hrr_vars_str(const T4CIntegral& component,
     
     vstr.push_back(name + "(TDoubleArray& buffer,");
     
+    for (auto i = integral[1]; i <= (integral[0] + integral[1]); i++)
+    {
+        for (auto j = integral[2]; j <= (integral[2] + integral[3]); j++)
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const TDoubleArray& buffer_" + std::to_string(i) + std::to_string(j) + ",");
+        }
+    }
+    
     vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& coords_a,");
     
     vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& coords_b,");

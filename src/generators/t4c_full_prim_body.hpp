@@ -20,8 +20,9 @@ class T4CFullPrimFuncBodyDriver
     std::vector<std::string> _get_vrr_common_data_str() const;
     
     /// Generates the common data definitions in primitive compute function.
+    /// @param rdist  The recursion distribution.
     /// @return The vector of common primitives  data.
-    std::vector<std::string> _get_hrr_common_data_str() const;
+    std::vector<std::string> _get_hrr_common_data_str(const R4CDist& rdist) const;
     
     /// Adds block of code for computation of P  and Q coordinates.
     /// @param lines The code lines container to which simd code are added.
@@ -50,9 +51,11 @@ class T4CFullPrimFuncBodyDriver
     /// @param lines The code lines container to which simd code are added.
     /// @param component The integral component.
     /// @param integral The base integral.
-    void _add_split_hrr_simd_code(      VCodeLines&  lines,
-                                  const T4CIntegral& component,
-                                  const I4CIntegral& integral) const;
+    /// @param rdist  The recursion distribution.
+    void _add_hrr_simd_code(      VCodeLines&  lines,
+                            const T4CIntegral& component,
+                            const I4CIntegral& integral,
+                            const R4CDist&     rdist) const;
     
     /// Adds block of  simd code lines for given reccursion distribution.
     /// @param lines The code lines container to which simd code are added.
@@ -69,6 +72,14 @@ class T4CFullPrimFuncBodyDriver
     void _add_split_pragma(      VCodeLines&  lines,
                            const T4CIntegral& integral,
                            const R4CDist&     rdist) const;
+    
+    /// Adds split loop pragma definition.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param integral The integral  component.
+    /// @param rdist  The recursion distribution.
+    void _add_hrr_pragma(      VCodeLines&  lines,
+                         const I4CIntegral& integral,
+                         const R4CDist&     rdist) const;
     
     /// Adds split loop start definition.
     /// @param lines The code lines container to which simd code are added.
@@ -93,6 +104,14 @@ class T4CFullPrimFuncBodyDriver
                                const T4CIntegral& integral,
                                const R4CDist&     rdist,
                                const size_t       index) const;
+    
+    /// Adds block of  simd code lines for given reccursion distribution.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param integral The integral  component.
+    /// @param rdist  The recursion distribution.
+    void _add_hrr_simd_lines_block(      VCodeLines&  lines,
+                                   const T4CIntegral& integral,
+                                   const R4CDist&     rdist) const;
     
 public:
     /// Creates a diagonal four-center compute function body generator.

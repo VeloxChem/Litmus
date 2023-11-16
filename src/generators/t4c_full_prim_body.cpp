@@ -81,11 +81,15 @@ T4CFullPrimFuncBodyDriver::write_hrr_func_body(      std::ofstream& fstream,
                                                const T4CIntegral&   component,
                                                const I4CIntegral&   integral) const
 {
+    T4CHrrElectronRepulsionDriver t4c_eri_drv;
+    
+    const auto rdist = (t4c_eri_drv.create_recursion({component, }))[0];
+    
     auto lines = VCodeLines();
     
     lines.push_back({0, 0, 1, "{"});
     
-    for (const auto& label : _get_hrr_common_data_str())
+    for (const auto& label : _get_hrr_common_data_str(rdist))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -94,9 +98,19 @@ T4CFullPrimFuncBodyDriver::write_hrr_func_body(      std::ofstream& fstream,
     
     lines.push_back({1, 0, 2, "auto fints = buffer.data();"});
     
+    lines.push_back({1, 0, 2, "// set up pointer to auxilary integrals buffers"});
+    
+    for (auto i = integral[1]; i <= (integral[0] + integral[1]); i++)
+    {
+        for (auto j = integral[2]; j <= (integral[2] + integral[3]); j++)
+        {
+            lines.push_back({1, 0, 2, "auto tints_" + std::to_string(i) + std::to_string(j) + " = buffer_" + std::to_string(i) + std::to_string(j) + ".data();"});
+        }
+    }
+    
     lines.push_back({1, 0, 2, "// compute electron repulsion integrals"});
     
-    _add_split_hrr_simd_code(lines, component, integral);
+    _add_hrr_simd_code(lines, component, integral, rdist);
     
     lines.push_back({0, 0, 2, "}"});
     
@@ -242,45 +256,45 @@ T4CFullPrimFuncBodyDriver::_get_vrr_common_data_str() const
 }
 
 std::vector<std::string>
-T4CFullPrimFuncBodyDriver::_get_hrr_common_data_str() const
+T4CFullPrimFuncBodyDriver::_get_hrr_common_data_str(const R4CDist& rdist) const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("// set up coordinates for bra center A");
+    if (t4c::find_factor(rdist, "rba_x") || t4c::find_factor(rdist, "rba_y") || t4c::find_factor(rdist, "rba_z"))
+    {
+        vstr.push_back("// set up distances for bra centers");
+        
+        if (t4c::find_factor(rdist, "rba_x")) vstr.push_back("const auto rba_x = coords_b[0] - coords_a[0];");
+        
+        if (t4c::find_factor(rdist, "rba_y")) vstr.push_back("const auto rba_y = coords_b[1] - coords_a[1];");
 
-    vstr.push_back("const auto ra_x = coords_a[0];");
-
-    vstr.push_back("const auto ra_y = coords_a[1];");
-
-    vstr.push_back("const auto ra_z = coords_a[2];");
+        if (t4c::find_factor(rdist, "rba_z")) vstr.push_back("const auto rba_z = coords_b[2] - coords_a[2];");
+    }
     
-    vstr.push_back("// set up coordinates for bra center B");
+    if (t4c::find_factor(rdist, "rdc_x") || t4c::find_factor(rdist, "rdc_y") || t4c::find_factor(rdist, "rdc_z"))
+    {
+        vstr.push_back("// set up coordinates for bra center C");
 
-    vstr.push_back("const auto rb_x = coords_b[0];");
+        if (t4c::find_factor(rdist, "rdc_x")) vstr.push_back("const auto rc_x = coords_c_x.data();");
 
-    vstr.push_back("const auto rb_y = coords_b[1];");
+        if (t4c::find_factor(rdist, "rdc_y")) vstr.push_back("const auto rc_y = coords_c_y.data();");
 
-    vstr.push_back("const auto rb_z = coords_b[2];");
+        if (t4c::find_factor(rdist, "rdc_z")) vstr.push_back("const auto rc_z = coords_c_z.data();");
+    }
     
-    vstr.push_back("// set up coordinates for bra center C");
-
-    vstr.push_back("const auto rc_x = coords_c_x.data();");
-
-    vstr.push_back("const auto rc_y = coords_c_y.data();");
-
-    vstr.push_back("const auto rc_z = coords_c_z.data();");
-
-    vstr.push_back("// set up coordinates for bra center D");
-
-    vstr.push_back("const auto rd_x = coords_d_x.data();");
-
-    vstr.push_back("const auto rd_y = coords_d_y.data();");
-
-    vstr.push_back("const auto rd_z = coords_d_z.data();");
+    if (t4c::find_factor(rdist, "rdc_x") || t4c::find_factor(rdist, "rdc_y") || t4c::find_factor(rdist, "rdc_z"))
+    {
+        vstr.push_back("// set up coordinates for bra center D");
+        
+        if (t4c::find_factor(rdist, "rdc_x")) vstr.push_back("const auto rd_x = coords_d_x.data();");
+        
+        if (t4c::find_factor(rdist, "rdc_y")) vstr.push_back("const auto rd_y = coords_d_y.data();");
+        
+        if (t4c::find_factor(rdist, "rdc_z")) vstr.push_back("const auto rd_z = coords_d_z.data();");
+    }
 
     return vstr;
 }
-
 
 void
 T4CFullPrimFuncBodyDriver::_add_coords_compute(VCodeLines& lines) const
@@ -476,20 +490,31 @@ T4CFullPrimFuncBodyDriver::_add_split_simd_code(      VCodeLines&  lines,
 }
 
 void
-T4CFullPrimFuncBodyDriver::_add_split_hrr_simd_code(      VCodeLines&  lines,
-                                                    const T4CIntegral& component,
-                                                    const I4CIntegral& integral) const
+T4CFullPrimFuncBodyDriver::_add_hrr_simd_code(      VCodeLines&  lines,
+                                              const T4CIntegral& component,
+                                              const I4CIntegral& integral,
+                                              const R4CDist&     rdist) const
 {
-    T4CHrrElectronRepulsionDriver t4c_eri_drv;
+    _add_hrr_pragma(lines, integral, rdist);
     
-    const auto rdist = (t4c_eri_drv.create_recursion({component, }))[0];
-        
+    lines.push_back({1, 0, 1, "for (int64_t i = 0; i < ket_dim; i++)"});
+    
+    lines.push_back({1, 0, 1, "{"});
+    
+    if (t4c::find_factor(rdist, "rdc_x")) lines.push_back({2, 0, 2, "const auto rdc_x = rd_x[i] - rc_x[i];"});
+    
+    if (t4c::find_factor(rdist, "rdc_y")) lines.push_back({2, 0, 2, "const auto rdc_y = rd_y[i] - rc_y[i];"});
+    
+    if (t4c::find_factor(rdist, "rdc_z")) lines.push_back({2, 0, 2, "const auto rdc_z = rd_z[i] - rc_z[i];"});
+    
     for (const auto& tint : rdist.unique_integrals())
     {
         const auto tdist = rdist.split(tint);
-            
-        _add_split_simd_block(lines, tint, tdist);
+    
+        _add_hrr_simd_lines_block(lines, tint, tdist);
     }
+    
+    lines.push_back({1, 0, 1, "}"});
 }
 
 void
@@ -583,6 +608,54 @@ T4CFullPrimFuncBodyDriver::_add_split_pragma(      VCodeLines&  lines,
 }
 
 void
+T4CFullPrimFuncBodyDriver::_add_hrr_pragma(      VCodeLines&  lines,
+                                           const I4CIntegral& integral,
+                                           const R4CDist&     rdist) const
+{
+    std::string vars_str;
+        
+    if (t4c::find_factor(rdist, "rdc_x"))
+    {
+        vars_str += "rc_x, ";
+    }
+    
+    if (t4c::find_factor(rdist, "rdc_y"))
+    {
+        vars_str += "rc_y, ";
+    }
+    
+    if (t4c::find_factor(rdist, "rdc_z"))
+    {
+        vars_str += "rc_z, ";
+    }
+    
+    if (t4c::find_factor(rdist, "rdc_x"))
+    {
+        vars_str += "rd_x, ";
+    }
+    
+    if (t4c::find_factor(rdist, "rdc_y"))
+    {
+        vars_str += "rd_y, ";
+    }
+    
+    if (t4c::find_factor(rdist, "rdc_z"))
+    {
+        vars_str += "rd_z, ";
+    }
+    
+    for (auto i = integral[1]; i <= (integral[0] + integral[1]); i++)
+    {
+        for (auto j = integral[2]; j <= (integral[2] + integral[3]); j++)
+        {
+           vars_str += "tints_" + std::to_string(i) + std::to_string(j) + ", ";
+        }
+    }
+    
+    lines.push_back({1, 0, 1, "#pragma omp simd aligned(" + vars_str + "fints : 64)"});
+}
+
+void
 T4CFullPrimFuncBodyDriver::_add_split_loop_start(      VCodeLines&  lines,
                                                  const T4CIntegral& integral,
                                                  const R4CDist&     rdist) const
@@ -590,7 +663,6 @@ T4CFullPrimFuncBodyDriver::_add_split_loop_start(      VCodeLines&  lines,
     lines.push_back({1, 0, 1, "for (int64_t i = 0; i < ket_dim; i++)"});
     
     lines.push_back({1, 0, 1, "{"});
-    
     
     if (t4c::find_factor(rdist, "fi_cd_0")  ||
         t4c::find_factor(rdist, "fi_abcd_0") ||
@@ -783,3 +855,35 @@ T4CFullPrimFuncBodyDriver::_add_simd_lines_block(      VCodeLines&  lines,
         }
     }
 }
+
+void
+T4CFullPrimFuncBodyDriver::_add_hrr_simd_lines_block(      VCodeLines&  lines,
+                                                     const T4CIntegral& integral,
+                                                     const R4CDist&     rdist) const
+{
+    const auto nterms = rdist.terms();
+
+    std::string simd_str;
+    
+    std::string var_str = "fints[i] += tints_" + std::to_string(integral[1].order()) + std::to_string(integral[3].order()) + "[i]";
+    
+    for (size_t i = 0; i < nterms; i++)
+    {
+        simd_str += t4c::get_factor_label(rdist[i], integral, i == 0, false);
+        
+        if (simd_str.size() > 3)
+        {
+            if (simd_str[1] == '+') simd_str.erase(0, 3);
+        }
+        
+        if (simd_str.empty())
+        {
+            lines.push_back({2, 0, 2, var_str + ";"});
+        }
+        else
+        {
+            lines.push_back({2, 0, 2, var_str + " * " + simd_str + ";"});
+        }
+    }
+}
+

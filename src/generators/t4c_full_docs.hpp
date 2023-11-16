@@ -42,8 +42,9 @@ class T4CFullDocuDriver
     std::vector<std::string> _get_vrr_vars_str() const;
     
     /// Generates vector of variable strings.
+    /// @param integral The base four center integral.
     /// @return The vector of variable strings.
-    std::vector<std::string> _get_hrr_vars_str() const;
+    std::vector<std::string> _get_hrr_vars_str(const I4CIntegral& integral) const;
 
 public:
     /// Creates a four-center documentation generator.
