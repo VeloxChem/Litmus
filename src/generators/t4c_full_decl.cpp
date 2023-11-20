@@ -28,6 +28,30 @@ T4CFullDeclDriver::write_func_decl(      std::ofstream& fstream,
 }
 
 void
+T4CFullDeclDriver::write_comp_func_decl(      std::ofstream& fstream,
+                                        const I4CIntegral&   integral,
+                                        const bool           terminus) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "auto"});
+    
+    for (const auto& label : _get_comp_vars_str(integral, terminus))
+    {
+        if  (label.find(";") == std::string::npos)
+        {
+            lines.push_back({0, 0, 1, label});
+        }
+        else
+        {
+            lines.push_back({0, 0, 2, label});
+        }
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
 T4CFullDeclDriver::write_prim_func_decl(      std::ofstream& fstream,
                                         const T4CIntegral&   component,
                                         const I4CIntegral&   integral,
@@ -135,6 +159,41 @@ T4CFullDeclDriver::_get_vars_str(const I4CIntegral& integral,
     //vstr.push_back(std::string(nsize, ' ') + "const int64_t ket_last) -> void" +  tsymbol);
     
     vstr.push_back(std::string(nsize, ' ') + "const int64_t bra_last) -> void" +  tsymbol);
+    
+    return vstr;
+}
+
+std::vector<std::string>
+T4CFullDeclDriver::_get_comp_vars_str(const I4CIntegral& integral,
+                                 const bool         terminus) const
+{
+    std::vector<std::string> vstr;
+    
+    const auto [nsize, name] = t4c::full_compute_func_name(integral);
+    
+    vstr.push_back(name + "(CFockMatrix* fock_matrix,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const CMatrix* density,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const CGtoPairBlock& bra_gto_pair_block,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const CGtoPairBlock& ket_gto_pair_block,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const bool diagonal,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const bool use_rs,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const double omega,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const int64_t bra_first,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const int64_t bra_last,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const int64_t ket_first,");
+    
+    const auto tsymbol = (terminus) ? ";" : "";
+    
+    vstr.push_back(std::string(nsize, ' ') + "const int64_t ket_last) -> void" +  tsymbol);
     
     return vstr;
 }

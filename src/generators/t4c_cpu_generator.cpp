@@ -56,6 +56,52 @@ T4CCPUGenerator::generate(const std::string& label,
         
         std::exit(EXIT_FAILURE);
     }
+}
+
+void
+T4CCPUGenerator::composite_generate(const std::string& label,
+                                    const int          angmom) const
+{
+    if (_is_available(label))
+    {
+        for (int i = 0; i <= angmom; i++)
+        {
+            for (int j = i; j <= angmom; j++)
+            {
+                for (int k = 0; k <= angmom; k++)
+                {
+                    for (int l = k; l <= angmom; l++)
+                    {
+                        #pragma omp parallel
+                        {
+                            #pragma omp single nowait
+                            {
+                                if ((i + j + k + l) > 0)
+                                {
+                                    const auto integral = _get_integral(label, i, j, k, l);
+                                    
+                                    #pragma omp task firstprivate(integral)
+                                    _write_composite_cpp_header(integral);
+                                    
+                                    #pragma omp task firstprivate(integral)
+                                    _write_composite_cpp_file(integral);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        std::cerr << "*** ERROR *** Unsupported type of four-center integral: ";
+        
+        std::cerr << label << " !!!" << std::endl;
+        
+        std::exit(EXIT_FAILURE);
+    }
+    
     
 }
 
@@ -146,6 +192,62 @@ T4CCPUGenerator::_write_cpp_file(const I4CIntegral& integral) const
     decl_drv.write_func_decl(fstream, integral, false);
         
     func_drv.write_func_body(fstream, integral);
+        
+    _write_namespace(fstream, integral, false);
+        
+    fstream.close();
+}
+
+void
+T4CCPUGenerator::_write_composite_cpp_header(const I4CIntegral& integral) const
+{
+    auto fname = _file_name(integral) + ".hpp";
+        
+    std::ofstream fstream;
+               
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    _write_hpp_defines(fstream, integral, true);
+        
+    _write_hpp_includes(fstream, integral);
+        
+    _write_namespace(fstream, integral, true);
+        
+    T4CFullDocuDriver docs_drv;
+    
+    docs_drv.write_comp_doc_str(fstream, integral);
+    
+    T4CFullDeclDriver decl_drv;
+    
+    decl_drv.write_comp_func_decl(fstream, integral, true);
+
+    _write_namespace(fstream, integral, false);
+        
+    _write_hpp_defines(fstream, integral, false);
+
+    fstream.close();
+}
+
+void
+T4CCPUGenerator::_write_composite_cpp_file(const I4CIntegral& integral) const
+{
+    auto fname = _file_name(integral) + ".cpp";
+        
+    std::ofstream fstream;
+        
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    _write_cpp_includes(fstream, integral);
+        
+    _write_namespace(fstream, integral, true);
+        
+    T4CFullDeclDriver decl_drv;
+        
+    T4CFullFuncBodyDriver func_drv;
+        
+    decl_drv.write_comp_func_decl(fstream, integral, false);
+        
+    func_drv.write_comp_func_body(fstream, integral);
         
     _write_namespace(fstream, integral, false);
         

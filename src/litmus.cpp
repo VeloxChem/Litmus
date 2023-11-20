@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"v4c", "Electron Repulsion"});
+    const auto run_type = std::pair<std::string, std::string>({"t4c", "Electron Repulsion"});
     
     const int max_angmom = 2;
     
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
     {
         const auto t4c_drv = T4CCPUGenerator();
         
-        t4c_drv.generate(run_type.second, max_angmom);
+        t4c_drv.composite_generate(run_type.second, max_angmom);
     }
     
     // case: VRR for four-center integrals

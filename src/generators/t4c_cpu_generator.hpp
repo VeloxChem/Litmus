@@ -44,6 +44,14 @@ class T4CCPUGenerator
     /// @param integral The base two center integral.
     void _write_cpp_file(const I4CIntegral& integral) const;
     
+    /// Writes header file for recursion.
+    /// @param integral The base four center integral.
+    void _write_composite_cpp_header(const I4CIntegral& integral) const;
+    
+    /// Writes C++ code file for recursion.
+    /// @param integral The base two center integral.
+    void _write_composite_cpp_file(const I4CIntegral& integral) const;
+    
     /// Writes header files for primitive recursion.
     /// @param integral The base four center integral.
     void _write_cpp_prim_headers(const I4CIntegral& integral) const;
@@ -112,11 +120,17 @@ public:
     /// Creates an electron repulsion integrals CPU code generator.
     T4CCPUGenerator() = default;
      
-    /// Generates selected one-electron integrals up to given angular momentum (inclusive) )on A and B centers.
+    /// Generates selected two-electron integrals up to given angular momentum (inclusive) )on A and B centers.
     /// @param label The label of requested two-center integral.
     /// @param angmom The maximum angular momentum of A and B centers.
     void generate(const std::string& label,
                   const int          angmom) const;
+    
+    /// Generates selected two-electron integrals up to given angular momentum (inclusive) )on A and B centers.
+    /// @param label The label of requested two-center integral.
+    /// @param angmom The maximum angular momentum of A and B centers.
+    void composite_generate(const std::string& label,
+                            const int          angmom) const;
 };
 
 #endif /* t4c_cpu_generator_hpp */

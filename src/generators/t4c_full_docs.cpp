@@ -25,6 +25,26 @@ T4CFullDocuDriver::write_doc_str(      std::ofstream& fstream,
 }
 
 void
+T4CFullDocuDriver::write_comp_doc_str(      std::ofstream& fstream,
+                                      const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+        
+    lines.push_back({0, 0, 1, "/**"});
+        
+    lines.push_back({0, 0, 2, _get_compute_str(integral)});
+    
+    for (const auto& label : _get_comp_vars_str())
+    {
+        lines.push_back({0, 1, 1, label});
+    }
+    
+    lines.push_back({0, 0, 1, "*/"});
+        
+    ost::write_code_lines(fstream, lines);
+}
+
+void
 T4CFullDocuDriver::write_prim_doc_str(      std::ofstream& fstream,
                                       const T4CIntegral&   component,
                                       const I4CIntegral&   integral) const
@@ -184,6 +204,36 @@ T4CFullDocuDriver::_get_vars_str() const
     //vstr.push_back("@param ket_first the index of the range [ket_first, ket_last) of GTOs on ket side.");
     
     //vstr.push_back("@param ket_last the index of the range [ket_first, ket_last) of GTOs on ket side.");
+    
+    return vstr;
+}
+
+std::vector<std::string>
+T4CFullDocuDriver::_get_comp_vars_str() const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("@param fock_matrix the pointer to Fock matrix.");
+    
+    vstr.push_back("@param density the AO density matrix.");
+    
+    vstr.push_back("@param bra_gto_pair_block the GTOs pair block for bra side.");
+    
+    vstr.push_back("@param ket_gto_pair_block the GTOs pair block for ket side.");
+                                            
+    vstr.push_back("@param diagonal the flag signaling diagonal contributions.");
+                                            
+    vstr.push_back("@param use_rs the flag to use range separated form of electron repulsion integrals.");
+                                            
+    vstr.push_back("@param omega the range separation factor.");
+    
+    vstr.push_back("@param bra_first the index of the range [bra_first, bra_last) of GTOs on bra side.");
+    
+    vstr.push_back("@param bra_last the index of the range [bra_first, bra_last) of GTOs on bra side.");
+    
+    vstr.push_back("@param ket_first the index of the range [ket_first, ket_last) of GTOs on ket side.");
+    
+    vstr.push_back("@param ket_last the index of the range [ket_first, ket_last) of GTOs on ket side.");
     
     return vstr;
 }

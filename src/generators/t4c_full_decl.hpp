@@ -19,6 +19,13 @@ class T4CFullDeclDriver
                                            const bool         terminus) const;
     
     /// Generates vector of variables strings.
+    /// @param integral The base two center integral.
+    /// @param terminus The flag to add termination symbol.
+    /// @return The vector of variables strings.
+    std::vector<std::string> _get_comp_vars_str(const I4CIntegral& integral,
+                                                const bool         terminus) const;
+    
+    /// Generates vector of variables strings.
     /// @param component the integral component.
     /// @param integral The base two center integral.
     /// @param terminus The flag to add termination symbol.
@@ -56,6 +63,14 @@ public:
     void write_func_decl(      std::ofstream& fstream,
                          const I4CIntegral&   integral,
                          const bool           terminus) const;
+    
+    /// Writes declaration for compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param terminus The flag to add termination symbol.
+    void write_comp_func_decl(      std::ofstream& fstream,
+                              const I4CIntegral&   integral,
+                              const bool           terminus) const;
     
     /// Writes declaration of primitive compute function.
     /// @param fstream the file stream.

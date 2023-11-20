@@ -35,6 +35,10 @@ class T4CFullDocuDriver
     
     /// Generates vector of variable strings.
     /// @return The vector of variable strings.
+    std::vector<std::string> _get_comp_vars_str() const;
+    
+    /// Generates vector of variable strings.
+    /// @return The vector of variable strings.
     std::vector<std::string> _get_prim_vars_str() const;
     
     /// Generates vector of variable strings.
@@ -55,6 +59,12 @@ public:
     /// @param integral The base two center integral.
     void write_doc_str(      std::ofstream& fstream,
                        const I4CIntegral&   integral) const;
+    
+    /// Writes documentation string for compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void write_comp_doc_str(      std::ofstream& fstream,
+                            const I4CIntegral&   integral) const;
     
     /// Writes documentation string for primitive compute function.
     /// @param fstream the file stream.
