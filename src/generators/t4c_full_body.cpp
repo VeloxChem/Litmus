@@ -553,9 +553,33 @@ T4CFullFuncBodyDriver::_add_comp_component_body(      VCodeLines&  lines,
         
         lines.push_back({2, 0, 2, "// compute contracted integrals block (" + fstr::upcase(component.label()) + ")"});
         
+        lines.push_back({2, 0, 2, "simd::zero(buffer);"});
+        
         auto [nsize, name] = t4c::contr_hrr_compute_func_name(component, integral);
         
         name = t4c::namespace_label(integral) + "::" + name;
+        
+        std::string labels;
+        
+        for (auto i = integral[1]; i <= (integral[0] + integral[1]); i++)
+        {
+            for (auto j = integral[2]; j <= (integral[2] + integral[3]); j++)
+            {
+               labels +=  "buffer_" + std::to_string(i) + std::to_string(j) + ", ";
+            }
+        }
+        
+        if (integral[0] > 0)
+        {
+            labels += "bra_coords_a, bra_coords_b, ";
+        }
+        
+        if (integral[2] > 0)
+        {
+            labels += "coords_c_x, coords_c_y, coords_c_z, coords_d_x, coords_d_y, coords_d_z, ";
+        }
+        
+        lines.push_back({4, 0, 1, name + "(buffer, " + labels + "ket_dim);"});
     }
     else
     {
