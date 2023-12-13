@@ -22,6 +22,7 @@
 #include "t2c_ovl_driver.hpp"
 #include "eri_driver.hpp"
 #include "repository.hpp"
+#include "t1c_cpu_generator.hpp"
 #include "t2c_cpu_generator.hpp"
 #include "t4c_diag_cpu_generator.hpp"
 #include "t4c_cpu_generator.hpp"
@@ -32,11 +33,11 @@ int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"t4c", "Electron Repulsion"});
+    const auto run_type = std::pair<std::string, std::string>({"t1c", "Geometrical Derivatives"});
     
-    const int max_angmom = 2;
+    const int max_angmom = 4;
     
-    const int bra_gdrv = 0;
+    const int bra_gdrv = 4;
     
     const int ket_gdrv = 0;
     
@@ -47,6 +48,15 @@ int main(int argc, char **argv)
     // set up start timer
     
     auto stime = std::chrono::high_resolution_clock::now();
+    
+    // case: two-center integrals
+    
+    if (run_type.first == "t1c")
+    {
+        const auto t1c_drv = T1CCPUGenerator();
+        
+        t1c_drv.generate(run_type.second, max_angmom, bra_gdrv);
+    }
     
     // case: two-center integrals
     
