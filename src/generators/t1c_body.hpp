@@ -11,6 +11,11 @@
 // GTOs compute function body generators for CPU.
 class T1CFuncBodyDriver
 {
+    /// Generates vector of strings with angular momentum transformation factors.
+    /// @param angmom The maximum angular momentum of GTOs.
+    /// @return The vector of strings with angular momentum transformation factors.
+    std::vector<std::string> _get_angmom_def(const int angmom) const; 
+    
     /// Generates vector of strings with GTOs definitions in compute function.
     /// @param angmom The maximum angular momentum of GTOs.
     /// @param gdrv The geometrical derivative of GTOs.
@@ -62,6 +67,14 @@ class T1CFuncBodyDriver
    /// Gets polynomial representation of Cartesian GTO component.
    /// @param component the tensor component.
    std::string _polynomial_string(const TensorComponent& component) const;
+    
+    /// Adds GTOs values distribution code.
+    /// @param lines The code lines container to which bra loop body definition are added.
+    /// @param component The angular momentum componentn of Cartesian GTO.
+    /// @param gdrv The geometrical derivative of GTOs.
+    void _add_distribution_code(      VCodeLines&      lines,
+                                const TensorComponent& component,
+                                const int              gdrv) const;
   
 public:
     /// Creates a GTOs compute function body generator.

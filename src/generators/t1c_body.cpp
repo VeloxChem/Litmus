@@ -2,6 +2,7 @@
 
 #include "t2c_center_driver.hpp"
 #include "t2c_utils.hpp"
+#include "spherical_momentum.hpp"
 
 #include <iostream>
 
@@ -13,6 +14,11 @@ T1CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     auto lines = VCodeLines();
     
     lines.push_back({0, 0, 1, "{"});
+    
+    for (const auto& label : _get_angmom_def(angmom))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
     
     for (const auto& label : _get_gtos_def(angmom, gdrv))
     {
@@ -45,6 +51,26 @@ T1CFuncBodyDriver::_get_integral(const int angmom,
     prefixes.push_back(Operator("d/dR", Tensor(gdrv)));
 
     return I2CIntegral(bra, ket, Operator("1"), 0, prefixes);
+}
+
+std::vector<std::string>
+T1CFuncBodyDriver::_get_angmom_def(const int angmom) const
+{
+    std::vector<std::string> vstr;
+    
+    if (angmom > 1)
+    {
+        const auto ang_mom = SphericalMomentum(angmom);
+            
+        vstr.push_back("// spherical transformation factors");
+       
+        for (const auto& label : ang_mom.get_factors(angmom))
+        {
+            vstr.push_back("const double " + label + ";");
+        }
+    }
+    
+    return vstr;
 }
 
 std::vector<std::string>
@@ -198,7 +224,7 @@ T1CFuncBodyDriver::_add_loop_body(      VCodeLines&  lines,
         
         lines.push_back({3, 0, 2, "}"});
         
-        //_add_distribution_code(gcomps[i], )
+        _add_distribution_code(lines, gcomps[i], gdrv); 
         
         lines.push_back({3, 0, 1, "irow++;" });
         
@@ -284,7 +310,10 @@ T1CFuncBodyDriver::_add_simd_line(      VCodeLines&  lines,
         
         if (tlabel.size() > 0)
         {
-            label += " * ";
+            if (!flabel.empty())
+            {
+                label += " * ";
+            }
         }
         
         label += tlabel;
@@ -318,4 +347,39 @@ T1CFuncBodyDriver::_polynomial_string(const TensorComponent& component) const
     }
     
     return label.erase(0, 3);
+}
+
+void
+T1CFuncBodyDriver::_add_distribution_code(      VCodeLines&      lines,
+                                          const TensorComponent& component,
+                                          const int              gdrv) const
+{
+    lines.push_back({3, 0, 2, "// distribute GTO values into submatrices"});
+    
+    const auto blabels = t2c::tensor_components(Tensor(gdrv), "buffer");
+    
+    const auto mlabels = t2c::tensor_components(Tensor(gdrv), "submat");
+    
+    const auto ang_mom = SphericalMomentum(Tensor(component).order());
+                               
+    const auto index = t2c::tensor_component_index(component);
+    
+    const auto ang_pairs = ang_mom.select_pairs(index);
+
+    for (int i = 0; i < blabels.size(); i++)
+    {
+        for (const auto& ang_pair : ang_pairs)
+        {
+            std::string flabel = (ang_pair.second == "1.0")  ? "" : ", "  + ang_pair.second;
+            
+            std::string ilabel = "irow";
+            
+            if (ang_pair.first > 1)
+            {
+                ilabel = std::to_string(ang_pair.first) + " * nrows + " + ilabel;
+            }
+            
+            lines.push_back({3, 0, 2, "gtoval::distribute(" + mlabels[i] + ", " + blabels[i] + flabel + ", "  + ilabel + ");"});
+        }
+    }
 }
