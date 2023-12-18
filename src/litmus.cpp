@@ -28,22 +28,23 @@
 #include "t4c_cpu_generator.hpp"
 #include "v4c_cpu_generator.hpp"
 #include "h4c_cpu_generator.hpp"
+#include "cold_cpu_generator.hpp"
 
 int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"t1c", "Geometrical Derivatives"});
+    const auto run_type = std::pair<std::string, std::string>({"cold", "Overlap"});
     
     const int max_angmom = 4;
     
-    const int bra_gdrv = 4;
+    const int bra_gdrv = 0;
     
     const int ket_gdrv = 0;
     
     const int op_gdrv = 0;
     
-    const bool sum_form = true;
+    const bool sum_form = false;
     
     // set up start timer
     
@@ -94,13 +95,22 @@ int main(int argc, char **argv)
         v4c_drv.generate(run_type.second, max_angmom);
     }
     
-    // case: hRR for four-center integrals
+    // case: HRR for four-center integrals
     
     if (run_type.first == "h4c")
     {
         const auto h4c_drv = H4CCPUGenerator();
         
         h4c_drv.generate(run_type.second, max_angmom);
+    }
+    
+    // case: COLD for two-center integrals
+    
+    if (run_type.first == "cold")
+    {
+        const auto cold_drv = ColdCPUGenerator();
+        
+        cold_drv.generate(run_type.second, max_angmom, bra_gdrv, ket_gdrv, op_gdrv, sum_form);
     }
     
     // set up end timer & compute elapsed time
