@@ -23,9 +23,12 @@
 #include "string_formater.hpp"
 #include "spherical_momentum.hpp"
 
+#include "t2c_defs.hpp"
 #include "t2c_utils.hpp"
 #include "t2c_docs.hpp"
 #include "t2c_decl.hpp"
+
+#include "cold_ovl_driver.hpp"
 
 void
 ColdCPUGenerator::generate(const std::string& label,
@@ -293,6 +296,10 @@ ColdCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
                                       const I2CIntegral&   integral,
                                       const bool           sum_form) const
 {
+    const auto rgroup = _generate_integral_group(integral);
+    
+    t2c::debug_info(rgroup[0]);
+    
     auto lines = VCodeLines();
     
     lines.push_back({0, 0, 2, "#include \"" + _file_name(integral, sum_form) +  ".hpp\""});
@@ -305,8 +312,35 @@ ColdCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     lines.push_back({0, 0, 1, "#include \"BatchFunc.hpp\""});
     
     lines.push_back({0, 0, 2, "#include \"T2CDistributor.hpp\""});
-    
-    //_add_prim_call_includes(lines, integral, sum_form);
 
     ost::write_code_lines(fstream, lines);
 }
+
+R2Group
+ColdCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
+{
+    R2Group rgroup;
+    
+    // Overlap integrals
+    
+    if (integral.integrand() == Operator("1"))
+    {
+        ColdOverlapDriver cold_ovl_drv;
+        
+        if (integral.is_simple())
+        {
+            rgroup = cold_ovl_drv.create_recursion(integral.components<T1CPair, T1CPair>());
+        }
+        else
+        {
+            //t2c_ovl_drv.apply_recursion(rgroup);
+        }
+    }
+    
+    // ... other integrals
+    
+    rgroup.simplify();
+    
+    return rgroup;
+}
+

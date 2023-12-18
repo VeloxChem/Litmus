@@ -102,6 +102,11 @@ class ColdCPUGenerator
                           const I2CIntegral&   integral,
                           const bool           start) const;
     
+    /// Generates  the recursion  group for given integral.
+    /// @param integral The base integral.
+    /// @return The recursion group.
+    R2Group _generate_integral_group(const I2CIntegral& integral) const;
+    
 public:
     /// Creates a two-center integrals CPU code generator.
     ColdCPUGenerator() = default;

@@ -138,6 +138,11 @@ public:
     /// @return The created recursion term.
     RecursionTerm replace(const OperatorComponent& integrand) const;
     
+    /// Removes recursion factor with given name for recursion term.
+    /// @param name The name of factor to be removed.
+    /// @return The created recursion term.
+    RecursionTerm remove(const std::string& name) const;
+    
     /// Creates an optional recursion term from this recursion term by shifting axial value
     /// along the selected axis on targeted center.
     /// @param axis The axis to shift axial value.
@@ -400,6 +405,23 @@ RecursionTerm<T>::replace(const OperatorComponent& integrand) const
     const auto tint = _integral.replace(integrand);
     
     return RecursionTerm<T>(tint, _factors, _prefactor);
+}
+
+template <class T>
+RecursionTerm<T>
+RecursionTerm<T>::remove(const std::string& name) const
+{
+    std::map<Factor, int> facts;
+    
+    for (const auto& [fact, repval] : _factors)
+    {
+        if (fact.name() != name)
+        {
+            facts.insert({fact, repval});
+        }
+    }
+    
+    return RecursionTerm<T>(_integral, facts, _prefactor);
 }
 
 template <class T>
