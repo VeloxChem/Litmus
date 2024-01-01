@@ -27,6 +27,7 @@
 #include "t2c_utils.hpp"
 #include "t2c_docs.hpp"
 #include "t2c_decl.hpp"
+#include "c2c_body.hpp"
 
 #include "cold_ovl_driver.hpp"
 
@@ -171,6 +172,8 @@ void
 ColdCPUGenerator::_write_cpp_file(const I2CIntegral& integral,
                                   const bool         sum_form) const
 {
+    const auto rgroup = _generate_integral_group(integral);
+    
     auto fname = _file_name(integral, sum_form) + ".cpp";
         
     std::ofstream fstream;
@@ -183,18 +186,18 @@ ColdCPUGenerator::_write_cpp_file(const I2CIntegral& integral,
         
     T2CDeclDriver decl_drv;
         
-    //T2CFuncBodyDriver func_drv;
+    C2CFuncBodyDriver func_drv;
         
     if ((integral[0] == integral[1]) && (integral.is_simple()))
     {
         decl_drv.write_func_decl(fstream, integral, sum_form, true, false);
             
-        //func_drv.write_func_body(fstream, integral, sum_form, true);
+        func_drv.write_func_body(fstream, rgroup, integral, sum_form, true);
     }
         
     decl_drv.write_func_decl(fstream, integral, sum_form, false, false);
         
-    //func_drv.write_func_body(fstream, integral, sum_form, false);
+    func_drv.write_func_body(fstream, rgroup, integral, sum_form, false);
         
     _write_namespace(fstream, integral, false);
         
@@ -296,10 +299,6 @@ ColdCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
                                       const I2CIntegral&   integral,
                                       const bool           sum_form) const
 {
-    const auto rgroup = _generate_integral_group(integral);
-    
-    t2c::debug_info(rgroup[0]);
-    
     auto lines = VCodeLines();
     
     lines.push_back({0, 0, 2, "#include \"" + _file_name(integral, sum_form) +  ".hpp\""});
