@@ -163,7 +163,7 @@ T2CDeclDriver::_get_matrix_str(const I2CIntegral& integral,
     
     if (prefixes.size() == 2)
     {
-        labels = t2c::integrand_components(prefixes[0].shape(),prefixes[1].shape(), integral.integrand(), "matrix");
+        labels = t2c::integrand_components(prefixes[0].shape(), prefixes[1].shape(), integral.integrand(), "matrix");
     }
     
     for (size_t i = 0; i < labels.size(); i++)

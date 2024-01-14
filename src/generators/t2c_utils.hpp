@@ -159,6 +159,17 @@ std::string combine_factors(const std::string& bra_factor,
 bool find_factor(const R2Group&     rgroup,
                  const std::string& label);
 
+/// Checks if factors is needed by recursion group.
+/// @param rgroup The recursion group.
+/// @param label The label of factor to find.
+/// @param first The first recursion expansion in recursion group.
+/// @param last The last recursion expansion in recursion group.
+/// @return True if factor is found, False otherwise.
+bool find_factor(const R2Group&     rgroup,
+                 const std::string& label,
+                 const size_t       first,
+                 const size_t       last);
+
 /// Gets recursion factors label.
 /// @param rterm The recursion term.
 /// @param first The position of recursion term in code line.

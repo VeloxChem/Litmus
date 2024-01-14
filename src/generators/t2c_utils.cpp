@@ -441,6 +441,23 @@ find_factor(const R2Group&     rgroup,
     return false;
 }
 
+bool
+find_factor(const R2Group&     rgroup,
+            const std::string& label,
+            const size_t       first,
+            const size_t       last)
+{
+    for (size_t i = first; i < last; i++)
+    {
+        for (const auto& fact : rgroup[i].factors())
+        {
+            if (fact.label() == label) return true;
+        }
+    }
+    
+    return false;
+}
+
 std::string
 get_factor_label(const R2CTerm& rterm,
                  const bool     first)

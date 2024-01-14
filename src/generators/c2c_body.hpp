@@ -19,10 +19,16 @@
 
 #include <string>
 #include <vector>
+#include <array>
+#include <set>
 #include <fstream>
 
 #include "t2c_defs.hpp"
 #include "file_stream.hpp"
+
+using T4Index = std::array<int, 4>;
+
+using V4Auxilaries = std::set<T4Index>;
 
 // Two-center compute function body generators for CPU.
 class C2CFuncBodyDriver
@@ -45,6 +51,11 @@ class C2CFuncBodyDriver
     /// @param rgroup The recursion group.
     /// @return The vector of buffer definitions in compute function.
     std::vector<std::string> _get_buffers_def(const R2Group& rgroup) const;
+    
+    /// Generates vector of auxilaries definitions in compute function.
+    /// @param rgroup The recursion group.
+    /// @return The vector of auxilaries definitions in compute function.
+    std::vector<std::string> _get_auxilaries_def(const R2Group& rgroup) const;
     
     /// Generates vector of strings with main loop definition in compute function.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
@@ -103,9 +114,91 @@ class C2CFuncBodyDriver
                              const size_t       first,
                              const size_t       last) const;
     
+    /// Adds code line in bra loop definition to code lines container.
+    /// @param lines The code lines container to which bra loop body definition are added.
+    /// @param rdist The recursion distribution.
+    /// @param integral The base two center integral.
+    /// @param auxilaries The set of unique auxilaries (n,mt).
+    /// @param index The index of integrals buffer.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    void _add_bra_loop_line(      VCodeLines&   lines,
+                            const R2CDist&      rdist,
+                            const I2CIntegral&  integral,
+                            const V4Auxilaries& auxilaries,
+                            const size_t        index,
+                            const bool          sum_form) const;
+    
+    /// Converts recursion term into it's code representation.
+    /// @param rterm The recursion term.
+    /// @param auxilaries The set of unique auxilaries (n,mt).
+    /// @param is_first The flag indixating if recursion term is first in recursion expansion.
+    std::string _get_rterm_code(const R2CTerm&      rterm,
+                                const V4Auxilaries& auxilaries,
+                                const bool          is_first) const;
+    
+    /// Adds loop prefactors for range of expansions in recursion group.
+    /// @param lines The code lines container to which bra loop body definition are added.
+    /// @param rgroup The recursion group.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    /// @param first The first recursion expansion in code block.
+    /// @param last The last recursion expansion in code block.
+    void _add_loop_prefactors(      VCodeLines& lines,
+                              const R2Group&    rgroup,
+                              const bool        sum_form,
+                              const size_t      first,
+                              const size_t      last) const;
+    
+    /// Adds distribution code in bra loop definition to code lines container.
+    /// @param lines The code lines container to which bra loop body definition are added.
+    /// @param rgroup The recursion group.
+    /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    /// @param first The first recursion expansion in code block.
+    /// @param last The last recursion expansion in code block.
+    void _write_block_distributor(      VCodeLines&  lines,
+                                  const R2Group&     rgroup,
+                                  const I2CIntegral& integral,
+                                  const bool         sum_form,
+                                  const bool         diagonal,
+                                  const size_t       first,
+                                  const size_t       last) const;
+    
+    
+    /// Gets matrix label for integral component.
+    /// @param integral The two center integral component.
+    /// @return The label of integral component.
+    std::string _get_matrix_label(const T2CIntegral& integral) const;
+    
     /// Gets dimensions of code block.
     /// @return The size of code block.
     size_t _get_block_size() const;
+    
+    /// Gets set of unique auxilaries (n,mt) for recursion group.
+    /// @param rgroup The recursion group.
+    /// @return The set of unique auxilaries (n,m,t).
+    V4Auxilaries _get_unique_auxilaries(const R2Group& rgroup) const;
+    
+    /// Gets set of unique auxilaries (n,mt) for range of expansions in recursion group.
+    /// @param rgroup The recursion group.
+    /// @param first The first recursion expansion.
+    /// @param last The last recursion expansion.
+    /// @return The set of unique auxilaries (n,m,t).
+    V4Auxilaries _get_unique_auxilaries(const R2Group& rgroup,
+                                        const size_t   first,
+                                        const size_t   last) const;
+    
+    /// Gets index of targeted auxilary in set of unique auxilaries (n,mt).
+    /// @param auxilaries The set of unique auxilaries (n,mt).
+    /// @param target The targeted auxilary.
+    /// @return The index of targeted auxilary.
+    size_t _get_auxilary_index(const V4Auxilaries& auxilaries,
+                               const T4Index&      target) const;
+    
+    /// Gets uxilariy (n,m,t) for recursion term.
+    /// @param rterm The recursion term.
+    /// @return The (n,m,t) auxilary.
+    T4Index _get_auxilary(const R2CTerm& rterm) const;
    
 public:
     /// Creates a two-center compute function body generator.
