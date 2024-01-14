@@ -78,9 +78,11 @@ class C2CFuncBodyDriver
     
     /// Adds bra loop start definitions to code lines container.
     /// @param lines The code lines container to which bra loop start definition are added.
+    /// @param integral The base two center integral.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
-    void _add_bra_loop_start(      VCodeLines& lines,
-                             const bool        diagonal) const;
+    void _add_bra_loop_start(      VCodeLines&  lines,
+                             const I2CIntegral& integral,
+                             const bool         diagonal) const;
     
     /// Adds bra loop body definitions to code lines container.
     /// @param lines The code lines container to which bra loop body definition are added.
@@ -199,6 +201,11 @@ class C2CFuncBodyDriver
     /// @param rterm The recursion term.
     /// @return The (n,m,t) auxilary.
     T4Index _get_auxilary(const R2CTerm& rterm) const;
+    
+    /// Checks if auxilaries are needed for this integral.
+    /// @param integral The two center integral component.
+    /// @return True if auxilaries are needed, false otherwise..
+    bool _need_auxilaries(const I2CIntegral& integral) const;
    
 public:
     /// Creates a two-center compute function body generator.

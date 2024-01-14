@@ -54,9 +54,12 @@ C2CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_auxilaries_def(rgroup))
+    if (_need_auxilaries(integral))
     {
-        lines.push_back({1, 0, 2, label});
+        for (const auto& label : _get_auxilaries_def(rgroup))
+        {
+            lines.push_back({1, 0, 2, label});
+        }
     }
 
     for (const auto& label : _get_batches_def(diagonal))
@@ -68,7 +71,7 @@ C2CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
 
     _add_batches_loop_body(lines, diagonal);
 
-    _add_bra_loop_start(lines, diagonal);
+    _add_bra_loop_start(lines, integral, diagonal);
 
     _add_bra_loop_body(lines, rgroup, integral, sum_form, diagonal);
 
@@ -277,27 +280,31 @@ C2CFuncBodyDriver::_add_batches_loop_end(VCodeLines& lines) const
 }
 
 void
-C2CFuncBodyDriver::_add_bra_loop_start(      VCodeLines& lines,
-                                       const bool        diagonal) const
+C2CFuncBodyDriver::_add_bra_loop_start(      VCodeLines&  lines,
+                                       const I2CIntegral& integral,
+                                       const bool         diagonal) const
 {
     lines.push_back({2, 0, 1, "for (int64_t j = bra_first; j < bra_last; j++) "});
         
     lines.push_back({2, 0, 1, "{"});
+    
+    if (_need_auxilaries(integral))
+    {
+        if (diagonal)
+        {
+            lines.push_back({3, 0, 2, "const auto bra_coord = gto_coords[j];"});
+        }
+        else
+        {
+            lines.push_back({3, 0, 2, "const auto bra_coord = bra_gto_coords[j];"});
+        }
         
-    if (diagonal)
-    {
-        lines.push_back({3, 0, 2, "const auto bra_coord = gto_coords[j];"});
+        lines.push_back({3, 0, 2, "const auto a_x = bra_coord[0];"});
+        
+        lines.push_back({3, 0, 2, "const auto a_y = bra_coord[1];"});
+        
+        lines.push_back({3, 0, 2, "const auto a_z = bra_coord[2];"});
     }
-    else
-    {
-        lines.push_back({3, 0, 2, "const auto bra_coord = bra_gto_coords[j];"});
-    }
-    
-    lines.push_back({3, 0, 2, "const auto a_x = bra_coord[0];"});
-    
-    lines.push_back({3, 0, 2, "const auto a_y = bra_coord[1];"});
-    
-    lines.push_back({3, 0, 2, "const auto a_z = bra_coord[2];"});
 }
 
 void
@@ -335,7 +342,10 @@ C2CFuncBodyDriver::_add_bra_loop_body(      VCodeLines&  lines,
     
     if ((rterms % ndims) > 0)
     {
-        _add_bra_loop_block(lines, rgroup, integral, sum_form, diagonal, nblocks * ndims, rterms);
+        if (_need_auxilaries(integral))
+        {
+            _add_bra_loop_block(lines, rgroup, integral, sum_form, diagonal, nblocks * ndims, rterms);
+        }
         
         _write_block_distributor(lines, rgroup, integral, sum_form, diagonal, nblocks * ndims, rterms);
     }
@@ -411,25 +421,19 @@ C2CFuncBodyDriver::_write_block_distributor(      VCodeLines&  lines,
                 {
                     if (diagonal)
                     {
-                        lines.push_back({3, 0, 1, "t2cfunc::distribute(" + mlabel + ", " + flabel +
-                                                  ", gto_indexes,"});
-                        
-                        lines.push_back({3, 20, 2, ijlabel + ", j, ket_first, ket_last);"});
+                        lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
+                                                  ", gto_indexes," + ijlabel + ", j, ket_first, ket_last);"});
                     }
                     else
                     {
-                        lines.push_back({3, 0, 1, "t2cfunc::distribute(" + mlabel + ", " + flabel +
-                                                  ", bra_gto_indexes, ket_gto_indexes,"});
-                        
-                        lines.push_back({3, 20, 2, ijlabel + ", j, ket_first, ket_last, mat_type);"});
+                        lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
+                                                  ", bra_gto_indexes, ket_gto_indexes," + ijlabel + ", j, ket_first, ket_last, mat_type);"});
                     }
                 }
                 else
                 {
-                    lines.push_back({3, 0, 1, "t2cfunc::distribute(" + mlabel + ", " + flabel +
-                                              ", bra_gto_indexes, ket_gto_indexes,"});
-                    
-                    lines.push_back({3, 20, 2, ijlabel + ", j, ket_first, ket_last, ang_order);"});
+                    lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
+                                              ", bra_gto_indexes, ket_gto_indexes," + ijlabel + ", j, ket_first, ket_last, ang_order);"});
                 }
             }
         }
@@ -670,4 +674,17 @@ C2CFuncBodyDriver::_get_auxilary(const R2CTerm& rterm) const
     const auto p = rterm.order();
     
     return {n, m, t, p};
+}
+
+bool
+C2CFuncBodyDriver::_need_auxilaries(const I2CIntegral& integral) const
+{
+    if ((integral[0] + integral[1]) == 0)
+    {
+        const auto integrand = integral.integrand();
+        
+        if (integrand.name() == "1") return false;
+    }
+    
+    return true;
 }

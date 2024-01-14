@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     
     const auto run_type = std::pair<std::string, std::string>({"cold", "Overlap"});
     
-    const int max_angmom = 2;
+    const int max_angmom = 4;
     
     const int bra_gdrv = 0;
     
