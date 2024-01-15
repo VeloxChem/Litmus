@@ -300,6 +300,12 @@ prim_compute_func_name(const TensorComponent& bra_component,
 }
 
 std::string
+auxilary_file_name(const I2CIntegral& integral)
+{
+    return t2c::integral_label(integral) + "Auxilary" + integral.label();
+}
+
+std::string
 prim_file_name(const I2CIntegral& integral,
                const bool         sum_form)
 {
@@ -585,6 +591,70 @@ need_boys(const I2CIntegral& integral)
     }
     
     return false;
+}
+
+V4Auxilaries
+get_unique_auxilaries(const R2Group& rgroup)
+{
+    V4Auxilaries auxs;
+    
+    for (size_t i = 0; i < rgroup.expansions(); i++)
+    {
+        for (size_t j = 0; j < rgroup[i].terms(); j++)
+        {
+            auxs.insert(t2c::get_auxilary(rgroup[i][j]));
+        }
+    }
+   
+    return auxs;
+}
+
+V4Auxilaries
+get_unique_auxilaries(const R2Group& rgroup,
+                      const size_t   first,
+                      const size_t   last)
+{
+    V4Auxilaries auxs;
+    
+    for (size_t i = first; i < last; i++)
+    {
+        for (size_t j = 0; j < rgroup[i].terms(); j++)
+        {
+            auxs.insert(t2c::get_auxilary(rgroup[i][j]));
+        }
+    }
+   
+    return auxs;
+}
+
+size_t
+get_auxilary_index(const V4Auxilaries& auxilaries,
+                   const T4Index&      target)
+{
+    size_t index = 0;
+    
+    for (const auto& taux : auxilaries)
+    {
+        if (taux == target) return index;
+        
+        index++;
+    }
+   
+    return -1;
+}
+
+T4Index
+get_auxilary(const R2CTerm& rterm)
+{
+    const auto n = rterm.factor_order(Factor("N", "n"));
+    
+    const auto m = rterm.factor_order(Factor("M", "m"));
+    
+    const auto t = rterm.factor_order(Factor("T", "t"));
+    
+    const auto p = rterm.order();
+    
+    return {n, m, t, p};
 }
 
 void

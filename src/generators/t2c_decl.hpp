@@ -34,6 +34,13 @@ class T2CDeclDriver
     std::vector<std::string> _get_matrix_str(const I2CIntegral& integral,
                                              const bool         sum_form) const;
     
+    /// Generates vector of matrix strings.
+    /// @param rgroup the recursion group.
+    /// @param integral The base two center integral.
+    /// @return The auxilary buffer string.
+    std::string _get_auxilary_str(const R2Group&     rgroup,
+                                  const I2CIntegral& integral) const;
+    
     /// Generates vector of special variables strings.
     /// @param integral The base two center integral.
     /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
@@ -43,10 +50,12 @@ class T2CDeclDriver
     
     /// Generates vector of GTOs block strings.
     /// @param integral The base two center integral.
+    /// @param is_auxilary The flag indicating auxilary integrals.
     /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @return The vector of GTOs block strings
     std::vector<std::string> _get_gto_blocks_str(const I2CIntegral& integral,
+                                                 const bool         is_auxilary,
                                                  const bool         sum_form,
                                                  const bool         diagonal) const;
     
@@ -60,6 +69,13 @@ class T2CDeclDriver
                                               const bool         sum_form,
                                               const bool         diagonal,
                                               const bool         terminus) const;
+    
+    /// Generates vector of auxilary index strings.
+    /// @param integral The base two center integral.
+    /// @param terminus The flag to add termination symbol.
+    /// @return The vector of index strings.
+    std::vector<std::string> _get_auxilary_indexes_str(const I2CIntegral& integral,
+                                                       const bool         terminus) const;
     
     /// Generates vector of primitive buffer strings.
     /// @param integral The base two center integral.
@@ -119,6 +135,18 @@ public:
                          const bool           sum_form, 
                          const bool           diagonal,
                          const bool           terminus) const;
+    
+    /// Writes declaration for auxilary compute function.
+    /// @param fstream the file stream.
+    /// @param rgroup the recursion group.
+    /// @param integral The base two center integral.
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    /// @param terminus The flag to add termination symbol.
+    void write_auxilary_func_decl(      std::ofstream& fstream,
+                                  const R2Group&       rgroup,
+                                  const I2CIntegral&   integral,
+                                  const bool           diagonal,
+                                  const bool           terminus) const;
     
     /// Writes declaration of primitive compute function.
     /// @param fstream the file stream.

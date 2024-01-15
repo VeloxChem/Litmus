@@ -52,14 +52,17 @@ ColdCPUGenerator::generate(const std::string& label,
                         const auto integral = _get_integral(label, i, j, bra_gdrv, ket_gdrv, op_gdrv);
                         
                         #pragma omp task firstprivate(integral)
-                        _write_cpp_header(integral, sum_form);
-                        
-                        #pragma omp task firstprivate(integral)
-                        _write_cpp_file(integral, sum_form);
-                        
-                        //_write_cpp_prim_headers(integral, sum_form);
-                        
-                        //_write_cpp_prim_files(integral, sum_form);
+                        {
+                            const auto rgroup = _generate_integral_group(integral);
+                            
+                            _write_cpp_header(integral, sum_form);
+                            
+                            _write_cpp_file(rgroup, integral, sum_form);
+                            
+                            _write_auxilary_header(rgroup, integral);
+                            
+                            _write_auxilary_file(rgroup, integral);
+                        }
                     }
                 }
             }
@@ -129,7 +132,6 @@ ColdCPUGenerator::_file_name(const I2CIntegral& integral,
     }
 }
 
-
 void
 ColdCPUGenerator::_write_cpp_header(const I2CIntegral& integral,
                                     const bool         sum_form) const
@@ -140,7 +142,7 @@ ColdCPUGenerator::_write_cpp_header(const I2CIntegral& integral,
                
     fstream.open(fname.c_str(), std::ios_base::trunc);
         
-    _write_hpp_defines(fstream, integral, sum_form, true);
+    _write_hpp_defines(fstream, integral, false, sum_form, true);
 
     _write_hpp_includes(fstream, integral, sum_form);
 
@@ -163,17 +165,16 @@ ColdCPUGenerator::_write_cpp_header(const I2CIntegral& integral,
 
     _write_namespace(fstream, integral, false);
 
-    _write_hpp_defines(fstream, integral, sum_form, false);
+    _write_hpp_defines(fstream, integral, false, sum_form, false);
 
     fstream.close();
 }
 
 void
-ColdCPUGenerator::_write_cpp_file(const I2CIntegral& integral,
+ColdCPUGenerator::_write_cpp_file(const R2Group&     rgroup,
+                                  const I2CIntegral& integral,
                                   const bool         sum_form) const
 {
-    const auto rgroup = _generate_integral_group(integral);
-    
     auto fname = _file_name(integral, sum_form) + ".cpp";
         
     std::ofstream fstream;
@@ -205,12 +206,90 @@ ColdCPUGenerator::_write_cpp_file(const I2CIntegral& integral,
 }
 
 void
+ColdCPUGenerator::_write_auxilary_header(const R2Group&     rgroup,
+                                         const I2CIntegral& integral) const
+{
+    auto fname = t2c::auxilary_file_name(integral) + ".hpp";
+        
+    std::ofstream fstream;
+               
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    _write_hpp_defines(fstream, integral, true, false, true);
+
+    _write_auxilary_includes(fstream, integral);
+
+    _write_namespace(fstream, integral, true);
+
+    T2CDocuDriver docs_drv;
+
+    T2CDeclDriver decl_drv;
+
+    if ((integral[0] == integral[1]) && integral.is_simple())
+    {
+        docs_drv.write_auxilary_doc_str(fstream, integral, true);
+
+        decl_drv.write_auxilary_func_decl(fstream, rgroup, integral, true, true);
+    }
+
+    docs_drv.write_auxilary_doc_str(fstream, integral, false);
+
+    decl_drv.write_auxilary_func_decl(fstream, rgroup, integral, false, true);
+
+    _write_namespace(fstream, integral, false);
+
+    _write_hpp_defines(fstream, integral, true, false, false);
+
+    fstream.close();
+}
+
+void
+ColdCPUGenerator::_write_auxilary_file(const R2Group&     rgroup,
+                                       const I2CIntegral& integral) const
+{
+    auto fname = t2c::auxilary_file_name(integral) + ".cpp";
+        
+    std::ofstream fstream;
+        
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    //_write_cpp_includes(fstream, integral, sum_form);
+        
+    _write_namespace(fstream, integral, true);
+        
+    T2CDeclDriver decl_drv;
+        
+    //C2CFuncBodyDriver func_drv;
+        
+    if ((integral[0] == integral[1]) && (integral.is_simple()))
+    {
+        decl_drv.write_auxilary_func_decl(fstream, rgroup, integral, true, false);
+            
+        //func_drv.write_func_body(fstream, rgroup, integral, sum_form, true);
+    }
+        
+    decl_drv.write_auxilary_func_decl(fstream, rgroup, integral, false, false);
+        
+    //func_drv.write_func_body(fstream, rgroup, integral, sum_form, false);
+        
+    _write_namespace(fstream, integral, false);
+        
+    fstream.close();
+}
+
+void
 ColdCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
                                      const I2CIntegral&   integral,
+                                     const bool           is_auxilary,
                                      const bool           sum_form,
                                      const bool           start) const
 {
-    const auto fname = _file_name(integral, sum_form) + "_hpp";
+    auto fname = _file_name(integral, sum_form) + "_hpp";
+    
+    if (is_auxilary)
+    {
+        fname = t2c::auxilary_file_name(integral) + "_hpp";
+    }
     
     auto lines = VCodeLines();
  
@@ -295,6 +374,21 @@ ColdCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
 }
 
 void
+ColdCPUGenerator::_write_auxilary_includes(      std::ofstream& fstream,
+                                           const I2CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+  
+    lines.push_back({0, 0, 2, "#include <cstdint>"});
+ 
+    lines.push_back({0, 0, 1, "#include \"GtoBlock.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"SimdTypes.hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
 ColdCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
                                       const I2CIntegral&   integral,
                                       const bool           sum_form) const
@@ -310,7 +404,9 @@ ColdCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"BatchFunc.hpp\""});
     
-    lines.push_back({0, 0, 2, "#include \"T2CDistributor.hpp\""});
+    lines.push_back({0, 0, 1, "#include \"T2CDistributor.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"" + t2c::auxilary_file_name(integral) + ".hpp\""});
 
     ost::write_code_lines(fstream, lines);
 }

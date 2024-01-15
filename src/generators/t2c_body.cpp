@@ -447,7 +447,7 @@ T2CFuncBodyDriver::_add_loop_call_tree(      VCodeLines&      lines,
     
     name = t2c::namespace_label(integral) + "::" + name;
     
-    nsize = name.size() + 1 ;
+    nsize = name.size() + 1;
     
     for (size_t i = 0; i < labels.size(); i++)
     {

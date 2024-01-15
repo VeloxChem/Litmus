@@ -205,7 +205,7 @@ C2CFuncBodyDriver::_get_auxilaries_def(const R2Group& rgroup) const
     
     vstr.push_back("// initialize auxilary buffers");
 
-    const auto ndims = (_get_unique_auxilaries(rgroup)).size();
+    const auto ndims = (t2c::get_unique_auxilaries(rgroup)).size();
 
     vstr.push_back("TDoubleArray2D<" + std::to_string(ndims) + "> auxilaries;");
 
@@ -292,8 +292,38 @@ C2CFuncBodyDriver::_add_bra_loop_start(      VCodeLines&  lines,
         
     lines.push_back({2, 0, 1, "{"});
     
+    auto [nsize, name] = t2c::auxilary_func_name(integral);
+    
+    name = t2c::namespace_label(integral) + "::" + name + "(";
+    
     if (_need_auxilaries(integral))
     {
+        name += "auxilaries, ";
+    }
+    else
+    {
+        name += "buffers, ";
+    }
+    
+    if (diagonal)
+    {
+        name += "gto_block, ";
+    }
+    else
+    {
+        name += "bra_gto_block, ket_gto_block, ";
+    }
+    
+    nsize = name.size() + 1;
+    
+    lines.push_back({3, 0, 2, "// compute auxilary values"});
+    
+    lines.push_back({3, 0, 2, name + "j, ket_first, ket_last);"});
+    
+    if (_need_auxilaries(integral))
+    {
+        lines.push_back({3, 0, 2, "// set up coordinates of bra side"});
+        
         if (diagonal)
         {
             lines.push_back({3, 0, 2, "const auto bra_coord = gto_coords[j];"});
@@ -376,7 +406,7 @@ C2CFuncBodyDriver::_add_bra_loop_block(      VCodeLines&  lines,
     
     _add_loop_prefactors(lines, rgroup, sum_form, first, last); 
     
-    const auto auxilaries = _get_unique_auxilaries(rgroup);
+    const auto auxilaries = t2c::get_unique_auxilaries(rgroup);
     
     for (auto i = first; i < last; i++)
     {
@@ -409,6 +439,8 @@ C2CFuncBodyDriver::_write_block_distributor(      VCodeLines&  lines,
         
         const auto mlabel = _get_matrix_label(tint);
         
+        lines.push_back({3, 0, 2, "// distribute contracted integrals"});
+        
         for (const auto& bra_pair : bra_mom.select_pairs(bra_index))
         {
             for (const auto& ket_pair : ket_mom.select_pairs(ket_index))
@@ -426,18 +458,18 @@ C2CFuncBodyDriver::_write_block_distributor(      VCodeLines&  lines,
                     if (diagonal)
                     {
                         lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
-                                                  ", gto_indexes," + ijlabel + ", j, ket_first, ket_last);"});
+                                                  ", gto_indexes, " + ijlabel + ", j, ket_first, ket_last);"});
                     }
                     else
                     {
                         lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
-                                                  ", bra_gto_indexes, ket_gto_indexes," + ijlabel + ", j, ket_first, ket_last, mat_type);"});
+                                                  ", bra_gto_indexes, ket_gto_indexes, " + ijlabel + ", j, ket_first, ket_last, mat_type);"});
                     }
                 }
                 else
                 {
                     lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
-                                              ", bra_gto_indexes, ket_gto_indexes," + ijlabel + ", j, ket_first, ket_last, ang_order);"});
+                                              ", bra_gto_indexes, ket_gto_indexes, " + ijlabel + ", j, ket_first, ket_last, ang_order);"});
                 }
             }
         }
@@ -531,7 +563,7 @@ C2CFuncBodyDriver::_get_rterm_code(const R2CTerm&      rterm,
     
     // add auxilary label
     
-    const auto index = _get_auxilary_index(auxilaries, _get_auxilary(rterm));
+    const auto index = t2c::get_auxilary_index(auxilaries, t2c::get_auxilary(rterm));
     
     flabel += " * f_" + std::to_string(index);
         
@@ -562,11 +594,11 @@ C2CFuncBodyDriver::_add_loop_prefactors(      VCodeLines& lines,
         lines.push_back({spacer, 0, 2, "const auto rab_z = a_z - ket_coords_z[k];"});
     }
     
-    const auto auxilaries = _get_unique_auxilaries(rgroup);
+    const auto auxilaries = t2c::get_unique_auxilaries(rgroup);
     
-    for (const auto& taux : _get_unique_auxilaries(rgroup, first, last))
+    for (const auto& taux : t2c::get_unique_auxilaries(rgroup, first, last))
     {
-        const auto ilabel = std::to_string(_get_auxilary_index(auxilaries, taux));
+        const auto ilabel = std::to_string(t2c::get_auxilary_index(auxilaries, taux));
         
         lines.push_back({spacer, 0, 2, "const auto f_" + ilabel + " = avals_" + ilabel + "[k];"});
     }
@@ -614,70 +646,6 @@ size_t
 C2CFuncBodyDriver::_get_block_size() const
 {
     return 15;
-}
-
-V4Auxilaries
-C2CFuncBodyDriver::_get_unique_auxilaries(const R2Group& rgroup) const
-{
-    V4Auxilaries auxs;
-    
-    for (size_t i = 0; i < rgroup.expansions(); i++)
-    {
-        for (size_t j = 0; j < rgroup[i].terms(); j++)
-        {
-            auxs.insert(_get_auxilary(rgroup[i][j]));
-        }
-    }
-   
-    return auxs;
-}
-
-V4Auxilaries
-C2CFuncBodyDriver::_get_unique_auxilaries(const R2Group& rgroup,
-                                          const size_t   first,
-                                          const size_t   last) const
-{
-    V4Auxilaries auxs;
-    
-    for (size_t i = first; i < last; i++)
-    {
-        for (size_t j = 0; j < rgroup[i].terms(); j++)
-        {
-            auxs.insert(_get_auxilary(rgroup[i][j]));
-        }
-    }
-   
-    return auxs;
-}
-
-size_t
-C2CFuncBodyDriver::_get_auxilary_index(const V4Auxilaries& auxilaries,
-                                       const T4Index&      target) const
-{
-    size_t index = 0;
-    
-    for (const auto& taux : auxilaries)
-    {
-        if (taux == target) return index;
-        
-        index++;
-    }
-   
-    return -1;
-}
-
-T4Index
-C2CFuncBodyDriver::_get_auxilary(const R2CTerm& rterm) const
-{
-    const auto n = rterm.factor_order(Factor("N", "n"));
-    
-    const auto m = rterm.factor_order(Factor("M", "m"));
-    
-    const auto t = rterm.factor_order(Factor("T", "t"));
-    
-    const auto p = rterm.order();
-    
-    return {n, m, t, p};
 }
 
 bool

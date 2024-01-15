@@ -59,10 +59,12 @@ class ColdCPUGenerator
     /// Writes definitions of define for header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
+    /// @param is_auxilary The flag to indicate auxilary form of integral.
     /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param start The flag to indicate position of define (start or end).
     void _write_hpp_defines(      std::ofstream& fstream,
                             const I2CIntegral&   integral,
+                            const bool           is_auxilary,
                             const bool           sum_form,
                             const bool           start) const;
     
@@ -72,11 +74,25 @@ class ColdCPUGenerator
     void _write_cpp_header(const I2CIntegral& integral,
                            const bool         sum_form) const;
     
+    /// Writes auxilary header file for recursion.
+    /// @param rgroup the recursion group.
+    /// @param integral The base two center integral.
+    void _write_auxilary_header(const R2Group&     rgroup,
+                                const I2CIntegral& integral) const;
+    
     /// Writes C++ code file for recursion.
+    /// @param rgroup the recursion group.
     /// @param integral The base two center integral.
     /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
-    void _write_cpp_file(const I2CIntegral& integral,
+    void _write_cpp_file(const R2Group&     rgroup,
+                         const I2CIntegral& integral,
                          const bool         sum_form) const;
+    
+    /// Writes C++ code file for auxilary recursion.
+    /// @param rgroup the recursion group.
+    /// @param integral The base two center integral.
+    void _write_auxilary_file(const R2Group&     rgroup,
+                              const I2CIntegral& integral) const;
     
     /// Writes definitions of includes for header file.
     /// @param fstream the file stream.
@@ -93,6 +109,12 @@ class ColdCPUGenerator
     void _write_cpp_includes(      std::ofstream& fstream,
                              const I2CIntegral&   integral,
                              const bool           sum_form) const;
+    
+    /// Writes definitions of includes for header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_auxilary_includes(      std::ofstream& fstream,
+                                  const I2CIntegral&   integral) const;
     
     /// Writes namespace definition to file stream.
     /// @param fstream the file stream.

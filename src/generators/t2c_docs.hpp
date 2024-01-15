@@ -33,6 +33,13 @@ class T2CDocuDriver
     std::string _get_compute_str(const I2CIntegral& integral,
                                  const bool         diagonal) const;
     
+    /// Generates auxilary compute string.
+    /// @param integral The base two center integral.
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    /// @return The auxilary compute string.
+    std::string _get_auxilary_compute_str(const I2CIntegral& integral,
+                                          const bool         diagonal) const;
+    
     /// Generates primitive compute string.
     /// @param integral The base two center integral.
     /// @return The primitive compute string.
@@ -79,6 +86,10 @@ class T2CDocuDriver
     /// @return The vector of index strings.
     std::vector<std::string> _get_indexes_str() const;
     
+    /// Generates vector of auxilary index strings.
+    /// @return The vector of index strings.
+    std::vector<std::string> _get_auxilary_indexes_str() const;
+    
     /// Generates matrix type string.
     /// @param integral The base two center integral.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
@@ -115,6 +126,14 @@ public:
                        const I2CIntegral&   integral,
                        const bool           sum_form,
                        const bool           diagonal) const;
+    
+    /// Writes documentation string for auxilary compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    void write_auxilary_doc_str(      std::ofstream& fstream,
+                                const I2CIntegral&   integral,
+                                const bool           diagonal) const;
     
     /// Writes documentation string for primtive compute function.
     /// @param fstream the file stream.

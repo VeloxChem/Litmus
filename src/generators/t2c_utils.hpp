@@ -17,11 +17,18 @@
 #ifndef t2c_utils_hpp
 #define t2c_utils_hpp
 
+#include <map>
 #include <string>
+#include <array>
+#include <set>
 
 #include "t2c_defs.hpp"
 
-using TMapOfStrings = std::map<Operator, std::string>; 
+using TMapOfStrings = std::map<Operator, std::string>;
+
+using T4Index = std::array<int, 4>;
+
+using V4Auxilaries = std::set<T4Index>;
 
 namespace t2c { // t2c namespace
 
@@ -109,6 +116,10 @@ std::pair<size_t, std::string> prim_compute_func_name(const TensorComponent& bra
                                                       const TensorComponent& ket_component,
                                                       const I2CIntegral&     integral,
                                                       const bool             sum_form);
+/// Generates auxilary file name.
+/// @param integral The base two center integral.
+/// @return The auxilary file name.
+std::string  auxilary_file_name(const I2CIntegral& integral);
 
 /// Generates primitive file name.
 /// @param integral The base two center integral.
@@ -190,6 +201,32 @@ int boys_order(const I2CIntegral& integral);
 /// @param integral The base two center integral.
 /// @return True if Boys function is needed by given integral, False otherwise.
 bool need_boys(const I2CIntegral& integral);
+
+/// Gets set of unique auxilaries (n,mt) for recursion group.
+/// @param rgroup The recursion group.
+/// @return The set of unique auxilaries (n,m,t).
+V4Auxilaries get_unique_auxilaries(const R2Group& rgroup);
+
+/// Gets set of unique auxilaries (n,mt) for range of expansions in recursion group.
+/// @param rgroup The recursion group.
+/// @param first The first recursion expansion.
+/// @param last The last recursion expansion.
+/// @return The set of unique auxilaries (n,m,t).
+V4Auxilaries get_unique_auxilaries(const R2Group& rgroup,
+                                    const size_t   first,
+                                    const size_t   last);
+
+/// Gets index of targeted auxilary in set of unique auxilaries (n,mt).
+/// @param auxilaries The set of unique auxilaries (n,mt).
+/// @param target The targeted auxilary.
+/// @return The index of targeted auxilary.
+size_t get_auxilary_index(const V4Auxilaries& auxilaries,
+                          const T4Index&      target);
+
+/// Gets uxilariy (n,m,t) for recursion term.
+/// @param rterm The recursion term.
+/// @return The (n,m,t) auxilary.
+T4Index get_auxilary(const R2CTerm& rterm);
 
 /// Prints debug infor for given recursion expansion.
 /// @param rdist The recursion expansion.

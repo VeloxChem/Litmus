@@ -24,11 +24,8 @@
 #include <fstream>
 
 #include "t2c_defs.hpp"
+#include "t2c_utils.hpp"
 #include "file_stream.hpp"
-
-using T4Index = std::array<int, 4>;
-
-using V4Auxilaries = std::set<T4Index>;
 
 // Two-center compute function body generators for CPU.
 class C2CFuncBodyDriver
@@ -177,32 +174,6 @@ class C2CFuncBodyDriver
     /// Gets dimensions of code block.
     /// @return The size of code block.
     size_t _get_block_size() const;
-    
-    /// Gets set of unique auxilaries (n,mt) for recursion group.
-    /// @param rgroup The recursion group.
-    /// @return The set of unique auxilaries (n,m,t).
-    V4Auxilaries _get_unique_auxilaries(const R2Group& rgroup) const;
-    
-    /// Gets set of unique auxilaries (n,mt) for range of expansions in recursion group.
-    /// @param rgroup The recursion group.
-    /// @param first The first recursion expansion.
-    /// @param last The last recursion expansion.
-    /// @return The set of unique auxilaries (n,m,t).
-    V4Auxilaries _get_unique_auxilaries(const R2Group& rgroup,
-                                        const size_t   first,
-                                        const size_t   last) const;
-    
-    /// Gets index of targeted auxilary in set of unique auxilaries (n,mt).
-    /// @param auxilaries The set of unique auxilaries (n,mt).
-    /// @param target The targeted auxilary.
-    /// @return The index of targeted auxilary.
-    size_t _get_auxilary_index(const V4Auxilaries& auxilaries,
-                               const T4Index&      target) const;
-    
-    /// Gets uxilariy (n,m,t) for recursion term.
-    /// @param rterm The recursion term.
-    /// @return The (n,m,t) auxilary.
-    T4Index _get_auxilary(const R2CTerm& rterm) const;
     
     /// Checks if auxilaries are needed for this integral.
     /// @param integral The two center integral component.

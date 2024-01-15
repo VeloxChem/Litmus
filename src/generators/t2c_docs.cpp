@@ -64,6 +64,33 @@ T2CDocuDriver::write_doc_str(      std::ofstream& fstream,
 }
 
 void
+T2CDocuDriver::write_auxilary_doc_str(      std::ofstream& fstream,
+                                      const I2CIntegral&   integral,
+                                      const bool           diagonal) const
+{
+    auto lines = VCodeLines();
+        
+    lines.push_back({0, 0, 1, "/**"});
+        
+    lines.push_back({0, 0, 2, _get_auxilary_compute_str(integral, diagonal)});
+    
+    lines.push_back({0, 1, 1, "@param auxilaries the buffer for auxilary integrals."});
+    
+    for (const auto& label : _get_gto_blocks_str(integral, diagonal))
+    {
+        lines.push_back({0, 1, 1, label});
+    }
+    
+    for (const auto& label : _get_auxilary_indexes_str())
+    {
+        lines.push_back({0, 1, 1, label});
+    }
+            
+    lines.push_back({0, 0, 1, "*/"});
+        
+    ost::write_code_lines(fstream, lines);
+}
+void
 T2CDocuDriver::write_prim_doc_str(      std::ofstream& fstream,
                                   const I2CIntegral&   integral,
                                   const bool           sum_form) const
@@ -198,6 +225,21 @@ T2CDocuDriver::_get_compute_str(const I2CIntegral& integral,
     label += t2c::integrand_label(integral.integrand());
         
     label += "|" + ket_geom + ket.label() + ">  integrals for given ";
+        
+    label += (diagonal) ? "GTOs block." : "pair of GTOs blocks.";
+    
+    return label;
+}
+
+std::string
+T2CDocuDriver::_get_auxilary_compute_str(const I2CIntegral& integral,
+                                         const bool         diagonal) const
+{
+    std::string label = " Evaluates (m|";
+        
+    label += t2c::integrand_label(integral.integrand());
+        
+    label += "|n)_t,p  auxilary integrals for given ";
         
     label += (diagonal) ? "GTOs block." : "pair of GTOs blocks.";
     
@@ -445,6 +487,20 @@ T2CDocuDriver::_get_indexes_str() const
     vstr.push_back("@param bra_first the index of the range [bra_first, bra_last) of GTOs on bra side.");
     
     vstr.push_back("@param bra_last the index of the range [bra_first, bra_last) of GTOs on bra side.");
+    
+    return vstr;
+}
+
+std::vector<std::string>
+T2CDocuDriver::_get_auxilary_indexes_str() const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("@param bra_index the index of GTO on bra side.");
+    
+    vstr.push_back("@param ket_first the index of the range [ket_first, ket_last) of GTOs on ket side.");
+    
+    vstr.push_back("@param ket_last the index of the range [ket_first, ket_last) of GTOs on ket side.");
     
     return vstr;
 }

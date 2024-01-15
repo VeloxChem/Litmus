@@ -40,13 +40,52 @@ T2CDeclDriver::write_func_decl(      std::ofstream& fstream,
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_gto_blocks_str(integral, sum_form, diagonal))
+    for (const auto& label : _get_gto_blocks_str(integral, false, sum_form, diagonal))
     {
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_indexes_str(integral,sum_form, diagonal, terminus))
+    for (const auto& label : _get_indexes_str(integral, sum_form, diagonal, terminus))
     {
+        if  (label.find(";") == std::string::npos)
+        {
+            lines.push_back({0, 0, 1, label});
+        }
+        else
+        {
+            lines.push_back({0, 0, 2, label});
+        }
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CDeclDriver::write_auxilary_func_decl(      std::ofstream& fstream,
+                                        const R2Group&       rgroup,
+                                        const I2CIntegral&   integral,
+                                        const bool           diagonal,
+                                        const bool           terminus) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "auto"});
+    
+    lines.push_back({0, 0, 1, _get_auxilary_str(rgroup, integral)});
+   
+
+    for (const auto& label : _get_special_vars_str(integral, false))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+
+    for (const auto& label : _get_gto_blocks_str(integral, true, false, diagonal))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+
+    for (const auto& label : _get_auxilary_indexes_str(integral, terminus))
+   {
         if  (label.find(";") == std::string::npos)
         {
             lines.push_back({0, 0, 1, label});
@@ -181,6 +220,17 @@ T2CDeclDriver::_get_matrix_str(const I2CIntegral& integral,
     return vstr;
 }
 
+std::string
+T2CDeclDriver::_get_auxilary_str(const R2Group&     rgroup,
+                                 const I2CIntegral& integral) const
+{
+    const auto [nsize, name] = t2c::auxilary_func_name(integral);
+  
+    const auto ndim = (t2c::get_unique_auxilaries(rgroup)).size();
+    
+    return name + "(TDoubleArray2D<" + std::to_string(ndim) + ">& auxilaries,";
+}
+
 std::vector<std::string>
 T2CDeclDriver::_get_special_vars_str(const I2CIntegral& integral,
                                      const bool         sum_form) const
@@ -283,27 +333,28 @@ T2CDeclDriver::_get_special_vars_str(const I2CIntegral& integral,
 
 std::vector<std::string>
 T2CDeclDriver::_get_gto_blocks_str(const I2CIntegral& integral,
+                                   const bool         is_auxilary,
                                    const bool         sum_form,
                                    const bool         diagonal) const
 {
     std::vector<std::string> vstr;
     
-    const auto [nsize, name] = t2c::compute_func_name(integral, sum_form);
+    const auto [nsize, name] = (is_auxilary) ? t2c::auxilary_func_name(integral) : t2c::compute_func_name(integral, sum_form);
     
     if (diagonal)
     {
-        vstr.push_back(std::string(nsize, ' ') + "const CGtoBlock&  gto_block,");
+        vstr.push_back(std::string(nsize, ' ') + "const CGtoBlock& gto_block,");
     }
     else
     {
-        vstr.push_back(std::string(nsize, ' ') + "const CGtoBlock&  bra_gto_block,");
+        vstr.push_back(std::string(nsize, ' ') + "const CGtoBlock& bra_gto_block,");
         
-        vstr.push_back(std::string(nsize, ' ') + "const CGtoBlock&  ket_gto_block,");
+        vstr.push_back(std::string(nsize, ' ') + "const CGtoBlock& ket_gto_block,");
     }
     
     if (integral[0] != integral[1])
     {
-        vstr.push_back(std::string(nsize, ' ') + "const bool        ang_order,");
+        vstr.push_back(std::string(nsize, ' ') + "const bool ang_order,");
     }
     
     return vstr;
@@ -333,6 +384,25 @@ T2CDeclDriver::_get_indexes_str(const I2CIntegral& integral,
     {
         vstr.push_back(std::string(nsize, ' ') + "const int64_t     bra_last) -> void" + tsymbol);
     }
+    
+    return vstr;
+}
+
+std::vector<std::string>
+T2CDeclDriver::_get_auxilary_indexes_str(const I2CIntegral& integral,
+                                         const bool         terminus) const
+{
+    std::vector<std::string> vstr;
+    
+    const auto [nsize, name] = t2c::auxilary_func_name(integral);
+    
+    vstr.push_back(std::string(nsize, ' ') + "const int64_t bra_index,");
+    
+    vstr.push_back(std::string(nsize, ' ') + "const int64_t ket_first,");
+    
+    const auto tsymbol = (terminus) ? ";" : "";
+    
+    vstr.push_back(std::string(nsize, ' ') + "const int64_t ket_last) -> void" +  tsymbol);
     
     return vstr;
 }
