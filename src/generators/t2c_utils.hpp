@@ -76,6 +76,11 @@ std::vector<std::string> tensor_components(const Tensor&      tensor,
 std::pair<size_t, std::string> compute_func_name(const I2CIntegral& integral,
                                                  const bool         sum_form);
 
+/// Generates auxilary function  name.
+/// @param integral The base two center integral.
+/// @return The auxilary function name.
+std::pair<size_t, std::string> auxilary_func_name(const I2CIntegral& integral);
+
 /// Generates primitive compute function name.
 /// @param integral The base two center integral.
 /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.

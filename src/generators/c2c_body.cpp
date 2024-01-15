@@ -49,7 +49,7 @@ C2CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
 
-    for (const auto& label : _get_buffers_def(rgroup))
+    for (const auto& label : _get_buffers_def(rgroup, integral))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -169,7 +169,8 @@ C2CFuncBodyDriver::_get_ket_variables_def() const
 }
 
 std::vector<std::string>
-C2CFuncBodyDriver::_get_buffers_def(const R2Group& rgroup) const
+C2CFuncBodyDriver::_get_buffers_def(const R2Group&     rgroup,
+                                    const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
@@ -184,11 +185,14 @@ C2CFuncBodyDriver::_get_buffers_def(const R2Group& rgroup) const
  
     vstr.push_back("TDoubleArray2D<" + std::to_string(ndims) + "> buffers;");
     
-    vstr.push_back("// set up pointers to contracted integral buffers");
-   
-    for (size_t i = 0; i < ndims; i++)
+    if (_need_auxilaries(integral))
     {
-        vstr.push_back("auto bvals_" + std::to_string(i) + " = buffers[" + std::to_string(i) + "].data();");
+        vstr.push_back("// set up pointers to contracted integral buffers");
+        
+        for (size_t i = 0; i < ndims; i++)
+        {
+            vstr.push_back("auto bvals_" + std::to_string(i) + " = buffers[" + std::to_string(i) + "].data();");
+        }
     }
 
     return vstr;

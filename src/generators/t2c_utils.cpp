@@ -240,6 +240,16 @@ compute_func_name(const I2CIntegral& integral,
 }
 
 std::pair<size_t, std::string>
+auxilary_func_name(const I2CIntegral& integral)
+{
+    std::string prefix = "compAuxilary";
+    
+    const auto label = prefix  + t2c::integral_label(integral) + integral.label();
+        
+    return {label.size() + 1, label};
+}
+
+std::pair<size_t, std::string>
 prim_compute_func_name(const I2CIntegral& integral,
                        const bool         sum_form)
 {
