@@ -28,6 +28,7 @@
 #include "t2c_docs.hpp"
 #include "t2c_decl.hpp"
 #include "c2c_body.hpp"
+#include "c2c_auxilary_body.hpp"
 
 #include "cold_ovl_driver.hpp"
 
@@ -259,18 +260,18 @@ ColdCPUGenerator::_write_auxilary_file(const R2Group&     rgroup,
         
     T2CDeclDriver decl_drv;
         
-    //C2CFuncBodyDriver func_drv;
+    C2CAuxilaryBodyDriver func_drv;
         
     if ((integral[0] == integral[1]) && (integral.is_simple()))
     {
         decl_drv.write_auxilary_func_decl(fstream, rgroup, integral, true, false);
             
-        //func_drv.write_func_body(fstream, rgroup, integral, sum_form, true);
+        func_drv.write_aux_body(fstream, rgroup, integral, true);
     }
         
     decl_drv.write_auxilary_func_decl(fstream, rgroup, integral, false, false);
         
-    //func_drv.write_func_body(fstream, rgroup, integral, sum_form, false);
+    func_drv.write_aux_body(fstream, rgroup, integral, false);
         
     _write_namespace(fstream, integral, false);
         

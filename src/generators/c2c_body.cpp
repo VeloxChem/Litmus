@@ -275,6 +275,12 @@ C2CFuncBodyDriver::_add_batches_loop_body(      VCodeLines& lines,
     label += " ket_first, ket_last);";
             
     lines.push_back({2, 0, 2, label});
+    
+    lines.push_back({2, 0, 2, "auto ket_rx = ket_coords_x.data();"});
+        
+    lines.push_back({2, 0, 2, "auto ket_ry = ket_coords_y.data();"});
+        
+    lines.push_back({2, 0, 2, "auto ket_rz = ket_coords_z.data();"});
 }
 
 void
@@ -398,7 +404,7 @@ C2CFuncBodyDriver::_add_bra_loop_block(      VCodeLines&  lines,
     
     lines.push_back({3, 0, 2, "// compute integrals batch " + blabel});
     
-    lines.push_back({3, 0, 1, "#pragma omp simd aligned(ket_coords_x, ket_coords_y, ket_coords_z : 64)"});
+    lines.push_back({3, 0, 1, "#pragma omp simd aligned(ket_rx, ket_ry, ket_rz : 64)"});
     
     lines.push_back({3, 0, 1, "for (int64_t k = 0; k < ket_dim; k++)"});
     
@@ -581,17 +587,17 @@ C2CFuncBodyDriver::_add_loop_prefactors(      VCodeLines& lines,
     
     if (t2c::find_factor(rgroup, "rab_x", first, last))
     {
-        lines.push_back({spacer, 0, 2, "const auto rab_x = a_x - ket_coords_x[k];"});
+        lines.push_back({spacer, 0, 2, "const auto rab_x = a_x - ket_rx[k];"});
     }
     
     if (t2c::find_factor(rgroup, "rab_y", first, last))
     {
-        lines.push_back({spacer, 0, 2, "const auto rab_y = a_y - ket_coords_y[k];"});
+        lines.push_back({spacer, 0, 2, "const auto rab_y = a_y - ket_ry[k];"});
     }
     
     if (t2c::find_factor(rgroup, "rab_z", first, last))
     {
-        lines.push_back({spacer, 0, 2, "const auto rab_z = a_z - ket_coords_z[k];"});
+        lines.push_back({spacer, 0, 2, "const auto rab_z = a_z - ket_rz[k];"});
     }
     
     const auto auxilaries = t2c::get_unique_auxilaries(rgroup);
