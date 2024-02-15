@@ -26,6 +26,8 @@
 
 using TMapOfStrings = std::map<Operator, std::string>;
 
+using T3Index = std::array<int, 3>;
+
 using T4Index = std::array<int, 4>;
 
 using V4Auxilaries = std::set<T4Index>;
@@ -216,8 +218,8 @@ V4Auxilaries get_unique_auxilaries(const R2Group& rgroup,
                                     const size_t   first,
                                     const size_t   last);
 
-/// Gets index of targeted auxilary in set of unique auxilaries (n,mt).
-/// @param auxilaries The set of unique auxilaries (n,mt).
+/// Gets index of targeted auxilary in set of unique auxilaries (n,m,t).
+/// @param auxilaries The set of unique auxilaries (n,m,t).
 /// @param target The targeted auxilary.
 /// @return The index of targeted auxilary.
 size_t get_auxilary_index(const V4Auxilaries& auxilaries,
@@ -227,6 +229,16 @@ size_t get_auxilary_index(const V4Auxilaries& auxilaries,
 /// @param rterm The recursion term.
 /// @return The (n,m,t) auxilary.
 T4Index get_auxilary(const R2CTerm& rterm);
+
+/// Decomposes targeted auxilary (n,m,t).
+/// @param target The targeted auxilary.
+/// @return The polynomial decomposition into (n,m,t), (n,t), (m,t).
+T3Index get_factor_decomposition(const T4Index& target);
+
+/// Decomposes targeted auxilary in set of unique auxilaries (n,m,t).
+/// @param auxilaries The set of unique auxilaries (n,m,t).
+/// @return The polynomial decomposition into (n,m,t), (n,t), (m,t).
+T3Index get_maximum_decomposition(const V4Auxilaries& auxilaries);
 
 /// Prints debug infor for given recursion expansion.
 /// @param rdist The recursion expansion.

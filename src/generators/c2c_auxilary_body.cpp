@@ -26,6 +26,11 @@ C2CAuxilaryBodyDriver::write_aux_body(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "{"});
     
+    for (const auto& label : _get_math_def())
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
     for (const auto& label : _get_gtos_def(diagonal))
     {
         lines.push_back({1, 0, 2, label});
@@ -147,7 +152,9 @@ C2CAuxilaryBodyDriver::_get_auxilaries_def(const R2Group& rgroup) const
 {
     std::vector<std::string> vstr;
 
-    const auto ndims = (t2c::get_unique_auxilaries(rgroup)).size();
+    auto ndims = (t2c::get_unique_auxilaries(rgroup)).size();
+    
+    if (ndims == 0) ndims = 1;
 
     vstr.push_back("// set up pointers to auxilary buffers");
 
@@ -155,6 +162,10 @@ C2CAuxilaryBodyDriver::_get_auxilaries_def(const R2Group& rgroup) const
     {
         vstr.push_back("auto avals_" + std::to_string(i) + " = auxilaries[" + std::to_string(i) + "].data();");
     }
+    
+    vstr.push_back("// zero auxilary buffers");
+    
+    vstr.push_back("simd::zero<" + std::to_string(ndims) + ">(auxilaries);");
 
     return vstr;
 }
@@ -239,6 +250,8 @@ void
 C2CAuxilaryBodyDriver::_add_prim_loop_start(      VCodeLines& lines,
                                             const bool        diagonal) const
 {
+    lines.push_back({1, 0, 2, "// compute auxilary integrals"});
+    
     if (diagonal)
     {
         lines.push_back({1, 0, 1, "for (int64_t i = 0; i < npgtos; i++)"});
@@ -298,7 +311,17 @@ C2CAuxilaryBodyDriver::_add_aux_loop_body(      VCodeLines&  lines,
     
     lines.push_back({4, 0, 2, "const auto ab_z = bra_rz - ket_rz[k];"});
     
-    lines.push_back({3, 0, 2, "}"});
+    // determine auxilaries
+    
+    const auto auxilaries = t2c::get_unique_auxilaries(rgroup);
+    
+    _add_aux_overlap_factor(lines, auxilaries);
+    
+    _add_aux_polynomial_factors(lines, auxilaries);
+    
+    _add_aux_values(lines, auxilaries);
+    
+    lines.push_back({3, 0, 1, "}"});
 }
 
 void
@@ -308,3 +331,92 @@ C2CAuxilaryBodyDriver::_add_prim_loop_end(VCodeLines& lines) const
     
     lines.push_back({1, 0, 2, "}"});
 }
+
+void
+C2CAuxilaryBodyDriver::_add_aux_overlap_factor(      VCodeLines&   lines,
+                                               const V4Auxilaries& auxilaries) const
+{
+    lines.push_back({4, 0, 2, "const auto ket_exp = ket_fe[k];"});
+    
+    lines.push_back({4, 0, 2, "const auto fe_0 = 1.0 / (bra_exp + ket_exp);"});
+    
+    lines.push_back({4, 0, 2, "const auto fz_0 = bra_exp * ket_exp * fe_0 * (ab_x * ab_x + ab_y * ab_y + ab_z * ab_z);"});
+    
+    lines.push_back({4, 0, 2, "const auto fmpi = fpi * fe_0;"});
+    
+    if (const auto ndims = auxilaries.size(); ndims == 0)
+    {
+        lines.push_back({4, 0, 2, "avals_0[k] += bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
+    }
+    else
+    {
+        lines.push_back({4, 0, 2, "const auto fss = bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
+    }
+}
+
+void
+C2CAuxilaryBodyDriver::_add_aux_polynomial_factors(      VCodeLines&   lines,
+                                                   const V4Auxilaries& auxilaries) const
+{
+    const auto mvals = t2c::get_maximum_decomposition(auxilaries);
+    
+    if (mvals[0] > 0)
+    {
+        lines.push_back({4, 0, 2, "const auto ft_0 = bra_exp * ket_exp * fe_0;"});
+    }
+    
+    if (mvals[1] > 0)
+    {
+        lines.push_back({4, 0, 2, "const auto fm_0 = bra_exp * fe_0;"});
+    }
+    
+    if (mvals[2] > 0)
+    {
+        lines.push_back({4, 0, 2, "const auto fn_0 = ket_exp * fe_0;"});
+    }
+}
+
+void
+C2CAuxilaryBodyDriver::_add_aux_values(      VCodeLines&   lines,
+                                       const V4Auxilaries& auxilaries) const
+{
+    int index = 0;
+    
+    for (const auto& taux : auxilaries)
+    {
+        auto label = "avals_" + std::to_string(index) + "[k] += fss";
+        
+        const auto mvals = t2c::get_factor_decomposition(taux);
+        
+        for (int i = 0; i < mvals[0]; i++) label += " * ft_0";
+        
+        for (int i = 0; i < mvals[1]; i++) label += " * fm_0";
+        
+        for (int i = 0; i < mvals[2]; i++) label += " * fn_0";
+        
+        for (int i = 0; i < (taux[2] - mvals[0] - mvals[1] - mvals[2]); i++) label += " * fe_0";
+        
+        for (int i = 0; i < (taux[0] - mvals[0] - mvals[1]); i++) label += " * bra_exp";
+        
+        for (int i = 0; i < (taux[1] - mvals[0] - mvals[2]); i++) label += " * ket_exp";
+        
+        label += ";";
+        
+        lines.push_back({4, 0, 2, label});
+        
+        index++;
+    }
+}
+
+std::vector<std::string>
+C2CAuxilaryBodyDriver::_get_math_def() const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("// set up math constants");
+        
+    vstr.push_back("const auto fpi = mathconst::getPiValue();");
+ 
+    return vstr;
+}
+

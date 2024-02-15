@@ -226,7 +226,9 @@ T2CDeclDriver::_get_auxilary_str(const R2Group&     rgroup,
 {
     const auto [nsize, name] = t2c::auxilary_func_name(integral);
   
-    const auto ndim = (t2c::get_unique_auxilaries(rgroup)).size();
+    auto ndim = (t2c::get_unique_auxilaries(rgroup)).size();
+    
+    if (ndim == 0) ndim = 1; 
     
     return name + "(TDoubleArray2D<" + std::to_string(ndim) + ">& auxilaries,";
 }

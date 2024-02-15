@@ -68,6 +68,8 @@ ColdCPUGenerator::generate(const std::string& label,
                 }
             }
         }
+        
+        _write_func_header(label, angmom, bra_gdrv, ket_gdrv, op_gdrv, sum_form);
     }
     else
     {
@@ -131,6 +133,35 @@ ColdCPUGenerator::_file_name(const I2CIntegral& integral,
     {
         return t2c::integral_label(integral) + "ColdRec" + integral.label();
     }
+}
+
+std::string
+ColdCPUGenerator::_func_file_name(const std::string& label,
+                                  const int          bra_gdrv,
+                                  const int          ket_gdrv,
+                                  const int          op_gdrv,
+                                  const bool         sum_form) const
+{
+    std::string fname = (sum_form) ? "SumFunc" : "Func";
+    
+    if ((bra_gdrv + ket_gdrv + op_gdrv) > 0)
+    {
+        if (_need_all_gdrv(label))
+        {
+            fname = "Geom" + std::to_string(bra_gdrv) + std::to_string(op_gdrv) + std::to_string(ket_gdrv) + fname;
+        }
+        else
+        {
+            fname = "Geom" + std::to_string(bra_gdrv) + std::to_string(ket_gdrv) + fname;
+        }
+    }
+    
+    if (fstr::lowercase(label) == "overlap")
+    {
+        fname = "Overlap" + fname;
+    }
+    
+    return fname;
 }
 
 void
@@ -254,7 +285,7 @@ ColdCPUGenerator::_write_auxilary_file(const R2Group&     rgroup,
         
     fstream.open(fname.c_str(), std::ios_base::trunc);
         
-    //_write_cpp_includes(fstream, integral, sum_form);
+    _write_auxilary_file_includes(fstream, integral);
         
     _write_namespace(fstream, integral, true);
         
@@ -412,6 +443,21 @@ ColdCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+void
+ColdCPUGenerator::_write_auxilary_file_includes(      std::ofstream& fstream,
+                                                const I2CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + t2c::auxilary_file_name(integral) +  ".hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include <cmath>"});
+    
+    lines.push_back({0, 0, 2, "#include \"MathConst.hpp\""});
+
+    ost::write_code_lines(fstream, lines);
+}
+
 R2Group
 ColdCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
 {
@@ -440,3 +486,55 @@ ColdCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
     return rgroup;
 }
 
+void
+ColdCPUGenerator::_write_func_header(const std::string& label,
+                                     const int          angmom,
+                                     const int          bra_gdrv,
+                                     const int          ket_gdrv,
+                                     const int          op_gdrv,
+                                     const bool         sum_form) const
+{
+    auto fname = _func_file_name(label, bra_gdrv, ket_gdrv, op_gdrv, sum_form) + ".hpp";
+        
+    std::ofstream fstream;
+               
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+//    _write_hpp_defines(fstream, integral, false, sum_form, true);
+//
+//    _write_hpp_includes(fstream, integral, sum_form);
+//
+//    _write_namespace(fstream, integral, true);
+//
+//    T2CDocuDriver docs_drv;
+//
+//    T2CDeclDriver decl_drv;
+//
+//    if ((integral[0] == integral[1]) && integral.is_simple())
+//    {
+//        docs_drv.write_doc_str(fstream, integral, sum_form, true);
+//
+//        decl_drv.write_func_decl(fstream, integral, sum_form, true, true);
+//    }
+//
+//    docs_drv.write_doc_str(fstream, integral, sum_form, false);
+//
+//    decl_drv.write_func_decl(fstream, integral, sum_form, false, true);
+//
+//    _write_namespace(fstream, integral, false);
+//
+//    _write_hpp_defines(fstream, integral, false, sum_form, false);
+
+    fstream.close();
+}
+
+bool
+ColdCPUGenerator::_need_all_gdrv(const std::string& label) const
+{
+//    if (fstr::lowercase(label) == "overlap")
+//    {
+//        fname = "Overlap" + fname;
+//    }
+    
+    return false;
+}

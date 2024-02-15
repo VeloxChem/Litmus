@@ -30,6 +30,10 @@
 // Two-center auxilary compute function body generators for CPU.
 class C2CAuxilaryBodyDriver
 {
+    /// Generates vector of strings with math constant definitions in compute function.
+    /// @return The vector of strings with math constant definitions in compute function.
+    std::vector<std::string> _get_math_def() const;
+    
     /// Generates vector of strings with GTOs definitions in compute function.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @return The vector of strings with GTOS definitions in compute function.
@@ -75,6 +79,24 @@ class C2CAuxilaryBodyDriver
     /// Adds primitives loop end definitions to code lines container.
     /// @param lines The code lines container to which bra loop end definition are added.
     void _add_prim_loop_end(VCodeLines& lines) const;
+    
+    /// Adds overlap factors to code lines container.
+    /// @param lines The code lines container to which bra loop end definition are added.
+    /// @param auxilaries The set of unique auxilaries (n,m,t).
+    void _add_aux_overlap_factor(      VCodeLines&   lines,
+                                 const V4Auxilaries& auxilaries) const;
+    
+    /// Adds polynomial factors to code lines container.
+    /// @param lines The code lines container to which bra loop end definition are added.
+    /// @param auxilaries The set of unique auxilaries (n,m,t).
+    void _add_aux_polynomial_factors(      VCodeLines&   lines,
+                                     const V4Auxilaries& auxilaries) const;
+    
+    /// Adds auxilaries values computation to code lines container.
+    /// @param lines The code lines container to which bra loop end definition are added.
+    /// @param auxilaries The set of unique auxilaries (n,m,t).
+    void _add_aux_values(      VCodeLines&   lines,
+                         const V4Auxilaries& auxilaries) const;
     
 public:
     /// Creates a two-center auxilary compute function body generator.

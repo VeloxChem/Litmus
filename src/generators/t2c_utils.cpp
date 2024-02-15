@@ -657,6 +657,36 @@ get_auxilary(const R2CTerm& rterm)
     return {n, m, t, p};
 }
 
+T3Index
+get_factor_decomposition(const T4Index& target)
+{
+    auto ft = std::min(target[0], std::min(target[1], target[2]));
+    
+    auto fm = std::min(target[0] - ft, target[2] - ft);
+        
+    auto fn = std::min(target[1] - ft, target[2] - ft - fm);
+    
+    return T3Index({ft, fm, fn});
+}
+
+T3Index
+get_maximum_decomposition(const V4Auxilaries& auxilaries)
+{
+    auto mvals = T3Index({0, 0, 0});
+    
+    for (const auto& taux : auxilaries)
+    {
+        auto t3vals = t2c::get_factor_decomposition(taux);
+        
+        for (size_t i = 0; i < 3; i++)
+        {
+            mvals[i] = std::max(mvals[i], t3vals[i]);
+        }
+    }
+    
+    return mvals;
+}
+
 void
 debug_info(const R2CDist& rdist)
 {

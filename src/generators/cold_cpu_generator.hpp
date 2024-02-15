@@ -56,6 +56,19 @@ class ColdCPUGenerator
     std::string _file_name(const I2CIntegral& integral,
                            const bool         sum_form) const;
     
+    /// Gets function file name of file with recursion functions for two center integral.
+    /// @param label The label of requested two-center integral.
+    /// @param bra_gdrv The geometrical derivative of bra side.
+    /// @param ket_gdrv The geometrical derivative of ket side.
+    /// @param op_gdrv The geometrical derivative of operator.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    /// @return The file name.
+    std::string _func_file_name(const std::string& label,
+                                const int          bra_gdrv,
+                                const int          ket_gdrv,
+                                const int          op_gdrv,
+                                const bool         sum_form) const;
+    
     /// Writes definitions of define for header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
@@ -116,6 +129,12 @@ class ColdCPUGenerator
     void _write_auxilary_includes(      std::ofstream& fstream,
                                   const I2CIntegral&   integral) const;
     
+    /// Writes definitions of includes for auxilaries file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_auxilary_file_includes(      std::ofstream& fstream,
+                                       const I2CIntegral&   integral) const;
+    
     /// Writes namespace definition to file stream.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
@@ -128,6 +147,25 @@ class ColdCPUGenerator
     /// @param integral The base integral.
     /// @return The recursion group.
     R2Group _generate_integral_group(const I2CIntegral& integral) const;
+    
+    /// Writes  compute function for one-electron integrals up to given angular momentum (inclusive) )on A and B centers.
+    /// @param label The label of requested two-center integral.
+    /// @param angmom The maximum angular momentum of A and B centers.
+    /// @param bra_gdrv The geometrical derivative of bra side.
+    /// @param ket_gdrv The geometrical derivative of ket side.
+    /// @param op_gdrv The geometrical derivative of operator.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    void _write_func_header(const std::string& label,
+                            const int          angmom,
+                            const int          bra_gdrv,
+                            const int          ket_gdrv,
+                            const int          op_gdrv,
+                            const bool         sum_form) const;
+    
+    /// Checks if geometrical derrivatibes of integrals are needed.
+    /// @param label The label of requested two-center integral.
+    /// @return true if all geometrical derrivatives are needed, false otherwise.
+    bool _need_all_gdrv(const std::string& label) const;
     
 public:
     /// Creates a two-center integrals CPU code generator.
