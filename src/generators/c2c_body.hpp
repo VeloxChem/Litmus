@@ -46,6 +46,11 @@ class C2CFuncBodyDriver
     
     /// Generates vector of buffer definitions in compute function.
     /// @param rgroup The recursion group.
+    /// @return The vector of fractions definitions in compute function.
+    std::vector<std::string> _get_fractions_def(const R2Group& rgroup) const;
+    
+    /// Generates vector of buffer definitions in compute function.
+    /// @param rgroup The recursion group.
     /// @param integral The base two center integral.
     /// @return The vector of buffer definitions in compute function.
     std::vector<std::string> _get_buffers_def(const R2Group&     rgroup,

@@ -49,6 +49,11 @@ C2CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
 
+    for (const auto& label : _get_fractions_def(rgroup))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
     for (const auto& label : _get_buffers_def(rgroup, integral))
     {
         lines.push_back({1, 0, 2, label});
@@ -164,6 +169,21 @@ C2CFuncBodyDriver::_get_ket_variables_def() const
     vstr.push_back("alignas(64) TDoubleArray ket_coords_y;");
         
     vstr.push_back("alignas(64) TDoubleArray ket_coords_z;");
+    
+    return vstr;
+}
+
+std::vector<std::string>
+C2CFuncBodyDriver::_get_fractions_def(const R2Group& rgroup) const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("// initialize fractional factors");
+    
+    for (const auto& frac : rgroup.prefactors())
+    {
+        
+    }
     
     return vstr;
 }
