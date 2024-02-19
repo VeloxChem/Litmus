@@ -23,6 +23,12 @@
 namespace t2c { // t2c namespace
 
 std::string
+fraction_label(const Fraction& fraction)
+{
+    return "fr_" + std::to_string(std::abs(fraction.numerator())) + "_" + std::to_string(fraction.denominator());
+}
+
+std::string
 integral_label(const I2CIntegral& integral)
 {
     const auto integrand = integral.integrand();

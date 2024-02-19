@@ -34,6 +34,11 @@ using V4Auxilaries = std::set<T4Index>;
 
 namespace t2c { // t2c namespace
 
+/// Gets standart  label of fraction.
+/// @param fraction The fraction.
+/// @return The standart label of ifraction.
+std::string fraction_label(const Fraction& fraction);
+
 /// Gets standart capitalized label of integral.
 /// @param integral The base two center integral.
 /// @return The standart capitalized label of integral.

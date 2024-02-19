@@ -134,15 +134,15 @@ C2CAuxilaryBodyDriver::_get_ket_variables_def() const
     
     vstr.push_back("// initialize aligned arrays for ket side");
         
-    vstr.push_back("alignas(64) TDoubleArray ket_coords_x;");
+    vstr.push_back("alignas(64) TArray<double> ket_coords_x;");
         
-    vstr.push_back("alignas(64) TDoubleArray ket_coords_y;");
+    vstr.push_back("alignas(64) TArray<double> ket_coords_y;");
         
-    vstr.push_back("alignas(64) TDoubleArray ket_coords_z;");
+    vstr.push_back("alignas(64) TArray<double> ket_coords_z;");
         
-    vstr.push_back("alignas(64) TDoubleArray ket_exps;");
+    vstr.push_back("alignas(64) TArray<double> ket_exps;");
         
-    vstr.push_back("alignas(64) TDoubleArray ket_norms;");
+    vstr.push_back("alignas(64) TArray<double> ket_norms;");
         
     return vstr;
 }
@@ -165,7 +165,7 @@ C2CAuxilaryBodyDriver::_get_auxilaries_def(const R2Group& rgroup) const
     
     vstr.push_back("// zero auxilary buffers");
     
-    vstr.push_back("simd::zero<" + std::to_string(ndims) + ">(auxilaries);");
+    vstr.push_back("simd::zero(auxilaries);");
 
     return vstr;
 }
@@ -254,7 +254,7 @@ C2CAuxilaryBodyDriver::_add_prim_loop_start(      VCodeLines& lines,
     
     if (diagonal)
     {
-        lines.push_back({1, 0, 1, "for (int64_t i = 0; i < npgtos; i++)"});
+        lines.push_back({1, 0, 1, "for (int i = 0; i < npgtos; i++)"});
             
         lines.push_back({1, 0, 1, "{"});
             
@@ -262,7 +262,7 @@ C2CAuxilaryBodyDriver::_add_prim_loop_start(      VCodeLines& lines,
                 
         lines.push_back({2, 0, 2, "simd::loadPrimitiveGTOsData(ket_norms, gto_norms, i, ncgtos, ket_first, ket_last);"});
                 
-        lines.push_back({2, 0, 1, "for (int64_t j = 0; j < npgtos; j++)"});
+        lines.push_back({2, 0, 1, "for (int j = 0; j < npgtos; j++)"});
             
         lines.push_back({2, 0, 1, "{"});
             
@@ -274,7 +274,7 @@ C2CAuxilaryBodyDriver::_add_prim_loop_start(      VCodeLines& lines,
     }
     else
     {
-        lines.push_back({1, 0, 1, "for (int64_t i = 0; i < ket_npgtos; i++)"});
+        lines.push_back({1, 0, 1, "for (int i = 0; i < ket_npgtos; i++)"});
             
         lines.push_back({1, 0, 1, "{"});
             
@@ -282,7 +282,7 @@ C2CAuxilaryBodyDriver::_add_prim_loop_start(      VCodeLines& lines,
                 
         lines.push_back({2, 0, 2, "simd::loadPrimitiveGTOsData(ket_norms, ket_gto_norms, i, ket_ncgtos, ket_first, ket_last);"});
                 
-        lines.push_back({2, 0, 1, "for (int64_t j = 0; j < bra_npgtos; j++)"});
+        lines.push_back({2, 0, 1, "for (int j = 0; j < bra_npgtos; j++)"});
             
         lines.push_back({2, 0, 1, "{"});
             
@@ -301,7 +301,7 @@ C2CAuxilaryBodyDriver::_add_aux_loop_body(      VCodeLines&  lines,
 {
     lines.push_back({3, 0, 1, "#pragma omp simd aligned(ket_rx, ket_ry, ket_rz, ket_fe, ket_fn : 64)"});
     
-    lines.push_back({3, 0, 1, "for (int64_t k = 0; k < ket_dim; k++)"});
+    lines.push_back({3, 0, 1, "for (int k = 0; k < ket_dim; k++)"});
     
     lines.push_back({3, 0, 1, "{"});
     

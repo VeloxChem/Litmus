@@ -164,11 +164,11 @@ C2CFuncBodyDriver::_get_ket_variables_def() const
     
     vstr.push_back("// initialize aligned arrays for ket side");
         
-    vstr.push_back("alignas(64) TDoubleArray ket_coords_x;");
+    vstr.push_back("alignas(64) TArray<double> ket_coords_x;");
         
-    vstr.push_back("alignas(64) TDoubleArray ket_coords_y;");
+    vstr.push_back("alignas(64) TArray<double> ket_coords_y;");
         
-    vstr.push_back("alignas(64) TDoubleArray ket_coords_z;");
+    vstr.push_back("alignas(64) TArray<double> ket_coords_z;");
     
     return vstr;
 }
@@ -176,14 +176,34 @@ C2CFuncBodyDriver::_get_ket_variables_def() const
 std::vector<std::string>
 C2CFuncBodyDriver::_get_fractions_def(const R2Group& rgroup) const
 {
+    std::set<Fraction> red_fracs;
+    
+    for (const auto& frac : rgroup.prefactors())
+    {
+        red_fracs.insert(Fraction(std::abs(frac.numerator()), frac.denominator()));
+    }
+    
     std::vector<std::string> vstr;
     
     vstr.push_back("// initialize fractional factors");
     
-    for (const auto& frac : rgroup.prefactors())
+    for (const auto& frac : red_fracs)
     {
-        
+        if (frac.denominator() != 1)
+        {
+            std::string label = "const double ";
+            
+            label += t2c::fraction_label(frac);
+            
+            label += " = " + std::to_string(frac.numerator()) + ".0";
+            
+            label += " / " + std::to_string(frac.denominator()) + ".0;";
+            
+            vstr.push_back(label);
+        }
     }
+    
+    if (vstr.size() == 1) vstr.clear();
     
     return vstr;
 }
@@ -203,7 +223,7 @@ C2CFuncBodyDriver::_get_buffers_def(const R2Group&     rgroup,
         ndims = nterms;
     }
  
-    vstr.push_back("TDoubleArray2D<" + std::to_string(ndims) + "> buffers;");
+    vstr.push_back("TArray2D<double, " + std::to_string(ndims) + "> buffers;");
     
     if (_need_auxilaries(integral))
     {
@@ -227,7 +247,7 @@ C2CFuncBodyDriver::_get_auxilaries_def(const R2Group& rgroup) const
 
     const auto ndims = (t2c::get_unique_auxilaries(rgroup)).size();
 
-    vstr.push_back("TDoubleArray2D<" + std::to_string(ndims) + "> auxilaries;");
+    vstr.push_back("TArray2D<double, " + std::to_string(ndims) + "> auxilaries;");
 
     vstr.push_back("// set up pointers to auxilary buffers");
 
@@ -261,7 +281,7 @@ C2CFuncBodyDriver::_get_batches_def(const bool diagonal) const
 void
 C2CFuncBodyDriver::_add_batches_loop_start(VCodeLines& lines) const
 {
-    lines.push_back({1, 0, 1, "for (int64_t i = 0; i < nbatches; i++)"});
+    lines.push_back({1, 0, 1, "for (int i = 0; i < nbatches; i++)"});
         
     lines.push_back({1, 0, 1, "{"});
 }
@@ -314,7 +334,7 @@ C2CFuncBodyDriver::_add_bra_loop_start(      VCodeLines&  lines,
                                        const I2CIntegral& integral,
                                        const bool         diagonal) const
 {
-    lines.push_back({2, 0, 1, "for (int64_t j = bra_first; j < bra_last; j++) "});
+    lines.push_back({2, 0, 1, "for (int j = bra_first; j < bra_last; j++) "});
         
     lines.push_back({2, 0, 1, "{"});
     
@@ -426,7 +446,7 @@ C2CFuncBodyDriver::_add_bra_loop_block(      VCodeLines&  lines,
     
     lines.push_back({3, 0, 1, "#pragma omp simd aligned(ket_rx, ket_ry, ket_rz : 64)"});
     
-    lines.push_back({3, 0, 1, "for (int64_t k = 0; k < ket_dim; k++)"});
+    lines.push_back({3, 0, 1, "for (int k = 0; k < ket_dim; k++)"});
     
     lines.push_back({3, 0, 1, "{"});
     
@@ -473,7 +493,7 @@ C2CFuncBodyDriver::_write_block_distributor(      VCodeLines&  lines,
             {
                 const auto lfactor = t2c::combine_factors(bra_pair.second, ket_pair.second);
                 
-                auto flabel = "buffer[" + std::to_string(i - first) + "]";
+                auto flabel = "buffers[" + std::to_string(i - first) + "]";
                 
                 flabel += (lfactor == "1.0")  ? "" : ", "  + lfactor;
                 
@@ -535,11 +555,13 @@ C2CFuncBodyDriver::_get_rterm_code(const R2CTerm&      rterm,
         
     if (pre_fact.denominator() != 1)
     {
-        if (pre_fact.numerator() < 0) plabel.erase(0, 1);
-            
-        plabel = "(" + plabel + ")";
-            
+        plabel = t2c::fraction_label(pre_fact);
+        
         if (pre_fact.numerator() < 0) plabel = "-" + plabel;
+        
+//        if (pre_fact.numerator() < 0) plabel.erase(0, 1);
+//
+//        plabel = "(" + plabel + ")";
     }
     
     if (!is_first)
