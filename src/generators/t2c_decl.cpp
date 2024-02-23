@@ -354,7 +354,7 @@ T2CDeclDriver::_get_gto_blocks_str(const I2CIntegral& integral,
         vstr.push_back(std::string(nsize, ' ') + "const CGtoBlock& ket_gto_block,");
     }
     
-    if (integral[0] != integral[1])
+    if ((integral[0] != integral[1]) && (!is_auxilary))
     {
         vstr.push_back(std::string(nsize, ' ') + "const bool ang_order,");
     }

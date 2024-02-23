@@ -369,20 +369,14 @@ ColdCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     
     if (sum_form)
     {
-        lines.push_back({0, 0, 1, "#include <cstdint>"});
-        
         lines.push_back({0, 0, 2, "#include <vector>"});
-    }
-    else
-    {
-        lines.push_back({0, 0, 2, "#include <cstdint>"});
     }
     
     lines.push_back({0, 0, 1, "#include \"GtoBlock.hpp\""});
     
     if (integral[0] == integral[1])
     {
-        lines.push_back({0, 0, 1, "#include \"MatrixType.hpp\""});
+        lines.push_back({0, 0, 1, "#include \"Matrix.hpp\""});
     }
     
     if (integral.integrand().name() == "A")

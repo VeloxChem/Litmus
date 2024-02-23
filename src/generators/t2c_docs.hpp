@@ -80,6 +80,7 @@ class T2CDocuDriver
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @return The vector of GTOs block strings
     std::vector<std::string> _get_gto_blocks_str(const I2CIntegral& integral,
+                                                 const bool         is_auxilary,
                                                  const bool         diagonal) const;
     
     /// Generates vector of index strings.

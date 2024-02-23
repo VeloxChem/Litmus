@@ -219,11 +219,11 @@ C2CAuxilaryBodyDriver::_get_ket_coords(const bool diagonal) const
     
     vstr.push_back(label);
         
-    vstr.push_back("auto ket_rx = ket_coords_x.data();");
+    vstr.push_back("auto b_x = ket_coords_x.data();");
         
-    vstr.push_back("auto ket_ry = ket_coords_y.data();");
+    vstr.push_back("auto b_y = ket_coords_y.data();");
         
-    vstr.push_back("auto ket_rz = ket_coords_z.data();");
+    vstr.push_back("auto b_z = ket_coords_z.data();");
         
     return vstr;
 }
@@ -299,17 +299,17 @@ C2CAuxilaryBodyDriver::_add_aux_loop_body(      VCodeLines&  lines,
                                           const R2Group&     rgroup,
                                           const I2CIntegral& integral) const
 {
-    lines.push_back({3, 0, 1, "#pragma omp simd aligned(ket_rx, ket_ry, ket_rz, ket_fe, ket_fn : 64)"});
+    lines.push_back({3, 0, 1, "#pragma omp simd aligned(b_x, b_y, b_z, ket_fe, ket_fn : 64)"});
     
     lines.push_back({3, 0, 1, "for (int k = 0; k < ket_dim; k++)"});
     
     lines.push_back({3, 0, 1, "{"});
     
-    lines.push_back({4, 0, 2, "const auto ab_x = bra_rx - ket_rx[k];"});
+    lines.push_back({4, 0, 2, "const auto ab_x = a_x - b_x[k];"});
     
-    lines.push_back({4, 0, 2, "const auto ab_y = bra_ry - ket_ry[k];"});
+    lines.push_back({4, 0, 2, "const auto ab_y = a_y - b_y[k];"});
     
-    lines.push_back({4, 0, 2, "const auto ab_z = bra_rz - ket_rz[k];"});
+    lines.push_back({4, 0, 2, "const auto ab_z = a_z - b_z[k];"});
     
     // determine auxilaries
     

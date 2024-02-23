@@ -42,7 +42,7 @@ T2CDocuDriver::write_doc_str(      std::ofstream& fstream,
         lines.push_back({0, 1, 1, label});
     }
     
-    for (const auto& label : _get_gto_blocks_str(integral, diagonal))
+    for (const auto& label : _get_gto_blocks_str(integral, false, diagonal))
     {
         lines.push_back({0, 1, 1, label});
     }
@@ -76,7 +76,7 @@ T2CDocuDriver::write_auxilary_doc_str(      std::ofstream& fstream,
     
     lines.push_back({0, 1, 1, "@param auxilaries the buffer for auxilary integrals."});
     
-    for (const auto& label : _get_gto_blocks_str(integral, diagonal))
+    for (const auto& label : _get_gto_blocks_str(integral, true, diagonal))
     {
         lines.push_back({0, 1, 1, label});
     }
@@ -456,6 +456,7 @@ T2CDocuDriver::_get_special_vars_str(const I2CIntegral& integral,
 
 std::vector<std::string>
 T2CDocuDriver::_get_gto_blocks_str(const I2CIntegral& integral,
+                                   const bool         is_auxilary,
                                    const bool         diagonal) const
 {
     std::vector<std::string> vstr;
@@ -471,7 +472,7 @@ T2CDocuDriver::_get_gto_blocks_str(const I2CIntegral& integral,
         vstr.push_back("@param ket_gto_block the GTOs block on ket side.");
     }
     
-    if (integral[0] != integral[1])
+    if ((integral[0] != integral[1]) && (!is_auxilary))
     {
         vstr.push_back("@param ang_order the flag for matching angular order between matrix and pair of GTOs blocks.");
     }

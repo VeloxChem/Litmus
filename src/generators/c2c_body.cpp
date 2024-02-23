@@ -142,8 +142,6 @@ C2CFuncBodyDriver::_get_gtos_def(const bool diagonal) const
         vstr.push_back("const auto bra_gto_coords = bra_gto_block.getCoordinates();");
         
         vstr.push_back("const auto bra_gto_indexes = bra_gto_block.getOrbitalIndexes();");
-       
-        vstr.push_back("const auto bra_ncgtos = bra_gto_block.getNumberOfBasisFunctions();");
         
         vstr.push_back("// intialize GTOs data on ket side");
         
@@ -340,7 +338,7 @@ C2CFuncBodyDriver::_add_bra_loop_start(      VCodeLines&  lines,
     
     auto [nsize, name] = t2c::auxilary_func_name(integral);
     
-    name = t2c::namespace_label(integral) + "::" + name + "(";
+    name = "cold_" + t2c::namespace_label(integral) + "::" + name + "(";
     
     if (_need_auxilaries(integral))
     {
