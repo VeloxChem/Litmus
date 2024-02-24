@@ -31,6 +31,7 @@
 #include "c2c_auxilary_body.hpp"
 
 #include "cold_ovl_driver.hpp"
+#include "cold_kin_driver.hpp"
 
 void
 ColdCPUGenerator::generate(const std::string& label,
@@ -86,6 +87,8 @@ ColdCPUGenerator::_is_available(const std::string& label) const
 {
     if (fstr::lowercase(label) == "overlap") return true;
     
+    if (fstr::lowercase(label) == "kinetic energy") return true;
+    
     return false;
 }
 
@@ -116,6 +119,13 @@ ColdCPUGenerator::_get_integral(const std::string& label,
     if (fstr::lowercase(label) == "overlap")
     {
         return I2CIntegral(bra, ket, Operator("1"), 0, prefixes);
+    }
+    
+    // kinetic energy integrals
+    
+    if (fstr::lowercase(label) == "kinetic energy")
+    {
+        return I2CIntegral(bra, ket, Operator("T"), 0, prefixes);
     }
     
     return I2CIntegral();
@@ -469,7 +479,23 @@ ColdCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
         }
         else
         {
-            //t2c_ovl_drv.apply_recursion(rgroup);
+            cold_ovl_drv.apply_recursion(rgroup);
+        }
+    }
+    
+    // Kinetic energy integrals
+    
+    if (integral.integrand() == Operator("T"))
+    {
+        ColdKineticEnergyDriver cold_kin_drv;
+        
+        if (integral.is_simple())
+        {
+            rgroup = cold_kin_drv.create_recursion(integral.components<T1CPair, T1CPair>());
+        }
+        else
+        {
+            cold_kin_drv.apply_recursion(rgroup);
         }
     }
     

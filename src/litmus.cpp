@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"cold", "Overlap"});
+    const auto run_type = std::pair<std::string, std::string>({"cold", "Kinetic Energy"});
     
     const int max_angmom = 3;
     

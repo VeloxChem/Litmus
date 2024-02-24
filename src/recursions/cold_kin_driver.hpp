@@ -52,6 +52,11 @@ public:
     /// @return The recursion expansion of given recursion term.
     std::optional<R2CDist> ket_vrr(const R2CTerm& rterm,
                                    const char     axis) const;
+    
+    /// Applies vertical recursion to auxilary recursion term.
+    /// @param rterm The recursion term.
+    /// @return The recursion expansion of auxilary recursion term.
+    R2CDist aux_vrr(const R2CTerm& rterm) const;
         
     /// Applies vertical recursion to bra side recursion term containing overlap
     /// integral.
@@ -76,6 +81,10 @@ public:
     /// Recursively applies vertical recursion to ket side of given recursion expansion.
     /// @param rdist The recursion expansion.
     void apply_ket_vrr(R2CDist& rdist) const;
+    
+    /// Recursively applies vertical recursion to auxilary recursion expansion.
+    /// @param rdist The recursion expansion.
+    void apply_aux_vrr(R2CDist& rdist) const;
     
     /// Creates recursion group from vector of kinetic energy integral components.
     /// @param vints The  vector of kinetic energy integral components.

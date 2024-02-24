@@ -625,21 +625,29 @@ C2CFuncBodyDriver::_add_loop_prefactors(      VCodeLines& lines,
 {
     int spacer = (sum_form) ? 5 : 4;
     
-    if (t2c::find_factor(rgroup, "rab_x", first, last))
+    if (t2c::find_factor(rgroup, "rab_x", first, last) ||
+        t2c::find_factor(rgroup, "r2ab_0", first, last))
     {
         lines.push_back({spacer, 0, 2, "const auto rab_x = a_x - ket_rx[k];"});
     }
     
-    if (t2c::find_factor(rgroup, "rab_y", first, last))
+    if (t2c::find_factor(rgroup, "rab_y", first, last) ||
+        t2c::find_factor(rgroup, "r2ab_0", first, last))
     {
         lines.push_back({spacer, 0, 2, "const auto rab_y = a_y - ket_ry[k];"});
     }
     
-    if (t2c::find_factor(rgroup, "rab_z", first, last))
+    if (t2c::find_factor(rgroup, "rab_z", first, last) ||
+        t2c::find_factor(rgroup, "r2ab_0", first, last))
     {
         lines.push_back({spacer, 0, 2, "const auto rab_z = a_z - ket_rz[k];"});
     }
     
+    if (t2c::find_factor(rgroup, "r2ab_0", first, last))
+    {
+        lines.push_back({spacer, 0, 2, "const auto r2ab_0 = rab_x * rab_x + rab_y * rab_y + rab_z * rab_z;"});
+    }
+        
     const auto auxilaries = t2c::get_unique_auxilaries(rgroup);
     
     for (const auto& taux : t2c::get_unique_auxilaries(rgroup, first, last))

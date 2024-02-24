@@ -59,7 +59,11 @@ ColdKineticEnergyDriver::bra_vrr(const R2CTerm& rterm,
         
         auto x1val = rterm.replace(OperatorComponent("1"));
             
-        x1val.add(Factor("zeta", "fz"), Fraction(2));
+        x1val.add(Factor("N", "n"), Fraction(1));
+        
+        x1val.add(Factor("M", "m"), Fraction(1));
+        
+        x1val.add(Factor("T", "t"), Fraction(2));
             
         t2crt.add(x1val);
         
@@ -69,7 +73,11 @@ ColdKineticEnergyDriver::bra_vrr(const R2CTerm& rterm,
         
         const auto coord = _rxyz[axes::to_index(axis)];
         
-        x2val.add(Factor("PA", "rpa", coord), Fraction(1));
+        x2val.add(Factor("AB", "rab", coord), Fraction(-1));
+        
+        x2val.add(Factor("M", "m"), Fraction(1));
+        
+        x2val.add(Factor("T", "t"), Fraction(1));
         
         t2crt.add(x2val);
         
@@ -81,7 +89,7 @@ ColdKineticEnergyDriver::bra_vrr(const R2CTerm& rterm,
             
             const auto na = x2val[0][axis];
             
-            x3val.add(Factor("1/eta", "fe"), Fraction(na, 2));
+            x3val.add(Factor("T", "t"), Fraction(na, 2));
             
             t2crt.add(x3val);
         }
@@ -94,7 +102,7 @@ ColdKineticEnergyDriver::bra_vrr(const R2CTerm& rterm,
             
             const auto nb = x2val[1][axis];
             
-            x4val.add(Factor("1/eta", "fe"), Fraction(nb, 2));
+            x4val.add(Factor("T", "t"), Fraction(nb, 2));
             
             t2crt.add(x4val);
         }
@@ -109,9 +117,9 @@ ColdKineticEnergyDriver::bra_vrr(const R2CTerm& rterm,
             
             x5val = x5val.replace(OperatorComponent("1"));
             
-            x5val.add(Factor("zeta", "fz"), Fraction{2});
+            x5val.add(Factor("M", "m"), Fraction(1));
             
-            x5val.add(Factor("1/b_e", "fbe"), Fraction(-na, 2));
+            x5val.add(Factor("T", "t"), Fraction(-na));
             
             t2crt.add(x5val);
         }
@@ -138,7 +146,11 @@ ColdKineticEnergyDriver::ket_vrr(const R2CTerm& rterm,
         
         auto x1val = rterm.replace(OperatorComponent("1"));
             
-        x1val.add(Factor("zeta", "fz"), Fraction(2));
+        x1val.add(Factor("N", "n"), Fraction(1));
+        
+        x1val.add(Factor("M", "m"), Fraction(1));
+        
+        x1val.add(Factor("T", "t"), Fraction(2));
         
         t2crt.add(x1val);
         
@@ -148,7 +160,11 @@ ColdKineticEnergyDriver::ket_vrr(const R2CTerm& rterm,
         
         const auto coord = _rxyz[axes::to_index(axis)];
         
-        x2val.add(Factor("PB", "rpb", coord), Fraction(1));
+        x2val.add(Factor("AB", "rab", coord), Fraction(1));
+        
+        x2val.add(Factor("N", "n"), Fraction(1));
+        
+        x2val.add(Factor("T", "t"), Fraction(1));
         
         t2crt.add(x2val);
         
@@ -160,7 +176,7 @@ ColdKineticEnergyDriver::ket_vrr(const R2CTerm& rterm,
             
             const auto nb = x2val[1][axis];
             
-            x3val.add(Factor("1/eta", "fe"), Fraction(nb, 2));
+            x3val.add(Factor("T", "t"), Fraction(nb, 2));
             
             t2crt.add(x3val);
         }
@@ -175,9 +191,9 @@ ColdKineticEnergyDriver::ket_vrr(const R2CTerm& rterm,
             
             x4val = x4val.replace(OperatorComponent("1"));
             
-            x4val.add(Factor("zeta", "fz"), Fraction{2});
+            x4val.add(Factor("N", "n"), Fraction(1));
             
-            x4val.add(Factor("1/k_e", "fke"), Fraction(-nb, 2));
+            x4val.add(Factor("T", "t"), Fraction(-nb));
             
             t2crt.add(x4val);
         }
@@ -188,6 +204,43 @@ ColdKineticEnergyDriver::ket_vrr(const R2CTerm& rterm,
     {
         return std::nullopt;
     }
+}
+
+R2CDist
+ColdKineticEnergyDriver::aux_vrr(const R2CTerm& rterm) const
+{
+    R2CDist t2crt;
+    
+    if (!is_kinetic_energy(rterm)) return t2crt;
+    
+    if (rterm.auxilary(0) && rterm.auxilary(1))
+    {
+        // first recursion term
+        
+        auto x1val = rterm.replace(OperatorComponent("1"));
+        
+        x1val.add(Factor("N", "n"), Fraction(1));
+        
+        x1val.add(Factor("M", "m"), Fraction(1));
+        
+        x1val.add(Factor("T", "t"), Fraction(3));
+            
+        t2crt.add(x1val);
+        
+        // second recursion term
+        
+        x1val.add(Factor("N", "n"), Fraction(1));
+        
+        x1val.add(Factor("M", "m"), Fraction(1));
+        
+        x1val.add(Factor("T", "t"), Fraction(2, 3));
+        
+        x1val.add(Factor("AB2", "r2ab"), Fraction(-1));
+        
+        t2crt.add(x1val);
+    }
+    
+    return t2crt;
 }
 
 R2CDist
@@ -246,6 +299,10 @@ ColdKineticEnergyDriver::apply_recursion(R2CDist& rdist) const
     // vertical recursions on ket side
     
     apply_ket_vrr(rdist);
+    
+    // auxilary recursion
+    
+    apply_aux_vrr(rdist);
 }
 
 void
@@ -396,6 +453,58 @@ ColdKineticEnergyDriver::apply_ket_vrr(R2CDist& rdist) const
         
         rdist = new_dist;
     }
+}
+
+void
+ColdKineticEnergyDriver::apply_aux_vrr(R2CDist& rdist) const
+{
+    R2CDist new_dist(rdist.root());
+    
+    // update recursion distribution
+    
+    if (const auto nterms = rdist.terms(); nterms > 0)
+    {
+        for (size_t i = 0; i < nterms; i++)
+        {
+            if (const auto rterm = rdist[i]; is_kinetic_energy(rterm))
+            {
+                const auto cdist = aux_vrr(rterm);
+                
+                if (const auto nterms = cdist.terms(); nterms > 0)
+                {
+                    for (size_t i = 0; i < nterms; i++ )
+                    {
+                        new_dist.add(cdist[i]);
+                    }
+                }
+                else
+                {
+                    new_dist.add(rterm);
+                }
+            }
+            else
+            {
+                new_dist.add(rterm);
+            }
+        }
+    }
+    else
+    {
+        if (const auto rterm = rdist.root(); is_kinetic_energy(rterm))
+        {
+            const auto cdist = aux_vrr(rterm);
+            
+            if (const auto nterms = cdist.terms(); nterms > 0)
+            {
+                for (size_t i = 0; i < nterms; i++ )
+                {
+                    new_dist.add(cdist[i]);
+                }
+            }
+        }
+    }
+   
+    rdist = new_dist;
 }
 
 R2Group
