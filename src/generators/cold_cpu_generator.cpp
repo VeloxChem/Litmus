@@ -70,7 +70,7 @@ ColdCPUGenerator::generate(const std::string& label,
             }
         }
         
-        _write_func_header(label, angmom, bra_gdrv, ket_gdrv, op_gdrv, sum_form);
+        //_write_func_header(label, angmom, bra_gdrv, ket_gdrv, op_gdrv, sum_form);
     }
     else
     {
@@ -88,6 +88,8 @@ ColdCPUGenerator::_is_available(const std::string& label) const
     if (fstr::lowercase(label) == "overlap") return true;
     
     if (fstr::lowercase(label) == "kinetic energy") return true;
+    
+    if (fstr::lowercase(label) == "nuclear potential") return true;
     
     return false;
 }
@@ -126,6 +128,13 @@ ColdCPUGenerator::_get_integral(const std::string& label,
     if (fstr::lowercase(label) == "kinetic energy")
     {
         return I2CIntegral(bra, ket, Operator("T"), 0, prefixes);
+    }
+    
+    // nuclear potential integrals
+    
+    if (fstr::lowercase(label) == "nuclear potential")
+    {
+        return I2CIntegral(bra, ket, Operator("A"), 0, prefixes);
     }
     
     return I2CIntegral();
@@ -391,12 +400,12 @@ ColdCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     
     if (integral.integrand().name() == "A")
     {
-        lines.push_back({0, 0, 1, "#include \"Point.hpp\""});
+        lines.push_back({0, 0, 1, "#include \"TPoints.hpp\""});
     }
     
     if (integral.integrand().name() == "AG")
     {
-        lines.push_back({0, 0, 1, "#include \"Point.hpp\""});
+        lines.push_back({0, 0, 1, "#include \"TPoints.hpp\""});
         
         if (integral.integrand().shape().order() > 1)
         {

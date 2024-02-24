@@ -249,13 +249,13 @@ T2CDeclDriver::_get_special_vars_str(const I2CIntegral& integral,
         {
             vstr.push_back(std::string(nsize, ' ') + "const std::vector<double>& charges,");
             
-            vstr.push_back(std::string(nsize, ' ') + "const std::vector<TPoint3D>& points,");
+            vstr.push_back(std::string(nsize, ' ') + "const VPoints<3>& points,");
         }
         else
         {
             vstr.push_back(std::string(nsize, ' ') + "const double charge,");
             
-            vstr.push_back(std::string(nsize, ' ') + "const TPoint3D& point,");
+            vstr.push_back(std::string(nsize, ' ') + "const TPoint<3>& point,");
         }
     }
     
