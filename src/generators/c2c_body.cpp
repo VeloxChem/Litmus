@@ -611,7 +611,9 @@ C2CFuncBodyDriver::_get_rterm_code(const R2CTerm&      rterm,
     
     const auto index = t2c::get_auxilary_index(auxilaries, t2c::get_auxilary(rterm));
     
-    flabel += " * f_" + std::to_string(index);
+    if (flabel.size() > 3) flabel += " * ";
+    
+    flabel += "f_" + std::to_string(index);
         
     return flabel;
 }

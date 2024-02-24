@@ -18,7 +18,7 @@
 #include "cold_kin_driver.hpp"
 
 #include "axes.hpp"
-#include "t2c_ovl_driver.hpp"
+#include "cold_ovl_driver.hpp"
 
 ColdKineticEnergyDriver::ColdKineticEnergyDriver()
 {
@@ -512,7 +512,7 @@ ColdKineticEnergyDriver::create_recursion(const VT2CIntegrals& vints) const
 {
     // create overlap integrals driver
     
-    T2COverlapDriver ovl_drv;
+    ColdOverlapDriver ovl_drv;
     
     // create reference group
     
@@ -545,7 +545,7 @@ ColdKineticEnergyDriver::apply_recursion(R2Group& rgroup) const
     {
         // create overlap integrals driver
         
-        T2COverlapDriver ovl_drv;
+        ColdOverlapDriver ovl_drv;
         
         R2Group mgroup;
         
