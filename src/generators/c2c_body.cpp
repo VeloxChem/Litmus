@@ -442,6 +442,11 @@ C2CFuncBodyDriver::_add_bra_loop_block(      VCodeLines&  lines,
     
     lines.push_back({3, 0, 2, "// compute integrals batch " + blabel});
     
+    if (sum_form)
+    {
+        
+    }
+    
     lines.push_back({3, 0, 1, "#pragma omp simd aligned(ket_rx, ket_ry, ket_rz : 64)"});
     
     lines.push_back({3, 0, 1, "for (int k = 0; k < ket_dim; k++)"});

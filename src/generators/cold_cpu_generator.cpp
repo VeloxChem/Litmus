@@ -32,6 +32,7 @@
 
 #include "cold_ovl_driver.hpp"
 #include "cold_kin_driver.hpp"
+#include "cold_npot_driver.hpp"
 
 void
 ColdCPUGenerator::generate(const std::string& label,
@@ -505,6 +506,23 @@ ColdCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
         else
         {
             cold_kin_drv.apply_recursion(rgroup);
+        }
+    }
+    
+    // Nuclear potential integrals
+    
+    if (const auto integrand = integral.integrand();
+        (integrand.name() == "A") && (integrand.shape() == Tensor(0)))
+    {
+        ColdNuclearPotentialDriver cold_npot_drv;
+        
+        if (integral.is_simple())
+        {
+            rgroup = cold_npot_drv.create_recursion(integral.components<T1CPair, T1CPair>());
+        }
+        else
+        {
+            cold_npot_drv.apply_recursion(rgroup);
         }
     }
     
