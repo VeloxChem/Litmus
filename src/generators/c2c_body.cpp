@@ -66,6 +66,14 @@ C2CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
             lines.push_back({1, 0, 2, label});
         }
     }
+    
+    if (sum_form)
+    {
+        for (const auto& label : _get_special_vars_def(integral))
+        {
+            lines.push_back({1, 0, 2, label});
+        }
+    }
 
     for (const auto& label : _get_batches_def(diagonal))
     {
@@ -76,7 +84,7 @@ C2CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
 
     _add_batches_loop_body(lines, diagonal);
 
-    _add_bra_loop_start(lines, integral, diagonal);
+    _add_bra_loop_start(lines, integral, sum_form, diagonal);
 
     _add_bra_loop_body(lines, rgroup, integral, sum_form, diagonal);
 
@@ -276,6 +284,21 @@ C2CFuncBodyDriver::_get_batches_def(const bool diagonal) const
     return vstr;
 }
 
+std::vector<std::string>
+C2CFuncBodyDriver::_get_special_vars_def(const I2CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("// set up external point coordinates");
+    
+    if (integral.integrand().name() == "A")
+    {
+        vstr.push_back("const auto npoints = points.size();");
+    }
+        
+    return vstr;
+}
+
 void
 C2CFuncBodyDriver::_add_batches_loop_start(VCodeLines& lines) const
 {
@@ -330,11 +353,53 @@ C2CFuncBodyDriver::_add_batches_loop_end(VCodeLines& lines) const
 void
 C2CFuncBodyDriver::_add_bra_loop_start(      VCodeLines&  lines,
                                        const I2CIntegral& integral,
+                                       const bool         sum_form,
                                        const bool         diagonal) const
 {
     lines.push_back({2, 0, 1, "for (int j = bra_first; j < bra_last; j++) "});
         
     lines.push_back({2, 0, 1, "{"});
+    
+    if (_need_auxilaries(integral))
+    {
+        lines.push_back({3, 0, 2, "// set up coordinates of bra side"});
+        
+        if (diagonal)
+        {
+            lines.push_back({3, 0, 2, "const auto bra_coord = gto_coords[j];"});
+        }
+        else
+        {
+            lines.push_back({3, 0, 2, "const auto bra_coord = bra_gto_coords[j];"});
+        }
+        
+        lines.push_back({3, 0, 2, "const auto a_x = bra_coord[0];"});
+        
+        lines.push_back({3, 0, 2, "const auto a_y = bra_coord[1];"});
+        
+        lines.push_back({3, 0, 2, "const auto a_z = bra_coord[2];"});
+    }
+    
+    if (sum_form)
+    {
+        lines.push_back({3, 0, 1, "for (size_t n = 0; n < npoints; n++) "});
+            
+        lines.push_back({3, 0, 1, "{"});
+        
+        lines.push_back({4, 0, 2, "// set up coordinates of external point"});
+        
+        lines.push_back({4, 0, 2, "const auto point = points[n];"});
+        
+        lines.push_back({4, 0, 2, "const auto c_x = point[0];"});
+        
+        lines.push_back({4, 0, 2, "const auto c_y = point[1];"});
+        
+        lines.push_back({4, 0, 2, "const auto c_z = point[2];"});
+    }
+    
+    const size_t spacer = (sum_form) ? 4 : 3;
+    
+    lines.push_back({spacer, 0, 2, "// compute auxilary values"});
     
     auto [nsize, name] = t2c::auxilary_func_name(integral);
     
@@ -360,29 +425,7 @@ C2CFuncBodyDriver::_add_bra_loop_start(      VCodeLines&  lines,
     
     nsize = name.size() + 1;
     
-    lines.push_back({3, 0, 2, "// compute auxilary values"});
-    
-    lines.push_back({3, 0, 2, name + "j, ket_first, ket_last);"});
-    
-    if (_need_auxilaries(integral))
-    {
-        lines.push_back({3, 0, 2, "// set up coordinates of bra side"});
-        
-        if (diagonal)
-        {
-            lines.push_back({3, 0, 2, "const auto bra_coord = gto_coords[j];"});
-        }
-        else
-        {
-            lines.push_back({3, 0, 2, "const auto bra_coord = bra_gto_coords[j];"});
-        }
-        
-        lines.push_back({3, 0, 2, "const auto a_x = bra_coord[0];"});
-        
-        lines.push_back({3, 0, 2, "const auto a_y = bra_coord[1];"});
-        
-        lines.push_back({3, 0, 2, "const auto a_z = bra_coord[2];"});
-    }
+    lines.push_back({spacer, 0, 2, name + "j, ket_first, ket_last);"});
 }
 
 void
@@ -717,6 +760,8 @@ C2CFuncBodyDriver::_need_auxilaries(const I2CIntegral& integral) const
         const auto integrand = integral.integrand();
         
         if (integrand.name() == "1") return false;
+        
+        if (integrand.name() == "A") return false;
     }
     
     return true;

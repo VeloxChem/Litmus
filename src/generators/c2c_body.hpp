@@ -66,6 +66,11 @@ class C2CFuncBodyDriver
     /// @return The vector of strings with main loop definition in compute function.
     std::vector<std::string> _get_batches_def(const bool diagonal) const;
     
+    /// Generates vector of special variable definitions in compute function.
+    /// @param integral The base two center integral.
+    /// @return The vector of special variable definitions in compute function.
+    std::vector<std::string> _get_special_vars_def(const I2CIntegral& integral) const;
+    
     /// Adds loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
     void _add_batches_loop_start(VCodeLines& lines) const;
@@ -83,9 +88,11 @@ class C2CFuncBodyDriver
     /// Adds bra loop start definitions to code lines container.
     /// @param lines The code lines container to which bra loop start definition are added.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_bra_loop_start(      VCodeLines&  lines,
                              const I2CIntegral& integral,
+                             const bool         sum_form,
                              const bool         diagonal) const;
     
     /// Adds bra loop body definitions to code lines container.
