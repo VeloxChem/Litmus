@@ -45,8 +45,10 @@ class C2CAuxilaryBodyDriver
     
     /// Generates vector of auxilaries definitions in compute function.
     /// @param rgroup The recursion group.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @return The vector of auxilaries definitions in compute function.
-    std::vector<std::string> _get_auxilaries_def(const R2Group& rgroup) const;
+    std::vector<std::string> _get_auxilaries_def(const R2Group& rgroup,
+                                                 const bool     sum_form) const;
     
     /// Generates vector of strings with coordinates definitions in bra side.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
@@ -61,6 +63,11 @@ class C2CAuxilaryBodyDriver
     /// Generates vector of pointers to GTOs data on ket side.
     /// @return The vector of ket factors in compute function.
     std::vector<std::string> _get_ket_pointers_def() const;
+    
+    /// Generates vector of Boys function variables strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of special variable strings.
+    std::vector<std::string> _get_boys_vars_str(const I2CIntegral& integral) const;
     
     /// Adds primitives loop start definitions to code lines container.
     /// @param lines The code lines container to which bra loop start definition are added.
@@ -98,6 +105,14 @@ class C2CAuxilaryBodyDriver
     void _add_aux_values(      VCodeLines&   lines,
                          const V4Auxilaries& auxilaries) const;
     
+    /// Adds Boys function computation code lines.
+    /// @param lines The code lines container to which simd code are added.
+    /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    void _add_boys_compute_lines(      VCodeLines&  lines,
+                                 const I2CIntegral& integral,
+                                 const bool         sum_form) const;
+    
 public:
     /// Creates a two-center auxilary compute function body generator.
     C2CAuxilaryBodyDriver() = default;
@@ -106,10 +121,12 @@ public:
     /// @param fstream the file stream.
     /// @param rgroup the recursion group.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void write_aux_body(      std::ofstream& fstream,
                         const R2Group&       rgroup,
                         const I2CIntegral&   integral,
+                        const bool           sum_form, 
                         const bool           diagonal) const;
 };
 

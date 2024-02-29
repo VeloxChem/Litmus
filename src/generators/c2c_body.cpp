@@ -382,20 +382,34 @@ C2CFuncBodyDriver::_add_bra_loop_start(      VCodeLines&  lines,
     
     if (sum_form)
     {
+        lines.push_back({3, 0, 2, "// zero integral buffers"});
+        
+        lines.push_back({3, 0, 2, "simd::zero(buffers);"});
+        
+        lines.push_back({3, 0, 2, "// loop over external points"});
+        
         lines.push_back({3, 0, 1, "for (size_t n = 0; n < npoints; n++) "});
             
         lines.push_back({3, 0, 1, "{"});
         
         lines.push_back({4, 0, 2, "// set up coordinates of external point"});
         
-        lines.push_back({4, 0, 2, "const auto point = points[n];"});
+        lines.push_back({4, 0, 2, "const auto c_x = points[n][0];"});
         
-        lines.push_back({4, 0, 2, "const auto c_x = point[0];"});
+        lines.push_back({4, 0, 2, "const auto c_y = points[n][1];"});
         
-        lines.push_back({4, 0, 2, "const auto c_y = point[1];"});
+        lines.push_back({4, 0, 2, "const auto c_z = points[n][2];"});
         
-        lines.push_back({4, 0, 2, "const auto c_z = point[2];"});
+        lines.push_back({4, 0, 2, "// set up distances from A center to external point"});
+        
+        lines.push_back({4, 0, 2, "const auto rac_x = a_x - c_x;"});
+        
+        lines.push_back({4, 0, 2, "const auto rac_y = a_y - c_y;"});
+        
+        lines.push_back({4, 0, 2, "const auto rac_z = a_z - c_z;"});
     }
+    
+    // create auxilaries computation call
     
     const size_t spacer = (sum_form) ? 4 : 3;
     
@@ -412,6 +426,18 @@ C2CFuncBodyDriver::_add_bra_loop_start(      VCodeLines&  lines,
     else
     {
         name += "buffers, ";
+    }
+    
+    if (integral.integrand().name() == "A")
+    {
+        if (sum_form)
+        {
+            name += "charges[n], points[n], ";
+        }
+        else
+        {
+            name += "charge, point, ";
+        }
     }
     
     if (diagonal)
@@ -441,35 +467,64 @@ C2CFuncBodyDriver::_add_bra_loop_body(      VCodeLines&  lines,
                                       const bool         sum_form,
                                       const bool         diagonal) const
 {
-    const auto ndims = _get_block_size();
-    
     const auto rterms = rgroup.expansions();
+    
+    const auto ndims = _get_block_size();
     
     const auto nblocks = rterms / ndims;
     
-    if (nblocks > 0)
+    if (sum_form)
     {
-        for (size_t i = 0; i < nblocks; i++)
+        if (nblocks > 0)
         {
-            const auto first = i * ndims;
+            for (size_t i = 0; i < nblocks; i++)
+            {
+                const auto first = i * ndims;
+                
+                const auto last = first + ndims;
+                
+                _add_bra_loop_block(lines, rgroup, integral, sum_form, diagonal, first, last);
+            }
+        }
+        
+        if ((rterms % ndims) > 0)
+        {
+            if (_need_auxilaries(integral))
+            {
+                _add_bra_loop_block(lines, rgroup, integral, sum_form, diagonal, nblocks * ndims, rterms);
+            }
+        }
+        
+        
+    }
+    else
+    {
+        if (nblocks > 0)
+        {
+            for (size_t i = 0; i < nblocks; i++)
+            {
+                const auto first = i * ndims;
+                
+                const auto last = first + ndims;
+                
+                _add_bra_loop_block(lines, rgroup, integral, sum_form, diagonal, first, last);
+                
+                _write_block_distributor(lines, rgroup, integral, sum_form, diagonal, first, last);
+            }
+        }
+        
+        if ((rterms % ndims) > 0)
+        {
+            if (_need_auxilaries(integral))
+            {
+                _add_bra_loop_block(lines, rgroup, integral, sum_form, diagonal, nblocks * ndims, rterms);
+            }
             
-            const auto last = first + ndims;
-            
-            _add_bra_loop_block(lines, rgroup, integral, sum_form, diagonal, first, last);
-            
-            _write_block_distributor(lines, rgroup, integral, sum_form, diagonal, first, last);
+            _write_block_distributor(lines, rgroup, integral, sum_form, diagonal, nblocks * ndims, rterms);
         }
     }
     
-    if ((rterms % ndims) > 0)
-    {
-        if (_need_auxilaries(integral))
-        {
-            _add_bra_loop_block(lines, rgroup, integral, sum_form, diagonal, nblocks * ndims, rterms);
-        }
-        
-        _write_block_distributor(lines, rgroup, integral, sum_form, diagonal, nblocks * ndims, rterms);
-    }
+    
 }
 
 void
@@ -481,20 +536,22 @@ C2CFuncBodyDriver::_add_bra_loop_block(      VCodeLines&  lines,
                                        const size_t       first,
                                        const size_t       last) const
 {
+    const size_t spacer = (sum_form) ? 4 : 3;
+    
     std::string blabel = (first != last) ? "(" + std::to_string(first) + "-" + std::to_string(last)  + ")" : "";
     
-    lines.push_back({3, 0, 2, "// compute integrals batch " + blabel});
+    lines.push_back({spacer, 0, 2, "// compute integrals batch " + blabel});
     
     if (sum_form)
     {
         
     }
     
-    lines.push_back({3, 0, 1, "#pragma omp simd aligned(ket_rx, ket_ry, ket_rz : 64)"});
+    lines.push_back({spacer, 0, 1, "#pragma omp simd aligned(ket_rx, ket_ry, ket_rz : 64)"});
     
-    lines.push_back({3, 0, 1, "for (int k = 0; k < ket_dim; k++)"});
+    lines.push_back({spacer, 0, 1, "for (int k = 0; k < ket_dim; k++)"});
     
-    lines.push_back({3, 0, 1, "{"});
+    lines.push_back({spacer, 0, 1, "{"});
     
     _add_loop_prefactors(lines, rgroup, sum_form, first, last); 
     
@@ -502,10 +559,17 @@ C2CFuncBodyDriver::_add_bra_loop_block(      VCodeLines&  lines,
     
     for (auto i = first; i < last; i++)
     {
-        _add_bra_loop_line(lines, rgroup[i], integral, auxilaries,  i - first, sum_form);
+        if (sum_form)
+        {
+            _add_bra_loop_line(lines, rgroup[i], integral, auxilaries, i, sum_form);
+        }
+        else
+        {
+            _add_bra_loop_line(lines, rgroup[i], integral, auxilaries, i - first, sum_form);
+        }
     }
     
-    lines.push_back({3, 0, 2, "}"});
+    lines.push_back({spacer, 0, 2, "}"});
 }
 
 void
@@ -576,14 +640,25 @@ C2CFuncBodyDriver::_add_bra_loop_line(      VCodeLines&   lines,
                                       const size_t        index,
                                       const bool          sum_form) const
 {
-    std::string code = "bvals_" + std::to_string(index) + "[k] = ";
+    std::string code = "bvals_" + std::to_string(index);
+    
+    if (sum_form)
+    {
+        code += "[k] += ";
+    }
+    else
+    {
+        code += "[k] = ";
+    }
     
     for (size_t i = 0; i < rdist.terms(); i++)
     {
         code += _get_rterm_code(rdist[i], auxilaries, i == 0);
     }
-        
-    lines.push_back({4, 0, 2, code + ";"});
+       
+    const size_t spacer = (sum_form) ? 5 : 4;
+    
+    lines.push_back({spacer, 0, 2, code + ";"});
 }
 
 std::string
@@ -697,7 +772,22 @@ C2CFuncBodyDriver::_add_loop_prefactors(      VCodeLines& lines,
     {
         lines.push_back({spacer, 0, 2, "const auto r2ab_0 = rab_x * rab_x + rab_y * rab_y + rab_z * rab_z;"});
     }
-        
+    
+    if (t2c::find_factor(rgroup, "rbc_x", first, last))
+    {
+        lines.push_back({spacer, 0, 2, "const auto rbc_x = ket_rx[k] - c_x;"});
+    }
+    
+    if (t2c::find_factor(rgroup, "rbc_y", first, last))
+    {
+        lines.push_back({spacer, 0, 2, "const auto rbc_y = ket_ry[k] - c_y;"});
+    }
+    
+    if (t2c::find_factor(rgroup, "rbc_z", first, last))
+    {
+        lines.push_back({spacer, 0, 2, "const auto rbc_z = ket_rz[k] - c_z;"});
+    }
+    
     const auto auxilaries = t2c::get_unique_auxilaries(rgroup);
     
     for (const auto& taux : t2c::get_unique_auxilaries(rgroup, first, last))

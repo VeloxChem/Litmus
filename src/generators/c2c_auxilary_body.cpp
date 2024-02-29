@@ -20,6 +20,7 @@ void
 C2CAuxilaryBodyDriver::write_aux_body(      std::ofstream& fstream,
                                       const R2Group&       rgroup,
                                       const I2CIntegral&   integral,
+                                      const bool           sum_form,
                                       const bool           diagonal) const
 {
     auto lines = VCodeLines();
@@ -41,7 +42,7 @@ C2CAuxilaryBodyDriver::write_aux_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_auxilaries_def(rgroup))
+    for (const auto& label : _get_auxilaries_def(rgroup, sum_form))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -61,7 +62,14 @@ C2CAuxilaryBodyDriver::write_aux_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
+    for (const auto& label : _get_boys_vars_str(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
     _add_prim_loop_start(lines, diagonal);
+    
+    _add_boys_compute_lines(lines, integral, sum_form); 
     
     _add_aux_loop_body(lines, rgroup, integral); 
     
@@ -148,7 +156,8 @@ C2CAuxilaryBodyDriver::_get_ket_variables_def() const
 }
 
 std::vector<std::string>
-C2CAuxilaryBodyDriver::_get_auxilaries_def(const R2Group& rgroup) const
+C2CAuxilaryBodyDriver::_get_auxilaries_def(const R2Group& rgroup,
+                                           const bool     sum_form) const
 {
     std::vector<std::string> vstr;
 
@@ -163,10 +172,13 @@ C2CAuxilaryBodyDriver::_get_auxilaries_def(const R2Group& rgroup) const
         vstr.push_back("auto avals_" + std::to_string(i) + " = auxilaries[" + std::to_string(i) + "].data();");
     }
     
-    vstr.push_back("// zero auxilary buffers");
+    if (!sum_form)
+    {
+        vstr.push_back("// zero auxilary buffers");
+        
+        vstr.push_back("simd::zero(auxilaries);");
+    }
     
-    vstr.push_back("simd::zero(auxilaries);");
-
     return vstr;
 }
 
@@ -244,6 +256,78 @@ C2CAuxilaryBodyDriver::_get_ket_pointers_def() const
     vstr.push_back("const auto ket_dim = ket_last - ket_first;");
     
     return vstr;
+}
+
+std::vector<std::string>
+C2CAuxilaryBodyDriver::_get_boys_vars_str(const I2CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    if (t2c::need_boys(integral))
+    {
+        const auto order = t2c::boys_order(integral);
+        
+        vstr.push_back("// set up Boys function variables");
+                
+        vstr.push_back("const CBoysFunc<" + std::to_string(order) + "> bf_table;");
+                
+        vstr.push_back("alignas(64) TDoubleArray bf_args;");
+                
+        vstr.push_back("TDoubleArray2D<" + std::to_string(order + 1) + "> bf_values;");
+        
+        size_t istart = 0;
+        
+        if (integral.integrand().name() == "AG") istart = 1;
+        
+        for (size_t i = istart; i < (order + 1); i++)
+        {
+            vstr.push_back("auto b" + std::to_string(i) + "_vals = bf_values[" + std::to_string(i) + "].data();");
+        }
+        
+        vstr.push_back("auto targs = bf_args.data();");
+    }
+    
+    return vstr;
+}
+
+
+void
+C2CAuxilaryBodyDriver::_add_boys_compute_lines(      VCodeLines&  lines,
+                                               const I2CIntegral& integral,
+                                               const bool         sum_form) const
+{
+    // nuclear potential integrals
+    
+    if (t2c::need_boys(integral))
+    {
+        int spacer = (sum_form) ? 2 : 1;
+        
+        lines.push_back({spacer, 0, 2, "// compute Boys function values"});
+        
+        lines.push_back({spacer, 0, 1, "#pragma omp simd aligned(targs, ket_fe, ket_rx, ket_ry, ket_rz : 64)"});
+        
+        lines.push_back({spacer, 0, 1, "for (int64_t i = 0; i < ket_dim; i++)"});
+        
+        lines.push_back({spacer, 0, 1, "{"});
+        
+        lines.push_back({spacer + 1, 0, 2, "const auto fxi_0 = bra_exp + ket_fe[i];"});
+        
+        lines.push_back({spacer + 1, 0, 2, "const auto fe_0 = 1.0 / fxi_0;"});
+        
+        lines.push_back({spacer + 1, 0, 2, "const auto rpc_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
+
+        lines.push_back({spacer + 1, 0, 2, "const auto rpc_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
+
+        lines.push_back({spacer + 1, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
+        
+        lines.push_back({spacer + 1, 0, 1, "targs[i] = fxi_0 * (rpc_x * rpc_x + rpc_y * rpc_y + rpc_z * rpc_z);"});
+        
+        lines.push_back({spacer, 0, 2, "}"});
+        
+        const auto order = t2c::boys_order(integral);
+        
+        lines.push_back({spacer, 0, 2, "bf_table.compute<" + std::to_string(order + 1) + ">(bf_values, bf_args, ket_dim);"});
+    }
 }
 
 void

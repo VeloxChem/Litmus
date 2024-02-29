@@ -64,7 +64,7 @@ ColdCPUGenerator::generate(const std::string& label,
                             
                             _write_auxilary_header(rgroup, integral);
                             
-                            _write_auxilary_file(rgroup, integral);
+                            _write_auxilary_file(rgroup, integral, sum_form);
                         }
                     }
                 }
@@ -297,7 +297,8 @@ ColdCPUGenerator::_write_auxilary_header(const R2Group&     rgroup,
 
 void
 ColdCPUGenerator::_write_auxilary_file(const R2Group&     rgroup,
-                                       const I2CIntegral& integral) const
+                                       const I2CIntegral& integral,
+                                       const bool         sum_form) const
 {
     auto fname = t2c::auxilary_file_name(integral) + ".cpp";
         
@@ -317,12 +318,12 @@ ColdCPUGenerator::_write_auxilary_file(const R2Group&     rgroup,
     {
         decl_drv.write_auxilary_func_decl(fstream, rgroup, integral, true, false);
             
-        func_drv.write_aux_body(fstream, rgroup, integral, true);
+        func_drv.write_aux_body(fstream, rgroup, integral, sum_form, true);
     }
         
     decl_drv.write_auxilary_func_decl(fstream, rgroup, integral, false, false);
         
-    func_drv.write_aux_body(fstream, rgroup, integral, false);
+    func_drv.write_aux_body(fstream, rgroup, integral, sum_form, false);
         
     _write_namespace(fstream, integral, false);
         

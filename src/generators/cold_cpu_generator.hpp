@@ -104,8 +104,10 @@ class ColdCPUGenerator
     /// Writes C++ code file for auxilary recursion.
     /// @param rgroup the recursion group.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     void _write_auxilary_file(const R2Group&     rgroup,
-                              const I2CIntegral& integral) const;
+                              const I2CIntegral& integral,
+                              const bool         sum_form) const;
     
     /// Writes definitions of includes for header file.
     /// @param fstream the file stream.
