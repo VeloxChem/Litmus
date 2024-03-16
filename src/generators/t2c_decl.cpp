@@ -186,36 +186,38 @@ T2CDeclDriver::_get_matrix_str(const I2CIntegral& integral,
     
     const auto [nsize, name] = t2c::compute_func_name(integral, sum_form);
     
-    std::vector<std::string> labels;
+//    std::vector<std::string> labels;
+//
+//    const auto prefixes = integral.prefixes();
+//
+//    if (prefixes.empty())
+//    {
+//        labels = t2c::integrand_components(integral.integrand(), "matrix");
+//    }
+//
+//    if (prefixes.size() == 1)
+//    {
+//        labels = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "matrix");
+//    }
+//
+//    if (prefixes.size() == 2)
+//    {
+//        labels = t2c::integrand_components(prefixes[0].shape(), prefixes[1].shape(), integral.integrand(), "matrix");
+//    }
+//
+//    for (size_t i = 0; i < labels.size(); i++)
+//    {
+//        if (i == 0)
+//        {
+//            vstr.push_back(name + "(" + std::string(6, ' ') + "CSubMatrix* " + labels[i] + ",");
+//        }
+//        else
+//        {
+//            vstr.push_back(std::string(nsize + 6, ' ') + "CSubMatrix* " + labels[i] + ",");
+//        }
+//    }
     
-    const auto prefixes = integral.prefixes();
-    
-    if (prefixes.empty())
-    {
-        labels = t2c::integrand_components(integral.integrand(), "matrix");
-    }
-    
-    if (prefixes.size() == 1)
-    {
-        labels = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "matrix");
-    }
-    
-    if (prefixes.size() == 2)
-    {
-        labels = t2c::integrand_components(prefixes[0].shape(), prefixes[1].shape(), integral.integrand(), "matrix");
-    }
-    
-    for (size_t i = 0; i < labels.size(); i++)
-    {
-        if (i == 0)
-        {
-            vstr.push_back(name + "(" + std::string(6, ' ') + "CSubMatrix* " + labels[i] + ",");
-        }
-        else
-        {
-            vstr.push_back(std::string(nsize + 6, ' ') + "CSubMatrix* " + labels[i] + ",");
-        }
-    }
+    vstr.push_back(name + "(T1EDistributor<CMatrix>& distributor,");
     
     return vstr;
 }
@@ -354,10 +356,10 @@ T2CDeclDriver::_get_gto_blocks_str(const I2CIntegral& integral,
         vstr.push_back(std::string(nsize, ' ') + "const CGtoBlock& ket_gto_block,");
     }
     
-    if ((integral[0] != integral[1]) && (!is_auxilary))
-    {
-        vstr.push_back(std::string(nsize, ' ') + "const bool ang_order,");
-    }
+//    if ((integral[0] != integral[1]) && (!is_auxilary))
+//    {
+//        vstr.push_back(std::string(nsize, ' ') + "const bool ang_order,");
+//    }
     
     return vstr;
 }
@@ -372,20 +374,9 @@ T2CDeclDriver::_get_indexes_str(const I2CIntegral& integral,
     
     const auto [nsize, name] = t2c::compute_func_name(integral, sum_form);
     
-    vstr.push_back(std::string(nsize, ' ') + "const int bra_first,");
-    
     const auto tsymbol = (terminus) ? ";" : "";
     
-    if ((!diagonal) && (integral[0] == integral[1]))
-    {
-        vstr.push_back(std::string(nsize, ' ') + "const int  bra_last,");
-        
-        vstr.push_back(std::string(nsize, ' ') + "const mat_t       mat_type) -> void" +  tsymbol);
-    }
-    else
-    {
-        vstr.push_back(std::string(nsize, ' ') + "const int bra_last) -> void" + tsymbol);
-    }
+    vstr.push_back(std::string(nsize, ' ') + "const TIndex<2>& bra_igtos) -> void" + tsymbol);
     
     return vstr;
 }
@@ -400,11 +391,9 @@ T2CDeclDriver::_get_auxilary_indexes_str(const I2CIntegral& integral,
     
     vstr.push_back(std::string(nsize, ' ') + "const int bra_index,");
     
-    vstr.push_back(std::string(nsize, ' ') + "const int ket_first,");
-    
     const auto tsymbol = (terminus) ? ";" : "";
     
-    vstr.push_back(std::string(nsize, ' ') + "const int ket_last) -> void" +  tsymbol);
+    vstr.push_back(std::string(nsize, ' ') + "const TIndex<2>& ket_igtos) -> void" +  tsymbol);
     
     return vstr;
 }

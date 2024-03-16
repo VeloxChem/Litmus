@@ -395,11 +395,8 @@ ColdCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"GtoBlock.hpp\""});
     
-    if (integral[0] == integral[1])
-    {
-        lines.push_back({0, 0, 1, "#include \"Matrix.hpp\""});
-    }
-    
+    lines.push_back({0, 0, 1, "#include \"Matrix.hpp\""});
+
     if (integral.integrand().name() == "A")
     {
         lines.push_back({0, 0, 1, "#include \"TPoints.hpp\""});
@@ -415,7 +412,9 @@ ColdCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
         }
     }
     
-    lines.push_back({0, 0, 2, "#include \"SubMatrix.hpp\""});
+    lines.push_back({0, 0, 1, "#include \"TIndexes.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"T1EDistributor.hpp\""});
     
     ost::write_code_lines(fstream, lines);
 }
@@ -425,12 +424,12 @@ ColdCPUGenerator::_write_auxilary_includes(      std::ofstream& fstream,
                                            const I2CIntegral&   integral) const
 {
     auto lines = VCodeLines();
-  
-    lines.push_back({0, 0, 2, "#include <cstdint>"});
  
     lines.push_back({0, 0, 1, "#include \"GtoBlock.hpp\""});
     
-    lines.push_back({0, 0, 2, "#include \"SimdTypes.hpp\""});
+    lines.push_back({0, 0, 1, "#include \"TIndexes.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"TSimd.hpp\""});
     
     ost::write_code_lines(fstream, lines);
 }
@@ -451,7 +450,9 @@ ColdCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"BatchFunc.hpp\""});
     
-    lines.push_back({0, 0, 1, "#include \"T2CDistributor.hpp\""});
+    lines.push_back({0, 0, 1, "#include \"TSimd.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"TransformationFunc.hpp\""});
     
     lines.push_back({0, 0, 2, "#include \"" + t2c::auxilary_file_name(integral) + ".hpp\""});
 

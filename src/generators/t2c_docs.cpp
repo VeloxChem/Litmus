@@ -336,41 +336,7 @@ T2CDocuDriver::_get_matrix_str(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    std::vector<std::string> labels;
-    
-    const auto prefixes = integral.prefixes();
-    
-    if (prefixes.empty())
-    {
-        labels = t2c::integrand_components(integral.integrand(), "matrix");
-    }
-    
-    if (prefixes.size() == 1)
-    {
-        labels = t2c::integrand_components(prefixes[0].shape(), integral.integrand(), "matrix");
-    }
-    
-    if (prefixes.size() == 2)
-    {
-        labels = t2c::integrand_components(prefixes[0].shape(),prefixes[1].shape(), integral.integrand(), "matrix");
-    }
-    
-    if (labels.size() == 1)
-    {
-        vstr.push_back("@param matrix the pointer to matrix for storage of integrals.");
-    }
-    else
-    {
-        for (const auto& label : labels)
-        {
-            auto lcomp = fstr::upcase(label);
-            
-            lcomp.erase(0, lcomp.find('_') + 1);
-            
-            vstr.push_back("@param " + label + " the pointer to matrix for storage " +
-                           "of Cartesian integral component " + lcomp + ".");
-        }
-    }
+    vstr.push_back("@param distributor the distributor the one-electron integrals.");
     
     return vstr;
 }
@@ -472,10 +438,10 @@ T2CDocuDriver::_get_gto_blocks_str(const I2CIntegral& integral,
         vstr.push_back("@param ket_gto_block the GTOs block on ket side.");
     }
     
-    if ((integral[0] != integral[1]) && (!is_auxilary))
-    {
-        vstr.push_back("@param ang_order the flag for matching angular order between matrix and pair of GTOs blocks.");
-    }
+//    if ((integral[0] != integral[1]) && (!is_auxilary))
+//    {
+//        vstr.push_back("@param ang_order the flag for matching angular order between matrix and pair of GTOs blocks.");
+//    }
     
     return vstr;
 }
@@ -485,9 +451,7 @@ T2CDocuDriver::_get_indexes_str() const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("@param bra_first the index of the range [bra_first, bra_last) of GTOs on bra side.");
-    
-    vstr.push_back("@param bra_last the index of the range [bra_first, bra_last) of GTOs on bra side.");
+    vstr.push_back("@param bra_igtos the range [bra_first, bra_last) of GTOs on bra side.");
     
     return vstr;
 }
@@ -499,9 +463,7 @@ T2CDocuDriver::_get_auxilary_indexes_str() const
     
     vstr.push_back("@param bra_index the index of GTO on bra side.");
     
-    vstr.push_back("@param ket_first the index of the range [ket_first, ket_last) of GTOs on ket side.");
-    
-    vstr.push_back("@param ket_last the index of the range [ket_first, ket_last) of GTOs on ket side.");
+    vstr.push_back("@param ket_igtos the range [ket_first, ket_last) of GTOs on ket side.");
     
     return vstr;
 }
@@ -510,14 +472,7 @@ std::string
 T2CDocuDriver::_get_matrix_type_str(const I2CIntegral& integral,
                                     const bool         diagonal) const
 {
-    if ((!diagonal) && (integral[0] == integral[1]))
-    {
-        return std::string("@param mat_type the matrix type.");
-    }
-    else
-    {
-        return std::string();
-    }
+    return std::string();
 }
 
 std::vector<std::string>

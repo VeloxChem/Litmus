@@ -102,28 +102,34 @@ C2CFuncBodyDriver::_get_angmom_def(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    if ((integral[0] > 1) || (integral[1] > 1))
-    {
-        const auto angmom = SphericalMomentum(0);
-            
-        vstr.push_back("// spherical transformation factors");
-        
-        if (integral[0] > 1)
-        {
-            for (const auto& label : angmom.get_factors(integral[0]))
-            {
-                 vstr.push_back("const double " + label + ";");
-            }
-        }
-        
-        if ((integral[1] > 1) && (integral[0] != integral[1]))
-        {
-            for (const auto& label : angmom.get_factors(integral[1]))
-            {
-                vstr.push_back("const double " + label + ";");
-            }
-        }
-    }
+    vstr.push_back("// Cartesian to spherical transformation factors");
+    
+    vstr.push_back("const auto angmom = TIndex<2>({" + std::to_string(integral[0]) + " , " + std::to_string(integral[1]) + "});");
+    
+    vstr.push_back("const auto cart_facts = trafo::getCartesianFactors(angmom);");
+    
+//    if ((integral[0] > 1) || (integral[1] > 1))
+//    {
+//        const auto angmom = SphericalMomentum(0);
+//
+//        vstr.push_back("// spherical transformation factors");
+//
+//        if (integral[0] > 1)
+//        {
+//            for (const auto& label : angmom.get_factors(integral[0]))
+//            {
+//                 vstr.push_back("const double " + label + ";");
+//            }
+//        }
+//
+//        if ((integral[1] > 1) && (integral[0] != integral[1]))
+//        {
+//            for (const auto& label : angmom.get_factors(integral[1]))
+//            {
+//                vstr.push_back("const double " + label + ";");
+//            }
+//        }
+//    }
     
     return vstr;
 }
@@ -313,14 +319,14 @@ C2CFuncBodyDriver::_add_batches_loop_body(      VCodeLines& lines,
 {
     if (diagonal)
     {
-        lines.push_back({2, 0, 2, "const auto [ket_first, ket_last] = batch::getBatchRange(i, ncgtos, simd_width);"});
+        lines.push_back({2, 0, 2, "const auto ket_igtos = batch::getBatchRange(i, ncgtos, simd_width);"});
     }
     else
     {
-        lines.push_back({2, 0, 2, "const auto [ket_first, ket_last] = batch::getBatchRange(i, ket_ncgtos, simd_width);"});
+        lines.push_back({2, 0, 2, "const auto ket_igtos = batch::getBatchRange(i, ket_ncgtos, simd_width);"});
     }
             
-    lines.push_back({2, 0, 2, "const auto ket_dim = ket_last - ket_first;"});
+    lines.push_back({2, 0, 2, "const auto ket_dim = ket_igtos[1] - ket_igtos[0];"});
     
     std::string label = "simd::loadCoordinates(ket_coords_x, ket_coords_y, ket_coords_z, ";
     
@@ -333,7 +339,7 @@ C2CFuncBodyDriver::_add_batches_loop_body(      VCodeLines& lines,
         label += "ket_gto_coords,";
     }
     
-    label += " ket_first, ket_last);";
+    label += " ket_igtos);";
             
     lines.push_back({2, 0, 2, label});
     
@@ -356,7 +362,7 @@ C2CFuncBodyDriver::_add_bra_loop_start(      VCodeLines&  lines,
                                        const bool         sum_form,
                                        const bool         diagonal) const
 {
-    lines.push_back({2, 0, 1, "for (int j = bra_first; j < bra_last; j++) "});
+    lines.push_back({2, 0, 1, "for (int j = bra_igtos[0]; j < bra_igtos[1]; j++) "});
         
     lines.push_back({2, 0, 1, "{"});
     
@@ -451,7 +457,7 @@ C2CFuncBodyDriver::_add_bra_loop_start(      VCodeLines&  lines,
     
     nsize = name.size() + 1;
     
-    lines.push_back({spacer, 0, 2, name + "j, ket_first, ket_last);"});
+    lines.push_back({spacer, 0, 2, name + "j, ket_igtos);"});
 }
 
 void
@@ -581,9 +587,11 @@ C2CFuncBodyDriver::_write_block_distributor(      VCodeLines&  lines,
                                             const size_t       first,
                                             const size_t       last) const
 {
-    const auto bra_mom = SphericalMomentum(integral[0]);
+    // const auto bra_mom = SphericalMomentum(integral[0]);
     
-    const auto ket_mom = SphericalMomentum(integral[1]);
+    // const auto ket_mom = SphericalMomentum(integral[1]);
+    
+    lines.push_back({3, 0, 2, "// distribute contracted integrals"});
     
     for (auto i = first; i < last; i++)
     {
@@ -593,42 +601,51 @@ C2CFuncBodyDriver::_write_block_distributor(      VCodeLines&  lines,
         
         const auto ket_index = t2c::tensor_component_index(tint[1]);
         
-        const auto mlabel = _get_matrix_label(tint);
+        const auto flabel = "buffers[" + std::to_string(i - first) + "]";
         
-        lines.push_back({3, 0, 2, "// distribute contracted integrals"});
+        const auto alabel = "{" + std::to_string(bra_index) + ", " + std::to_string(ket_index) + "}";
         
-        for (const auto& bra_pair : bra_mom.select_pairs(bra_index))
+        if (diagonal)
         {
-            for (const auto& ket_pair : ket_mom.select_pairs(ket_index))
-            {
-                const auto lfactor = t2c::combine_factors(bra_pair.second, ket_pair.second);
-                
-                auto flabel = "buffers[" + std::to_string(i - first) + "]";
-                
-                flabel += (lfactor == "1.0")  ? "" : ", "  + lfactor;
-                
-                auto ijlabel = std::to_string(bra_pair.first) + ", " + std::to_string(ket_pair.first);
-                
-                if  (integral[0] ==  integral[1])
-                {
-                    if (diagonal)
-                    {
-                        lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
-                                                  ", gto_indexes, " + ijlabel + ", j, ket_first, ket_last);"});
-                    }
-                    else
-                    {
-                        lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
-                                                  ", bra_gto_indexes, ket_gto_indexes, " + ijlabel + ", j, ket_first, ket_last, mat_type);"});
-                    }
-                }
-                else
-                {
-                    lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
-                                              ", bra_gto_indexes, ket_gto_indexes, " + ijlabel + ", j, ket_first, ket_last, ang_order);"});
-                }
-            }
+            lines.push_back({3, 0, 2, "distributor.distribute(" + flabel + ", gto_indexes, angmom, cart_facts.at(" + alabel + "), j, ket_igtos);"});
         }
+        else
+        {
+            lines.push_back({3, 0, 2, "distributor.distribute(" + flabel + ", bra_gto_indexes, ket_gto_indexes, angmom, cart_facts.at(" + alabel + "), j, ket_igtos);"});
+        }
+       
+//        for (const auto& bra_pair : bra_mom.select_pairs(bra_index))
+//        {
+//            for (const auto& ket_pair : ket_mom.select_pairs(ket_index))
+//            {
+//                const auto lfactor = t2c::combine_factors(bra_pair.second, ket_pair.second);
+//
+//                auto flabel = "buffers[" + std::to_string(i - first) + "]";
+//
+//                flabel += (lfactor == "1.0")  ? "" : ", "  + lfactor;
+//
+//                auto ijlabel = std::to_string(bra_pair.first) + ", " + std::to_string(ket_pair.first);
+//
+//                if  (integral[0] ==  integral[1])
+//                {
+//                    if (diagonal)
+//                    {
+//                        lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
+//                                                  ", gto_indexes, " + ijlabel + ", j, ket_first, ket_last);"});
+//                    }
+//                    else
+//                    {
+//                        lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
+//                                                  ", bra_gto_indexes, ket_gto_indexes, " + ijlabel + ", j, ket_first, ket_last, mat_type);"});
+//                    }
+//                }
+//                else
+//                {
+//                    lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
+//                                              ", bra_gto_indexes, ket_gto_indexes, " + ijlabel + ", j, ket_first, ket_last, ang_order);"});
+//                }
+//            }
+//        }
     }
 }
 

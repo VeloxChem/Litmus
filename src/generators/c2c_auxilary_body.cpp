@@ -52,6 +52,11 @@ C2CAuxilaryBodyDriver::write_aux_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
+    for (const auto& label : _get_point_coords(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
     for (const auto& label : _get_ket_coords(diagonal))
     {
         lines.push_back({1, 0, 2, label});
@@ -210,6 +215,25 @@ C2CAuxilaryBodyDriver::_get_bra_coords(const bool diagonal) const
 }
 
 std::vector<std::string>
+C2CAuxilaryBodyDriver::_get_point_coords(const I2CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    if (t2c::need_boys(integral))
+    {
+        vstr.push_back("// set up coordinates of external point");
+        
+        vstr.push_back("const auto c_x = point[0];");
+            
+        vstr.push_back("const auto c_y = point[1];");
+            
+        vstr.push_back("const auto c_z = point[2];");
+    }
+    
+    return vstr;
+}
+
+std::vector<std::string>
 C2CAuxilaryBodyDriver::_get_ket_coords(const bool diagonal) const
 {
     std::vector<std::string> vstr;
@@ -227,7 +251,7 @@ C2CAuxilaryBodyDriver::_get_ket_coords(const bool diagonal) const
         label += "ket_gto_coords,";
     }
     
-    label += " ket_first, ket_last);";
+    label += " ket_igtos);";
     
     vstr.push_back(label);
         
@@ -253,7 +277,7 @@ C2CAuxilaryBodyDriver::_get_ket_pointers_def() const
     
     vstr.push_back("// set up ket dimensions");
     
-    vstr.push_back("const auto ket_dim = ket_last - ket_first;");
+    vstr.push_back("const auto ket_dim = ket_igtos[1] - ket_igtos[0];");
     
     return vstr;
 }
@@ -300,33 +324,33 @@ C2CAuxilaryBodyDriver::_add_boys_compute_lines(      VCodeLines&  lines,
     
     if (t2c::need_boys(integral))
     {
-        int spacer = (sum_form) ? 2 : 1;
+        lines.push_back({3, 0, 2, "// compute Boys function values"});
         
-        lines.push_back({spacer, 0, 2, "// compute Boys function values"});
+        lines.push_back({3, 0, 1, "#pragma omp simd aligned(targs, b_x, b_y, b_z, ket_fe, ket_fn : 64)"});
         
-        lines.push_back({spacer, 0, 1, "#pragma omp simd aligned(targs, ket_fe, ket_rx, ket_ry, ket_rz : 64)"});
+        lines.push_back({3, 0, 1, "for (int64_t k = 0; k < ket_dim; k++)"});
         
-        lines.push_back({spacer, 0, 1, "for (int64_t i = 0; i < ket_dim; i++)"});
+        lines.push_back({3, 0, 1, "{"});
         
-        lines.push_back({spacer, 0, 1, "{"});
+        lines.push_back({4, 0, 2, "const auto ket_exp = ket_fe[k];"});
         
-        lines.push_back({spacer + 1, 0, 2, "const auto fxi_0 = bra_exp + ket_fe[i];"});
+        lines.push_back({4, 0, 2, "const auto fxi_0 = bra_exp + ket_exp;"});
         
-        lines.push_back({spacer + 1, 0, 2, "const auto fe_0 = 1.0 / fxi_0;"});
+        lines.push_back({4, 0, 2, "const auto fe_0 = 1.0 / fxi_0;"});
         
-        lines.push_back({spacer + 1, 0, 2, "const auto rpc_x = fe_0 * (bra_exp * bra_rx + ket_fe[i] * ket_rx[i] - fxi_0 * c_rx);"});
+        lines.push_back({4, 0, 2, "const auto rpc_x = fe_0 * (bra_exp * a_x + ket_exp * b_x[k]) - c_x;"});
 
-        lines.push_back({spacer + 1, 0, 2, "const auto rpc_y = fe_0 * (bra_exp * bra_ry + ket_fe[i] * ket_ry[i] - fxi_0 * c_ry);"});
+        lines.push_back({4, 0, 2, "const auto rpc_y = fe_0 * (bra_exp * a_y + ket_exp * b_y[k]) - c_y;"});
 
-        lines.push_back({spacer + 1, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * bra_rz + ket_fe[i] * ket_rz[i] - fxi_0 * c_rz);"});
+        lines.push_back({4, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * a_z + ket_exp * b_z[k]) - c_z;"});
         
-        lines.push_back({spacer + 1, 0, 1, "targs[i] = fxi_0 * (rpc_x * rpc_x + rpc_y * rpc_y + rpc_z * rpc_z);"});
+        lines.push_back({4, 0, 1, "targs[i] = fxi_0 * (rpc_x * rpc_x + rpc_y * rpc_y + rpc_z * rpc_z);"});
         
-        lines.push_back({spacer, 0, 2, "}"});
+        lines.push_back({3, 0, 2, "}"});
         
         const auto order = t2c::boys_order(integral);
         
-        lines.push_back({spacer, 0, 2, "bf_table.compute<" + std::to_string(order + 1) + ">(bf_values, bf_args, ket_dim);"});
+        lines.push_back({3, 0, 2, "bf_table.compute<" + std::to_string(order + 1) + ">(bf_values, bf_args, ket_dim);"});
     }
 }
 
@@ -342,9 +366,9 @@ C2CAuxilaryBodyDriver::_add_prim_loop_start(      VCodeLines& lines,
             
         lines.push_back({1, 0, 1, "{"});
             
-        lines.push_back({2, 0, 2, "simd::loadPrimitiveGTOsData(ket_exps, gto_exps, i, ncgtos, ket_first, ket_last);"});
+        lines.push_back({2, 0, 2, "simd::loadPrimitiveGTOsData(ket_exps, gto_exps, i, ncgtos, ket_igtos);"});
                 
-        lines.push_back({2, 0, 2, "simd::loadPrimitiveGTOsData(ket_norms, gto_norms, i, ncgtos, ket_first, ket_last);"});
+        lines.push_back({2, 0, 2, "simd::loadPrimitiveGTOsData(ket_norms, gto_norms, i, ncgtos, ket_igtos);"});
                 
         lines.push_back({2, 0, 1, "for (int j = 0; j < npgtos; j++)"});
             
@@ -362,9 +386,9 @@ C2CAuxilaryBodyDriver::_add_prim_loop_start(      VCodeLines& lines,
             
         lines.push_back({1, 0, 1, "{"});
             
-        lines.push_back({2, 0, 2, "simd::loadPrimitiveGTOsData(ket_exps, ket_gto_exps, i, ket_ncgtos, ket_first, ket_last);"});
+        lines.push_back({2, 0, 2, "simd::loadPrimitiveGTOsData(ket_exps, ket_gto_exps, i, ket_ncgtos, ket_igtos);"});
                 
-        lines.push_back({2, 0, 2, "simd::loadPrimitiveGTOsData(ket_norms, ket_gto_norms, i, ket_ncgtos, ket_first, ket_last);"});
+        lines.push_back({2, 0, 2, "simd::loadPrimitiveGTOsData(ket_norms, ket_gto_norms, i, ket_ncgtos, ket_igtos);"});
                 
         lines.push_back({2, 0, 1, "for (int j = 0; j < bra_npgtos; j++)"});
             
@@ -403,7 +427,7 @@ C2CAuxilaryBodyDriver::_add_aux_loop_body(      VCodeLines&  lines,
     
     _add_aux_polynomial_factors(lines, auxilaries);
     
-    _add_aux_values(lines, auxilaries);
+    _add_aux_values(lines, integral, auxilaries);
     
     lines.push_back({3, 0, 1, "}"});
 }
@@ -462,6 +486,7 @@ C2CAuxilaryBodyDriver::_add_aux_polynomial_factors(      VCodeLines&   lines,
 
 void
 C2CAuxilaryBodyDriver::_add_aux_values(      VCodeLines&   lines,
+                                       const I2CIntegral&  integral,
                                        const V4Auxilaries& auxilaries) const
 {
     int index = 0;
@@ -469,6 +494,11 @@ C2CAuxilaryBodyDriver::_add_aux_values(      VCodeLines&   lines,
     for (const auto& taux : auxilaries)
     {
         auto label = "avals_" + std::to_string(index) + "[k] += fss";
+        
+        if (t2c::need_boys(integral))
+        {
+            label += " * b" + std::to_string(taux[3]) + "_vals[k]";
+        }
         
         const auto mvals = t2c::get_factor_decomposition(taux);
         

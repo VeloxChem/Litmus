@@ -55,6 +55,12 @@ class C2CAuxilaryBodyDriver
     /// @return The vector of strings with coordinates definitions.
     std::vector<std::string> _get_bra_coords(const bool diagonal) const;
     
+    
+    /// Generates vector of strings with coordinates definitions of external point.
+    /// @param integral The base two center integral.
+    /// @return The vector of strings with coordinates definitions.
+    std::vector<std::string> _get_point_coords(const I2CIntegral& integral) const;
+    
     /// Generates vector of strings with coordinates definitions in ket side.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @return The vector of strings with coordinates definitions.
@@ -101,8 +107,10 @@ class C2CAuxilaryBodyDriver
     
     /// Adds auxilaries values computation to code lines container.
     /// @param lines The code lines container to which bra loop end definition are added.
+    /// @param integral The base two center integral.
     /// @param auxilaries The set of unique auxilaries (n,m,t).
     void _add_aux_values(      VCodeLines&   lines,
+                         const I2CIntegral&  integral,
                          const V4Auxilaries& auxilaries) const;
     
     /// Adds Boys function computation code lines.
