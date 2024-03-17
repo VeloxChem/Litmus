@@ -54,7 +54,7 @@ C2CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_buffers_def(rgroup, integral))
+    for (const auto& label : _get_buffers_def(rgroup, integral, sum_form))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -88,7 +88,7 @@ C2CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
 
     _add_bra_loop_body(lines, rgroup, integral, sum_form, diagonal);
 
-    _add_bra_loop_end(lines);
+    _add_bra_loop_end(lines, sum_form);
 
     _add_batches_loop_end(lines);
     
@@ -222,7 +222,8 @@ C2CFuncBodyDriver::_get_fractions_def(const R2Group& rgroup) const
 
 std::vector<std::string>
 C2CFuncBodyDriver::_get_buffers_def(const R2Group&     rgroup,
-                                    const I2CIntegral& integral) const
+                                    const I2CIntegral& integral,
+                                    const bool         sum_form) const
 {
     std::vector<std::string> vstr;
     
@@ -230,7 +231,7 @@ C2CFuncBodyDriver::_get_buffers_def(const R2Group&     rgroup,
     
     size_t ndims = _get_block_size();
     
-    if (const auto nterms = rgroup.expansions(); ndims > nterms)
+    if (const auto nterms = rgroup.expansions(); (ndims > nterms) || sum_form)
     {
         ndims = nterms;
     }
@@ -461,8 +462,14 @@ C2CFuncBodyDriver::_add_bra_loop_start(      VCodeLines&  lines,
 }
 
 void
-C2CFuncBodyDriver::_add_bra_loop_end(VCodeLines& lines) const
+C2CFuncBodyDriver::_add_bra_loop_end(VCodeLines& lines,
+                                     const bool sum_form) const
 {
+    if (sum_form)
+    {
+        lines.push_back({3, 0, 1, "}"});
+    }
+    
     lines.push_back({2, 0, 1, "}"});
 }
 
@@ -547,11 +554,6 @@ C2CFuncBodyDriver::_add_bra_loop_block(      VCodeLines&  lines,
     std::string blabel = (first != last) ? "(" + std::to_string(first) + "-" + std::to_string(last)  + ")" : "";
     
     lines.push_back({spacer, 0, 2, "// compute integrals batch " + blabel});
-    
-    if (sum_form)
-    {
-        
-    }
     
     lines.push_back({spacer, 0, 1, "#pragma omp simd aligned(ket_rx, ket_ry, ket_rz : 64)"});
     

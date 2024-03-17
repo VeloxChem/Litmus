@@ -295,9 +295,9 @@ C2CAuxilaryBodyDriver::_get_boys_vars_str(const I2CIntegral& integral) const
                 
         vstr.push_back("const CBoysFunc<" + std::to_string(order) + "> bf_table;");
                 
-        vstr.push_back("alignas(64) TDoubleArray bf_args;");
+        vstr.push_back("alignas(64) TArray<double> bf_args;");
                 
-        vstr.push_back("TDoubleArray2D<" + std::to_string(order + 1) + "> bf_values;");
+        vstr.push_back("TArray2D<double, " + std::to_string(order + 1) + "> bf_values;");
         
         size_t istart = 0;
         
@@ -423,7 +423,7 @@ C2CAuxilaryBodyDriver::_add_aux_loop_body(      VCodeLines&  lines,
     
     const auto auxilaries = t2c::get_unique_auxilaries(rgroup);
     
-    _add_aux_overlap_factor(lines, auxilaries);
+    _add_aux_overlap_factor(lines, integral, auxilaries);
     
     _add_aux_polynomial_factors(lines, auxilaries);
     
@@ -442,6 +442,7 @@ C2CAuxilaryBodyDriver::_add_prim_loop_end(VCodeLines& lines) const
 
 void
 C2CAuxilaryBodyDriver::_add_aux_overlap_factor(      VCodeLines&   lines,
+                                               const I2CIntegral&  integral,
                                                const V4Auxilaries& auxilaries) const
 {
     lines.push_back({4, 0, 2, "const auto ket_exp = ket_fe[k];"});
@@ -454,7 +455,14 @@ C2CAuxilaryBodyDriver::_add_aux_overlap_factor(      VCodeLines&   lines,
     
     if (const auto ndims = auxilaries.size(); ndims == 0)
     {
-        lines.push_back({4, 0, 2, "avals_0[k] += bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
+        if (t2c::need_boys(integral))
+        {
+            lines.push_back({4, 0, 2, "avals_0[k] += b0_vals[k] * bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
+        }
+        else
+        {
+            lines.push_back({4, 0, 2, "avals_0[k] += bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
+        }
     }
     else
     {

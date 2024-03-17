@@ -429,7 +429,14 @@ ColdCPUGenerator::_write_auxilary_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"TIndexes.hpp\""});
     
+    if (t2c::need_boys(integral))
+    {
+        lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
+    }
+    
     lines.push_back({0, 0, 2, "#include \"TSimd.hpp\""});
+    
+    
     
     ost::write_code_lines(fstream, lines);
 }

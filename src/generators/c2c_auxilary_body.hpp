@@ -95,8 +95,10 @@ class C2CAuxilaryBodyDriver
     
     /// Adds overlap factors to code lines container.
     /// @param lines The code lines container to which bra loop end definition are added.
+    /// @param integral The base two center integral.
     /// @param auxilaries The set of unique auxilaries (n,m,t).
     void _add_aux_overlap_factor(      VCodeLines&   lines,
+                                 const I2CIntegral&  integral,
                                  const V4Auxilaries& auxilaries) const;
     
     /// Adds polynomial factors to code lines container.

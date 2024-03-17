@@ -52,9 +52,11 @@ class C2CFuncBodyDriver
     /// Generates vector of buffer definitions in compute function.
     /// @param rgroup The recursion group.
     /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @return The vector of buffer definitions in compute function.
     std::vector<std::string> _get_buffers_def(const R2Group&     rgroup,
-                                              const I2CIntegral& integral) const;
+                                              const I2CIntegral& integral,
+                                              const bool         sum_form) const;
     
     /// Generates vector of auxilaries definitions in compute function.
     /// @param rgroup The recursion group.
@@ -109,7 +111,9 @@ class C2CFuncBodyDriver
     
     /// Adds bra loop end definitions to code lines container.
     /// @param lines The code lines container to which bra loop end definition are added.
-    void _add_bra_loop_end(VCodeLines& lines) const;
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    void _add_bra_loop_end(      VCodeLines& lines,
+                           const bool        sum_form) const;
     
     /// Adds code block in bra loop definition to code lines container.
     /// @param lines The code lines container to which bra loop body definition are added.
