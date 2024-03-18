@@ -108,29 +108,6 @@ C2CFuncBodyDriver::_get_angmom_def(const I2CIntegral& integral) const
     
     vstr.push_back("const auto cart_facts = trafo::getCartesianFactors(angmom);");
     
-//    if ((integral[0] > 1) || (integral[1] > 1))
-//    {
-//        const auto angmom = SphericalMomentum(0);
-//
-//        vstr.push_back("// spherical transformation factors");
-//
-//        if (integral[0] > 1)
-//        {
-//            for (const auto& label : angmom.get_factors(integral[0]))
-//            {
-//                 vstr.push_back("const double " + label + ";");
-//            }
-//        }
-//
-//        if ((integral[1] > 1) && (integral[0] != integral[1]))
-//        {
-//            for (const auto& label : angmom.get_factors(integral[1]))
-//            {
-//                vstr.push_back("const double " + label + ";");
-//            }
-//        }
-//    }
-    
     return vstr;
 }
 
@@ -508,7 +485,7 @@ C2CFuncBodyDriver::_add_bra_loop_body(      VCodeLines&  lines,
             }
         }
         
-        
+        _write_block_distributor(lines, rgroup, integral, sum_form, diagonal, 0, rterms);
     }
     else
     {
@@ -589,11 +566,9 @@ C2CFuncBodyDriver::_write_block_distributor(      VCodeLines&  lines,
                                             const size_t       first,
                                             const size_t       last) const
 {
-    // const auto bra_mom = SphericalMomentum(integral[0]);
+    const size_t spacer = (sum_form) ? 4 : 3;
     
-    // const auto ket_mom = SphericalMomentum(integral[1]);
-    
-    lines.push_back({3, 0, 2, "// distribute contracted integrals"});
+    lines.push_back({spacer, 0, 2, "// distribute contracted integrals"});
     
     for (auto i = first; i < last; i++)
     {
@@ -609,45 +584,12 @@ C2CFuncBodyDriver::_write_block_distributor(      VCodeLines&  lines,
         
         if (diagonal)
         {
-            lines.push_back({3, 0, 2, "distributor.distribute(" + flabel + ", gto_indexes, angmom, cart_facts.at(" + alabel + "), j, ket_igtos);"});
+            lines.push_back({spacer, 0, 2, "distributor.distribute(" + flabel + ", gto_indexes, angmom, cart_facts.at(" + alabel + "), j, ket_igtos);"});
         }
         else
         {
-            lines.push_back({3, 0, 2, "distributor.distribute(" + flabel + ", bra_gto_indexes, ket_gto_indexes, angmom, cart_facts.at(" + alabel + "), j, ket_igtos);"});
+            lines.push_back({spacer, 0, 2, "distributor.distribute(" + flabel + ", bra_gto_indexes, ket_gto_indexes, angmom, cart_facts.at(" + alabel + "), j, ket_igtos);"});
         }
-       
-//        for (const auto& bra_pair : bra_mom.select_pairs(bra_index))
-//        {
-//            for (const auto& ket_pair : ket_mom.select_pairs(ket_index))
-//            {
-//                const auto lfactor = t2c::combine_factors(bra_pair.second, ket_pair.second);
-//
-//                auto flabel = "buffers[" + std::to_string(i - first) + "]";
-//
-//                flabel += (lfactor == "1.0")  ? "" : ", "  + lfactor;
-//
-//                auto ijlabel = std::to_string(bra_pair.first) + ", " + std::to_string(ket_pair.first);
-//
-//                if  (integral[0] ==  integral[1])
-//                {
-//                    if (diagonal)
-//                    {
-//                        lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
-//                                                  ", gto_indexes, " + ijlabel + ", j, ket_first, ket_last);"});
-//                    }
-//                    else
-//                    {
-//                        lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
-//                                                  ", bra_gto_indexes, ket_gto_indexes, " + ijlabel + ", j, ket_first, ket_last, mat_type);"});
-//                    }
-//                }
-//                else
-//                {
-//                    lines.push_back({3, 0, 2, "t2cfunc::distribute(" + mlabel + ", " + flabel +
-//                                              ", bra_gto_indexes, ket_gto_indexes, " + ijlabel + ", j, ket_first, ket_last, ang_order);"});
-//                }
-//            }
-//        }
     }
 }
 

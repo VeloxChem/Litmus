@@ -445,6 +445,8 @@ C2CAuxilaryBodyDriver::_add_aux_overlap_factor(      VCodeLines&   lines,
                                                const I2CIntegral&  integral,
                                                const V4Auxilaries& auxilaries) const
 {
+    const auto integrand = integral.integrand();
+    
     lines.push_back({4, 0, 2, "const auto ket_exp = ket_fe[k];"});
     
     lines.push_back({4, 0, 2, "const auto fe_0 = 1.0 / (bra_exp + ket_exp);"});
@@ -455,18 +457,26 @@ C2CAuxilaryBodyDriver::_add_aux_overlap_factor(      VCodeLines&   lines,
     
     if (const auto ndims = auxilaries.size(); ndims == 0)
     {
-        if (t2c::need_boys(integral))
+        if (integrand.name() == "A")
         {
-            lines.push_back({4, 0, 2, "avals_0[k] += b0_vals[k] * bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
+            lines.push_back({4, 0, 2, "avals_0[k] += charge * b0_vals[k] * bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
         }
-        else
+        
+        if (integrand.name() == "1")
         {
             lines.push_back({4, 0, 2, "avals_0[k] += bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
         }
     }
     else
     {
-        lines.push_back({4, 0, 2, "const auto fss = bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
+        if (integrand.name() == "A")
+        {
+            lines.push_back({4, 0, 2, "const auto fss = charge * bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
+        }
+        else
+        {
+            lines.push_back({4, 0, 2, "const auto fss = bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
+        }
     }
 }
 
