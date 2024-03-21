@@ -42,7 +42,7 @@ C2CAuxilaryBodyDriver::write_aux_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_auxilaries_def(rgroup, sum_form))
+    for (const auto& label : _get_auxilaries_def(rgroup, integral, sum_form))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -161,8 +161,9 @@ C2CAuxilaryBodyDriver::_get_ket_variables_def() const
 }
 
 std::vector<std::string>
-C2CAuxilaryBodyDriver::_get_auxilaries_def(const R2Group& rgroup,
-                                           const bool     sum_form) const
+C2CAuxilaryBodyDriver::_get_auxilaries_def(const R2Group&     rgroup,
+                                           const I2CIntegral& integral,
+                                           const bool         sum_form) const
 {
     std::vector<std::string> vstr;
 
@@ -170,14 +171,14 @@ C2CAuxilaryBodyDriver::_get_auxilaries_def(const R2Group& rgroup,
     
     if (ndims == 0) ndims = 1;
 
-    vstr.push_back("// set up pointers to auxilary buffers");
-
-    for (size_t i = 0; i < ndims; i++)
-    {
-        vstr.push_back("auto avals_" + std::to_string(i) + " = auxilaries[" + std::to_string(i) + "].data();");
-    }
+//    vstr.push_back("// set up pointers to auxilary buffers");
+//
+//    for (size_t i = 0; i < ndims; i++)
+//    {
+//        vstr.push_back("auto avals_" + std::to_string(i) + " = auxilaries[" + std::to_string(i) + "].data();");
+//    }
     
-    if (!sum_form)
+    if ((!sum_form) || ((integral[0] + integral[1]) > 0))
     {
         vstr.push_back("// zero auxilary buffers");
         
@@ -299,16 +300,16 @@ C2CAuxilaryBodyDriver::_get_boys_vars_str(const I2CIntegral& integral) const
                 
         vstr.push_back("TArray2D<double, " + std::to_string(order + 1) + "> bf_values;");
         
-        size_t istart = 0;
-        
-        if (integral.integrand().name() == "AG") istart = 1;
-        
-        for (size_t i = istart; i < (order + 1); i++)
-        {
-            vstr.push_back("auto b" + std::to_string(i) + "_vals = bf_values[" + std::to_string(i) + "].data();");
-        }
-        
-        vstr.push_back("auto targs = bf_args.data();");
+//        size_t istart = 0;
+//
+//        if (integral.integrand().name() == "AG") istart = 1;
+//
+//        for (size_t i = istart; i < (order + 1); i++)
+//        {
+//            vstr.push_back("auto b" + std::to_string(i) + "_vals = bf_values[" + std::to_string(i) + "].data();");
+//        }
+//
+//        vstr.push_back("auto targs = bf_args.data();");
     }
     
     return vstr;
@@ -326,7 +327,7 @@ C2CAuxilaryBodyDriver::_add_boys_compute_lines(      VCodeLines&  lines,
     {
         lines.push_back({3, 0, 2, "// compute Boys function values"});
         
-        lines.push_back({3, 0, 1, "#pragma omp simd aligned(targs, b_x, b_y, b_z, ket_fe, ket_fn : 64)"});
+        lines.push_back({3, 0, 1, "#pragma omp simd aligned(b_x, b_y, b_z, ket_fe, ket_fn : 64)"});
         
         lines.push_back({3, 0, 1, "for (int64_t k = 0; k < ket_dim; k++)"});
         
@@ -344,7 +345,7 @@ C2CAuxilaryBodyDriver::_add_boys_compute_lines(      VCodeLines&  lines,
 
         lines.push_back({4, 0, 2, "const auto rpc_z = fe_0 * (bra_exp * a_z + ket_exp * b_z[k]) - c_z;"});
         
-        lines.push_back({4, 0, 1, "targs[i] = fxi_0 * (rpc_x * rpc_x + rpc_y * rpc_y + rpc_z * rpc_z);"});
+        lines.push_back({4, 0, 1, "bf_args[k] = fxi_0 * (rpc_x * rpc_x + rpc_y * rpc_y + rpc_z * rpc_z);"});
         
         lines.push_back({3, 0, 2, "}"});
         
@@ -459,19 +460,19 @@ C2CAuxilaryBodyDriver::_add_aux_overlap_factor(      VCodeLines&   lines,
     {
         if (integrand.name() == "A")
         {
-            lines.push_back({4, 0, 2, "avals_0[k] += charge * b0_vals[k] * bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
+            lines.push_back({4, 0, 2, "auxilaries[0][k] += 2.0 * charge * bf_values[0][k] * bra_norm * ket_fn[k] * fmpi * std::exp(-fz_0);"});
         }
         
         if (integrand.name() == "1")
         {
-            lines.push_back({4, 0, 2, "avals_0[k] += bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
+            lines.push_back({4, 0, 2, "auxilaries[0][k] += bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
         }
     }
     else
     {
         if (integrand.name() == "A")
         {
-            lines.push_back({4, 0, 2, "const auto fss = charge * bra_norm * ket_fn[k] * fmpi * std::sqrt(fmpi) * std::exp(-fz_0);"});
+            lines.push_back({4, 0, 2, "const auto fss = 2.0 * charge * bra_norm * ket_fn[k] * fmpi * std::exp(-fz_0);"});
         }
         else
         {
@@ -511,11 +512,11 @@ C2CAuxilaryBodyDriver::_add_aux_values(      VCodeLines&   lines,
     
     for (const auto& taux : auxilaries)
     {
-        auto label = "avals_" + std::to_string(index) + "[k] += fss";
+        auto label = "auxilaries[" + std::to_string(index) + "][k] += fss";
         
         if (t2c::need_boys(integral))
         {
-            label += " * b" + std::to_string(taux[3]) + "_vals[k]";
+            label += " * bf_values[" + std::to_string(taux[3]) + "][k]";
         }
         
         const auto mvals = t2c::get_factor_decomposition(taux);

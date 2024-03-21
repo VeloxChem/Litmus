@@ -45,10 +45,12 @@ class C2CAuxilaryBodyDriver
     
     /// Generates vector of auxilaries definitions in compute function.
     /// @param rgroup The recursion group.
+    /// @param integral The base two center integral.
     /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @return The vector of auxilaries definitions in compute function.
-    std::vector<std::string> _get_auxilaries_def(const R2Group& rgroup,
-                                                 const bool     sum_form) const;
+    std::vector<std::string> _get_auxilaries_def(const R2Group&     rgroup,
+                                                 const I2CIntegral& integral,
+                                                 const bool         sum_form) const;
     
     /// Generates vector of strings with coordinates definitions in bra side.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.

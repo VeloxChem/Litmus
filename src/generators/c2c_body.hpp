@@ -17,6 +17,7 @@
 #ifndef c2c_body_hpp
 #define c2c_body_hpp
 
+#include <utility>
 #include <string>
 #include <vector>
 #include <array>
@@ -110,10 +111,16 @@ class C2CFuncBodyDriver
                             const bool         diagonal) const;
     
     /// Adds bra loop end definitions to code lines container.
-    /// @param lines The code lines container to which bra loop end definition are added.
+    /// @param lines The code lines container to which bra loop body definition are added.
+    /// @param rgroup The recursion group.
+    /// @param integral The base two center integral.
     /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_bra_loop_end(      VCodeLines& lines,
-                           const bool        sum_form) const;
+                           const R2Group&     rgroup,
+                           const I2CIntegral& integral,
+                           const bool         sum_form,
+                           const bool         diagonal) const;
     
     /// Adds code block in bra loop definition to code lines container.
     /// @param lines The code lines container to which bra loop body definition are added.
@@ -152,6 +159,13 @@ class C2CFuncBodyDriver
     std::string _get_rterm_code(const R2CTerm&      rterm,
                                 const V4Auxilaries& auxilaries,
                                 const bool          is_first) const;
+    
+    /// Converts recursion term into it's split code representation.
+    /// @param rterm The recursion term.
+    /// @param auxilaries The set of unique auxilaries (n,mt).
+    std::pair<std::string, std::string>
+    _get_rterm_split_code(const R2CTerm&      rterm,
+                          const V4Auxilaries& auxilaries) const;
     
     /// Adds loop prefactors for range of expansions in recursion group.
     /// @param lines The code lines container to which bra loop body definition are added.

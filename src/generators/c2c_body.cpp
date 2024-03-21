@@ -16,12 +16,15 @@
 
 #include "c2c_body.hpp"
 
+#include <utility>
+
 #include "string_formater.hpp"
 #include "spherical_momentum.hpp"
 #include "fraction.hpp"
 #include "t2c_utils.hpp"
 
 #include <iostream>
+
 
 void
 C2CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
@@ -88,7 +91,7 @@ C2CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
 
     _add_bra_loop_body(lines, rgroup, integral, sum_form, diagonal);
 
-    _add_bra_loop_end(lines, sum_form);
+    _add_bra_loop_end(lines, rgroup, integral, sum_form, diagonal);
 
     _add_batches_loop_end(lines);
     
@@ -215,15 +218,15 @@ C2CFuncBodyDriver::_get_buffers_def(const R2Group&     rgroup,
  
     vstr.push_back("TArray2D<double, " + std::to_string(ndims) + "> buffers;");
     
-    if (_need_auxilaries(integral))
-    {
-        vstr.push_back("// set up pointers to contracted integral buffers");
-        
-        for (size_t i = 0; i < ndims; i++)
-        {
-            vstr.push_back("auto bvals_" + std::to_string(i) + " = buffers[" + std::to_string(i) + "].data();");
-        }
-    }
+//    if (_need_auxilaries(integral))
+//    {
+//        vstr.push_back("// set up pointers to contracted integral buffers");
+//
+//        for (size_t i = 0; i < ndims; i++)
+//        {
+//            vstr.push_back("auto bvals_" + std::to_string(i) + " = buffers[" + std::to_string(i) + "].data();");
+//        }
+//    }
 
     return vstr;
 }
@@ -239,12 +242,12 @@ C2CFuncBodyDriver::_get_auxilaries_def(const R2Group& rgroup) const
 
     vstr.push_back("TArray2D<double, " + std::to_string(ndims) + "> auxilaries;");
 
-    vstr.push_back("// set up pointers to auxilary buffers");
-
-    for (size_t i = 0; i < ndims; i++)
-    {
-        vstr.push_back("auto avals_" + std::to_string(i) + " = auxilaries[" + std::to_string(i) + "].data();");
-    }
+//    vstr.push_back("// set up pointers to auxilary buffers");
+//
+//    for (size_t i = 0; i < ndims; i++)
+//    {
+//        vstr.push_back("auto avals_" + std::to_string(i) + " = auxilaries[" + std::to_string(i) + "].data();");
+//    }
 
     return vstr;
 }
@@ -439,12 +442,19 @@ C2CFuncBodyDriver::_add_bra_loop_start(      VCodeLines&  lines,
 }
 
 void
-C2CFuncBodyDriver::_add_bra_loop_end(VCodeLines& lines,
-                                     const bool sum_form) const
+C2CFuncBodyDriver::_add_bra_loop_end(      VCodeLines& lines,
+                                     const R2Group&     rgroup,
+                                     const I2CIntegral& integral,
+                                     const bool         sum_form,
+                                     const bool         diagonal) const
 {
     if (sum_form)
     {
-        lines.push_back({3, 0, 1, "}"});
+        const auto rterms = rgroup.expansions();
+        
+        lines.push_back({3, 0, 2, "}"});
+        
+        _write_block_distributor(lines, rgroup, integral, sum_form, diagonal, 0, rterms);
     }
     
     lines.push_back({2, 0, 1, "}"});
@@ -484,8 +494,6 @@ C2CFuncBodyDriver::_add_bra_loop_body(      VCodeLines&  lines,
                 _add_bra_loop_block(lines, rgroup, integral, sum_form, diagonal, nblocks * ndims, rterms);
             }
         }
-        
-        _write_block_distributor(lines, rgroup, integral, sum_form, diagonal, 0, rterms);
     }
     else
     {
@@ -532,6 +540,11 @@ C2CFuncBodyDriver::_add_bra_loop_block(      VCodeLines&  lines,
     
     lines.push_back({spacer, 0, 2, "// compute integrals batch " + blabel});
     
+    if (!sum_form)
+    {
+        lines.push_back({spacer, 0, 2, "simd::zero(buffers);"});
+    }
+    
     lines.push_back({spacer, 0, 1, "#pragma omp simd aligned(ket_rx, ket_ry, ket_rz : 64)"});
     
     lines.push_back({spacer, 0, 1, "for (int k = 0; k < ket_dim; k++)"});
@@ -566,7 +579,7 @@ C2CFuncBodyDriver::_write_block_distributor(      VCodeLines&  lines,
                                             const size_t       first,
                                             const size_t       last) const
 {
-    const size_t spacer = (sum_form) ? 4 : 3;
+    const size_t spacer = 3; //(sum_form) ? 4 : 3;
     
     lines.push_back({spacer, 0, 2, "// distribute contracted integrals"});
     
@@ -601,25 +614,88 @@ C2CFuncBodyDriver::_add_bra_loop_line(      VCodeLines&   lines,
                                       const size_t        index,
                                       const bool          sum_form) const
 {
-    std::string code = "bvals_" + std::to_string(index);
-    
-    if (sum_form)
-    {
-        code += "[k] += ";
-    }
-    else
-    {
-        code += "[k] = ";
-    }
+    std::map<std::string, std::vector<std::string>> code_lines;
     
     for (size_t i = 0; i < rdist.terms(); i++)
     {
-        code += _get_rterm_code(rdist[i], auxilaries, i == 0);
+        const auto pstr = _get_rterm_split_code(rdist[i], auxilaries);
+     
+        code_lines[pstr.first].push_back(pstr.second);
     }
-       
+    
     const size_t spacer = (sum_form) ? 5 : 4;
     
-    lines.push_back({spacer, 0, 2, code + ";"});
+    for (const auto& [rlabel, mlabels] : code_lines)
+    {
+        std::string code = "buffers[" + std::to_string(index) + "][k] += ";
+        
+        if (rlabel == "none")
+        {
+            code += mlabels[0];
+            
+            for (size_t i = 1; i < mlabels.size(); i++)
+            {
+                auto label = mlabels[i];
+                
+                if (label[0] == '-')
+                {
+                    label.erase(0, 1);
+                    
+                    label = " - " + label;
+                }
+                else
+                {
+                    label = " + " + label;
+                }
+                
+                code += label;
+            }
+        }
+        else
+        {
+            if (mlabels.size() > 1)
+            {
+                code += rlabel + "("  + mlabels[0];
+            }
+            else
+            {
+                if (mlabels[0][0] == '-')
+                {
+                    auto label = mlabels[0];
+                    
+                    label.erase(0, 1);
+                    
+                    code += "-" + rlabel + label;
+                }
+                else
+                {
+                    code += rlabel + mlabels[0];
+                }
+            }
+            
+            for (size_t i = 1; i < mlabels.size(); i++)
+            {
+                auto label = mlabels[i];
+                
+                if (label[0] == '-')
+                {
+                    label.erase(0, 1);
+                    
+                    label = " - " + label;
+                }
+                else
+                {
+                    label = " + " + label;
+                }
+                
+                code += label;
+            }
+            
+            if (mlabels.size() > 1) code += ")";
+        }
+        
+        lines.push_back({spacer, 0, 2, code + ";"});
+    }
 }
 
 std::string
@@ -697,9 +773,76 @@ C2CFuncBodyDriver::_get_rterm_code(const R2CTerm&      rterm,
     
     if (flabel.size() > 3) flabel += " * ";
     
-    flabel += "f_" + std::to_string(index);
+    flabel += "auxilaries[" + std::to_string(index) + "][k]";
         
     return flabel;
+}
+
+
+std::pair<std::string, std::string>
+C2CFuncBodyDriver::_get_rterm_split_code (const R2CTerm&      rterm,
+                                          const V4Auxilaries& auxilaries) const
+{
+    // generate auxilary value code
+    
+    const auto pre_fact = rterm.prefactor();
+        
+    auto plabel = pre_fact.label();
+        
+    if (plabel == "1.0")  plabel = "";
+        
+    if (plabel == "-1.0") plabel = "-";
+        
+    if (pre_fact.denominator() != 1)
+    {
+        plabel = t2c::fraction_label(pre_fact);
+        
+        if (pre_fact.numerator() < 0) plabel = "-" + plabel;
+    }
+    
+    const auto index = t2c::get_auxilary_index(auxilaries, t2c::get_auxilary(rterm));
+    
+    if (plabel.size() > 1) plabel += " * ";
+    
+    plabel += "auxilaries[" + std::to_string(index) + "][k]";
+    
+    // split recursion factors into scaling and distances terms
+    
+    const auto facts = rterm.factors();
+        
+    std::string rlabel;
+        
+    for (const auto& fact : facts)
+    {
+        if (fact == Factor("N", "n")) continue;
+        
+        if (fact == Factor("M", "m")) continue;
+        
+        if (fact == Factor("T", "t")) continue;
+        
+        if (const auto flabel = fact.label(); flabel[0] == 'r')
+        {
+            const auto norder = rterm.factor_order(fact);
+                
+            for (size_t n = 0; n < norder; n++)
+            {
+                rlabel += fact.label() + " * ";
+            }
+        }
+        else
+        {
+            const auto norder = rterm.factor_order(fact);
+                
+            for (size_t n = 0; n < norder; n++)
+            {
+                plabel += " * " + fact.label();
+            }
+        }
+    }
+    
+    if (rlabel.empty()) rlabel = "none";
+    
+    return {rlabel, plabel};
 }
 
 void
@@ -749,14 +892,14 @@ C2CFuncBodyDriver::_add_loop_prefactors(      VCodeLines& lines,
         lines.push_back({spacer, 0, 2, "const auto rbc_z = ket_rz[k] - c_z;"});
     }
     
-    const auto auxilaries = t2c::get_unique_auxilaries(rgroup);
-    
-    for (const auto& taux : t2c::get_unique_auxilaries(rgroup, first, last))
-    {
-        const auto ilabel = std::to_string(t2c::get_auxilary_index(auxilaries, taux));
-        
-        lines.push_back({spacer, 0, 2, "const auto f_" + ilabel + " = avals_" + ilabel + "[k];"});
-    }
+//    const auto auxilaries = t2c::get_unique_auxilaries(rgroup);
+//
+//    for (const auto& taux : t2c::get_unique_auxilaries(rgroup, first, last))
+//    {
+//        const auto ilabel = std::to_string(t2c::get_auxilary_index(auxilaries, taux));
+//
+//        lines.push_back({spacer, 0, 2, "const auto f_" + ilabel + " = auxilaries[" + ilabel + "][k];"});
+//    }
 }
 
 std::string
@@ -800,7 +943,7 @@ C2CFuncBodyDriver::_get_matrix_label(const T2CIntegral& integral) const
 size_t
 C2CFuncBodyDriver::_get_block_size() const
 {
-    return 15;
+    return 6;
 }
 
 bool

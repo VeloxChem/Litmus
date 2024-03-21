@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"cold", "Nuclear Potential"});
+    const auto run_type = std::pair<std::string, std::string>({"cold", "Overlap"});
     
     const int max_angmom = 3;
     
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     
     const int op_gdrv = 0;
     
-    const bool sum_form = true;
+    const bool sum_form = false;
     
     // set up start timer
     
