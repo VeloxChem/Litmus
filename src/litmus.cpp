@@ -29,12 +29,13 @@
 #include "v4c_cpu_generator.hpp"
 #include "h4c_cpu_generator.hpp"
 #include "cold_cpu_generator.hpp"
+#include "v2c_cpu_generators.hpp"
 
 int main(int argc, char **argv)
 {
     // select run type
     
-    const auto run_type = std::pair<std::string, std::string>({"cold", "Overlap"});
+    const auto run_type = std::pair<std::string, std::string>({"v2c", "Overlap"});
     
     const int max_angmom = 3;
     
@@ -45,6 +46,8 @@ int main(int argc, char **argv)
     const int op_gdrv = 0;
     
     const bool sum_form = false;
+    
+    const bool diag_form = false;
     
     // set up start timer
     
@@ -111,6 +114,15 @@ int main(int argc, char **argv)
         const auto cold_drv = ColdCPUGenerator();
         
         cold_drv.generate(run_type.second, max_angmom, bra_gdrv, ket_gdrv, op_gdrv, sum_form);
+    }
+    
+    // case: vectical two-center integrals
+    
+    if (run_type.first == "v2c")
+    {
+        const auto v2c_drv = V2CCPUGenerator();
+        
+        v2c_drv.generate(run_type.second, max_angmom, bra_gdrv, ket_gdrv, op_gdrv, sum_form, diag_form);
     }
     
     // set up end timer & compute elapsed time
