@@ -33,6 +33,16 @@ V2IOverlapDriver::apply_bra_vrr(const I2CIntegral& integral) const
                 
             for (const auto& rtint : rtints)
             {
+                const auto ctints = _bra_vrr(rtint);
+                
+                if (!ctints.empty())
+                {
+                    
+                }
+                else
+                {
+                    tints.insert(rtint);
+                }
                 
                 
 //                const auto cdist = _apply_bra_vrr(rec_terms[i]);
@@ -106,6 +116,61 @@ V2IOverlapDriver::create_recursion(const SI2CIntegrals& integrals) const
         else
         {
             tints.insert(integral);
+        }
+    }
+    
+    return tints;
+}
+
+SI2CIntegrals
+V2IOverlapDriver::_bra_vrr(const I2CIntegral& integral) const
+{
+    SI2CIntegrals tints;
+    
+    if (!is_overlap(integral)) return tints;
+    
+    if (const auto tval = integral.shift(-1, 0))
+    {
+        auto x1val = *tval;
+
+        tints.insert(x1val);
+        
+        // second recursion term
+        
+        if (const auto r2val = tval->shift(-1, 0))
+        {
+            tints.insert(*r2val);
+        }
+        
+        // third recursion term
+        
+        if (const auto r3val = tval->shift(-1, 1))
+        {
+            tints.insert(*r3val);
+        }
+    }
+    
+    return tints;
+}
+
+SI2CIntegrals
+V2IOverlapDriver::_ket_vrr(const I2CIntegral& integral) const
+{
+    SI2CIntegrals tints;
+    
+    if (!is_overlap(integral)) return tints;
+    
+    if (const auto tval = integral.shift(-1, 1))
+    {
+        auto x1val = *tval;
+
+        tints.insert(x1val);
+        
+        // second recursion term
+        
+        if (const auto r2val = tval->shift(-1, 1))
+        {
+            tints.insert(*r2val);
         }
     }
     

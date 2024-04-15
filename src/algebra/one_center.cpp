@@ -99,7 +99,7 @@ OneCenter::shift(const int value,
 {
     if (center == 0)
     {
-        if (const int torder =_shape.order() - value; torder > 0)
+        if (const int torder =_shape.order() + value; torder > 0)
         {
             return OneCenter(_name, Tensor(torder));
         }

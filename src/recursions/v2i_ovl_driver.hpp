@@ -9,7 +9,16 @@
 /// Two center overlap integrals driver class.
 class V2IOverlapDriver
 {
+    /// Applies vertical recursion to bra side of overlap integral.
+    /// @param integral The  overlap integral.
+    /// @return The set of integrals.
+    SI2CIntegrals _bra_vrr(const I2CIntegral& integral) const;
     
+    /// Applies vertical recursion to ket side of overlap integral.
+    /// @param integral The  overlap integral.
+    /// @return The set of integrals.
+    SI2CIntegrals _ket_vrr(const I2CIntegral& integral) const;
+
 public:
     /// Creates a two center overlap integrals driver.
     V2IOverlapDriver();
