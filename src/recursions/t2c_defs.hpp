@@ -53,6 +53,10 @@ using I1CPair = OneCenter;
 
 using I2CIntegral = Integral<I1CPair, I1CPair>;
 
+using VI2CIntegrals = VIntegrals<I1CPair, I1CPair>;
+
+using SI2CIntegrals = SIntegrals<I1CPair, I1CPair>;
+
 using R2CMap = UniqueMap<I2CIntegral, T2CIntegral>; 
 
 #endif /* t2c_defs_hpp */

@@ -18,6 +18,7 @@
 #define four_center_integral_hpp
 
 #include <vector>
+#include <set>
 
 #include "operator.hpp"
 #include "integral_component.hpp"
@@ -87,13 +88,23 @@ public:
     /// @param order The order of integral.
     void set_order(const int order);
     
-    /// Creates an optional integral from this integra by shifting angular value
+    /// Create new integral by replacing integrand.
+    /// @param integrand The integrand to be replacement.
+    /// @return The optional integral.
+    Integral replace(const Operator& integrand) const;
+    
+    /// Creates an optional integral from this integral by shifting angular value
     /// on targeted center.
     /// @param value The value to shift axial value.
     /// @param center The targeted shift center.
     /// @return The optional integral.
     std::optional<Integral> shift(const int  value,
                                   const int  center) const;
+    
+    /// Creates an optional integral from this integral by shifting order.
+    /// @param value The value to shift order.
+    /// @return The optional integral.
+    std::optional<Integral> shift_order(const int value) const;
     
     /// Gets operator of this integral.
     /// @return The operator of this integral.
@@ -269,6 +280,13 @@ Integral<T, U>::set_order(const int order)
 }
 
 template <class T, class U>
+Integral<T, U>
+Integral<T, U>::replace(const Operator& integrand) const
+{
+    return Integral<T, U>(_bra, _ket, integrand, _order, _prefixes);;
+}
+
+template <class T, class U>
 std::optional<Integral<T, U>>
 Integral<T, U>::shift(const int  value,
                       const int  center) const
@@ -296,6 +314,20 @@ Integral<T, U>::shift(const int  value,
         {
             return std::nullopt;
         }
+    }
+}
+
+template <class T, class U>
+std::optional<Integral<T, U>>
+Integral<T, U>::shift_order(const int value) const
+{
+    if (const int torder = _order + value; torder > 0)
+    {
+        return Integral<T, U>(_bra, _ket, _integrand, torder, _prefixes);
+    }
+    else
+    {
+        return std::nullopt;
     }
 }
 
@@ -434,6 +466,10 @@ Integral<T, U>::diag_components() const
     return vcomps;
 }
 
+template <class T, class U>
+using VIntegrals = std::vector<Integral<T, U>>;
 
+template <class T, class U>
+using SIntegrals = std::set<Integral<T, U>>;
 
 #endif /* four_center_integral_hpp */

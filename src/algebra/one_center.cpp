@@ -93,6 +93,27 @@ OneCenter::operator<(const OneCenter& other) const
     }
 }
 
+std::optional<OneCenter>
+OneCenter::shift(const int value,
+                 const int center) const
+{
+    if (center == 0)
+    {
+        if (const int torder =_shape.order() - value; torder > 0)
+        {
+            return OneCenter(_name, Tensor(torder));
+        }
+        else
+        {
+            return std::nullopt;
+        }
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
 std::string
 OneCenter::to_string() const
 {

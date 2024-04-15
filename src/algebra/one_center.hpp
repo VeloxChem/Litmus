@@ -73,6 +73,14 @@ public:
     /// @return true if this one center expansion is less than other one center expansion, false otherwise.
     bool operator<(const OneCenter& other) const;
     
+    /// Creates an optional operator component from this operator component by shifting axial value
+    /// along the selected axis.
+    /// @param value The value to shift angular center.
+    /// @param center The center to apply shift.
+    /// @return The optional operator component.
+    std::optional<OneCenter> shift(const int value,
+                                   const int center) const;
+    
     /// Gets tensorial shape of this one center expansion.
     /// @return The tensorial shape of one center expansion.
     int shape() const {return _shape.order();};
