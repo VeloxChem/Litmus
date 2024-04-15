@@ -21,7 +21,7 @@ class V2IOverlapDriver
 
 public:
     /// Creates a two center overlap integrals driver.
-    V2IOverlapDriver();
+    V2IOverlapDriver() = default;
     
     /// Check if integral is for two-center overlap integral.
     /// @param integral The integral to check.

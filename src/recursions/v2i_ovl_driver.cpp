@@ -1,5 +1,7 @@
 #include "v2i_ovl_driver.hpp"
 
+#include <iostream>
+
 bool
 V2IOverlapDriver::is_overlap(const I2CIntegral& integral) const
 {
@@ -33,34 +35,76 @@ V2IOverlapDriver::apply_bra_vrr(const I2CIntegral& integral) const
                 
             for (const auto& rtint : rtints)
             {
-                const auto ctints = _bra_vrr(rtint);
-                
-                if (!ctints.empty())
+                if (rtint[0] != 0)
                 {
+                   const auto ctints = _bra_vrr(rtint);
                     
+                   for (const auto& ctint : ctints)
+                   {
+                       tints.insert(ctint);
+                       
+                       if (ctint[0] != 0)
+                       {
+                           new_rtints.insert(ctint);
+                       }
+                   }
                 }
                 else
                 {
                     tints.insert(rtint);
                 }
+            }
+            
+            rtints = new_rtints;
+        }
+    }
+   
+    tints.insert(integral);
+
+    std::cout << "Bra Expansion: ";
+    
+    for (const auto& tint : tints) std::cout << tint.label() << " : "; 
+    
+    std::cout << std::endl;
+    
+    return tints;
+}
+
+SI2CIntegrals
+V2IOverlapDriver::apply_ket_vrr(const I2CIntegral& integral) const
+{
+    SI2CIntegrals tints;
+    
+    if (integral[1] > 0)
+    {
+        SI2CIntegrals rtints({integral, });
                 
+        while (!rtints.empty())
+        {
+            SI2CIntegrals new_rtints;
                 
-//                const auto cdist = _apply_bra_vrr(rec_terms[i]);
-//
-//                if (const auto nterms = cdist.terms(); nterms > 0)
-//                {
-//                    for (size_t j = 0; j < nterms; j++)
-//                    {
-//                        if (const auto rterm = cdist[j]; rterm.auxilary(0))
-//                        {
-//                            new_dist.add(rterm);
-//                        }
-//                        else
-//                        {
-//                            new_terms.push_back(rterm);
-//                        }
-//                    }
-//                }
+            for (const auto& rtint : rtints)
+            {
+                const auto ctints = _ket_vrr(rtint);
+                
+                if (!ctints.empty())
+                {
+                    for (const auto& ctint : ctints)
+                    {
+                        if (ctint[1] == 0)
+                        {
+                            tints.insert(ctint);
+                        }
+                        else
+                        {
+                            new_rtints.insert(ctint);
+                        }
+                    }
+                }
+                else
+                {
+                    tints.insert(rtint);
+                }
             }
                 
             rtints = new_rtints;
@@ -75,26 +119,26 @@ V2IOverlapDriver::apply_bra_vrr(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::apply_ket_vrr(const I2CIntegral& integral) const
-{
-    SI2CIntegrals tints;
-    
-    return tints;
-}
-
-SI2CIntegrals
 V2IOverlapDriver::apply_recursion(const SI2CIntegrals& integrals) const
 {
     SI2CIntegrals tints;
     
     for (const auto& integral : integrals)
     {
-        for (const auto& bintegral : apply_bra_vrr({integral, }))
-        {
-            const auto ctints = apply_ket_vrr(bintegral);
-            
-            tints.insert(ctints.cbegin(), ctints.cend());
-        }
+        tints.insert(integral);
+        
+        std::cout << "@integral " << integral.label() << std::endl;
+        
+        const auto btints = apply_bra_vrr({integral, });
+        
+//        for (const auto& bintegral : apply_bra_vrr({integral, }))
+//        {
+//            //std::cout << " bra --> " << bintegral.label() << std::endl;
+//
+//            const auto ctints = apply_ket_vrr(bintegral);
+//
+//            tints.insert(ctints.cbegin(), ctints.cend());
+//        }
     }
     
     return tints;
@@ -149,6 +193,12 @@ V2IOverlapDriver::_bra_vrr(const I2CIntegral& integral) const
             tints.insert(*r3val);
         }
     }
+    
+    std::cout << "Bra VRR: ";
+    
+    for (const auto& tint : tints) std::cout << tint.label() << " : ";
+    
+    std::cout << std::endl;
     
     return tints;
 }

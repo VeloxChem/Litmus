@@ -113,6 +113,11 @@ class V2CCPUGenerator
                           const I2CIntegral&   integral,
                           const bool           start) const;
     
+    /// Generates set of integrals required for vertical Obara-Saika recursion.
+    /// @param integral The base two center integral.
+    /// @return The set of integrals.
+    SI2CIntegrals _generate_integral_group(const I2CIntegral& integral) const;
+    
 public:
     /// Creates a two-center integrals CPU code generator.
     V2CCPUGenerator() = default;

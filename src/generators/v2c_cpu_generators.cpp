@@ -28,6 +28,7 @@
 #include "t2c_docs.hpp"
 #include "t2c_decl.hpp"
 #include "v2c_body.hpp"
+#include "v2i_ovl_driver.hpp"
 
 void
 V2CCPUGenerator::generate(const std::string& label,
@@ -44,22 +45,22 @@ V2CCPUGenerator::generate(const std::string& label,
         {
             for (int j = 0; j <= angmom; j++)
             {
-                #pragma omp parallel
-                {
-                    #pragma omp single nowait
-                    {
-                        const auto integral = _get_integral(label, i, j, bra_gdrv, ket_gdrv, op_gdrv);
-                        
-                        #pragma omp task firstprivate(integral)
-                        {
-//                            const auto rgroup = _generate_integral_group(integral);
-
-                            _write_cpp_header(integral, sum_form, diag_form);
-
-                            _write_cpp_file(integral, sum_form, diag_form);
-                        }
-                    }
-                }
+                const auto integral = _get_integral(label, i, j, bra_gdrv, ket_gdrv, op_gdrv);
+                
+                const auto tints = _generate_integral_group(integral);
+                
+                _write_cpp_header(integral, sum_form, diag_form);
+                
+                _write_cpp_file(integral, sum_form, diag_form);
+                
+//                std::cout << " *** Integral " << integral.label() << " expansion:"<< std::endl;
+//
+//                for (const auto& tint : tints)
+//                {
+//                    std::cout << tint.label() << " , ";
+//                }
+//
+//                std::cout << std::endl;
             }
         }
         
@@ -307,3 +308,26 @@ V2CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+SI2CIntegrals
+V2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
+{
+    SI2CIntegrals tints;
+    
+    // Overlap integrals
+    
+    if (integral.integrand() == Operator("1"))
+    {
+        V2IOverlapDriver ovl_drv;
+        
+        if (integral.is_simple())
+        {
+            tints = ovl_drv.create_recursion({integral,});
+        }
+        else
+        {
+            /// TODO: ...
+        }
+    }
+    
+    return tints;
+}
