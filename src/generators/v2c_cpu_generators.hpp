@@ -87,6 +87,32 @@ class V2CCPUGenerator
                             const bool           diag_form,
                             const bool           start) const;
     
+    /// Writes definitions of includes for header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    void _write_hpp_includes(      std::ofstream& fstream,
+                             const I2CIntegral&   integral,
+                             const bool           sum_form) const;
+    
+    /// Writes definitions of includes for C++ code file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
+    /// @param diag_form The flag to used diagonal  form for integrals.
+    void _write_cpp_includes(      std::ofstream& fstream,
+                             const I2CIntegral&   integral,
+                             const bool           sum_form,
+                             const bool           diag_form) const;
+    
+    /// Writes namespace definition to file stream.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param start The flag to indicate position of namespace definition (start or end).
+    void _write_namespace(      std::ofstream& fstream,
+                          const I2CIntegral&   integral,
+                          const bool           start) const;
+    
 public:
     /// Creates a two-center integrals CPU code generator.
     V2CCPUGenerator() = default;

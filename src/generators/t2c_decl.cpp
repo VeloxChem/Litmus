@@ -217,7 +217,7 @@ T2CDeclDriver::_get_matrix_str(const I2CIntegral& integral,
 //        }
 //    }
     
-    vstr.push_back(name + "(T1EDistributor<CMatrix>& distributor,");
+    vstr.push_back(name + "(CSubMatrix* matrix,");
     
     return vstr;
 }
@@ -354,6 +354,15 @@ T2CDeclDriver::_get_gto_blocks_str(const I2CIntegral& integral,
         vstr.push_back(std::string(nsize, ' ') + "const CGtoBlock& bra_gto_block,");
         
         vstr.push_back(std::string(nsize, ' ') + "const CGtoBlock& ket_gto_block,");
+        
+        if (integral[0] != integral[1])
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const bool ang_order,");
+        }
+        else
+        {
+            vstr.push_back(std::string(nsize, ' ') + "const mat_t mat_type,");
+        }
     }
     
 //    if ((integral[0] != integral[1]) && (!is_auxilary))
@@ -374,9 +383,11 @@ T2CDeclDriver::_get_indexes_str(const I2CIntegral& integral,
     
     const auto [nsize, name] = t2c::compute_func_name(integral, sum_form);
     
+    vstr.push_back(std::string(nsize, ' ') + "const std::array<int, 2> bra_indices,");
+    
     const auto tsymbol = (terminus) ? ";" : "";
     
-    vstr.push_back(std::string(nsize, ' ') + "const TIndex<2>& bra_igtos) -> void" + tsymbol);
+    vstr.push_back(std::string(nsize, ' ') + "const std::array<int, 2> ket_indices) -> void" + tsymbol);
     
     return vstr;
 }

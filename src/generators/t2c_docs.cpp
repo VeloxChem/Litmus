@@ -27,38 +27,28 @@ T2CDocuDriver::write_doc_str(      std::ofstream& fstream,
                              const bool           diagonal) const
 {
     auto lines = VCodeLines();
-        
-    lines.push_back({0, 0, 1, "/**"});
-        
-    lines.push_back({0, 0, 2, _get_compute_str(integral, diagonal)});
+    
+    lines.push_back({0, 0, 1, _get_compute_str(integral, diagonal)});
     
     for (const auto& label : _get_matrix_str(integral))
     {
-        lines.push_back({0, 1, 1, label});
+        lines.push_back({0, 0, 1, label});
     }
     
     for (const auto& label : _get_special_vars_str(integral, sum_form))
     {
-        lines.push_back({0, 1, 1, label});
+        lines.push_back({0, 0, 1, label});
     }
     
     for (const auto& label : _get_gto_blocks_str(integral, false, diagonal))
     {
-        lines.push_back({0, 1, 1, label});
+        lines.push_back({0, 0, 1, label});
     }
     
     for (const auto& label : _get_indexes_str())
     {
-        lines.push_back({0, 1, 1, label});
+        lines.push_back({0, 0, 1, label});
     }
-    
-    if (const auto label = _get_matrix_type_str(integral, diagonal);
-        !label.empty())
-    {
-        lines.push_back({0, 1, 1, label});
-    }
-        
-    lines.push_back({0, 0, 1, "*/"});
         
     ost::write_code_lines(fstream, lines);
 }
@@ -220,11 +210,14 @@ T2CDocuDriver::_get_compute_str(const I2CIntegral& integral,
         }
     }
         
-    auto label = " Evaluates <" + bra_geom + bra.label() + "|";
-        
-    label += t2c::integrand_label(integral.integrand());
-        
-    label += "|" + ket_geom + ket.label() + ">  integrals for given ";
+    auto label = "/// Evaluates <" + bra_geom + bra.label() + "|";
+    
+    if (integral.integrand().name() != "1")
+    {
+        label += t2c::integrand_label(integral.integrand()) + "|";
+    }
+    
+    label += ket_geom + ket.label() + ">  integrals for given ";
         
     label += (diagonal) ? "GTOs block." : "pair of GTOs blocks.";
     
@@ -336,7 +329,7 @@ T2CDocuDriver::_get_matrix_str(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("@param distributor the distributor the one-electron integrals.");
+    vstr.push_back("/// - Parameter matrix: the pointer to matrix for storage of integrals.");
     
     return vstr;
 }
@@ -429,20 +422,24 @@ T2CDocuDriver::_get_gto_blocks_str(const I2CIntegral& integral,
     
     if (diagonal)
     {
-       vstr.push_back("@param gto_block the GTOs block.");
+       vstr.push_back("/// - Parameter gto_block: the GTOs block.");
     }
     else
     {
-        vstr.push_back("@param bra_gto_block the GTOs block on bra side.");
+        vstr.push_back("/// - Parameter bra_gto_block: the GTOs block on bra side.");
         
-        vstr.push_back("@param ket_gto_block the GTOs block on ket side.");
+        vstr.push_back("/// - Parameter ket_gto_block: the GTOs block on ket side.");
+        
+        if (integral[0] != integral[1])
+        {
+            vstr.push_back("/// - Parameter ang_order: the flag for matching angular order between matrix and pair of GTOs blocks.");
+        }
+        else
+        {
+            vstr.push_back("/// - Parameter mat_type: the matrix type.");
+        }
     }
-    
-//    if ((integral[0] != integral[1]) && (!is_auxilary))
-//    {
-//        vstr.push_back("@param ang_order the flag for matching angular order between matrix and pair of GTOs blocks.");
-//    }
-    
+        
     return vstr;
 }
 
@@ -451,7 +448,9 @@ T2CDocuDriver::_get_indexes_str() const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("@param bra_igtos the range [bra_first, bra_last) of GTOs on bra side.");
+    vstr.push_back("/// - Parameter bra_indices: the range [bra_first, bra_last) of GTOs on bra side.");
+    
+    vstr.push_back("/// - Parameter ket_indices: the range [ket_first, ket_last) of GTOs on ket side.");
     
     return vstr;
 }

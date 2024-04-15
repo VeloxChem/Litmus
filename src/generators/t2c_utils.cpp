@@ -238,9 +238,11 @@ std::pair<size_t, std::string>
 compute_func_name(const I2CIntegral& integral,
                   const bool         sum_form)
 {
-    std::string prefix = (sum_form) ? "compSum" : "comp";
+    std::string prefix = (sum_form) ? "comp_sum_" : "comp_";
     
-    const auto label = prefix  + t2c::integral_label(integral) + integral.label();
+    auto label = prefix  + t2c::integral_label(integral) + "_" + integral.label();
+    
+    label = fstr::lowercase(label); 
         
     return {label.size() + 1, label};
 }

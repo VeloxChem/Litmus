@@ -128,6 +128,7 @@ public:
                        const bool           sum_form,
                        const bool           diagonal) const;
     
+
     /// Writes documentation string for auxilary compute function.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.

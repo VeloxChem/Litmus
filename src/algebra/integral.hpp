@@ -87,6 +87,14 @@ public:
     /// @param order The order of integral.
     void set_order(const int order);
     
+    /// Creates an optional integral from this integra by shifting angular value
+    /// on targeted center.
+    /// @param value The value to shift axial value.
+    /// @param center The targeted shift center.
+    /// @return The optional integral.
+    std::optional<Integral> shift(const int  value,
+                                  const int  center) const;
+    
     /// Gets operator of this integral.
     /// @return The operator of this integral.
     Operator integrand() const;
@@ -258,6 +266,37 @@ void
 Integral<T, U>::set_order(const int order)
 {
     _order = order; 
+}
+
+template <class T, class U>
+std::optional<Integral<T, U>>
+Integral<T, U>::shift(const int  value,
+                      const int  center) const
+{
+    const auto bcenters = _bra.centers();
+    
+    if (center < bcenters)
+    {
+        if (const auto tbra = _bra.shift(value, center))
+        {
+            return Integral<T, U>(*tbra, _ket, _integrand, _order, _prefixes);
+        }
+        else
+        {
+            return std::nullopt;
+        }
+    }
+    else
+    {
+        if (const auto tket = _ket.shift(value, center - bcenters))
+        {
+            return Integral<T, U>(_bra, *tket, _integrand, _order, _prefixes);
+        }
+        else
+        {
+            return std::nullopt;
+        }
+    }
 }
 
 template <class T, class U>

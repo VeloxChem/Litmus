@@ -27,12 +27,7 @@
 #include "t2c_utils.hpp"
 #include "t2c_docs.hpp"
 #include "t2c_decl.hpp"
-#include "c2c_body.hpp"
-#include "c2c_auxilary_body.hpp"
-
-#include "cold_ovl_driver.hpp"
-#include "cold_kin_driver.hpp"
-#include "cold_npot_driver.hpp"
+#include "v2c_body.hpp"
 
 void
 V2CCPUGenerator::generate(const std::string& label,
@@ -164,28 +159,28 @@ V2CCPUGenerator::_write_cpp_header(const I2CIntegral& integral,
     fstream.open(fname.c_str(), std::ios_base::trunc);
         
     _write_hpp_defines(fstream, integral, sum_form, diag_form, true);
-//
-//    _write_hpp_includes(fstream, integral, sum_form);
-//
-//    _write_namespace(fstream, integral, true);
-//
-//    T2CDocuDriver docs_drv;
-//
-//    T2CDeclDriver decl_drv;
-//
-//    if ((integral[0] == integral[1]) && integral.is_simple())
-//    {
-//        docs_drv.write_doc_str(fstream, integral, sum_form, true);
-//
-//        decl_drv.write_func_decl(fstream, integral, sum_form, true, true);
-//    }
-//
-//    docs_drv.write_doc_str(fstream, integral, sum_form, false);
-//
-//    decl_drv.write_func_decl(fstream, integral, sum_form, false, true);
-//
-//    _write_namespace(fstream, integral, false);
-//
+
+    _write_hpp_includes(fstream, integral, sum_form);
+
+    _write_namespace(fstream, integral, true);
+
+    T2CDocuDriver docs_drv;
+
+    T2CDeclDriver decl_drv;
+
+    if ((integral[0] == integral[1]) && integral.is_simple())
+    {
+        docs_drv.write_doc_str(fstream, integral, sum_form,  true);
+
+        decl_drv.write_func_decl(fstream, integral, sum_form, true, true);
+    }
+
+    docs_drv.write_doc_str(fstream, integral, sum_form, false);
+
+    decl_drv.write_func_decl(fstream, integral, sum_form, false, true);
+
+    _write_namespace(fstream, integral, false);
+
     _write_hpp_defines(fstream, integral, sum_form, diag_form, false);
 
     fstream.close();
@@ -202,26 +197,26 @@ V2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral,
         
     fstream.open(fname.c_str(), std::ios_base::trunc);
         
-//    _write_cpp_includes(fstream, integral, sum_form);
-//
-//    _write_namespace(fstream, integral, true);
-//
-//    T2CDeclDriver decl_drv;
-//
-//    C2CFuncBodyDriver func_drv;
-//
-//    if ((integral[0] == integral[1]) && (integral.is_simple()))
-//    {
-//        decl_drv.write_func_decl(fstream, integral, sum_form, true, false);
-//
-//        func_drv.write_func_body(fstream, rgroup, integral, sum_form, true);
-//    }
-//
-//    decl_drv.write_func_decl(fstream, integral, sum_form, false, false);
-//
-//    func_drv.write_func_body(fstream, rgroup, integral, sum_form, false);
-//
-//    _write_namespace(fstream, integral, false);
+    _write_cpp_includes(fstream, integral, sum_form, diag_form);
+
+   _write_namespace(fstream, integral, true);
+
+    T2CDeclDriver decl_drv;
+
+    V2CFuncBodyDriver func_drv;
+
+    if ((integral[0] == integral[1]) && (integral.is_simple()))
+    {
+        decl_drv.write_func_decl(fstream, integral, sum_form, true, false);
+
+        func_drv.write_func_body(fstream, integral, sum_form, true);
+    }
+
+    decl_drv.write_func_decl(fstream, integral, sum_form, false, false);
+
+    func_drv.write_func_body(fstream, integral, sum_form, false);
+
+    _write_namespace(fstream, integral, false);
         
     fstream.close();
 }
@@ -250,3 +245,65 @@ V2CCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
     
     ost::write_code_lines(fstream, lines);
 }
+
+void
+V2CCPUGenerator::_write_namespace(      std::ofstream& fstream,
+                                   const I2CIntegral&   integral,
+                                   const bool           start) const
+{
+    const auto label = t2c::namespace_label(integral);
+    
+    auto lines = VCodeLines();
+    
+    if (start)
+    {
+        lines.push_back({0, 0, 2, "namespace " + label + " { // " + label + " namespace"});
+    }
+    else
+    {
+        lines.push_back({0, 0, 2, "} // " + label + " namespace"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+V2CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
+                                      const I2CIntegral&   integral,
+                                      const bool           sum_form) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include <array>"});
+    
+    lines.push_back({0, 0, 1, "#include \"GtoBlock.hpp\""});
+
+    if (integral[0] == integral[1])
+    {
+       lines.push_back({0, 0, 1, "#include \"Matrix.hpp\""});
+    }
+    
+    lines.push_back({0, 0, 2, "#include \"SubMatrix.hpp\""});
+        
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+V2CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
+                                     const I2CIntegral&   integral,
+                                     const bool           sum_form,
+                                     const bool           diag_form) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + _file_name(integral, sum_form, diag_form) +  ".hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"SimdArray.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"T2CDistributor.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"T2CUtils.hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
