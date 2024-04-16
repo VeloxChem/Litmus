@@ -47,20 +47,11 @@ V2CCPUGenerator::generate(const std::string& label,
             {
                 const auto integral = _get_integral(label, i, j, bra_gdrv, ket_gdrv, op_gdrv);
                 
-                const auto tints = _generate_integral_group(integral);
+                const auto integrals = _generate_integral_group(integral);
                 
                 _write_cpp_header(integral, sum_form, diag_form);
                 
-                _write_cpp_file(integral, sum_form, diag_form);
-                
-//                std::cout << " *** Integral " << integral.label() << " expansion:"<< std::endl;
-//
-//                for (const auto& tint : tints)
-//                {
-//                    std::cout << tint.label() << " , ";
-//                }
-//
-//                std::cout << std::endl;
+                _write_cpp_file(integrals, integral, sum_form, diag_form);
             }
         }
         
@@ -188,9 +179,10 @@ V2CCPUGenerator::_write_cpp_header(const I2CIntegral& integral,
 }
 
 void
-V2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral,
-                                 const bool         sum_form,
-                                 const bool         diag_form) const
+V2CCPUGenerator::_write_cpp_file(const SI2CIntegrals& integrals,
+                                 const I2CIntegral&   integral,
+                                 const bool           sum_form,
+                                 const bool           diag_form) const
 {
     auto fname = _file_name(integral, sum_form, diag_form) + ".cpp";
         
@@ -200,7 +192,7 @@ V2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral,
         
     _write_cpp_includes(fstream, integral, sum_form, diag_form);
 
-   _write_namespace(fstream, integral, true);
+    _write_namespace(fstream, integral, true);
 
     T2CDeclDriver decl_drv;
 
@@ -210,12 +202,12 @@ V2CCPUGenerator::_write_cpp_file(const I2CIntegral& integral,
     {
         decl_drv.write_func_decl(fstream, integral, sum_form, true, false);
 
-        func_drv.write_func_body(fstream, integral, sum_form, true);
+        func_drv.write_func_body(fstream, integrals, integral, sum_form, true);
     }
 
     decl_drv.write_func_decl(fstream, integral, sum_form, false, false);
 
-    func_drv.write_func_body(fstream, integral, sum_form, false);
+    func_drv.write_func_body(fstream, integrals, integral, sum_form, false);
 
     _write_namespace(fstream, integral, false);
         

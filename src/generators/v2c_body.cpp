@@ -1,7 +1,11 @@
 #include "v2c_body.hpp"
 
+#include "string_formater.hpp"
+#include "angular_components.hpp"
+
 void
 V2CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
+                                   const SI2CIntegrals& integrals,
                                    const I2CIntegral&   integral,
                                    const bool           sum_form,
                                    const bool           diagonal) const
@@ -21,6 +25,11 @@ V2CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     }
     
     for (const auto& label : _get_coordinates_def(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    for (const auto& label : _get_buffers_def(integrals, integral))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -191,4 +200,96 @@ V2CFuncBodyDriver::_get_coordinates_def(const I2CIntegral& integral) const
     }
     
     return vstr;
+}
+
+std::vector<std::string>
+V2CFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
+                                    const I2CIntegral&   integral) const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("// allocate aligned primitive integrals");
+    
+    for (const auto& tint : integrals)
+    {
+        std::string label = "CSimdArray<double> ";
+        
+        label += _get_buffer_label(tint, {"prim"});
+        
+        const auto angpair = std::array<int, 2>({tint[0], tint[1]});
+        
+        const auto tcomps = ten::number_of_cartesian_components(angpair);
+        
+        label += "(" + std::to_string(tcomps) + ", ket_pdim);";
+        
+        vstr.push_back(label);
+    }
+    
+    vstr.push_back("// allocate aligned contracted integrals");
+    
+    const auto angpair = std::array<int, 2>({integral[0], integral[1]});
+    
+    auto icomps = ten::number_of_cartesian_components(angpair);
+    
+    std::string label = "CSimdArray<double> ";
+    
+    label += _get_buffer_label(integral, {"cart"});
+    
+    label += "(" + std::to_string(icomps) + ", ket_dim);";
+    
+    vstr.push_back(label);
+    
+    if ((integral[0] > 1) || (integral[1] > 1))
+    {
+        icomps = ten::number_of_spherical_components(angpair);
+        
+        std::string label = "CSimdArray<double> ";
+        
+        label += _get_buffer_label(integral, {"spher"});
+        
+        label += "(" + std::to_string(icomps) + ", ket_dim);";
+        
+        vstr.push_back(label);
+    }
+    
+    return vstr;
+}
+
+std::string
+V2CFuncBodyDriver::_get_buffer_label(const I2CIntegral& integral,
+                                     const std::string& prefix) const
+{
+    std::string label = prefix + "_buffer_";
+    
+    if (integral.integrand().name() == "1") label += "ovl_";
+    
+    label += fstr::lowercase(integral.label());
+
+    return label;
+}
+
+void
+V2CFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
+                                   const I2CIntegral& integral) const
+{
+    lines.push_back({1, 0, 2, "// loop over contracted GTOs on bra side"});
+        
+    lines.push_back({1, 0, 1, "for (auto i = bra_indices[0]; i < bra_indices[1]; i++)"});
+    
+    lines.push_back({1, 0, 1, "{"});
+    
+    lines.push_back({2, 0, 1, _get_buffer_label(integral, {"cart"}) +".zero();"});
+
+    if ((integral[0] > 1) || (integral[1] > 1))
+    {
+        lines.push_back({2, 0, 1, _get_buffer_label(integral, {"spher"}) +".zero();"});
+    }
+
+    lines.push_back({2, 0, 1, "const auto a_x = gto_coords_x[i];"});
+
+    lines.push_back({2, 0, 1, "const auto a_y = gto_coords_y[i];"});
+
+    lines.push_back({2, 0, 1, "const auto a_z = gto_coords_z[i];"});
+
+    lines.push_back({2, 0, 1, "t2cfunc::comp_distances_ab(ab_x[0], ab_y[0], ab_z[0], a_x, a_y, a_z, b_x[0], b_y[0], b_z[0], ket_pdim);"});
 }

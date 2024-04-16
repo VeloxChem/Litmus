@@ -67,12 +67,14 @@ class V2CCPUGenerator
                            const bool         diag_form) const;
     
     /// Writes C++ code file for recursion.
+    /// @param integrals The set of integrals.
     /// @param integral The base two center integral.
     /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param diag_form The flag to used diagonal  form for integrals.
-    void _write_cpp_file(const I2CIntegral& integral,
-                         const bool         sum_form,
-                         const bool         diag_form) const;
+    void _write_cpp_file(const SI2CIntegrals& integrals,
+                         const I2CIntegral&   integral,
+                         const bool           sum_form,
+                         const bool           diag_form) const;
     
     
     /// Writes definitions of define for header file.
