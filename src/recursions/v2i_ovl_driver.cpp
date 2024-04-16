@@ -37,7 +37,7 @@ V2IOverlapDriver::apply_bra_vrr(const I2CIntegral& integral) const
             {
                 if (rtint[0] != 0)
                 {
-                   const auto ctints = _bra_vrr(rtint);
+                   const auto ctints = bra_vrr(rtint);
                     
                    for (const auto& ctint : ctints)
                    {
@@ -81,7 +81,7 @@ V2IOverlapDriver::apply_ket_vrr(const I2CIntegral& integral) const
             {
                 if (rtint[1] != 0)
                 {
-                   const auto ctints = _ket_vrr(rtint);
+                   const auto ctints = ket_vrr(rtint);
                     
                    for (const auto& ctint : ctints)
                    {
@@ -158,7 +158,7 @@ V2IOverlapDriver::create_recursion(const SI2CIntegrals& integrals) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::_bra_vrr(const I2CIntegral& integral) const
+V2IOverlapDriver::bra_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
@@ -189,7 +189,7 @@ V2IOverlapDriver::_bra_vrr(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::_ket_vrr(const I2CIntegral& integral) const
+V2IOverlapDriver::ket_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     

@@ -136,6 +136,11 @@ std::string prim_file_name(const I2CIntegral& integral,
                            const bool         sum_form);
 
 /// Generates primitive file name.
+/// @param integral The base two center integral.
+/// @return The primitive file name.
+std::string prim_file_name(const I2CIntegral& integral);
+
+/// Generates primitive file name.
 /// @param component the integral component.
 /// @param integral The base two center integral.
 /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
@@ -248,6 +253,16 @@ T3Index get_maximum_decomposition(const V4Auxilaries& auxilaries);
 /// Prints debug infor for given recursion expansion.
 /// @param rdist The recursion expansion.
 void debug_info(const R2CDist& rdist);
+
+/// Gets arguments list for primitive function call.
+/// @param integral The base two center integral.
+SI2CIntegrals get_integrals(const I2CIntegral& integral);
+
+/// Generates integral buffer label.
+/// @param integral The base two center integral.
+/// @return The string with integral label.
+std::string get_buffer_label(const I2CIntegral& integral,
+                             const std::string& prefix);
 
 } // t2c namespace
 

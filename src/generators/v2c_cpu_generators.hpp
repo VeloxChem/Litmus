@@ -66,6 +66,10 @@ class V2CCPUGenerator
                            const bool         sum_form,
                            const bool         diag_form) const;
     
+    /// Writes primitive header file for recursion.
+    /// @param integral The base two center integral.
+    void _write_prim_cpp_header(const I2CIntegral& integral) const;
+    
     /// Writes C++ code file for recursion.
     /// @param integrals The set of integrals.
     /// @param integral The base two center integral.
@@ -76,6 +80,9 @@ class V2CCPUGenerator
                          const bool           sum_form,
                          const bool           diag_form) const;
     
+    /// Writes C++ code file for primitive recursion.
+    /// @param integral The base two center integral.
+    void _write_prim_cpp_file(const I2CIntegral& integral) const;
     
     /// Writes definitions of define for header file.
     /// @param fstream the file stream.
@@ -89,6 +96,14 @@ class V2CCPUGenerator
                             const bool           diag_form,
                             const bool           start) const;
     
+    /// Writes definitions of define for primitive header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param start The flag to indicate position of define (start or end).
+    void _write_prim_hpp_defines(      std::ofstream& fstream,
+                                 const I2CIntegral&   integral,
+                                 const bool           start) const;
+    
     /// Writes definitions of includes for header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
@@ -97,15 +112,27 @@ class V2CCPUGenerator
                              const I2CIntegral&   integral,
                              const bool           sum_form) const;
     
+    /// Writes definitions of includes for primitive header file.
+    /// @param fstream the file stream.
+    void _write_prim_hpp_includes(std::ofstream& fstream) const;
+    
     /// Writes definitions of includes for C++ code file.
     /// @param fstream the file stream.
+    /// @param integrals The set of integrals.
     /// @param integral The base two center integral.
     /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param diag_form The flag to used diagonal  form for integrals.
     void _write_cpp_includes(      std::ofstream& fstream,
+                             const SI2CIntegrals& integrals,
                              const I2CIntegral&   integral,
                              const bool           sum_form,
                              const bool           diag_form) const;
+    
+    /// Writes definitions of includes for C++ code file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_prim_cpp_includes(      std::ofstream& fstream,
+                                  const I2CIntegral&   integral) const;
     
     /// Writes namespace definition to file stream.
     /// @param fstream the file stream.

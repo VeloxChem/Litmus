@@ -114,6 +114,10 @@ class T2CDocuDriver
     /// @return The vector of primitive  common variable strings.
     std::vector<std::string> _get_prim_variables_str() const;
     
+    /// Generates vector of primitive common variable strings.
+    /// @return The vector of primitive  common variable strings.
+    std::vector<std::string> _get_prim_variables_str(const I2CIntegral& integral) const;
+    
 public:
     /// Creates a two-center documentation generator.
     T2CDocuDriver() = default;
@@ -128,7 +132,12 @@ public:
                        const bool           sum_form,
                        const bool           diagonal) const;
     
-
+    /// Writes documentation string for primitive compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void write_prim_doc_str(      std::ofstream& fstream,
+                            const I2CIntegral&    integral) const;
+    
     /// Writes documentation string for auxilary compute function.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.

@@ -151,6 +151,121 @@ T2CDeclDriver::write_prim_func_decl(      std::ofstream&   fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+
+void
+T2CDeclDriver::write_prim_func_decl(      std::ofstream& fstream,
+                                    const I2CIntegral&   integral,
+                                    const bool           terminus) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "auto"});
+    
+    const auto [nsize, name] = t2c::prim_compute_func_name(integral, false);
+    
+    const auto tints = t2c::get_integrals(integral);
+    
+    bool need_first = true;
+    
+    for (const auto& tint : tints)
+    {
+        if (need_first)
+        {
+            lines.push_back({0, 0, 1, name + "(const CSimdArray<double>& " + t2c::get_buffer_label(tint, "prim") + ","});
+            
+            need_first = false;
+        }
+        else
+        {
+            lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const CSimdArray<double>& " + t2c::get_buffer_label(tint, "prim") + ","});
+        }
+    }
+    
+    if (need_first)
+    {
+        lines.push_back({0, 0, 1, name + "(CSimdArray<double>& " + t2c::get_buffer_label(integral, "prim") + ","});
+        
+        need_first = false;
+    }
+    else
+    {
+        lines.push_back({0, 0, 1, std::string(nsize, ' ') + "CSimdArray<double>& " + t2c::get_buffer_label(integral, "prim") + ","});
+    }
+    
+    const auto tsymbol = (terminus) ? ";" : "";
+    
+    if (integral[0] > 0)
+    {
+        lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double* pa_x,"});
+        
+        lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double* pa_y,"});
+        
+        if ((integral[0] == 1) && (integral[1] == 0))
+        {
+            lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double* pa_z) -> void" + tsymbol});
+        }
+        else
+        {
+            lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double* pa_z,"});
+        }
+    }
+    
+    if ((integral[0] == 0) && (integral[1] > 0))
+    {
+        lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double* pb_x,"});
+        
+        lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double* pb_y,"});
+        
+        if ((integral[0] == 0) && (integral[1] == 1))
+        {
+            lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double* pb_z) -> void" + tsymbol});
+        }
+        else
+        {
+            lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double* pb_z,"});
+        }
+    }
+    
+    if ((integral[0] + integral[1]) == 0)
+    {
+        if (integral.integrand().name() == "1")
+        {
+            lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double* ab_x,"});
+            
+            lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double* ab_y,"});
+            
+            lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double* ab_z,"});
+        }
+    }
+    
+    if ((integral[0] + integral[1]) != 1)
+    {
+        lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double  a_exp,"});
+        
+        if ((integral[0] + integral[1]) != 0)
+        {
+            lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double* b_exps) -> void" + tsymbol});
+        }
+        else
+        {
+            lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double* b_exps,"});
+        }
+    }
+    
+    if ((integral[0] + integral[1]) == 0)
+    {
+        if (integral.integrand().name() == "1")
+        {
+            lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double  a_norm,"});
+            
+            lines.push_back({0, 0, 1, std::string(nsize, ' ') + "const double* b_norms) -> void" + tsymbol});
+        }
+    }
+    
+    
+    ost::write_code_lines(fstream, lines);
+}
+
 void
 T2CDeclDriver::write_prim_func_decl(      std::ofstream&   fstream,
                                     const TensorComponent& bra_component,

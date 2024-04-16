@@ -36,16 +36,50 @@ class V2CFuncBodyDriver
     std::vector<std::string> _get_buffers_def(const SI2CIntegrals& integrals,
                                               const I2CIntegral&   integral) const;
     
-    /// Generates integral buffer label.
-    /// @param integral The base two center integral.
-    /// @return The string with integral label.
-    std::string _get_buffer_label(const I2CIntegral& integral,
-                                  const std::string& prefix) const;
-    
     /// Adds loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
     void _add_loop_start(      VCodeLines&  lines,
                          const I2CIntegral& integral) const;
+    
+    /// Adds ket loop start definitions to code lines container.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base two center integral.
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    void _add_ket_loop_start(      VCodeLines&  lines,
+                             const I2CIntegral& integral,
+                             const bool         diagonal) const;
+    
+    /// Adds auxilary integrals.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integrals The set of inetrgals.
+    void _add_auxilary_integrals(      VCodeLines&  lines,
+                                 const SI2CIntegrals& integrals) const;
+    
+    /// Adds call tree for recursion.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integrals The set of inetrgals.
+    void _add_call_tree(      VCodeLines&  lines,
+                        const SI2CIntegrals& integrals) const;
+    
+    /// Gets arguments list for primitive function call.
+    /// @param integral The base two center integral.
+    std::string _get_arguments(const I2CIntegral& integral) const;
+    
+    /// Adds ket loop end definitions to code lines container.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base two center integral.
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    void _add_ket_loop_end(      VCodeLines&  lines,
+                           const I2CIntegral& integral,
+                           const bool         diagonal) const;
+    
+    /// Adds loop end definitions to code lines container.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base two center integral.
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    void _add_loop_end(      VCodeLines&  lines,
+                       const I2CIntegral& integral,
+                       const bool         diagonal) const;
 
 public:
     /// Creates a two-center compute function body generator.

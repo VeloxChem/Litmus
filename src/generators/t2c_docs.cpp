@@ -54,6 +54,27 @@ T2CDocuDriver::write_doc_str(      std::ofstream& fstream,
 }
 
 void
+T2CDocuDriver::write_prim_doc_str(      std::ofstream& fstream,
+                                  const I2CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, _get_prim_compute_str(integral)});
+    
+    for (const auto& label : _get_prim_buffer_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_prim_variables_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
 T2CDocuDriver::write_auxilary_doc_str(      std::ofstream& fstream,
                                       const I2CIntegral&   integral,
                                       const bool           diagonal) const
@@ -246,11 +267,14 @@ T2CDocuDriver::_get_prim_compute_str(const I2CIntegral& integral) const
     
     const auto ket = Tensor(integral[1]);
     
-    auto label = "Evaluates block of primitive <"  + bra.label() + "|" ;
+    auto label = "/// Evaluates block of primitive <"  + bra.label() + "|" ;
     
-    label += t2c::integrand_label(integral.integrand());
+    if (integral.integrand().name() != "1")
+    {
+        label += t2c::integrand_label(integral.integrand()) + "|";
+    }
     
-    label += "|"  + ket.label() + "> integrals.";
+    label += ket.label() + "> integrals.";
     
     return label;
 }
@@ -475,7 +499,8 @@ T2CDocuDriver::_get_matrix_type_str(const I2CIntegral& integral,
 }
 
 std::vector<std::string>
-T2CDocuDriver::_get_prim_buffer_str(const I2CIntegral& integral) const
+T2CDocuDriver::_get_prim_buffer_str(const I2CIntegral& integral,
+                                    const bool         bra_first) const
 {
     if (integral.is_simple_integrand() && integral.is_simple())
     {
@@ -539,18 +564,17 @@ T2CDocuDriver::_get_prim_buffer_str(const I2CIntegral& integral) const
 }
 
 std::vector<std::string>
-T2CDocuDriver::_get_prim_buffer_str(const I2CIntegral& integral,
-                                    const bool         bra_first) const
+T2CDocuDriver::_get_prim_buffer_str(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    const auto tensor = (bra_first) ? Tensor(integral[1]) : Tensor(integral[0]);
-
-    for (const auto& label : t2c::tensor_components(tensor, "buffer"))
+    for (const auto& tint : t2c::get_integrals(integral))
     {
-        vstr.push_back("@param " + label + " the partial integrals buffer.");
+        vstr.push_back("/// - Parameter " + t2c::get_buffer_label(tint, "prim") + ": the primitive integrals buffer.");
     }
- 
+    
+    vstr.push_back("/// - Parameter " + t2c::get_buffer_label(integral, "prim") + ": the primitive integrals buffer.");
+    
     return vstr;
 }
 
@@ -579,3 +603,59 @@ T2CDocuDriver::_get_prim_variables_str() const
     
     return vstr;
 }
+
+std::vector<std::string>
+T2CDocuDriver::_get_prim_variables_str(const I2CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    if (integral[0] > 0)
+    {
+        vstr.push_back("/// - Parameter pa_x: the vector of Cartesian X  distances R(PA) = P - A.");
+        
+        vstr.push_back("/// - Parameter pa_y: the vector of Cartesian Y  distances R(PA) = P - A.");
+        
+        vstr.push_back("/// - Parameter pa_z: the vector of Cartesian Z  distances R(PA) = P - A.");
+    }
+    
+    if ((integral[0] == 0) && (integral[1] > 0))
+    {
+        vstr.push_back("/// - Parameter pb_x: the vector of Cartesian X  distances R(PB) = P - B.");
+        
+        vstr.push_back("/// - Parameter pb_y: the vector of Cartesian Y  distances R(PB) = P - B.");
+        
+        vstr.push_back("/// - Parameter pb_z: the vector of Cartesian Z  distances R(PB) = P - B.");
+    }
+    
+    if ((integral[0] + integral[1]) == 0)
+    {
+        if (integral.integrand().name() == "1")
+        {
+            vstr.push_back("/// - Parameter ab_x: the vector of Cartesian X  distances R(AB) = A - B.");
+            
+            vstr.push_back("/// - Parameter ab_y: the vector of Cartesian Y  distances R(AB) = A - B.");
+            
+            vstr.push_back("/// - Parameter ab_z: the vector of Cartesian Z  distances R(AB) = A - B.");
+        }
+    }
+    
+    if ((integral[0] + integral[1]) != 1) 
+    {
+        vstr.push_back("/// - Parameter a_exp: the GTOs exponent on center A.");
+        
+        vstr.push_back("/// - Parameter b_exps: the vector of GTOs exponents on center B.");
+    }
+    
+    if ((integral[0] + integral[1]) == 0)
+    {
+        if (integral.integrand().name() == "1")
+        {
+            vstr.push_back("/// - Parameter a_norm: the GTOs normalization factor on center A.");
+            
+            vstr.push_back("/// - Parameter b_norms: the vector of GTOs normalization factors on center B.");
+        }
+    }
+    
+    return vstr;
+}
+

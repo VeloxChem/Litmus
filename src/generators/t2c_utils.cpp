@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include "string_formater.hpp"
+#include "v2i_ovl_driver.hpp"
 
 namespace t2c { // t2c namespace
 
@@ -261,9 +262,11 @@ std::pair<size_t, std::string>
 prim_compute_func_name(const I2CIntegral& integral,
                        const bool         sum_form)
 {
-    std::string prefix = (sum_form) ? "compSum" : "comp";
+    std::string prefix = (sum_form) ? "comp_sum_" : "comp_";
     
-    const auto label =  prefix + "Primitive" + t2c::integral_label(integral) + integral.label();
+    auto label =  prefix + "prim_" + t2c::integral_label(integral) + "_" + integral.label();
+    
+    label = fstr::lowercase(label);
     
     return {label.size() + 1, label};
 }
@@ -320,6 +323,12 @@ prim_file_name(const I2CIntegral& integral,
     std::string prefix = (sum_form) ? "Sum" : "";
     
     return prefix + "Primitive" + t2c::integral_label(integral) + integral.label();
+}
+
+std::string
+prim_file_name(const I2CIntegral& integral)
+{
+    return t2c::integral_label(integral) + "PrimRec" + integral.label();
 }
 
 std::string
@@ -710,6 +719,41 @@ debug_info(const R2CDist& rdist)
     }
     
     std::cout << std::endl << std::endl;
+}
+
+SI2CIntegrals
+get_integrals(const I2CIntegral& integral)
+{
+    SI2CIntegrals tints;
+    
+    if (integral.integrand().name() == "1")
+    {
+        V2IOverlapDriver ovl_drv;
+        
+        if (integral[0] > 0)
+        {
+            tints = ovl_drv.bra_vrr(integral);
+        }
+        else
+        {
+            tints = ovl_drv.ket_vrr(integral);
+        }
+    }
+    
+    return tints;
+}
+
+std::string
+get_buffer_label(const I2CIntegral& integral,
+                 const std::string& prefix)
+{
+    std::string label = prefix + "_buffer_";
+    
+    if (integral.integrand().name() == "1") label += "ovl_";
+    
+    label += fstr::lowercase(integral.label());
+
+    return label;
 }
 
 } // t2c namespace

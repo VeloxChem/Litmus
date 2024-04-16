@@ -151,6 +151,14 @@ public:
     /// Writes declaration of primitive compute function.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
+    /// @param terminus The flag to add termination symbol.
+    void write_prim_func_decl(      std::ofstream& fstream,
+                              const I2CIntegral&   integral,
+                              const bool           terminus) const;
+    
+    /// Writes declaration of primitive compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
     /// @param sum_form The flag to used sum form for nuclear potential, multipoles, etc integrals.
     /// @param terminus The flag to add termination symbol.
     void write_prim_func_decl(      std::ofstream& fstream,
