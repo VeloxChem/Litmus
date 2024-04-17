@@ -125,6 +125,14 @@ number_of_spherical_components(const std::array<int, N>& orders) -> int
 std::string get_buffer_label(const I2CIntegral& integral,
                              const std::string& prefix);
 
+/// Generates primitive compute function name.
+/// @param integral The base two center integral.
+/// @return The primitive compute function name.
+std::string prim_compute_func_name(const I2CIntegral& integral);
+
+/// Gets arguments list for primitive function call.
+/// @param integral The base two center integral.
+SI2CIntegrals get_integrals(const I2CIntegral& integral);
 
 } // t2c namespace
 

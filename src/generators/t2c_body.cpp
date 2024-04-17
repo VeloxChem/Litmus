@@ -49,6 +49,17 @@ T2CFuncBodyDriver::write_func_body(      std::ofstream&         fstream,
         lines.push_back({1, 0, 2, label});
     }
     
+    _add_loop_start(lines, integral);
+    
+    _add_ket_loop_start(lines, integral, diagonal);
+    
+    _add_auxilary_integrals(lines, integrals);
+    
+    _add_call_tree(lines, integrals);
+    
+    _add_ket_loop_end(lines, integral, diagonal);
+    
+    _add_loop_end(lines, integral, diagonal);
     
     lines.push_back({0, 0, 1, "}"});
     
@@ -269,4 +280,227 @@ T2CFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
     }
     
     return vstr;
+}
+
+void
+T2CFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
+                                   const I2CIntegral& integral) const
+{
+    lines.push_back({1, 0, 2, "// loop over contracted GTOs on bra side"});
+        
+    lines.push_back({1, 0, 1, "for (auto i = bra_indices[0]; i < bra_indices[1]; i++)"});
+    
+    lines.push_back({1, 0, 1, "{"});
+    
+    lines.push_back({2, 0, 2, t2c::get_buffer_label(integral, {"cart"}) +".zero();"});
+
+    if ((integral[0] > 1) || (integral[1] > 1))
+    {
+        lines.push_back({2, 0, 2, t2c::get_buffer_label(integral, {"spher"}) +".zero();"});
+    }
+
+    lines.push_back({2, 0, 2, "const auto a_x = gto_coords_x[i];"});
+
+    lines.push_back({2, 0, 2, "const auto a_y = gto_coords_y[i];"});
+
+    lines.push_back({2, 0, 2, "const auto a_z = gto_coords_z[i];"});
+
+    lines.push_back({2, 0, 2, "t2cfunc::comp_distances_ab(ab_x[0], ab_y[0], ab_z[0], a_x, a_y, a_z, b_x[0], b_y[0], b_z[0], ket_pdim);"});
+}
+
+void
+T2CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
+                                 const I2CIntegral& integral,
+                                 const bool         diagonal) const
+{
+    std::string label;
+    
+    if ((integral[0] > 1) || (integral[1] > 1))
+    {
+        label = "t2cfunc::transform<"  + std::to_string(integral[0]);
+        
+        label += ", " + std::to_string(integral[1]) + ">(";
+        
+        label += t2c::get_buffer_label(integral, "spher") + ", ";
+        
+        label += t2c::get_buffer_label(integral, "cart") + ");";
+        
+        lines.push_back({2, 0, 2, label});
+    }
+    
+    // TODO: Fix matrices labels...
+       
+    if ((integral[0] > 1) || (integral[1] > 1))
+    {
+        label = "t2cfunc::distribute(matrix, " + t2c::get_buffer_label(integral, "spher") + ", ";
+    }
+    else
+    {
+        label = "t2cfunc::distribute(matrix, " + t2c::get_buffer_label(integral, "cart") + ", ";
+    }
+    
+    if (diagonal)
+    {
+        label += "gto_indices, ";
+    }
+    else
+    {
+        label += "bra_gto_indices, ket_gto_indices, ";
+    }
+        
+    label += std::to_string(integral[0]) + ", ";
+        
+    label += std::to_string(integral[1]) + ", ";
+        
+    if (diagonal)
+    {
+        label += "i, ket_indices);";
+    }
+    else
+    {
+        if (integral[0] == integral[1])
+        {
+            label += "i, ket_indices, mat_type);";
+        }
+        else
+        {
+            label += "i, ket_indices, ang_order);";
+        }
+    }
+        
+    lines.push_back({2, 0, 1, label});
+    
+    lines.push_back({1, 0, 1, "}"});
+}
+
+void
+T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
+                                       const I2CIntegral& integral,
+                                       const bool         diagonal) const
+{
+    if (diagonal)
+    {
+        lines.push_back({2, 0, 1, "for (int j = 0; j < npgtos; j++))"});
+    }
+    else
+    {
+        lines.push_back({2, 0, 1, "for (int j = 0; j < bra_npgtos; j++)"});
+    }
+    
+    lines.push_back({2, 0, 1, "{"});
+    
+    if (diagonal)
+    {
+        lines.push_back({3, 0, 2, "const auto a_exp = gto_exps[j * ncgtos + i];"});
+            
+        lines.push_back({3, 0, 2, "const auto a_norm = gto_norms[j * ncgtos + i];"});
+    }
+    else
+    {
+        lines.push_back({3, 0, 2, "const auto a_exp = bra_gto_exps[j * bra_ncgtos + i];"});
+            
+        lines.push_back({3, 0, 2, "const auto a_norm = bra_gto_norms[j * bra_ncgtos + i];"});
+    }
+    
+    if (integral[0] > 1)
+    {
+        lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
+    }
+
+    if (integral[1] > 1)
+    {
+        lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
+    }
+}
+
+void
+T2CFuncBodyDriver::_add_ket_loop_end(      VCodeLines&  lines,
+                                     const I2CIntegral& integral,
+                                     const bool         diagonal) const
+{
+    std::string label = "t2cfunc::reduce(";
+    
+    label += t2c::get_buffer_label(integral, "cart") + ", ";
+    
+    label += t2c::get_buffer_label(integral, "prim") + ", ";
+    
+    if (diagonal)
+    {
+        label += "ket_dim, npgtos);";
+    }
+    else
+    {
+        label += "ket_dim, ket_npgtos);";
+    }
+    
+    lines.push_back({3, 0, 1, label});
+    
+    lines.push_back({2, 0, 2, "}"});
+}
+
+void
+T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&  lines,
+                                           const SI2CIntegrals& integrals) const
+{
+    for (const auto& tint : integrals)
+    {
+        if ((tint[0] == 0) && (tint[1] == 0))
+        {
+            if (tint.integrand().name() == "1")
+            {
+                lines.push_back({3, 0, 2, "ovlrec::comp_prim_overlap_s_s(prim_buffer_ovl_ss, ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], a_norm, b_norms[0]);"});
+            }
+            
+            // TODO: other integrals...
+        }
+    }
+}
+
+void
+T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
+                                  const SI2CIntegrals& integrals) const
+{
+    for (const auto& tint : integrals)
+    {
+        if ((tint[0] != 0) || (tint[1] != 0))
+        {
+            const auto name = t2c::prim_compute_func_name(tint);
+            
+            auto label = t2c::namespace_label(tint) + "::" + name + "(";
+            
+            label += _get_arguments(tint);
+            
+            if (tint[0] > 0)
+            {
+                label += "pa_x[0], pa_y[0], pa_z[0], ";
+            }
+            
+            if ((tint[1] > 0) && (tint[0] == 0))
+            {
+                label += "pb_x[0], pb_y[0], pb_z[0], ";
+            }
+            
+            if ((tint[0] + tint[1]) > 1)
+            {
+                label += "a_exp, b_exps[0]";
+            }
+            
+            label += ");";
+            
+            lines.push_back({3, 0, 2, label});
+        }
+    }
+}
+
+std::string
+T2CFuncBodyDriver::_get_arguments(const I2CIntegral& integral) const
+{
+    std::string label = t2c::get_buffer_label(integral, {"prim"}) + ", ";;
+    
+    for (const auto& tint : t2c::get_integrals(integral))
+    {
+        label += t2c::get_buffer_label(tint, {"prim"}) + ", ";
+    }
+    
+    return label;
 }

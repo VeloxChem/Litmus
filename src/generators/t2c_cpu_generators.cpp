@@ -296,6 +296,8 @@ T2CCPUGenerator::_write_cpp_file(const SI2CIntegrals&         integrals,
 
     func_drv.write_func_body(fstream, integrals, integral, rec_form, false);
 
+    fstream << std::endl;
+    
     _write_namespace(fstream, integral, false);
         
     fstream.close();

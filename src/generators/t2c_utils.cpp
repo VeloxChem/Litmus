@@ -20,6 +20,8 @@
 
 #include "string_formater.hpp"
 
+#include "v2i_ovl_driver.hpp"
+
 namespace t2c { // t2c namespace
 
 std::string
@@ -248,6 +250,36 @@ get_buffer_label(const I2CIntegral& integral,
     label += fstr::lowercase(integral.label());
 
     return label;
+}
+
+std::string
+prim_compute_func_name(const I2CIntegral& integral)
+{
+    auto label =  "comp_prim_" + t2c::integral_label(integral) + "_" + integral.label();
+    
+    return fstr::lowercase(label);
+}
+
+SI2CIntegrals
+get_integrals(const I2CIntegral& integral)
+{
+    SI2CIntegrals tints;
+    
+    if (integral.integrand().name() == "1")
+    {
+        V2IOverlapDriver ovl_drv;
+        
+        if (integral[0] > 0)
+        {
+            tints = ovl_drv.bra_vrr(integral);
+        }
+        else
+        {
+            tints = ovl_drv.ket_vrr(integral);
+        }
+    }
+    
+    return tints;
 }
 
 } // t2c namespace
