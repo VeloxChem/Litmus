@@ -21,6 +21,8 @@
 #include <string>
 #include <array>
 #include <set>
+#include <vector>
+#include <utility>
 
 #include "t2c_defs.hpp"
 
@@ -35,6 +37,94 @@ std::string integral_label(const I2CIntegral& integral);
 /// @param integral The base two center integral.
 /// @return The recursion namespace label of standart integral.
 std::string namespace_label(const I2CIntegral& integral);
+
+/// Gets label of standart integrand.
+/// @param integrand the integrand operator.
+/// @return The label of standart integrand.
+std::string integrand_label(const Operator& integrand);
+
+/// Gets standart label of integral prefixes.
+/// @param integral The base two center integral.
+/// @return The standart capitalized label of integral.
+std::pair<std::string, std::string> prefixes_label(const I2CIntegral& integral);
+
+/// Gets all labels of integrand with specific prefix.
+/// @param integral The base two center integral.
+/// @param prefix The prefix to label of integrand.
+/// @return The vector of integrand labels.
+std::vector<std::string> integrand_labels(const I2CIntegral& integral,
+                                          const std::string& prefix);
+
+/// Generates compute function  name.
+/// @param integral The base two center integral.
+/// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+/// @return The compute function name.
+std::string compute_func_name(const I2CIntegral&           integral,
+                              const std::pair<bool, bool>& rec_form);
+
+/// Generates primitive file name.
+/// @param integral The base two center integral.
+/// @return The primitive file name.
+std::string prim_file_name(const I2CIntegral& integral);
+
+/// Gets number of Cartesian components in canonical tensor.
+/// @param order the order of canonical tensor.
+/// @return The number of Cartesian components.
+inline auto
+number_of_cartesian_components(const int order) -> int
+{
+    return (order + 1) * (order + 2) / 2;
+}
+
+/// Gets number of spherical components in canonical tensor.
+/// @param order the order of canonical tensor.
+/// @return The number of spherical components.
+inline auto
+number_of_spherical_components(const int order) -> int
+{
+    return 2 * order + 1;
+}
+
+/// Gets compound number of Cartesian components of canonical tensors array.
+/// @param orders the array of orders of canonical tensor.
+/// @return The number of Cartesian components.
+template <std::size_t N>
+auto
+number_of_cartesian_components(const std::array<int, N>& orders) -> int
+{
+    int ncomps = 1;
+
+    for (std::size_t i = 0; i < N; i++)
+    {
+        ncomps *= t2c::number_of_cartesian_components(orders[i]);
+    }
+
+    return ncomps;
+}
+
+/// Gets compound number of spherical components of canonical tensors array.
+/// @param orders the array of orders of canonical tensor.
+/// @return The number of spherical components.
+template <std::size_t N>
+auto
+number_of_spherical_components(const std::array<int, N>& orders) -> int
+{
+    int ncomps = 1;
+
+    for (std::size_t i = 0; i < N; i++)
+    {
+        ncomps *= t2c::number_of_spherical_components(orders[i]);
+    }
+
+    return ncomps;
+}
+
+/// Generates integral buffer label.
+/// @param integral The base two center integral.
+/// @return The string with integral label.
+std::string get_buffer_label(const I2CIntegral& integral,
+                             const std::string& prefix);
+
 
 } // t2c namespace
 

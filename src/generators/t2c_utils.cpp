@@ -18,6 +18,8 @@
 
 #include <iostream>
 
+#include "string_formater.hpp"
+
 namespace t2c { // t2c namespace
 
 std::string
@@ -144,6 +146,108 @@ namespace_label(const I2CIntegral& integral)
     }
     
     return std::string();
+}
+
+std::string
+integrand_label(const Operator& integrand)
+{
+    const auto iname = integrand.name();
+    
+    const auto iorder = std::to_string(integrand.shape().order());
+    
+    if (iname == "AG")
+    {
+        return iname + "(" + iorder + ")";
+    }
+    
+    if ((iname == "r") && (iorder != "1"))
+    {
+        return iname + "^" + iorder;
+    }
+    
+    return iname;
+}
+
+std::pair<std::string, std::string>
+prefixes_label(const I2CIntegral& integral)
+{
+    const auto prefixes = integral.prefixes();
+    
+    auto bra_geom = std::string("");
+    
+    auto ket_geom = std::string("");
+    
+    if (const auto nterms = prefixes.size(); nterms > 0)
+    {
+        if (nterms >= 1)
+        {
+            const auto border = std::to_string(prefixes[0].shape().order());
+            
+            bra_geom = "d^(" + border + ")/dA^(" + border + ")";
+        }
+        
+        if (nterms >= 2)
+        {
+            const auto korder = std::to_string(prefixes[1].shape().order());
+            
+            ket_geom = "d^(" + korder + ")/dB^(" + korder + ")";
+        }
+    }
+    
+    return std::make_pair(bra_geom, ket_geom);
+}
+
+std::vector<std::string>
+integrand_labels(const I2CIntegral& integral,
+                 const std::string& prefix)
+{
+    const auto op = integral.integrand();
+    
+    if (const auto op_comps = op.components(); op_comps.size() == 1)
+    {
+        return {prefix, };
+    }
+    else
+    {
+        std::vector<std::string> labels;
+        
+        for (const auto& op_comp : op_comps)
+        {
+            labels.push_back(prefix + "_" + op_comp.label());
+        }
+        
+        return labels;
+    }
+}
+
+std::string
+compute_func_name(const I2CIntegral&           integral,
+                  const std::pair<bool, bool>& rec_form)
+{
+    std::string prefix = (rec_form.first) ? "comp_sum_" : "comp_";
+        
+    auto label = prefix  + t2c::integral_label(integral) + "_" + integral.label();
+        
+    return fstr::lowercase(label);
+}
+
+std::string
+prim_file_name(const I2CIntegral& integral)
+{
+    return t2c::integral_label(integral) + "PrimRec" + integral.label();
+}
+
+std::string
+get_buffer_label(const I2CIntegral& integral,
+                 const std::string& prefix)
+{
+    std::string label = prefix + "_buffer_";
+    
+    if (integral.integrand().name() == "1") label += "ovl_";
+    
+    label += fstr::lowercase(integral.label());
+
+    return label;
 }
 
 } // t2c namespace

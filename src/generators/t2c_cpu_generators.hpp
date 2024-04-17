@@ -42,6 +42,11 @@ class T2CCPUGenerator
                               const std::array<int, 2>& ang_moms,
                               const std::array<int, 3>& geom_drvs) const;
     
+    /// Generates set of integrals required for vertical Obara-Saika recursion.
+    /// @param integral The base two center integral.
+    /// @return The set of integrals.
+    SI2CIntegrals _generate_integral_group(const I2CIntegral& integral) const;
+    
     /// Gets file name of file with recursion functions for two center integral.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
@@ -80,6 +85,24 @@ class T2CCPUGenerator
     void _write_namespace(      std::ofstream& fstream,
                           const I2CIntegral&   integral,
                           const bool           start) const;
+    
+    /// Writes C++ code file for recursion.
+    /// @param integrals The set of unique integrals.
+    /// @param integral The base two center integral.
+    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+    void _write_cpp_file(const SI2CIntegrals&         integrals,
+                         const I2CIntegral&           integral,
+                         const std::pair<bool, bool>& rec_form) const;
+    
+    /// Writes definitions of includes for C++ code file.
+    /// @param fstream the file stream.
+    /// @param integrals The set of integrals.
+    /// @param integral The base two center integral.
+    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+    void _write_cpp_includes(      std::ofstream&         fstream,
+                             const SI2CIntegrals&         integrals,
+                             const I2CIntegral&           integral,
+                             const std::pair<bool, bool>& rec_form) const;
     
 public:
     /// Creates a two-center integrals CPU code generator.

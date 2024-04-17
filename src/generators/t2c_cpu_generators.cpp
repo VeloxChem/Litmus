@@ -14,13 +14,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "t2c_cpu_generators.hpp"
+
 #include <iostream>
+
+#include "string_formater.hpp"
+#include "file_stream.hpp"
 
 #include "t2c_defs.hpp"
 #include "t2c_utils.hpp"
-#include "t2c_cpu_generators.hpp"
-#include "string_formater.hpp"
-#include "file_stream.hpp"
+#include "t2c_docs.hpp"
+#include "t2c_decl.hpp"
+#include "t2c_body.hpp"
+
+#include "v2i_ovl_driver.hpp"
 
 void
 T2CCPUGenerator::generate(const std::string&           label,
@@ -38,7 +45,11 @@ T2CCPUGenerator::generate(const std::string&           label,
             {
                 const auto integral = _get_integral(label, {i, j}, geom_drvs);
                 
+                const auto integrals = _generate_integral_group(integral);
+                
                 _write_cpp_header(integral, rec_form);
+                
+                _write_cpp_file(integrals, integral, rec_form);
             }
         }
       
@@ -110,6 +121,30 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
     return I2CIntegral();
 }
 
+SI2CIntegrals
+T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
+{
+    SI2CIntegrals tints;
+    
+    // Overlap integrals
+    
+    if (integral.integrand() == Operator("1"))
+    {
+        V2IOverlapDriver ovl_drv;
+        
+        if (integral.is_simple())
+        {
+            tints = ovl_drv.create_recursion({integral,});
+        }
+        else
+        {
+            /// TODO: ...
+        }
+    }
+    
+    return tints;
+}
+
 std::string
 T2CCPUGenerator::_file_name(const I2CIntegral&           integral,
                             const std::pair<bool, bool>& rec_form) const
@@ -140,13 +175,21 @@ T2CCPUGenerator::_write_cpp_header(const I2CIntegral&           integral,
     _write_namespace(fstream, integral, true);
     
     T2CDocuDriver docs_drv;
+    
+    T2CDeclDriver decl_drv;
 
     if ((integral[0] == integral[1]) && integral.is_simple())
     {
-        docs_drv.write_doc_str(fstream, integral, rec_form,  true);
+        docs_drv.write_doc_str(fstream, integral, rec_form, true);
+        
+        decl_drv.write_func_decl(fstream, integral, rec_form, true, true);
+        
+        fstream << std::endl;
     }
 
     docs_drv.write_doc_str(fstream, integral, rec_form, false);
+    
+    decl_drv.write_func_decl(fstream, integral, rec_form, false, true);
 
     _write_namespace(fstream, integral, false);
         
@@ -217,6 +260,67 @@ T2CCPUGenerator::_write_namespace(      std::ofstream& fstream,
     {
         lines.push_back({0, 0, 2, "} // " + label + " namespace"});
     }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CCPUGenerator::_write_cpp_file(const SI2CIntegrals&         integrals,
+                                 const I2CIntegral&           integral,
+                                 const std::pair<bool, bool>& rec_form) const
+{
+    auto fname = _file_name(integral, rec_form) + ".cpp";
+        
+    std::ofstream fstream;
+        
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    _write_cpp_includes(fstream, integrals, integral, rec_form);
+
+    _write_namespace(fstream, integral, true);
+
+    T2CDeclDriver decl_drv;
+
+    T2CFuncBodyDriver func_drv;
+
+    if ((integral[0] == integral[1]) && (integral.is_simple()))
+    {
+        decl_drv.write_func_decl(fstream, integral, rec_form, true, false);
+
+        func_drv.write_func_body(fstream, integrals, integral, rec_form, true);
+        
+        fstream << std::endl; 
+    }
+
+    decl_drv.write_func_decl(fstream, integral, rec_form, false, false);
+
+    func_drv.write_func_body(fstream, integrals, integral, rec_form, false);
+
+    _write_namespace(fstream, integral, false);
+        
+    fstream.close();
+}
+
+void
+T2CCPUGenerator::_write_cpp_includes(      std::ofstream&         fstream,
+                                     const SI2CIntegrals&         integrals,
+                                     const I2CIntegral&           integral,
+                                     const std::pair<bool, bool>& rec_form) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + _file_name(integral, rec_form) +  ".hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"SimdArray.hpp\""});
+    
+    for (const auto& tint : integrals)
+    {
+        lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(tint) + ".hpp\""});
+    }
+    
+    lines.push_back({0, 0, 1, "#include \"T2CDistributor.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"T2CUtils.hpp\""});
     
     ost::write_code_lines(fstream, lines);
 }
