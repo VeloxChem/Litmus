@@ -27,7 +27,6 @@
 class V2IOverlapDriver
 {
    
-
 public:
     /// Creates a two center overlap integrals driver.
     V2IOverlapDriver() = default;

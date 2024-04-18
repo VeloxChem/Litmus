@@ -67,14 +67,14 @@ T2CDocuDriver::_get_compute_str(const I2CIntegral& integral,
     
     const auto integrand = integral.integrand();
     
-    auto label = "/// Computes <" + bra_prefix + bra.label() + "|";
+    auto label = "/// Computes (" + bra_prefix + bra.label() + "|";
     
     if (integral.integrand().name() != "1")
     {
         label += t2c::integrand_label(integral.integrand()) + "|";
     }
     
-    label += ket_prefix + ket.label() + ">  integrals for ";
+    label += ket_prefix + ket.label() + ")  integrals for ";
         
     label += (diagonal) ? "GTOs block." : "pair of GTOs blocks.";
     
