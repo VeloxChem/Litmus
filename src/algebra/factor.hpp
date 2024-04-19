@@ -60,6 +60,10 @@ public:
     /// @return true if this factor is less than other factor, false otherwise.
     bool operator<(const Factor& other) const;
     
+    /// Gets tensorial order of factor.
+    /// @return The tensorial order of factor.
+    int order() const;
+    
     /// Creates primitive textual representation of this factor.
     /// @return The string with primitive textual representation of factor.
     std::string to_string() const;

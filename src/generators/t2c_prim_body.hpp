@@ -34,10 +34,24 @@ class T2CPrimFuncBodyDriver
     /// @return The vector of buffer strings.
     std::vector<std::string> _get_buffers_str(const I2CIntegral& integral) const;
     
+    /// Generates vector of buffer strings.
+    /// @param integral The base two center integral.
+    /// @param components The vector of integral components.
+    /// @param rec_range The recursion range [first, last) in integral components space.
+    /// @return The vector of buffer strings.
+    std::vector<std::string> _get_buffers_str(const I2CIntegral&        integral,
+                                              const VT2CIntegrals&      components,
+                                              const std::array<int, 2>& rec_range) const;
+    
     /// Gets tensor label for integral.
     /// @param integral The base two center integral.
     /// @return The tensorial label.
     std::string _get_tensor_label(const I2CIntegral& integral) const;
+    
+    /// Gets tensor label for integral.
+    /// @param integral The base two center integral.
+    /// @return The tensorial label.
+    std::string _get_tensor_label(const T2CIntegral& integral) const;
     
     /// Adds single loop computation of primitive integrals.
     /// @param lines The code lines container to which loop start definition are added.
@@ -49,8 +63,37 @@ class T2CPrimFuncBodyDriver
                              const VT2CIntegrals&      components,
                              const std::array<int, 2>& rec_range) const;
     
-    std::string _get_pragma(const I2CIntegral&   integral,
-                            const VT2CIntegrals& components) const;
+    
+    /// Adds single loop computation of primitive integrals.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param rec_distributions The recursion distributions.
+    void _get_factor_lines(                VCodeLines& lines,
+                           const std::vector<R2CDist>& rec_distributions) const;
+    
+    /// Gets pragma string for vector of recursion distributions.
+    /// @param integral The base two center integral.
+    /// @param rec_distributions The recursion distributions.
+    std::string _get_pragma_str(const I2CIntegral&          integral,
+                                const std::vector<R2CDist>& rec_distributions) const;
+    
+    /// Computes VRR recursion for integral component.
+    /// @param integral The base two center integral component.
+    /// @return The recursion expansion of integral component.
+    R2CDist _get_vrr_recursion(const T2CIntegral& integral) const;
+    
+    /// Creates code line for recursion expansion.
+    /// @param rec_distribution The recursion distribution
+    /// @return The string with code line.
+    std::string _get_code_line(const R2CDist& rec_distribution) const;
+    
+    /// Creates code string for recursion term.
+    /// @param rec_term The recursion distribution.
+    /// @param is_first The flag to indicate first term in recursion expnasion.
+    /// @return The string with code term.
+    std::string _get_rterm_code(const R2CTerm& rec_term,
+                                const bool     is_first) const;
+    
+    
 
 public:
     /// Creates a two-center compute function body generator.

@@ -81,6 +81,12 @@ Factor::operator<(const Factor& other) const
     }
 }
 
+int
+Factor::order() const
+{
+    return _shape.order();
+}
+
 std::string
 Factor::to_string() const
 {

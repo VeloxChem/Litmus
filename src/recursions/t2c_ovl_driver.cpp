@@ -60,7 +60,7 @@ T2COverlapDriver::bra_vrr(const R2CTerm& rterm,
         
         const auto coord = _rxyz[axes::to_index(axis)];
         
-        x1val.add(Factor("PA", "rpa", coord), Fraction(1));
+        x1val.add(Factor("PA", "pa", coord), Fraction(1));
         
         t2crt.add(x1val);
         
@@ -72,7 +72,7 @@ T2COverlapDriver::bra_vrr(const R2CTerm& rterm,
             
             const auto na = x1val[0][axis];
             
-            x2val.add(Factor("1/eta", "fe"), Fraction(na, 2));
+            x2val.add(Factor("1/eta", "fe"), Fraction(na));
             
             t2crt.add(x2val);
         }
@@ -85,7 +85,7 @@ T2COverlapDriver::bra_vrr(const R2CTerm& rterm,
             
             const auto nb = x1val[1][axis];
             
-            x3val.add(Factor("1/eta", "fe"), Fraction(nb, 2));
+            x3val.add(Factor("1/eta", "fe"), Fraction(nb));
             
             t2crt.add(x3val);
         }
@@ -114,7 +114,7 @@ T2COverlapDriver::ket_vrr(const R2CTerm& rterm,
         
         const auto coord = _rxyz[axes::to_index(axis)];
         
-        x1val.add(Factor("PB", "rpb", coord), Fraction(1));
+        x1val.add(Factor("PB", "pb", coord), Fraction(1));
         
         t2crt.add(x1val);
         
@@ -126,7 +126,7 @@ T2COverlapDriver::ket_vrr(const R2CTerm& rterm,
             
             const auto nb = x1val[1][axis];
             
-            x2val.add(Factor("1/eta", "fe"), Fraction(nb, 2));
+            x2val.add(Factor("1/eta", "fe"), Fraction(nb));
             
             t2crt.add(x2val);
         }
