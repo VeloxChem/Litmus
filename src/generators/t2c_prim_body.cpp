@@ -175,7 +175,7 @@ T2CPrimFuncBodyDriver::_add_recursion_loop(      VCodeLines&         lines,
     
     lines.push_back({1, 0, 1, "#pragma omp simd aligned(" + var_str + " : 64)"});
     
-    lines.push_back({1, 0, 1, "for (std::size_t i = 0; i < ndims; i++)"});
+    lines.push_back({1, 0, 1, "for (size_t i = 0; i < ndims; i++)"});
     
     lines.push_back({1, 0, 1, "{"});
     
@@ -258,7 +258,7 @@ T2CPrimFuncBodyDriver::_get_factor_lines(                VCodeLines& lines,
     
     if (std::find(tlabels.begin(), tlabels.end(), "fe_0") !=  tlabels.end())
     {
-        lines.push_back({2, 0, 2, "const double = 0.5 / (a_exp + b_exps[i]);"});
+        lines.push_back({2, 0, 2, "const double fe_0 = 0.5 / (a_exp + b_exps[i]);"});
     }
 }
 

@@ -385,7 +385,7 @@ T2CCPUGenerator::_write_prim_cpp_file(const I2CIntegral& integral) const
         
     fstream.open(fname.c_str(), std::ios_base::trunc);
         
-    //_write_prim_cpp_includes(fstream, integral);
+    _write_prim_cpp_includes(fstream, integral);
 
     _write_namespace(fstream, integral, true);
 
@@ -402,4 +402,16 @@ T2CCPUGenerator::_write_prim_cpp_file(const I2CIntegral& integral) const
     _write_namespace(fstream, integral, false);
         
     fstream.close();
+}
+
+
+void
+T2CCPUGenerator::_write_prim_cpp_includes(      std::ofstream& fstream,
+                                          const I2CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + t2c::prim_file_name(integral) +  ".hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
 }

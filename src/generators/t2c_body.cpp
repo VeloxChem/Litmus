@@ -49,7 +49,7 @@ T2CFuncBodyDriver::write_func_body(      std::ofstream&         fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    _add_loop_start(lines, integral);
+    _add_loop_start(lines, integral, diagonal);
     
     _add_ket_loop_start(lines, integral, diagonal);
     
@@ -125,7 +125,7 @@ T2CFuncBodyDriver::_get_gtos_def(const bool diagonal) const
        
         vstr.push_back("const auto ket_gto_indices = ket_gto_block.orbital_indices();");
         
-        vstr.push_back("const auto ket_ncgtos = ket_gto_block.number_of_basis_functions();");
+        //vstr.push_back("const auto ket_ncgtos = ket_gto_block.number_of_basis_functions();");
 
         vstr.push_back("const auto ket_npgtos = ket_gto_block.number_of_primitives();");
     }
@@ -284,7 +284,8 @@ T2CFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
 
 void
 T2CFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
-                                   const I2CIntegral& integral) const
+                                   const I2CIntegral& integral,
+                                   const bool         diagonal) const
 {
     lines.push_back({1, 0, 2, "// loop over contracted GTOs on bra side"});
         
@@ -299,11 +300,22 @@ T2CFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
         lines.push_back({2, 0, 2, t2c::get_buffer_label(integral, {"spher"}) +".zero();"});
     }
 
-    lines.push_back({2, 0, 2, "const auto a_x = gto_coords_x[i];"});
+    if (diagonal && (integral[0] == integral[1]))
+    {
+        lines.push_back({2, 0, 2, "const auto a_x = gto_coords_x[i];"});
 
-    lines.push_back({2, 0, 2, "const auto a_y = gto_coords_y[i];"});
+        lines.push_back({2, 0, 2, "const auto a_y = gto_coords_y[i];"});
 
-    lines.push_back({2, 0, 2, "const auto a_z = gto_coords_z[i];"});
+        lines.push_back({2, 0, 2, "const auto a_z = gto_coords_z[i];"});
+    }
+    else
+    {
+        lines.push_back({2, 0, 2, "const auto a_x = bra_gto_coords_x[i];"});
+
+        lines.push_back({2, 0, 2, "const auto a_y = bra_gto_coords_y[i];"});
+
+        lines.push_back({2, 0, 2, "const auto a_z = bra_gto_coords_z[i];"});
+    }
 
     lines.push_back({2, 0, 2, "t2cfunc::comp_distances_ab(ab_x[0], ab_y[0], ab_z[0], a_x, a_y, a_z, b_x[0], b_y[0], b_z[0], ket_pdim);"});
 }
@@ -380,7 +392,7 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
 {
     if (diagonal)
     {
-        lines.push_back({2, 0, 1, "for (int j = 0; j < npgtos; j++))"});
+        lines.push_back({2, 0, 1, "for (int j = 0; j < npgtos; j++)"});
     }
     else
     {
@@ -389,7 +401,7 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
     
     lines.push_back({2, 0, 1, "{"});
     
-    if (diagonal)
+    if (diagonal && (integral[0] == integral[1]))
     {
         lines.push_back({3, 0, 2, "const auto a_exp = gto_exps[j * ncgtos + i];"});
             
@@ -402,12 +414,12 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
         lines.push_back({3, 0, 2, "const auto a_norm = bra_gto_norms[j * bra_ncgtos + i];"});
     }
     
-    if (integral[0] > 1)
+    if (integral[0] > 0)
     {
         lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
     }
 
-    if (integral[1] > 1)
+    if (integral[1] > 0)
     {
         lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
     }
@@ -448,7 +460,7 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&  lines,
         {
             if (tint.integrand().name() == "1")
             {
-                lines.push_back({3, 0, 2, "ovlrec::comp_prim_overlap_s_s(prim_buffer_ovl_ss, ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], a_norm, b_norms[0]);"});
+                lines.push_back({3, 0, 2, "ovlrec::comp_prim_overlap_ss(prim_buffer_ovl_ss, ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], a_norm, b_norms[0]);"});
             }
             
             // TODO: other integrals...
@@ -472,12 +484,26 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
             
             if (tint[0] > 0)
             {
-                label += "pa_x[0], pa_y[0], pa_z[0], ";
+                if ((tint[0] == 1) && (tint[1] == 0))
+                {
+                    label += "pa_x[0], pa_y[0], pa_z[0]";
+                }
+                else
+                {
+                    label += "pa_x[0], pa_y[0], pa_z[0], ";
+                }
             }
             
             if ((tint[1] > 0) && (tint[0] == 0))
             {
-                label += "pb_x[0], pb_y[0], pb_z[0], ";
+                if ((tint[1] == 1) && (tint[0] == 0))
+                {
+                    label += "pb_x[0], pb_y[0], pb_z[0]";
+                }
+                else
+                {
+                    label += "pb_x[0], pb_y[0], pb_z[0], ";
+                }
             }
             
             if ((tint[0] + tint[1]) > 1)

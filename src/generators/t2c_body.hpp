@@ -51,8 +51,11 @@ class T2CFuncBodyDriver
     
     /// Adds loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base two center integral.
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_loop_start(      VCodeLines&  lines,
-                         const I2CIntegral& integral) const;
+                         const I2CIntegral& integral,
+                         const bool         diagonal) const;
     
     /// Adds loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.

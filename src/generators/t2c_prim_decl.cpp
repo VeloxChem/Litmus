@@ -87,7 +87,7 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
         
         vstr.push_back(spacer + "const double* pa_y,");
       
-        if ((integral[0] == 1) && (integral[0] == 0))
+        if ((integral[0] == 1) && (integral[1] == 0))
         {
             vstr.push_back(spacer + "const double* pa_z) -> void" + tsymbol);
         }

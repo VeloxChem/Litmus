@@ -115,12 +115,18 @@ class T2CCPUGenerator
     /// Writes definitions of includes for primitive header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
-    void _write_prim_hpp_includes(      std::ofstream&         fstream,
-                                  const I2CIntegral&           integral) const;
+    void _write_prim_hpp_includes(      std::ofstream& fstream,
+                                  const I2CIntegral&   integral) const;
     
     /// Writes C++ code file for primtive recursion.
     /// @param integral The base two center integral.
     void _write_prim_cpp_file(const I2CIntegral& integral) const;
+    
+    /// Writes definitions of includes for primitive header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_prim_cpp_includes(      std::ofstream& fstream,
+                                  const I2CIntegral&  integral) const;
     
 public:
     /// Creates a two-center integrals CPU code generator.
