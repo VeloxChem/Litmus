@@ -14,18 +14,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-#include "v2i_ovl_driver.hpp"
+#include "v2i_kin_driver.hpp"
 
 bool
-V2IOverlapDriver::is_overlap(const I2CIntegral& integral) const
+V2IKineticEnergyDriver::is_kinetic_energy(const I2CIntegral& integral) const
 {
     if (!(integral.prefixes()).empty())
     {
         return false;
     }
     
-    if (integral.integrand() != Operator("1"))
+    if (integral.integrand() != Operator("T"))
     {
         return false;
     }
@@ -36,11 +35,11 @@ V2IOverlapDriver::is_overlap(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::bra_vrr(const I2CIntegral& integral) const
+V2IKineticEnergyDriver::bra_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
-    if (!is_overlap(integral)) return tints;
+    if (!is_kinetic_energy(integral)) return tints;
     
     if (const auto tval = integral.shift(-1, 0))
     {
@@ -63,17 +62,32 @@ V2IOverlapDriver::bra_vrr(const I2CIntegral& integral) const
         {
             tints.insert(*r3val);
         }
+        
+        // fourth recursion term
+        
+        tints.insert(integral.replace(Operator("1")));
+        
+        // fifth recursion term
+        
+        if (const auto r5val = tval->shift(-1, 0))
+        {
+            auto x5val = *r5val;
+            
+            x5val = x5val.replace(Operator("1"));
+            
+            tints.insert(x5val);
+        }
     }
         
     return tints;
 }
 
 SI2CIntegrals
-V2IOverlapDriver::ket_vrr(const I2CIntegral& integral) const
+V2IKineticEnergyDriver::ket_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
-    if (!is_overlap(integral)) return tints;
+    if (!is_kinetic_energy(integral)) return tints;
     
     if (const auto tval = integral.shift(-1, 1))
     {
@@ -87,14 +101,28 @@ V2IOverlapDriver::ket_vrr(const I2CIntegral& integral) const
         {
             tints.insert(*r2val);
         }
+        
+        // third recursion term
+        
+        tints.insert(integral.replace(Operator("1")));
+        
+        // fifth recursion term
+        
+        if (const auto r4val = tval->shift(-1, 1))
+        {
+            auto x4val = *r4val;
+            
+            x4val = x4val.replace(Operator("1"));
+            
+            tints.insert(x4val);
+        }
     }
     
     return tints;
 }
 
-
 SI2CIntegrals
-V2IOverlapDriver::apply_bra_vrr(const I2CIntegral& integral) const
+V2IKineticEnergyDriver::apply_bra_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
@@ -108,7 +136,7 @@ V2IOverlapDriver::apply_bra_vrr(const I2CIntegral& integral) const
                 
             for (const auto& rtint : rtints)
             {
-                if (rtint[0] != 0)
+                if ((rtint[0] != 0) || (!is_kinetic_energy(rtint)))
                 {
                    const auto ctints = bra_vrr(rtint);
                     
@@ -138,7 +166,7 @@ V2IOverlapDriver::apply_bra_vrr(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::apply_ket_vrr(const I2CIntegral& integral) const
+V2IKineticEnergyDriver::apply_ket_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
@@ -152,7 +180,7 @@ V2IOverlapDriver::apply_ket_vrr(const I2CIntegral& integral) const
                 
             for (const auto& rtint : rtints)
             {
-                if (rtint[1] != 0)
+                if ((rtint[1] != 0) || (!is_kinetic_energy(rtint)))
                 {
                    const auto ctints = ket_vrr(rtint);
                     
@@ -182,7 +210,7 @@ V2IOverlapDriver::apply_ket_vrr(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::apply_recursion(const SI2CIntegrals& integrals) const
+V2IKineticEnergyDriver::apply_recursion(const SI2CIntegrals& integrals) const
 {
     SI2CIntegrals tints;
     
@@ -209,13 +237,13 @@ V2IOverlapDriver::apply_recursion(const SI2CIntegrals& integrals) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::create_recursion(const SI2CIntegrals& integrals) const
+V2IKineticEnergyDriver::create_recursion(const SI2CIntegrals& integrals) const
 {
     SI2CIntegrals tints;
     
     for (const auto& integral : integrals)
     {
-        if (is_overlap(integral))
+        if (is_kinetic_energy(integral))
         {
             const auto ctints = apply_recursion({integral, });
             
@@ -229,4 +257,3 @@ V2IOverlapDriver::create_recursion(const SI2CIntegrals& integrals) const
     
     return tints;
 }
-

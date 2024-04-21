@@ -31,6 +31,7 @@
 #include "t2c_prim_body.hpp"
 
 #include "v2i_ovl_driver.hpp"
+#include "v2i_kin_driver.hpp"
 
 void
 T2CCPUGenerator::generate(const std::string&           label,
@@ -74,6 +75,8 @@ bool
 T2CCPUGenerator::_is_available(const std::string& label) const
 {
     if (fstr::lowercase(label) == "overlap") return true;
+    
+    if (fstr::lowercase(label) == "kinetic energy") return true;
         
     return false;
 }
@@ -141,6 +144,26 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
         if (integral.is_simple())
         {
             tints = ovl_drv.create_recursion({integral,});
+        }
+        else
+        {
+            /// TODO: ...
+        }
+    }
+    
+    // Kinetic energy integrals
+    
+    if (integral.integrand() == Operator("T"))
+    {
+        V2IKineticEnergyDriver kin_drv;
+        
+        if (integral.is_simple())
+        {
+            tints = kin_drv.create_recursion({integral,});
+            
+            V2IOverlapDriver ovl_drv;
+            
+            tints = ovl_drv.create_recursion(tints);
         }
         else
         {

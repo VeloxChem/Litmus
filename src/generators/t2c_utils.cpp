@@ -21,6 +21,7 @@
 #include "string_formater.hpp"
 
 #include "v2i_ovl_driver.hpp"
+#include "v2i_kin_driver.hpp"
 
 namespace t2c { // t2c namespace
 
@@ -99,6 +100,24 @@ integral_label(const I2CIntegral& integral)
         {
             return "ThreeCenterOverlapGradient";
         }
+    }
+    
+    return std::string();
+}
+
+std::string
+integral_split_label(const I2CIntegral& integral)
+{
+    const auto integrand = integral.integrand();
+    
+    if (integrand.name() == "T")
+    {
+        return "Kinetic_Energy";
+    }
+    
+    if (integrand.name() == "1")
+    {
+        return "Overlap";
     }
     
     return std::string();
@@ -228,7 +247,7 @@ compute_func_name(const I2CIntegral&           integral,
 {
     std::string prefix = (rec_form.first) ? "comp_sum_" : "comp_";
         
-    auto label = prefix  + t2c::integral_label(integral) + "_" + integral.label();
+    auto label = prefix  + t2c::integral_split_label(integral) + "_" + integral.label();
         
     return fstr::lowercase(label);
 }
@@ -247,6 +266,8 @@ get_buffer_label(const I2CIntegral& integral,
     
     if (integral.integrand().name() == "1") label += "ovl_";
     
+    if (integral.integrand().name() == "T") label += "kin_";
+    
     label += fstr::lowercase(integral.label());
 
     return label;
@@ -255,7 +276,7 @@ get_buffer_label(const I2CIntegral& integral,
 std::string
 prim_compute_func_name(const I2CIntegral& integral)
 {
-    auto label =  "comp_prim_" + t2c::integral_label(integral) + "_" + integral.label();
+    auto label =  "comp_prim_" + t2c::integral_split_label(integral) + "_" + integral.label();
     
     return fstr::lowercase(label);
 }
@@ -276,6 +297,20 @@ get_integrals(const I2CIntegral& integral)
         else
         {
             tints = ovl_drv.ket_vrr(integral);
+        }
+    }
+    
+    if (integral.integrand().name() == "T")
+    {
+        V2IKineticEnergyDriver kin_drv;
+        
+        if (integral[0] > 0)
+        {
+            tints = kin_drv.bra_vrr(integral);
+        }
+        else
+        {
+            tints = kin_drv.ket_vrr(integral);
         }
     }
     

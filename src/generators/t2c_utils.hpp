@@ -33,6 +33,11 @@ namespace t2c { // t2c namespace
 /// @return The standart capitalized label of integral.
 std::string integral_label(const I2CIntegral& integral);
 
+/// Gets standart split label of integral.
+/// @param integral The base two center integral.
+/// @return The standart split label of integral.
+std::string integral_split_label(const I2CIntegral& integral);
+
 /// Gets recursion namespace label of standart integral.
 /// @param integral The base two center integral.
 /// @return The recursion namespace label of standart integral.
