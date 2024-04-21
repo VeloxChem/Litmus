@@ -20,6 +20,7 @@
 
 #include "t2c_utils.hpp"
 #include "t2c_ovl_driver.hpp"
+#include "t2c_kin_driver.hpp"
 
 void
 T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
@@ -143,6 +144,8 @@ T2CPrimFuncBodyDriver::_get_tensor_label(const I2CIntegral& integral) const
     
     if (integral.integrand().name() == "1") label = "ts";
     
+    if (integral.integrand().name() == "T") label = "tk";
+    
     return label;
 }
 
@@ -152,6 +155,8 @@ T2CPrimFuncBodyDriver::_get_tensor_label(const T2CIntegral& integral) const
     std::string label;
     
     if (integral.integrand().name() == "1") label = "ts";
+    
+    if (integral.integrand().name() == "T") label = "tk";
     
     return label;
 }
@@ -260,6 +265,28 @@ T2CPrimFuncBodyDriver::_get_factor_lines(                VCodeLines& lines,
     {
         lines.push_back({2, 0, 2, "const double fe_0 = 0.5 / (a_exp + b_exps[i]);"});
     }
+    
+    if (std::find(tlabels.begin(), tlabels.end(), "fz_0") !=  tlabels.end())
+    {
+        if (std::find(tlabels.begin(), tlabels.end(), "fe_0") !=  tlabels.end())
+        {
+            lines.push_back({2, 0, 2, "const double fz_0 = 2.0 * a_exp * b_exps[i] * fe_0;"});
+        }
+        else
+        {
+            lines.push_back({2, 0, 2, "const double fz_0 = a_exp * b_exps[i] / (a_exp + b_exps[i]);"});
+        }
+    }
+    
+    if (std::find(tlabels.begin(), tlabels.end(), "fbe_0") !=  tlabels.end())
+    {
+        lines.push_back({2, 0, 2, "const double fbe_0 = 0.5 / a_exp;"});
+    }
+    
+    if (std::find(tlabels.begin(), tlabels.end(), "fke_0") !=  tlabels.end())
+    {
+        lines.push_back({2, 0, 2, "const double fke_0 = 0.5 / b_exps[i];"});
+    }
 }
 
 R2CDist
@@ -278,6 +305,20 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
         else
         {
             rdist = ovl_drv.apply_ket_vrr(R2CTerm(integral));
+        }
+    }
+    
+    if (integral.integrand().name() == "T")
+    {
+        T2CKineticEnergyDriver kin_drv;
+        
+        if (integral[0].order() > 0)
+        {
+            rdist = kin_drv.apply_bra_vrr(R2CTerm(integral));
+        }
+        else
+        {
+            rdist = kin_drv.apply_ket_vrr(R2CTerm(integral));
         }
     }
     

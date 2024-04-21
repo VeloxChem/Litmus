@@ -463,6 +463,11 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&  lines,
                 lines.push_back({3, 0, 2, "ovlrec::comp_prim_overlap_ss(prim_buffer_ovl_ss, ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], a_norm, b_norms[0]);"});
             }
             
+            if (tint.integrand().name() == "T")
+            {
+                lines.push_back({3, 0, 2, "kinrec::comp_prim_kinetic_energy_ss(prim_buffer_kin_ss, prim_buffer_ovl_ss, ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0]);"});
+            }
+            
             // TODO: other integrals...
         }
     }
@@ -482,9 +487,10 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
             
             label += _get_arguments(tint);
             
+            
             if (tint[0] > 0)
             {
-                if ((tint[0] == 1) && (tint[1] == 0))
+                if ((tint[0] == 1) && (tint[1] == 0) && (tint.integrand().name() != "T"))
                 {
                     label += "pa_x[0], pa_y[0], pa_z[0]";
                 }
@@ -496,7 +502,7 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
             
             if ((tint[1] > 0) && (tint[0] == 0))
             {
-                if ((tint[1] == 1) && (tint[0] == 0))
+                if ((tint[1] == 1) && (tint[0] == 0) && (tint.integrand().name() != "T"))
                 {
                     label += "pb_x[0], pb_y[0], pb_z[0]";
                 }
@@ -506,7 +512,7 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
                 }
             }
             
-            if ((tint[0] + tint[1]) > 1)
+            if (((tint[0] + tint[1]) > 1) || (tint.integrand().name() == "T"))
             {
                 label += "a_exp, b_exps[0]";
             }

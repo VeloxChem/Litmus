@@ -129,7 +129,7 @@ T2CPrimDocuDriver::_get_recursion_variables_str(const I2CIntegral& integral) con
 {
     std::vector<std::string> vstr;
     
-    if ((integral[0] + integral[1]) != 1)
+    if (((integral[0] + integral[1]) != 1) || (integral.integrand().name() == "T"))
     {
         vstr.push_back("/// - Parameter a_exp: the GTO exponent on center A.");
         

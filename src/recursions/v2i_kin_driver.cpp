@@ -91,6 +91,8 @@ V2IKineticEnergyDriver::ket_vrr(const I2CIntegral& integral) const
     
     if (const auto tval = integral.shift(-1, 1))
     {
+        // first recursion term
+        
         auto x1val = *tval;
 
         tints.insert(x1val);
@@ -106,7 +108,7 @@ V2IKineticEnergyDriver::ket_vrr(const I2CIntegral& integral) const
         
         tints.insert(integral.replace(Operator("1")));
         
-        // fifth recursion term
+        // fourth recursion term
         
         if (const auto r4val = tval->shift(-1, 1))
         {
@@ -136,7 +138,7 @@ V2IKineticEnergyDriver::apply_bra_vrr(const I2CIntegral& integral) const
                 
             for (const auto& rtint : rtints)
             {
-                if ((rtint[0] != 0) || (!is_kinetic_energy(rtint)))
+                if ((rtint[0] != 0) && is_kinetic_energy(rtint))
                 {
                    const auto ctints = bra_vrr(rtint);
                     
@@ -180,7 +182,7 @@ V2IKineticEnergyDriver::apply_ket_vrr(const I2CIntegral& integral) const
                 
             for (const auto& rtint : rtints)
             {
-                if ((rtint[1] != 0) || (!is_kinetic_energy(rtint)))
+                if ((rtint[1] != 0) && is_kinetic_energy(rtint))
                 {
                    const auto ctints = ket_vrr(rtint);
                     
@@ -222,9 +224,21 @@ V2IKineticEnergyDriver::apply_recursion(const SI2CIntegrals& integrals) const
         {
             if (bintegral[0] == 0)
             {
-                const auto ctints = apply_ket_vrr(bintegral);
+                if (bintegral[1] != 0)
+                {
+                    const auto ctints = apply_ket_vrr(bintegral);
 
-                tints.insert(ctints.cbegin(), ctints.cend());
+                    tints.insert(ctints.cbegin(), ctints.cend());
+                }
+                else
+                {
+                    tints.insert(bintegral);
+                    
+                    if (is_kinetic_energy(bintegral))
+                    {
+                        tints.insert(bintegral.replace(Operator("1")));
+                    }
+                }
             }
             else
             {

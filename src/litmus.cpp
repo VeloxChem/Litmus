@@ -28,7 +28,7 @@ int main(int argc, char **argv)
     
     const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "kinetic energy"});
     
-    const int max_ang_mom = 2;
+    const int max_ang_mom = 1;
     
     const std::array<int, 3> geom_drvs = {0, 0, 0};
     

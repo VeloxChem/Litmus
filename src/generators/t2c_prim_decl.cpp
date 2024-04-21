@@ -87,7 +87,7 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
         
         vstr.push_back(spacer + "const double* pa_y,");
       
-        if ((integral[0] == 1) && (integral[1] == 0))
+        if ((integral[0] == 1) && (integral[1] == 0) && (integral.integrand().name() != "T"))
         {
             vstr.push_back(spacer + "const double* pa_z) -> void" + tsymbol);
         }
@@ -103,7 +103,7 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
         
         vstr.push_back(spacer + "const double* pb_y,");
       
-        if ((integral[0] == 0) && (integral[1] == 1))
+        if ((integral[0] == 0) && (integral[1] == 1) && (integral.integrand().name() != "T"))
         {
             vstr.push_back(spacer + "const double* pb_z) -> void" + tsymbol);
         }
@@ -137,7 +137,7 @@ T2CPrimDeclDriver::_get_recursion_variables_str(const I2CIntegral& integral,
     
     const auto spacer = std::string(name.size(), ' ');
     
-    if ((integral[0] + integral[1]) != 1)
+    if (((integral[0] + integral[1]) != 1) || (integral.integrand().name() == "T"))
     {
         vstr.push_back(spacer + "const double a_exp,");
         
