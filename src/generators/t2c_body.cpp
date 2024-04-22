@@ -49,6 +49,11 @@ T2CFuncBodyDriver::write_func_body(      std::ofstream&         fstream,
         lines.push_back({1, 0, 2, label});
     }
     
+    for (const auto& label : _get_boys_function_def(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
     _add_loop_start(lines, integral, diagonal);
     
     _add_ket_loop_start(lines, integral, diagonal);
@@ -445,14 +450,35 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
         lines.push_back({3, 0, 2, "const auto a_norm = bra_gto_norms[j * bra_ncgtos + i];"});
     }
     
+    if (integral.integrand().name() == "A")
+    {
+        lines.push_back({3, 0, 2, "t2cfunc::comp_coordinates_p(p_x[0], p_y[0], p_z[0], a_x, a_y, a_z, b_x[0], b_y[0], b_z[0], a_exp, b_exps[0], ket_pdim);"});
+    }
+    
     if (integral[0] > 0)
     {
-        lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
+        if (integral.integrand().name() == "A")
+        {
+            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], a_x, a_y, a_z, ket_pdim);"});
+        }
+        else
+        {
+            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
+        }
+        
     }
 
     if (integral[1] > 0)
     {
-        lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
+        if (integral.integrand().name() == "A")
+        {
+            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], b_x[0], b_y[0], b_z[0], ket_pdim);"});
+        }
+        else
+        {
+            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
+        }
+        
     }
 }
 
@@ -497,6 +523,8 @@ T2CFuncBodyDriver::_add_sum_loop_start(      VCodeLines&            lines,
             lines.push_back({3, 0, 1, "for (size_t k = 0; k < charges.size(); k++)"});
             
             lines.push_back({3, 0, 1, "{"});
+            
+            lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pc(pc_x[0], pc_y[0], pc_x[0], p_x[0], p_y[0], p_x[0], coords_x[k], coords_y[k], coords_z[k], ket_pdim);"});
         }
     }
 }

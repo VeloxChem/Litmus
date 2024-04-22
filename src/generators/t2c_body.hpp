@@ -42,12 +42,17 @@ class T2CFuncBodyDriver
     /// @return The vector of distances in compute function.
     std::vector<std::string> _get_coordinates_def(const I2CIntegral& integral) const;
     
-    /// Generates vector of distances in compute function.
+    /// Generates vector of buffers in compute function.
     /// @param integrals The set of inetrgals.
     /// @param integral The base two center integral.
-    /// @return The vector of distances in compute function.
+    /// @return The vector of buffers in compute function.
     std::vector<std::string> _get_buffers_def(const SI2CIntegrals& integrals,
                                               const I2CIntegral&   integral) const;
+    
+    /// Generates vector of Boys function definitions in compute function.
+    /// @param integral The base two center integral.
+    /// @return The vector of Boys function definitions in compute function.
+    std::vector<std::string> _get_boys_function_def(const I2CIntegral& integral) const;
     
     /// Adds loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
