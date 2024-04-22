@@ -32,6 +32,7 @@
 
 #include "v2i_ovl_driver.hpp"
 #include "v2i_kin_driver.hpp"
+#include "v2i_npot_driver.hpp"
 
 void
 T2CCPUGenerator::generate(const std::string&           label,
@@ -58,6 +59,13 @@ T2CCPUGenerator::generate(const std::string&           label,
                 _write_prim_cpp_header(integral, rec_form);
                 
                 _write_prim_cpp_file(integral);
+                
+                std::cout << "*** Integra:l " << integral.integrand().name() << " :  " << integral.label() << std::endl;
+                
+                for (const auto& tint : integrals)
+                {
+                    std::cout  << tint.integrand().name() << " :  " << tint.label() << std::endl;
+                }
             }
         }
     }
@@ -77,6 +85,8 @@ T2CCPUGenerator::_is_available(const std::string& label) const
     if (fstr::lowercase(label) == "overlap") return true;
     
     if (fstr::lowercase(label) == "kinetic energy") return true;
+    
+    if (fstr::lowercase(label) == "nuclear potential") return true;
         
     return false;
 }
@@ -164,6 +174,22 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
             V2IOverlapDriver ovl_drv;
             
             tints = ovl_drv.create_recursion(tints);
+        }
+        else
+        {
+            /// TODO: ...
+        }
+    }
+    
+    // Nuclear potential integrals
+    
+    if (integral.integrand() == Operator("A"))
+    {
+        V2INuclearPotentialDriver npot_drv;
+        
+        if (integral.is_simple())
+        {
+            tints = npot_drv.create_recursion({integral,});
         }
         else
         {

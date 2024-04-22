@@ -22,6 +22,7 @@
 
 #include "v2i_ovl_driver.hpp"
 #include "v2i_kin_driver.hpp"
+#include "v2i_npot_driver.hpp"
 
 namespace t2c { // t2c namespace
 
@@ -109,6 +110,11 @@ std::string
 integral_split_label(const I2CIntegral& integral)
 {
     const auto integrand = integral.integrand();
+    
+    if (integrand.name() == "A")
+    {
+        return "Nuclear_Potential";
+    }
     
     if (integrand.name() == "T")
     {
@@ -268,6 +274,11 @@ get_buffer_label(const I2CIntegral& integral,
     
     if (integral.integrand().name() == "T") label += "kin_";
     
+    if (integral.integrand().name() == "A")
+    {
+        label += "npot_" + std::to_string(integral.order()) + "_";
+    }
+    
     label += fstr::lowercase(integral.label());
 
     return label;
@@ -316,6 +327,20 @@ get_integrals(const I2CIntegral& integral)
         if ((integral[0] + integral[1]) == 0)
         {
             tints.insert(integral.replace(Operator("1"))); 
+        }
+    }
+    
+    if (integral.integrand().name() == "A")
+    {
+        V2INuclearPotentialDriver npot_drv;
+        
+        if (integral[0] > 0)
+        {
+            tints = npot_drv.bra_vrr(integral);
+        }
+        else
+        {
+            tints = npot_drv.ket_vrr(integral);
         }
     }
     

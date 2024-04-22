@@ -60,9 +60,11 @@ class T2CFuncBodyDriver
     /// Adds loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param integral The base two center integral.
+    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_loop_end(      VCodeLines&  lines,
                        const I2CIntegral& integral,
+                       const std::pair<bool, bool>& rec_form,
                        const bool         diagonal) const;
     
     /// Adds ket loop start definitions to code lines container.
@@ -76,22 +78,48 @@ class T2CFuncBodyDriver
     /// Adds ket loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param integral The base two center integral.
+    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_ket_loop_end(      VCodeLines&  lines,
                            const I2CIntegral& integral,
+                           const std::pair<bool, bool>& rec_form,
                            const bool         diagonal) const;
+    
+    /// Adds sum loop start definitions to code lines container.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base two center integral.
+    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+    void _add_sum_loop_start(      VCodeLines&            lines,
+                             const I2CIntegral&           integral,
+                             const std::pair<bool, bool>& rec_form) const;
+    
+    /// Adds sum loop end definitions to code lines container.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base two center integral.
+    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    void _add_sum_loop_end(      VCodeLines&            lines,
+                           const I2CIntegral&           integral,
+                           const std::pair<bool, bool>& rec_form,
+                           const bool                   diagonal) const;
     
     /// Adds auxilary integrals.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param integrals The set of inetrgals.
-    void _add_auxilary_integrals(      VCodeLines&  lines,
-                                 const SI2CIntegrals& integrals) const;
+    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+    /// @param in_sum_loop The flag indicating call from inside summation loop.
+    void _add_auxilary_integrals(      VCodeLines&            lines,
+                                 const SI2CIntegrals&         integrals,
+                                 const std::pair<bool, bool>& rec_form,
+                                 const bool                   in_sum_loop) const;
     
     /// Adds call tree for recursion.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param integrals The set of inetrgals.
+    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
     void _add_call_tree(      VCodeLines&  lines,
-                        const SI2CIntegrals& integrals) const;
+                        const SI2CIntegrals& integrals,
+                        const std::pair<bool, bool>& rec_form) const;
     
     /// Gets arguments list for primitive function call.
     /// @param integral The base two center integral.

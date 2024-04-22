@@ -26,13 +26,13 @@ int main(int argc, char **argv)
 {
     // run configuration
     
-    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "kinetic energy"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "nuclear potential"});
     
-    const int max_ang_mom = 4;
+    const int max_ang_mom = 1;
     
     const std::array<int, 3> geom_drvs = {0, 0, 0};
     
-    const auto rec_form = std::pair<bool, bool>({false, false});
+    const auto rec_form = std::pair<bool, bool>({true, false});
     
     // set up start timer
     

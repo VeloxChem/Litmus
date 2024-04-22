@@ -35,6 +35,11 @@ T2CDocuDriver::write_doc_str(      std::ofstream&         fstream,
         lines.push_back({0, 0, 1, label});
     }
     
+    for (const auto& label : _get_special_variables_str(integral, rec_form))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
     // TODO: Add special variables here
     
     for (const auto& label : _get_gto_blocks_str(integral, diagonal))
@@ -99,6 +104,41 @@ T2CDocuDriver::_get_matrices_str(const I2CIntegral&           integral,
         // TODO: Add derrivatives
     }
              
+    return vstr;
+}
+
+std::vector<std::string>
+T2CDocuDriver::_get_special_variables_str(const I2CIntegral& integral,
+                                          const std::pair<bool, bool>& rec_form) const
+{
+    std::vector<std::string> vstr;
+    
+    const auto integrand = integral.integrand();
+    
+    if (integrand.name() == "A")
+    {
+        if (rec_form.first)
+        {
+            vstr.push_back("/// - Parameter charges: the vector of external charges.");
+            
+            vstr.push_back("/// - Parameter coords_x: the vector of Cartesian X coordinates of external charges.");
+            
+            vstr.push_back("/// - Parameter coords_y: the vector of Cartesian Y coordinates of external charges.");
+            
+            vstr.push_back("/// - Parameter coords_z: the vector of Cartesian Z coordinates of external charges.");
+        }
+        else
+        {
+            vstr.push_back("/// - Parameter charge: the external charge.");
+            
+            vstr.push_back("/// - Parameter coord_x: the Cartesian X coordinate of external charge.");
+            
+            vstr.push_back("/// - Parameter coord_y: the Cartesian Y coordinate of external charge.");
+            
+            vstr.push_back("/// - Parameter coord_z: the Cartesian Z coordinate of external charge.");
+        }
+    }
+    
     return vstr;
 }
 

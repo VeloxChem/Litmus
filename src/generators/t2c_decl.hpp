@@ -34,6 +34,13 @@ class T2CDeclDriver
     std::vector<std::string> _get_matrices_str(const I2CIntegral&           integral,
                                                const std::pair<bool, bool>& rec_form) const;
     
+    /// Generates vector of special variables strings.
+    /// @param integral The base two center integral.
+    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+    /// @return The vector of special variables strings.
+    std::vector<std::string> _get_special_variables_str(const I2CIntegral& integral,
+                                                        const std::pair<bool, bool>& rec_form) const;
+    
     /// Generates vector of GTOs block strings.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).

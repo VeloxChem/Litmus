@@ -14,42 +14,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef v2i_ovl_driver_hpp
-#define v2i_ovl_driver_hpp
+#ifndef v2i_npot_driver_hpp
+#define v2i_npot_driver_hpp
 
 #include <array>
 
 #include "t2c_defs.hpp"
 
-/// Two center overlap integrals driver class.
-class V2IOverlapDriver
+/// Two center nuclear potential integrals driver class.
+class V2INuclearPotentialDriver
 {
    
 public:
-    /// Creates a two center overlap integrals driver.
-    V2IOverlapDriver() = default;
+    /// Creates a two center nuclear potential integrals driver.
+    V2INuclearPotentialDriver() = default;
     
-    /// Check if integral is for two-center overlap integral.
+    /// Check if integral is for two-center nuclear potential integral.
     /// @param integral The integral to check.
     /// @return True if reccursion expansion belongs to overlap recursion, False otherwise.
-    bool is_overlap(const I2CIntegral& integral) const;
+    bool is_nuclear_potential(const I2CIntegral& integral) const;
     
-    /// Applies vertical recursion to bra side of overlap integral.
+    /// Applies vertical recursion to bra side of nuclear potential integral.
     /// @param integral The  overlap integral.
     /// @return The set of integrals.
     SI2CIntegrals bra_vrr(const I2CIntegral& integral) const;
     
-    /// Applies vertical recursion to ket side of overlap integral.
+    /// Applies vertical recursion to ket side of nuclear potential integral.
     /// @param integral The  overlap integral.
     /// @return The set of integrals.
     SI2CIntegrals ket_vrr(const I2CIntegral& integral) const;
     
-    /// Applies vertical recursion to bra side of overlap integral.
+    /// Applies vertical recursion to auxilary nuclear potential integral.
+    /// @param integral The  overlap integral.
+    /// @return The integral.
+    I2CIntegral aux_vrr(const I2CIntegral& integral) const;
+    
+    /// Applies vertical recursion to bra side of nuclear potential integral.
     /// @param integral The  overlap integral.
     /// @return The recursion expansion of integral.
     SI2CIntegrals apply_bra_vrr(const I2CIntegral& integral) const;
     
-    /// Applies vertical recursion to ket side of overlap integral.
+    /// Applies vertical recursion to ket side of nuclear potential integral.
     /// @param integral The  overlap integral.
     /// @return The recursion expansion of integral.
     SI2CIntegrals apply_ket_vrr(const I2CIntegral& integral) const;
@@ -65,4 +70,5 @@ public:
     SI2CIntegrals create_recursion(const SI2CIntegrals& integrals) const;
 };
 
-#endif /* v2i_ovl_driver_hpp */
+
+#endif /* v2i_npot_driver_hpp */

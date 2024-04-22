@@ -14,18 +14,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "v2i_npot_driver.hpp"
 
-#include "v2i_ovl_driver.hpp"
+#include <iostream>
 
 bool
-V2IOverlapDriver::is_overlap(const I2CIntegral& integral) const
+V2INuclearPotentialDriver::is_nuclear_potential(const I2CIntegral& integral) const
 {
     if (!(integral.prefixes()).empty())
     {
         return false;
     }
     
-    if (integral.integrand() != Operator("1"))
+    if (integral.integrand() != Operator("A"))
     {
         return false;
     }
@@ -36,11 +37,11 @@ V2IOverlapDriver::is_overlap(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::bra_vrr(const I2CIntegral& integral) const
+V2INuclearPotentialDriver::bra_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
-    if (!is_overlap(integral)) return tints;
+    if (!is_nuclear_potential(integral)) return tints;
     
     if (const auto tval = integral.shift(-1, 0))
     {
@@ -50,16 +51,33 @@ V2IOverlapDriver::bra_vrr(const I2CIntegral& integral) const
         
         // second recursion term
         
-        if (const auto r2val = tval->shift(-1, 0))
+        if (const auto r2val = tval->shift_order(1))
         {
             tints.insert(*r2val);
         }
         
-        // third recursion term
+        // third and fourth recursion terms
         
-        if (const auto r3val = tval->shift(-1, 1))
+        if (const auto r3val = tval->shift(-1, 0))
         {
             tints.insert(*r3val);
+            
+            if (const auto r4val = r3val->shift_order(1))
+            {
+                tints.insert(*r4val);
+            }
+        }
+        
+        // fifth and sixth recursion terms
+        
+        if (const auto r5val = tval->shift(-1, 1))
+        {
+            tints.insert(*r5val);
+            
+            if (const auto r6val = r5val->shift_order(1))
+            {
+                tints.insert(*r6val);
+            }
         }
     }
         
@@ -67,11 +85,11 @@ V2IOverlapDriver::bra_vrr(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::ket_vrr(const I2CIntegral& integral) const
+V2INuclearPotentialDriver::ket_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
-    if (!is_overlap(integral)) return tints;
+    if (!is_nuclear_potential(integral)) return tints;
     
     if (const auto tval = integral.shift(-1, 1))
     {
@@ -79,17 +97,46 @@ V2IOverlapDriver::ket_vrr(const I2CIntegral& integral) const
         
         // second recursion term
         
-        if (const auto r2val = tval->shift(-1, 1))
+        if (const auto r2val = tval->shift_order(1))
         {
             tints.insert(*r2val);
+        }
+        
+        // third and fourth recursion terms
+        
+        if (const auto r3val = tval->shift(-1, 1))
+        {
+            tints.insert(*r3val);
+            
+            if (const auto r4val = r3val->shift_order(1))
+            {
+                tints.insert(*r4val);
+            }
         }
     }
     
     return tints;
 }
 
+I2CIntegral
+V2INuclearPotentialDriver::aux_vrr(const I2CIntegral& integral) const
+{
+    if ((integral[0] + integral[1]) == 0)
+    {
+        auto xint = integral.replace(Operator("1"));
+                         
+        xint.set_order(0);
+        
+        return xint;
+    }
+    else
+    {
+        return integral;
+    }
+}
+
 SI2CIntegrals
-V2IOverlapDriver::apply_bra_vrr(const I2CIntegral& integral) const
+V2INuclearPotentialDriver::apply_bra_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
@@ -133,7 +180,7 @@ V2IOverlapDriver::apply_bra_vrr(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::apply_ket_vrr(const I2CIntegral& integral) const
+V2INuclearPotentialDriver::apply_ket_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
@@ -177,7 +224,7 @@ V2IOverlapDriver::apply_ket_vrr(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::apply_recursion(const SI2CIntegrals& integrals) const
+V2INuclearPotentialDriver::apply_recursion(const SI2CIntegrals& integrals) const
 {
     SI2CIntegrals tints;
     
@@ -189,9 +236,23 @@ V2IOverlapDriver::apply_recursion(const SI2CIntegrals& integrals) const
         {
             if (bintegral[0] == 0)
             {
-                const auto ctints = apply_ket_vrr(bintegral);
+                if (bintegral[1] != 0)
+                {
+                    const auto ctints = apply_ket_vrr(bintegral);
 
-                tints.insert(ctints.cbegin(), ctints.cend());
+                    for (const auto& ctint : ctints)
+                    {
+                        tints.insert(ctint);
+                        
+                        tints.insert(aux_vrr(ctint));
+                    }
+                }
+                else
+                {
+                    tints.insert(bintegral);
+                    
+                    tints.insert(aux_vrr(bintegral));
+                }
             }
             else
             {
@@ -204,13 +265,13 @@ V2IOverlapDriver::apply_recursion(const SI2CIntegrals& integrals) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::create_recursion(const SI2CIntegrals& integrals) const
+V2INuclearPotentialDriver::create_recursion(const SI2CIntegrals& integrals) const
 {
     SI2CIntegrals tints;
     
     for (const auto& integral : integrals)
     {
-        if (is_overlap(integral))
+        if (is_nuclear_potential(integral))
         {
             const auto ctints = apply_recursion({integral, });
             
@@ -224,4 +285,3 @@ V2IOverlapDriver::create_recursion(const SI2CIntegrals& integrals) const
     
     return tints;
 }
-

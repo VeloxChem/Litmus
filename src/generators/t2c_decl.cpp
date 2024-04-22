@@ -35,6 +35,11 @@ T2CDeclDriver::write_func_decl(      std::ofstream&         fstream,
         lines.push_back({0, 0, 1, label});
     }
     
+    for (const auto& label : _get_special_variables_str(integral, rec_form))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
     for (const auto& label : _get_gto_blocks_str(integral, rec_form, diagonal))
     {
         lines.push_back({0, 0, 1, label});
@@ -75,6 +80,45 @@ T2CDeclDriver::_get_matrices_str(const I2CIntegral&           integral,
         name = (i == 0) ? name  : spacer;
        
         vstr.push_back(name + "CSubMatrix* " + labels[i] + ",");
+    }
+    
+    return vstr;
+}
+
+std::vector<std::string>
+T2CDeclDriver::_get_special_variables_str(const I2CIntegral& integral,
+                                          const std::pair<bool, bool>& rec_form) const
+{
+    std::vector<std::string> vstr;
+    
+    const auto integrand = integral.integrand();
+    
+    auto name = t2c::compute_func_name(integral, rec_form) + "(";
+    
+    const auto spacer = std::string(name.size(), ' ');
+    
+    if (integrand.name() == "A")
+    {
+        if (rec_form.first)
+        {
+            vstr.push_back(spacer + "const std::vector<double>& charges,");
+            
+            vstr.push_back(spacer + "const std::vector<double>& coords_x,");
+            
+            vstr.push_back(spacer + "const std::vector<double>& coords_y,");
+            
+            vstr.push_back(spacer + "const std::vector<double>& coords_z,");
+        }
+        else
+        {
+            vstr.push_back(spacer + "const double charge,");
+            
+            vstr.push_back(spacer + "const double coord_x,");
+            
+            vstr.push_back(spacer + "const double coord_y,");
+            
+            vstr.push_back(spacer + "const double coord_z,");
+        }
     }
     
     return vstr;
