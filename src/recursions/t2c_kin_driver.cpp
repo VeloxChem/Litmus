@@ -68,7 +68,7 @@ T2CKineticEnergyDriver::bra_vrr(const R2CTerm& rterm,
         
         const auto coord = _rxyz[axes::to_index(axis)];
         
-        x2val.add(Factor("PA", "rpa", coord), Fraction(1));
+        x2val.add(Factor("PA", "pa", coord), Fraction(1));
         
         t2crt.add(x2val);
         
@@ -147,7 +147,7 @@ T2CKineticEnergyDriver::ket_vrr(const R2CTerm& rterm,
         
         const auto coord = _rxyz[axes::to_index(axis)];
         
-        x2val.add(Factor("PB", "rpb", coord), Fraction(1));
+        x2val.add(Factor("PB", "pb", coord), Fraction(1));
         
         t2crt.add(x2val);
         

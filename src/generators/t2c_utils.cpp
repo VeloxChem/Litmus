@@ -312,6 +312,11 @@ get_integrals(const I2CIntegral& integral)
         {
             tints = kin_drv.ket_vrr(integral);
         }
+        
+        if ((integral[0] + integral[1]) == 0)
+        {
+            tints.insert(integral.replace(Operator("1"))); 
+        }
     }
     
     return tints;
