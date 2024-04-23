@@ -317,6 +317,27 @@ T2CFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
     return vstr;
 }
 
+std::vector<std::string>
+T2CFuncBodyDriver::_get_boys_function_def(const I2CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    if (integral.integrand().name() == "A")
+    {
+         std::to_string(integral.order());
+        
+        vstr.push_back("// setup Boys fuction data");
+        
+        vstr.push_back("const CBoysFunc<" + std::to_string(integral.order()) + "> bf_table;");
+        
+        vstr.push_back("CSimdArray<double> bf_args(1, ket_pdim);");
+
+        vstr.push_back("CSimdArray<double> bf_values(" + std::to_string(integral.order() + 1) + ", ket_pdim);");
+    }
+   
+    return vstr;
+}
+
 void
 T2CFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
                                    const I2CIntegral& integral,
