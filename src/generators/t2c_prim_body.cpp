@@ -21,6 +21,7 @@
 #include "t2c_utils.hpp"
 #include "t2c_ovl_driver.hpp"
 #include "t2c_kin_driver.hpp"
+#include "t2c_npot_driver.hpp"
 
 void
 T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
@@ -95,7 +96,7 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const I2CIntegral& integral) const
         
         for (const auto& tcomp : tint.components<T1CPair, T1CPair>())
         {
-            const auto line = "auto " + tlabel + "_" + tcomp.label() + " = " + label;
+            const auto line = "auto " + _get_component_label(tcomp) + " = " + label;
             
             vstr.push_back(line + "[" + std::to_string(index) + "];");
             
@@ -125,11 +126,9 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const I2CIntegral&        integral,
                        " components of targeted buffer : " + label);
     }
     
-    const auto tlabel = _get_tensor_label(integral);
-    
     for (int i = rec_range[0]; i < rec_range[1]; i++)
     {
-        const auto line = "auto " + tlabel + "_" + components[i].label() + " = " + label;
+        const auto line = "auto " + _get_component_label(components[i]) + " = " + label;
         
         vstr.push_back(line + "[" + std::to_string(i) + "];");
     }
@@ -146,6 +145,8 @@ T2CPrimFuncBodyDriver::_get_tensor_label(const I2CIntegral& integral) const
     
     if (integral.integrand().name() == "T") label = "tk";
     
+    if (integral.integrand().name() == "A") label = "ta";
+    
     return label;
 }
 
@@ -157,6 +158,8 @@ T2CPrimFuncBodyDriver::_get_tensor_label(const T2CIntegral& integral) const
     if (integral.integrand().name() == "1") label = "ts";
     
     if (integral.integrand().name() == "T") label = "tk";
+    
+    if (integral.integrand().name() == "A") label = "ta";
     
     return label;
 }
@@ -211,13 +214,13 @@ T2CPrimFuncBodyDriver::_get_pragma_str(const I2CIntegral&          integral,
     {
         auto tint = rdist.root().integral();
         
-        tlabels.insert(_get_tensor_label(tint) + "_" + tint.label());
+        tlabels.insert(_get_component_label(tint));
         
         for (size_t i = 0; i < rdist.terms(); i++)
         {
             auto tint = rdist[i].integral();
             
-            tlabels.insert(_get_tensor_label(tint) + "_" + tint.label());
+            tlabels.insert(_get_component_label(tint));
             
             for (const auto& fact : rdist[i].factors())
             {
@@ -322,6 +325,20 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
         }
     }
     
+    if (integral.integrand().name() == "A")
+    {
+        T2CNuclearPotentialDriver npot_drv;
+        
+        if (integral[0].order() > 0)
+        {
+            rdist = npot_drv.apply_bra_vrr(R2CTerm(integral));
+        }
+        else
+        {
+            rdist = npot_drv.apply_ket_vrr(R2CTerm(integral));
+        }
+    }
+    
     rdist.simplify();
     
     return rdist;
@@ -332,7 +349,7 @@ T2CPrimFuncBodyDriver::_get_code_line(const R2CDist& rec_distribution) const
 {
     auto tint = rec_distribution.root().integral();
     
-    std::string line = _get_tensor_label(tint) + "_" + tint.label() + "[i] = ";
+    std::string line = _get_component_label(tint) + "[i] = ";
     
     for (size_t i = 0; i < rec_distribution.terms(); i++)
     {
@@ -360,7 +377,7 @@ T2CPrimFuncBodyDriver::_get_rterm_code(const R2CTerm& rec_term,
     
     auto tint = rec_term.integral();
     
-    plabel += _get_tensor_label(tint) + "_" + tint.label() + "[i]";
+    plabel += _get_component_label(tint) + "[i]";
         
     for (const auto& fact : rec_term.factors())
     {
@@ -384,4 +401,17 @@ T2CPrimFuncBodyDriver::_get_rterm_code(const R2CTerm& rec_term,
     }
         
     return plabel;
+}
+
+std::string
+T2CPrimFuncBodyDriver::_get_component_label(const T2CIntegral& integral) const
+{
+    std::string label = _get_tensor_label(integral) + "_" + integral.label();
+    
+    if (integral.integrand().name() == "A")
+    {
+        label += "_" + std::to_string(integral.order());
+    }
+    
+    return label;
 }

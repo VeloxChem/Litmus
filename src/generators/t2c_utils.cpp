@@ -342,6 +342,15 @@ get_integrals(const I2CIntegral& integral)
         {
             tints = npot_drv.ket_vrr(integral);
         }
+        
+        if ((integral[0] + integral[1]) == 0)
+        {
+            auto xint = integral.replace(Operator("1"));
+            
+            xint.set_order(0);
+            
+            tints.insert(xint);
+        }
     }
     
     return tints;

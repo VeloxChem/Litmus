@@ -112,13 +112,32 @@ T2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const
         vstr.push_back("/// - Parameter pb_z: the vector of Cartesian Z distances R(PB) = P - B.");
     }
     
-    if ((integral[0] == 0) && (integral[1] == 0))
+    if ((integral[0] + integral[1]) > 0)
     {
-        vstr.push_back("/// - Parameter ab_x: the vector of Cartesian X distances R(AB) = A - B.");
-                       
-        vstr.push_back("/// - Parameter ab_y: the vector of Cartesian Y distances R(AB) = A - B.");
-                                      
-        vstr.push_back("/// - Parameter ab_z: the vector of Cartesian Z distances R(AB) = A - B.");
+        if (integral.integrand().name() == "A")
+        {
+            vstr.push_back("/// - Parameter pc_x: the vector of Cartesian X distances R(PC) = P - C.");
+                           
+            vstr.push_back("/// - Parameter pc_y: the vector of Cartesian Y distances R(PC) = P - C.");
+                                          
+            vstr.push_back("/// - Parameter pc_z: the vector of Cartesian Z distances R(PC) = P - C.");
+        }
+    }
+    
+    if ((integral[0] + integral[1]) == 0)
+    {
+        if (integral.integrand().name() == "A")
+        {
+            vstr.push_back("/// - Parameter bf_values: the vector of Boys function values.");
+        }
+        else
+        {
+            vstr.push_back("/// - Parameter ab_x: the vector of Cartesian X distances R(AB) = A - B.");
+                           
+            vstr.push_back("/// - Parameter ab_y: the vector of Cartesian Y distances R(AB) = A - B.");
+                                          
+            vstr.push_back("/// - Parameter ab_z: the vector of Cartesian Z distances R(AB) = A - B.");
+        }
     }
    
     return vstr;
@@ -129,7 +148,7 @@ T2CPrimDocuDriver::_get_recursion_variables_str(const I2CIntegral& integral) con
 {
     std::vector<std::string> vstr;
     
-    if (((integral[0] + integral[1]) != 1) || (integral.integrand().name() == "T"))
+    if (((integral[0] + integral[1])  != 1) || (integral.integrand().name() == "T"))
     {
         vstr.push_back("/// - Parameter a_exp: the GTO exponent on center A.");
         

@@ -87,7 +87,10 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
         
         vstr.push_back(spacer + "const double* pa_y,");
       
-        if ((integral[0] == 1) && (integral[1] == 0) && (integral.integrand().name() != "T"))
+        if ((integral[0] == 1)                   &&
+            (integral[1] == 0)                   &&
+            (integral.integrand().name() != "T") &&
+            (integral.integrand().name() != "A"))
         {
             vstr.push_back(spacer + "const double* pa_z) -> void" + tsymbol);
         }
@@ -103,7 +106,10 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
         
         vstr.push_back(spacer + "const double* pb_y,");
       
-        if ((integral[0] == 0) && (integral[1] == 1) && (integral.integrand().name() != "T"))
+        if ((integral[0] == 0)                   &&
+            (integral[1] == 1)                   &&
+            (integral.integrand().name() != "T") &&
+            (integral.integrand().name() != "A"))
         {
             vstr.push_back(spacer + "const double* pb_z) -> void" + tsymbol);
         }
@@ -113,13 +119,36 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
         }
     }
     
-    if ((integral[0] == 0) && (integral[1] == 0))
+    if ((integral.integrand().name() == "A") && ((integral[0] + integral[1]) != 0))
     {
-        vstr.push_back(spacer + "const double* ab_x,");
+        vstr.push_back(spacer + "const double* pc_x,");
         
-        vstr.push_back(spacer + "const double* ab_y,");
+        vstr.push_back(spacer + "const double* pc_y,");
+        
+        if ((integral[0] + integral[1]) > 1)
+        {
+            vstr.push_back(spacer + "const double* pc_z,");
+        }
+        else
+        {
+            vstr.push_back(spacer + "const double* pc_z) -> void" + tsymbol);
+        }
+    }
     
-        vstr.push_back(spacer + "const double* ab_z,");
+    if ((integral[0] + integral[1]) == 0)
+    {
+        if (integral.integrand().name() == "A")
+        {
+            vstr.push_back(spacer + "const double* bf_values,");
+        }
+        else
+        {
+            vstr.push_back(spacer + "const double* ab_x,");
+            
+            vstr.push_back(spacer + "const double* ab_y,");
+        
+            vstr.push_back(spacer + "const double* ab_z,");
+        }
     }
    
     return vstr;

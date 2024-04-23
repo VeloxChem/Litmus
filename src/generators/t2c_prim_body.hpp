@@ -93,7 +93,10 @@ class T2CPrimFuncBodyDriver
     std::string _get_rterm_code(const R2CTerm& rec_term,
                                 const bool     is_first) const;
     
-    
+    /// Gets integral component label.
+    /// @param integral The base two center integral component.
+    /// @return The string with integral component label.
+    std::string _get_component_label(const T2CIntegral& integral) const;
 
 public:
     /// Creates a two-center compute function body generator.

@@ -60,12 +60,12 @@ T2CCPUGenerator::generate(const std::string&           label,
                 
                 _write_prim_cpp_file(integral);
                 
-                std::cout << "*** Integra:l " << integral.integrand().name() << " :  " << integral.label() << std::endl;
-                
-                for (const auto& tint : integrals)
-                {
-                    std::cout  << tint.integrand().name() << " :  " << tint.label() << std::endl;
-                }
+//                std::cout << "*** Integra:l " << integral.integrand().name() << " :  " << integral.label() << std::endl;
+//                
+//                for (const auto& tint : integrals)
+//                {
+//                    std::cout  << tint.integrand().name() << " :  " << tint.label() << std::endl;
+//                }
             }
         }
     }
@@ -374,6 +374,11 @@ T2CCPUGenerator::_write_cpp_includes(      std::ofstream&         fstream,
     for (const auto& tint : integrals)
     {
         lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(tint) + ".hpp\""});
+    }
+    
+    if (integral.integrand().name() == "A")
+    {
+        lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
     }
     
     lines.push_back({0, 0, 1, "#include \"T2CDistributor.hpp\""});
