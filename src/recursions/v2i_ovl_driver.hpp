@@ -60,7 +60,7 @@ public:
     SI2CIntegrals apply_recursion(const SI2CIntegrals& integrals) const;
     
     /// Creates recursion expansion for set of integral.
-    /// @param integrals The  integral to apply recursion.
+    /// @param integrals The set of integrals to apply recursion.
     /// @return The set of integrals.
     SI2CIntegrals create_recursion(const SI2CIntegrals& integrals) const;
 };

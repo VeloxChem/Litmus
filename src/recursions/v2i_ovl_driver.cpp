@@ -185,7 +185,7 @@ V2IOverlapDriver::apply_recursion(const SI2CIntegrals& integrals) const
     {
         tints.insert(integral);
         
-        for (const auto& bintegral : apply_bra_vrr({integral, }))
+        for (const auto& bintegral : apply_bra_vrr(integral))
         {
             if (bintegral[0] == 0)
             {

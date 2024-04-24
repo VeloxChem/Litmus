@@ -77,6 +77,14 @@ public:
     /// @return true if this two center pair is less than other two center pair, false otherwise.
     bool operator<(const TwoCenterPair& other) const;
     
+    /// Creates an optional operator component from this operator component by shifting axial value
+    /// along the selected axis.
+    /// @param value The value to shift angular center.
+    /// @param center The center to apply shift.
+    /// @return The optional operator component.
+    std::optional<TwoCenterPair> shift(const int value,
+                                       const int center) const;
+    
     /// Gets number of centers  in two center pair..
     /// @return The number of centers in two center pair.
     int centers() const {return 2;};

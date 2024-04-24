@@ -21,18 +21,17 @@
 #include <array>
 
 #include "t2c_cpu_generators.hpp"
+#include "t4c_cpu_generators.hpp"
 
 int main(int argc, char **argv)
 {
     // run configuration
     
-    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "nuclear potential"});
+    const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
     
-    const int max_ang_mom = 4;
+    const int max_ang_mom = 1;
     
-    const std::array<int, 3> geom_drvs = {0, 0, 0};
-    
-    const auto rec_form = std::pair<bool, bool>({true, false});
+    const auto rec_form = std::pair<bool, bool>({false, false});
     
     // set up start timer
     
@@ -42,9 +41,22 @@ int main(int argc, char **argv)
     
     if (run_type.first == "t2c_cpu")
     {
+        const std::array<int, 3> geom_drvs = {0, 0, 0};
+        
         const auto t2c_drv = T2CCPUGenerator();
         
         t2c_drv.generate(run_type.second, max_ang_mom, geom_drvs, rec_form);
+    }
+    
+    // case: four-center integrals
+    
+    if (run_type.first == "t4c_cpu")
+    {
+        const std::array<int, 5> geom_drvs = {0, 0, 0, 0, 0};
+        
+        const auto t4c_drv = T4CCPUGenerator();
+        
+        t4c_drv.generate(run_type.second, max_ang_mom, geom_drvs);
     }
    
     // set up end timer & compute elapsed time

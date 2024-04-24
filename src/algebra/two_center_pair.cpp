@@ -100,6 +100,31 @@ TwoCenterPair::operator<(const TwoCenterPair& other) const
     }
 }
 
+std::optional<TwoCenterPair>
+TwoCenterPair::shift(const int value,
+                     const int center) const
+{
+    if ((center == 0) || (center == 1))
+    {
+        if (const int torder =_shapes[center].order() + value; torder >= 0)
+        {
+            auto new_shapes = _shapes;
+            
+            new_shapes[center] = torder;
+            
+            return TwoCenterPair(_names, new_shapes);
+        }
+        else
+        {
+            return std::nullopt;
+        }
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
 std::string
 TwoCenterPair::to_string() const
 {

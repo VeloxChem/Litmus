@@ -59,13 +59,6 @@ T2CCPUGenerator::generate(const std::string&           label,
                 _write_prim_cpp_header(integral, rec_form);
                 
                 _write_prim_cpp_file(integral);
-                
-//                std::cout << "*** Integra:l " << integral.integrand().name() << " :  " << integral.label() << std::endl;
-//                
-//                for (const auto& tint : integrals)
-//                {
-//                    std::cout  << tint.integrand().name() << " :  " << tint.label() << std::endl;
-//                }
             }
         }
     }
