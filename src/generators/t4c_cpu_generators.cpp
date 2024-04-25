@@ -38,7 +38,39 @@ T4CCPUGenerator::generate(const std::string&        label,
                     for (int l = k; l <= max_ang_mom; l++)
                     {
                         const auto integral = _get_integral(label, {i, j, k, l}, geom_drvs);
-                                    
+                        
+                        const auto bra_integrals = _generate_bra_hrr_integral_group(integral);
+                        
+                        const auto ket_integrals = _generate_ket_hrr_integral_group(integral, bra_integrals);
+                        
+                        auto hrr_integrals = bra_integrals;
+                        
+                        hrr_integrals.insert(ket_integrals.begin(), ket_integrals.end());
+                        
+                        const auto vrr_integrals = _generate_vrr_integral_group(integral, hrr_integrals);
+                        
+                        std::cout << "***  Integral *** " << integral.label() << " : " << integral.integrand().name() << std::endl;
+                        
+                        std::cout << "-> bra hrr outcome:" << std::endl;
+                        
+                        for (const auto& tint : bra_integrals)
+                        {
+                            std::cout << tint.label() << " : " << tint.integrand().name() << std::endl;
+                        }
+                        
+                        std::cout << "-> ket hrr outcome:" << std::endl;
+                        
+                        for (const auto& tint : ket_integrals)
+                        {
+                            std::cout << tint.label() << " : " << tint.integrand().name() << std::endl;
+                        }
+                        
+                        std::cout << "-> vrr outcome:" << std::endl;
+                        
+                        for (const auto& tint : vrr_integrals)
+                        {
+                            std::cout << tint.label() << " : "  << tint.order() << " : " << tint.integrand().name() << std::endl;
+                        }
                     }
                 }
             }
@@ -119,15 +151,42 @@ T4CCPUGenerator::_generate_ket_hrr_integral_group(const I4CIntegral&   integral,
     
     if (integral.integrand() == Operator("1/|r-r'|"))
     {
-        //V4IElectronRepulsionDriver eri_drv;
+        V4IElectronRepulsionDriver eri_drv;
         
-        if (integral.is_simple())
+        for (const auto& tint : integrals)
         {
-            //tints = eri_drv.create_bra_hrr_recursion({integral,});
+            if ((tint[0] == 0) && (tint[2] > 0))
+            {
+                const auto ctints = eri_drv.create_ket_hrr_recursion({tint, });
+                
+                tints.insert(ctints.cbegin(), ctints.cend()); 
+            }
         }
-        else
+    }
+    
+    return tints;
+}
+
+SI4CIntegrals
+T4CCPUGenerator::_generate_vrr_integral_group(const I4CIntegral&   integral,
+                                              const SI4CIntegrals& integrals) const
+{
+    SI4CIntegrals tints;
+    
+    // Electron repulsion integrals
+    
+    if (integral.integrand() == Operator("1/|r-r'|"))
+    {
+        V4IElectronRepulsionDriver eri_drv;
+        
+        for (const auto& tint : integrals)
         {
-            /// TODO: ...
+            if ((tint[0] == 0) && (tint[2] == 0))
+            {
+                const auto ctints = eri_drv.create_vrr_recursion({tint, });
+                
+                tints.insert(ctints.cbegin(), ctints.cend());
+            }
         }
     }
     

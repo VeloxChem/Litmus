@@ -54,6 +54,13 @@ class T4CCPUGenerator
     SI4CIntegrals _generate_ket_hrr_integral_group(const I4CIntegral&   integral,
                                                    const SI4CIntegrals& integrals) const;
     
+    /// Generates set of integrals required for vertical Obara-Saika recursion.
+    /// @param integral The base four center integral.
+    /// @param integrals The set of four center integrals.
+    /// @return The set of integrals.
+    SI4CIntegrals _generate_vrr_integral_group(const I4CIntegral&   integral,
+                                               const SI4CIntegrals& integrals) const;
+    
 public:
     /// Creates a four-center integrals CPU code generator.
     T4CCPUGenerator() = default;
