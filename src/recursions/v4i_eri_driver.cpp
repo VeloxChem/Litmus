@@ -390,6 +390,8 @@ V4IElectronRepulsionDriver::create_vrr_recursion(const SI4CIntegrals& integrals)
             {
                 for (const auto& bintegral : apply_bra_vrr_recursion(integral))
                 {
+                    tints.insert(bintegral);
+                    
                     if (bintegral[1] == 0)
                     {
                         const auto ctints = apply_ket_vrr_recursion(bintegral);

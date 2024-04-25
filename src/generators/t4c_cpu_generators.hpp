@@ -61,6 +61,59 @@ class T4CCPUGenerator
     SI4CIntegrals _generate_vrr_integral_group(const I4CIntegral&   integral,
                                                const SI4CIntegrals& integrals) const;
     
+    /// Gets file name of file with recursion functions for two center integral.
+    /// @param integral The base two center integral.
+    /// @return The file name.
+    std::string _file_name(const I4CIntegral& integral) const;
+    
+    /// Writes header file for recursion.
+    /// @param integral The base two center integral.
+    void _write_cpp_header(const I4CIntegral& integral) const;
+    
+    /// Writes definitions of define for header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param start The flag to indicate position of define (start or end).
+    void _write_hpp_defines(      std::ofstream& fstream,
+                            const I4CIntegral&   integral,
+                            const bool           start) const;
+    
+    /// Writes definitions of includes for header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_hpp_includes(      std::ofstream& fstream,
+                             const I4CIntegral&   integral) const;
+    
+    /// Writes namespace definition to file stream.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param start The flag to indicate position of namespace definition (start or end).
+    void _write_namespace(      std::ofstream& fstream,
+                          const I4CIntegral&   integral,
+                          const bool           start) const;
+    
+    /// Writes C++ code file for recursion.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param vrr_integrals The set of unique integrals for vertical recursion.
+    /// @param integral The base two center integral.
+    void _write_cpp_file(const SI4CIntegrals& bra_integrals,
+                         const SI4CIntegrals& ket_integrals,
+                         const SI4CIntegrals& vrr_integrals,
+                         const I4CIntegral&   integral) const;
+    
+    /// Writes definitions of includes for C++ code file.
+    /// @param fstream the file stream.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param vrr_integrals The set of unique integrals for vertical recursion.
+    /// @param integral The base two center integral.
+    void _write_cpp_includes(      std::ofstream& fstream,
+                             const SI4CIntegrals& bra_integrals,
+                             const SI4CIntegrals& ket_integrals,
+                             const SI4CIntegrals& vrr_integrals,
+                             const I4CIntegral&   integral) const;
+    
 public:
     /// Creates a four-center integrals CPU code generator.
     T4CCPUGenerator() = default;
