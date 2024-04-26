@@ -49,6 +49,43 @@ class T4CFuncBodyDriver
     std::vector<std::string> _get_prim_buffers_def(const SI4CIntegrals& integrals,
                                                    const I4CIntegral&   integral) const;
     
+    /// Generates vector of Cartesian buffers in compute function.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffers in compute function.
+    std::vector<std::string> _get_cart_buffers_def(const SI4CIntegrals& bra_integrals,
+                                                   const SI4CIntegrals& ket_integrals,
+                                                   const I4CIntegral&   integral) const;
+    
+    /// Generates vector of contracted buffers in compute function.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffers in compute function.
+    std::vector<std::string> _get_contr_buffers_def(const SI4CIntegrals& bra_integrals,
+                                                    const SI4CIntegrals& ket_integrals,
+                                                    const I4CIntegral&   integral) const;
+    
+    /// Generates vector of half transformed buffers in compute function.
+    /// @param integrals The set of unique integrals for ket horizontal recursion.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffers in compute function.
+    std::vector<std::string> _get_half_spher_buffers_def(const SI4CIntegrals& integrals,
+                                                         const I4CIntegral&   integral) const;
+    
+    /// Generates vector of half transformed buffers in compute function.
+    /// @param integrals The set of unique integrals for ket horizontal recursion.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffers in compute function.
+    std::vector<std::string> _get_bra_half_spher_buffers_def(const SI4CIntegrals& integrals,
+                                                             const I4CIntegral&   integral) const;
+    
+    /// Generates vector of half transformed buffers in compute function.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffers in compute function.
+    std::vector<std::string> _get_spher_buffers_def(const I4CIntegral& integral) const;
+    
     /// Generates vector of Boys function definitions in compute function.
     /// @param integral The base two center integral.
     /// @return The vector of Boys function definitions in compute function.
@@ -56,9 +93,13 @@ class T4CFuncBodyDriver
     
     /// Adds loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
     /// @param integral The base two center integral.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_loop_start(      VCodeLines&  lines,
+                         const SI4CIntegrals& bra_integrals,
+                         const SI4CIntegrals& ket_integrals,
                          const I4CIntegral& integral,
                          const bool         diagonal) const;
     
@@ -80,11 +121,15 @@ class T4CFuncBodyDriver
     
     /// Adds ket loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
     /// @param integral The base two center integral.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
-    void _add_ket_loop_end(      VCodeLines&  lines,
-                           const I4CIntegral& integral,
-                           const bool         diagonal) const;
+    void _add_ket_loop_end(      VCodeLines&    lines,
+                           const SI4CIntegrals& bra_integrals,
+                           const SI4CIntegrals& ket_integrals,
+                           const I4CIntegral&   integral,
+                           const bool           diagonal) const;
     
     /// Adds auxilary integrals.
     /// @param lines The code lines container to which loop start definition are added.
