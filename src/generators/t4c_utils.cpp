@@ -100,6 +100,30 @@ prim_compute_func_name(const I4CIntegral& integral)
     return fstr::lowercase(label);
 }
 
+std::string
+ket_hrr_compute_func_name(const I4CIntegral& integral)
+{
+    const auto ket_one = Tensor(integral[2]);
+    
+    const auto ket_two = Tensor(integral[3]);
+    
+    auto label =  "comp_ket_hrr_" + t4c::integral_split_label(integral) + "_xx" + ket_one.label() + ket_two.label();
+    
+    return fstr::lowercase(label);
+}
+
+std::string
+bra_hrr_compute_func_name(const I4CIntegral& integral)
+{
+    const auto bra_one = Tensor(integral[0]);
+    
+    const auto bra_two = Tensor(integral[1]);
+    
+    auto label =  "comp_bra_hrr_" + t4c::integral_split_label(integral) + "_" + bra_one.label() + bra_two.label() + "xx";
+    
+    return fstr::lowercase(label);
+}
+
 SI4CIntegrals
 get_vrr_integrals(const I4CIntegral& integral)
 {
@@ -116,6 +140,42 @@ get_vrr_integrals(const I4CIntegral& integral)
         else
         {
             tints = eri_drv.ket_vrr(integral);
+        }
+    }
+    
+    return tints;
+}
+
+SI4CIntegrals
+get_ket_hrr_integrals(const I4CIntegral& integral)
+{
+    SI4CIntegrals tints;
+    
+    if (integral.integrand().name() == "1/|r-r'|")
+    {
+        V4IElectronRepulsionDriver eri_drv;
+        
+        if (integral[2] > 0)
+        {
+            tints = eri_drv.ket_hrr(integral);
+        }
+    }
+    
+    return tints;
+}
+
+SI4CIntegrals
+get_bra_hrr_integrals(const I4CIntegral& integral)
+{
+    SI4CIntegrals tints;
+    
+    if (integral.integrand().name() == "1/|r-r'|")
+    {
+        V4IElectronRepulsionDriver eri_drv;
+        
+        if (integral[0] > 0)
+        {
+            tints = eri_drv.bra_hrr(integral);
         }
     }
     

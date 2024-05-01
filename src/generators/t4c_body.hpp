@@ -68,10 +68,12 @@ class T4CFuncBodyDriver
                                                     const I4CIntegral&   integral) const;
     
     /// Generates vector of half transformed buffers in compute function.
-    /// @param integrals The set of unique integrals for ket horizontal recursion.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
     /// @param integral The base two center integral.
     /// @return The vector of buffers in compute function.
-    std::vector<std::string> _get_half_spher_buffers_def(const SI4CIntegrals& integrals,
+    std::vector<std::string> _get_half_spher_buffers_def(const SI4CIntegrals& bra_integrals,
+                                                         const SI4CIntegrals& ket_integrals,
                                                          const I4CIntegral&   integral) const;
     
     /// Generates vector of half transformed buffers in compute function.
@@ -146,6 +148,42 @@ class T4CFuncBodyDriver
     /// Gets arguments list for primitive vertical recursion function call.
     /// @param integral The base four center integral.
     std::string _get_vrr_arguments(const I4CIntegral& integral) const;
+    
+    /// Adds call tree for ket horizontal recursion.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integrals The set of inetrgals.
+    void _add_ket_hrr_call_tree(      VCodeLines&  lines,
+                                const SI4CIntegrals& integrals) const;
+    
+    /// Gets arguments list for ket horizontal recursion function call.
+    /// @param integral The base four center integral.
+    std::string _get_ket_hrr_arguments(const I4CIntegral& integral) const;
+    
+    /// Adds call tree for ket side transformation.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param integral The base two center integral.
+    void _add_ket_trafo_call_tree(      VCodeLines&  lines,
+                                  const SI4CIntegrals& bra_integrals,
+                                  const SI4CIntegrals& ket_integrals,
+                                  const I4CIntegral&   integral) const;
+    
+    /// Adds call tree for bra horizontal recursion.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integrals The set of inetrgals.
+    void _add_bra_hrr_call_tree(      VCodeLines&  lines,
+                                const SI4CIntegrals& integrals) const;
+    
+    /// Gets arguments list for bra horizontal recursion function call.
+    /// @param integral The base four center integral.
+    std::string _get_bra_hrr_arguments(const I4CIntegral& integral) const;
+    
+    /// Adds call tree for bra side transformation.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base two center integral.
+    void _add_bra_trafo_call_tree(      VCodeLines&  lines,
+                                  const I4CIntegral& integral) const;
     
 public:
     /// Creates a four-center compute function body generator.

@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     
     const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
     
-    const int max_ang_mom = 2;
+    const int max_ang_mom = 1;
     
     const auto rec_form = std::pair<bool, bool>({false, false});
     

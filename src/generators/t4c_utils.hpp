@@ -57,9 +57,27 @@ std::string get_buffer_label(const I4CIntegral& integral,
 /// @return The primitive compute function name.
 std::string prim_compute_func_name(const I4CIntegral& integral);
 
+/// Generates ket horizontal recursion compute function name.
+/// @param integral The base two center integral.
+/// @return The primitive compute function name.
+std::string ket_hrr_compute_func_name(const I4CIntegral& integral);
+
+/// Generates bra horizontal recursion compute function name.
+/// @param integral The base two center integral.
+/// @return The primitive compute function name.
+std::string bra_hrr_compute_func_name(const I4CIntegral& integral);
+
 /// Gets arguments list for primitive vertical recursion function call.
 /// @param integral The base two center integral.
 SI4CIntegrals get_vrr_integrals(const I4CIntegral& integral);
+
+/// Gets arguments list for ket horizontal recursion function call.
+/// @param integral The base two center integral.
+SI4CIntegrals get_ket_hrr_integrals(const I4CIntegral& integral);
+
+/// Gets arguments list for bra horizontal recursion function call.
+/// @param integral The base two center integral.
+SI4CIntegrals get_bra_hrr_integrals(const I4CIntegral& integral);
 
 /// Generates primitive file name.
 /// @param integral The base four center integral.
