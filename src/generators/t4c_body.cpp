@@ -514,28 +514,25 @@ T4CFuncBodyDriver::_get_half_spher_buffers_def(const SI4CIntegrals& integrals,
 {
     std::vector<std::string> vstr;
     
-    if ((integral[2] > 1) || (integral[3] > 1))
-    {
-        vstr.push_back("// allocate aligned half transformed integrals");
+    vstr.push_back("// allocate aligned half transformed integrals");
         
-        for (const auto& tint : integrals)
+    for (const auto& tint : integrals)
+    {
+        if ((tint[0] == 0) && (tint[2] > 0))
         {
-            if ((tint[0] == 0) && (tint[2] > 0))
-            {
-                std::string label = "CSimdArray<double> ";
+            std::string label = "CSimdArray<double> ";
                 
-                label += t4c::get_buffer_label(tint, "ket_spher");
+            label += t4c::get_buffer_label(tint, "ket_spher");
                 
-                const auto angpair = std::array<int, 2>({tint[2], tint[3]});
+            const auto angpair = std::array<int, 2>({tint[2], tint[3]});
                 
-                auto tcomps = t2c::number_of_spherical_components(angpair);
+            auto tcomps = t2c::number_of_spherical_components(angpair);
                 
-                tcomps *= t2c::number_of_cartesian_components(tint[1]);
+            tcomps *= t2c::number_of_cartesian_components(tint[1]);
                 
-                label += "(" + std::to_string(tcomps) + ", ket_dim);";
+            label += "(" + std::to_string(tcomps) + ", ket_dim);";
                 
-                vstr.push_back(label);
-            }
+            vstr.push_back(label);
         }
     }
         
@@ -581,26 +578,23 @@ T4CFuncBodyDriver::_get_spher_buffers_def(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    if ((integral[0] > 0) && (integral[2] > 0))
-    {
-        vstr.push_back("// allocate aligned spherical integrals");
+    vstr.push_back("// allocate aligned spherical integrals");
      
-        std::string label = "CSimdArray<double> ";
+    std::string label = "CSimdArray<double> ";
                     
-        label += t4c::get_buffer_label(integral, "spher");
+    label += t4c::get_buffer_label(integral, "spher");
                     
-        auto angpair = std::array<int, 2>({integral[2], integral[3]});
+    auto angpair = std::array<int, 2>({integral[2], integral[3]});
                     
-        auto tcomps = t2c::number_of_spherical_components(angpair);
+    auto tcomps = t2c::number_of_spherical_components(angpair);
                     
-        angpair = std::array<int, 2>({integral[0], integral[1]});
+    angpair = std::array<int, 2>({integral[0], integral[1]});
                     
-        tcomps *= t2c::number_of_spherical_components(angpair);
+    tcomps *= t2c::number_of_spherical_components(angpair);
                     
-        label += "(" + std::to_string(tcomps) + ", ket_dim);";
+    label += "(" + std::to_string(tcomps) + ", ket_dim);";
                     
-        vstr.push_back(label);
-    }
+    vstr.push_back(label);
    
     return vstr;
 }
