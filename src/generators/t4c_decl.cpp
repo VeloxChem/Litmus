@@ -27,6 +27,8 @@ T4CDeclDriver::write_func_decl(      std::ofstream& fstream,
 {
     auto lines = VCodeLines();
     
+    lines.push_back({0, 0, 1, "template <class T>"});
+    
     lines.push_back({0, 0, 1, "auto"});
     
     for (const auto& label : _get_matrices_str(integral))
@@ -50,20 +52,13 @@ T4CDeclDriver::write_func_decl(      std::ofstream& fstream,
 std::vector<std::string>
 T4CDeclDriver::_get_matrices_str(const I4CIntegral& integral) const
 {
-    if (!integral.is_simple())
-    {
-        // TODO: Add derrivatives
-    }
-    
     std::vector<std::string> vstr;
     
     auto name = t4c::compute_func_name(integral) + "(";
     
     const auto spacer = std::string(name.size(), ' ');
     
-    vstr.push_back(name + "CMatrix* fock,");
-    
-    vstr.push_back(spacer + "const CMatrix* density,");
+    vstr.push_back(name + "T* distributor,");
     
     return vstr;
 }

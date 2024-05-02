@@ -55,9 +55,9 @@ T4CCPUGenerator::generate(const std::string&        label,
                         
                         const auto vrr_integrals = _generate_vrr_integral_group(integral, hrr_integrals);
                         
-                        _write_cpp_header(integral);
+                        _write_cpp_header(bra_integrals, ket_integrals, vrr_integrals, integral);
                         
-                        _write_cpp_file(bra_integrals, ket_integrals, vrr_integrals, integral);
+                       // _write_cpp_file(bra_integrals, ket_integrals, vrr_integrals, integral);
                         
                         std::cout << "***  Integral *** " << integral.label() << " : " << integral.integrand().name() << std::endl;
                         
@@ -219,7 +219,10 @@ T4CCPUGenerator::_file_name(const I4CIntegral& integral) const
 }
 
 void
-T4CCPUGenerator::_write_cpp_header(const I4CIntegral& integral) const
+T4CCPUGenerator::_write_cpp_header(const SI4CIntegrals& bra_integrals,
+                                   const SI4CIntegrals& ket_integrals,
+                                   const SI4CIntegrals& vrr_integrals,
+                                   const I4CIntegral&   integral) const
 {
     auto fname = _file_name(integral) + ".hpp";
         
@@ -229,26 +232,34 @@ T4CCPUGenerator::_write_cpp_header(const I4CIntegral& integral) const
     
     _write_hpp_defines(fstream, integral, true);
     
-    _write_hpp_includes(fstream, integral);
+    _write_hpp_includes(fstream, bra_integrals, ket_integrals, vrr_integrals, integral);
     
     _write_namespace(fstream, integral, true);
     
     T4CDocuDriver docs_drv;
     
     T4CDeclDriver decl_drv;
+    
+    T4CFuncBodyDriver func_drv;
 
     if ((integral[0] == integral[2]) && (integral[1] == integral[3]))
     {
         docs_drv.write_doc_str(fstream, integral, true);
         
-        decl_drv.write_func_decl(fstream, integral, true, true);
+        decl_drv.write_func_decl(fstream, integral, true, false);
+        
+        func_drv.write_func_body(fstream, bra_integrals, ket_integrals, vrr_integrals, integral, true);
 
         fstream << std::endl;
     }
 
     docs_drv.write_doc_str(fstream, integral, false);
     
-    decl_drv.write_func_decl(fstream, integral, false, true);
+    decl_drv.write_func_decl(fstream, integral, false, false);
+    
+    func_drv.write_func_body(fstream, bra_integrals, ket_integrals, vrr_integrals, integral, false);
+    
+    fstream << std::endl;
 
     _write_namespace(fstream, integral, false);
         
@@ -282,15 +293,57 @@ T4CCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
 
 void
 T4CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
+                                     const SI4CIntegrals& bra_integrals,
+                                     const SI4CIntegrals& ket_integrals,
+                                     const SI4CIntegrals& vrr_integrals,
                                      const I4CIntegral&   integral) const
 {
     auto lines = VCodeLines();
     
     lines.push_back({0, 0, 2, "#include <array>"});
     
-    lines.push_back({0, 0, 1, "#include \"GtoPairBlock.hpp\""});
+    std::set<std::string> labels;
+    
+    for (const auto& tint : vrr_integrals)
+    {
+        if (((tint[0] + tint[2]) == 0) && (tint.order() == 0))
+        {
+            labels.insert(t4c::prim_file_name(tint));
+        }
+    }
+    
+    for (const auto& tint : ket_integrals)
+    {
+        if ((tint[0] == 0) && (tint[2] > 0))
+        {
+            labels.insert(t4c::ket_hrr_file_name(tint));
+        }
+    }
+    
+    for (const auto& tint : bra_integrals)
+    {
+        if ((tint[0] > 0) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
+        {
+            labels.insert(t4c::bra_hrr_file_name(tint));
+        }
+    }
+    
+    for (const auto& label : labels)
+    {
+        lines.push_back({0, 0, 1, "#include \"" + label + ".hpp\""});
+    }
+    
+    lines.push_back({0, 0, 1, "#include \"SimdArray.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"T4CDistributor.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"T4CUtils.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"GtoPairBlock.hpp\""});
    
-    lines.push_back({0, 0, 2, "#include \"Matrix.hpp\""});
+    
         
     ost::write_code_lines(fstream, lines);
 }

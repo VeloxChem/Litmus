@@ -78,16 +78,7 @@ T4CDocuDriver::_get_matrices_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    if (integral.is_simple())
-    {
-        vstr.push_back("/// - Parameter fock: the pointer to Fock matrix.");
-    
-        vstr.push_back("/// - Parameter density: the pointer to density matrix.");
-    }
-    else
-    {
-        // TODO: Add derrivatives
-    }
+    vstr.push_back("/// - Parameter distributor: the pointer to Fock matrix/matrices distributor.");
              
     return vstr;
 }

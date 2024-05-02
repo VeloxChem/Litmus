@@ -67,8 +67,14 @@ class T4CCPUGenerator
     std::string _file_name(const I4CIntegral& integral) const;
     
     /// Writes header file for recursion.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param vrr_integrals The set of unique integrals for vertical recursion.
     /// @param integral The base two center integral.
-    void _write_cpp_header(const I4CIntegral& integral) const;
+    void _write_cpp_header(const SI4CIntegrals& bra_integrals,
+                           const SI4CIntegrals& ket_integrals,
+                           const SI4CIntegrals& vrr_integrals,
+                           const I4CIntegral& integral) const;
     
     /// Writes definitions of define for header file.
     /// @param fstream the file stream.
@@ -80,8 +86,14 @@ class T4CCPUGenerator
     
     /// Writes definitions of includes for header file.
     /// @param fstream the file stream.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param vrr_integrals The set of unique integrals for vertical recursion.
     /// @param integral The base two center integral.
     void _write_hpp_includes(      std::ofstream& fstream,
+                             const SI4CIntegrals& bra_integrals,
+                             const SI4CIntegrals& ket_integrals,
+                             const SI4CIntegrals& vrr_integrals,
                              const I4CIntegral&   integral) const;
     
     /// Writes namespace definition to file stream.

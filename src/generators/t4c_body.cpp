@@ -730,18 +730,9 @@ T4CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
                                  const I4CIntegral& integral,
                                  const bool         diagonal) const
 {
-    std::string label;
-    
-    // TODO: Fix matrices labels...
+    std::string label = "distributor->distribute(";
 
-    if ((integral[0] > 1) || (integral[1] > 1) || (integral[2] > 1) || (integral[3] > 1))
-    {
-        label = "t2cfunc::distribute(fock, density, " + t4c::get_buffer_label(integral, "spher") + ", ";
-    }
-    else
-    {
-        label = "t2cfunc::distribute(fock, density, " + t4c::get_buffer_label(integral, "cart") + ", ";
-    }
+    label +=  t4c::get_buffer_label(integral, "spher") + ", ";
         
     if (diagonal)
     {
@@ -755,6 +746,13 @@ T4CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
     label += std::to_string(integral[0]) + ", ";
             
     label += std::to_string(integral[1]) + ", ";
+    
+    if (!diagonal)
+    {
+        label += std::to_string(integral[2]) + ", ";
+                
+        label += std::to_string(integral[3]) + ", ";
+    }
             
     label += "i, ket_indices);";
             
