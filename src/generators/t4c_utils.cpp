@@ -93,6 +93,32 @@ get_buffer_label(const I4CIntegral& integral,
 }
 
 std::string
+get_hrr_buffer_label(const I4CIntegral& integral,
+                     const bool         use_ket)
+{
+    std::string label = "contr_buffer_";
+    
+    if (use_ket)
+    {
+        const auto ket_one = Tensor(integral[2]);
+        
+        const auto ket_two = Tensor(integral[3]);
+        
+        label += "xx" + ket_one.label() + ket_two.label();
+    }
+    else
+    {
+        const auto bra_one = Tensor(integral[0]);
+        
+        const auto bra_two = Tensor(integral[1]);
+        
+        label += bra_one.label() + bra_two.label() + "xx"; 
+    }
+    
+    return fstr::lowercase(label);
+}
+
+std::string
 prim_compute_func_name(const I4CIntegral& integral)
 {
     auto label =  "comp_prim_" + t4c::integral_split_label(integral) + "_" + integral.label();

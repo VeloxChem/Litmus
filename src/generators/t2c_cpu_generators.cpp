@@ -451,7 +451,6 @@ T2CCPUGenerator::_write_prim_cpp_file(const I2CIntegral& integral) const
     fstream.close();
 }
 
-
 void
 T2CCPUGenerator::_write_prim_cpp_includes(      std::ofstream& fstream,
                                           const I2CIntegral&   integral) const

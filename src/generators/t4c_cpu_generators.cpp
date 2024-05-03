@@ -25,6 +25,12 @@
 #include "t4c_docs.hpp"
 #include "t4c_decl.hpp"
 #include "t4c_body.hpp"
+#include "t4c_prim_docs.hpp"
+#include "t4c_prim_decl.hpp"
+#include "t4c_prim_body.hpp"
+#include "t4c_hrr_docs.hpp"
+#include "t4c_hrr_decl.hpp"
+#include "t4c_hrr_body.hpp"
 
 #include "v4i_eri_driver.hpp"
 
@@ -56,40 +62,32 @@ T4CCPUGenerator::generate(const std::string&        label,
                         const auto vrr_integrals = _generate_vrr_integral_group(integral, hrr_integrals);
                         
                         _write_cpp_header(bra_integrals, ket_integrals, vrr_integrals, integral);
-                        
-                       // _write_cpp_file(bra_integrals, ket_integrals, vrr_integrals, integral);
-                        
-                        std::cout << "***  Integral *** " << integral.label() << " : " << integral.integrand().name() << std::endl;
-                        
-                        std::cout << "-> bra hrr outcome:" << std::endl;
-                        
-                        for (const auto& tint : bra_integrals)
-                        {
-                            std::cout << tint.label() << " : " << tint.integrand().name() << std::endl;
-                        }
-                        
-                        std::cout << "-> ket hrr outcome:" << std::endl;
-                        
-                        for (const auto& tint : ket_integrals)
-                        {
-                            std::cout << tint.label() << " : " << tint.integrand().name() << std::endl;
-                        }
-                        
-                        std::cout << "-> full hrr outcome:" << std::endl;
-                        
-                        for (const auto& tint : hrr_integrals)
-                        {
-                            std::cout << tint.label() << " : " << tint.integrand().name() << std::endl;
-                        }
-                        
-                        std::cout << "-> vrr outcome:"  << vrr_integrals.size() << std::endl;
-                        
-                        for (const auto& tint : vrr_integrals)
-                        {
-                            std::cout << tint.label() << " : "  << tint.order() << " : " << tint.integrand().name() << std::endl;
-                        }
                     }
                 }
+            }
+        }
+        
+        for (int i = 0; i <= 2 * max_ang_mom; i++)
+        {
+            for (int j = 0; j <= 2 * max_ang_mom; j++)
+            {
+                const auto integral = _get_integral(label, {0, i, 0, j}, geom_drvs);
+                
+                _write_prim_cpp_header(integral);
+                
+                _write_prim_cpp_file(integral);
+            }
+        }
+        
+        for (int i = 1; i <= max_ang_mom; i++)
+        {
+            for (int j = i; j <= (2 * max_ang_mom - i) ; j++)
+            {
+                const auto integral = _get_integral(label, {0, 0, i, j}, geom_drvs);
+                
+                _write_ket_hrr_cpp_header(integral);
+                
+                _write_ket_hrr_cpp_file(integral);
             }
         }
     }
@@ -458,6 +456,214 @@ T4CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     lines.push_back({0, 0, 1, "#include \"T4CDistributor.hpp\""});
     
     lines.push_back({0, 0, 2, "#include \"T4CUtils.hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CCPUGenerator::_write_prim_cpp_header(const I4CIntegral& integral) const
+{
+    auto fname = t4c::prim_file_name(integral) + ".hpp";
+        
+    std::ofstream fstream;
+               
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_prim_hpp_defines(fstream, integral, true);
+    
+    _write_prim_hpp_includes(fstream, integral);
+
+    _write_namespace(fstream, integral, true);
+
+    T4CPrimDocuDriver docs_drv;
+
+    docs_drv.write_doc_str(fstream, integral);
+
+    T4CPrimDeclDriver decl_drv;
+
+    decl_drv.write_func_decl(fstream, integral, true);
+
+    _write_namespace(fstream, integral, false);
+    
+    _write_prim_hpp_defines(fstream, integral, false);
+    
+    fstream.close();
+}
+
+void
+T4CCPUGenerator::_write_prim_hpp_defines(      std::ofstream& fstream,
+                                         const I4CIntegral&   integral,
+                                         const bool           start) const
+{
+    auto fname = t4c::prim_file_name(integral) + "_hpp";
+    
+    auto lines = VCodeLines();
+ 
+    if (start)
+    {
+        lines.push_back({0, 0, 1, "#ifndef " + fname});
+        
+        lines.push_back({0, 0, 2, "#define " + fname});
+    }
+    else
+    {
+        lines.push_back({0, 0, 1, "#endif /* " + fname + " */"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CCPUGenerator::_write_prim_hpp_includes(      std::ofstream& fstream,
+                                          const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"SimdArray.hpp\""});
+        
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CCPUGenerator::_write_prim_cpp_file(const I4CIntegral& integral) const
+{
+    auto fname = t4c::prim_file_name(integral) + ".cpp";
+        
+    std::ofstream fstream;
+        
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    _write_prim_cpp_includes(fstream, integral);
+
+    _write_namespace(fstream, integral, true);
+
+    T4CPrimDeclDriver decl_drv;
+    
+    decl_drv.write_func_decl(fstream, integral, false);
+
+    T4CPrimFuncBodyDriver func_drv;
+
+    func_drv.write_func_body(fstream, integral);
+    
+    fstream << std::endl;
+    
+    _write_namespace(fstream, integral, false);
+        
+    fstream.close();
+}
+
+void
+T4CCPUGenerator::_write_prim_cpp_includes(      std::ofstream& fstream,
+                                          const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + t4c::prim_file_name(integral) +  ".hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CCPUGenerator::_write_ket_hrr_cpp_header(const I4CIntegral& integral) const
+{
+    auto fname = t4c::ket_hrr_file_name(integral) + ".hpp";
+        
+    std::ofstream fstream;
+               
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_ket_hrr_hpp_defines(fstream, integral, true);
+    
+    _write_ket_hrr_hpp_includes(fstream, integral);
+
+    _write_namespace(fstream, integral, true);
+
+    T4CHrrDocuDriver docs_drv;
+
+    docs_drv.write_ket_doc_str(fstream, integral);
+
+    T4CHrrDeclDriver decl_drv;
+
+    decl_drv.write_ket_func_decl(fstream, integral, true);
+
+    _write_namespace(fstream, integral, false);
+    
+    _write_ket_hrr_hpp_defines(fstream, integral, false);
+    
+    fstream.close();
+}
+
+void
+T4CCPUGenerator::_write_ket_hrr_hpp_defines(      std::ofstream& fstream,
+                                            const I4CIntegral&   integral,
+                                            const bool           start) const
+{
+    auto fname = t4c::ket_hrr_file_name(integral) + "_hpp";
+    
+    auto lines = VCodeLines();
+ 
+    if (start)
+    {
+        lines.push_back({0, 0, 1, "#ifndef " + fname});
+        
+        lines.push_back({0, 0, 2, "#define " + fname});
+    }
+    else
+    {
+        lines.push_back({0, 0, 1, "#endif /* " + fname + " */"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CCPUGenerator::_write_ket_hrr_hpp_includes(      std::ofstream& fstream,
+                                             const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"SimdArray.hpp\""});
+        
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CCPUGenerator::_write_ket_hrr_cpp_file(const I4CIntegral& integral) const
+{
+    auto fname = t4c::ket_hrr_file_name(integral) + ".cpp";
+        
+    std::ofstream fstream;
+        
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    _write_ket_hrr_cpp_includes(fstream, integral);
+
+    _write_namespace(fstream, integral, true);
+
+    T4CHrrDeclDriver decl_drv;
+    
+    decl_drv.write_ket_func_decl(fstream, integral, false);
+
+    T4CHrrFuncBodyDriver func_drv;
+
+    func_drv.write_ket_func_body(fstream, integral);
+    
+    fstream << std::endl;
+    
+    _write_namespace(fstream, integral, false);
+        
+    fstream.close();
+}
+
+void
+T4CCPUGenerator::_write_ket_hrr_cpp_includes(      std::ofstream& fstream,
+                                          const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + t4c::ket_hrr_file_name(integral) +  ".hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"TensorComponents.hpp\""});
     
     ost::write_code_lines(fstream, lines);
 }

@@ -52,6 +52,13 @@ std::string compute_func_name(const I4CIntegral& integral);
 std::string get_buffer_label(const I4CIntegral& integral,
                              const std::string& prefix);
 
+/// Generates horizontal recursion integral buffer label.
+/// @param integral The base two center integral.
+/// @param use_ket The flag to use ket as primary label.
+/// @return The string with integral label.
+std::string get_hrr_buffer_label(const I4CIntegral& integral,
+                                 const bool         use_ket);
+
 /// Generates primitive compute function name.
 /// @param integral The base two center integral.
 /// @return The primitive compute function name.

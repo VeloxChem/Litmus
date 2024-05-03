@@ -950,6 +950,16 @@ T4CFuncBodyDriver::_add_vrr_call_tree(      VCodeLines&  lines,
                 }
             }
             
+//            if ((tint[1] > 1) && (tint[3] == 0))
+//            {
+//                label += "a_exp, b_exp";
+//            }
+//
+//            if ((tint[1] == 0) && (tint[3] > 1))
+//            {
+//                label += "c_exps[0], d_exps[0]";
+//            }
+            
             if ((tint[1] + tint[3]) > 1)
             {
                 label += "a_exp, b_exp, c_exps[0], d_exps[0]";
