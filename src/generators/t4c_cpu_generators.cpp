@@ -90,6 +90,18 @@ T4CCPUGenerator::generate(const std::string&        label,
                 _write_ket_hrr_cpp_file(integral);
             }
         }
+        
+        for (int i = 1; i <= max_ang_mom; i++)
+        {
+            for (int j = i; j <= (2 * max_ang_mom - i) ; j++)
+            {
+                const auto integral = _get_integral(label, {i, j, 0, 0}, geom_drvs);
+                
+                _write_bra_hrr_cpp_header(integral);
+                
+                _write_bra_hrr_cpp_file(integral);
+            }
+        }
     }
     else
     {
@@ -662,6 +674,111 @@ T4CCPUGenerator::_write_ket_hrr_cpp_includes(      std::ofstream& fstream,
     auto lines = VCodeLines();
     
     lines.push_back({0, 0, 2, "#include \"" + t4c::ket_hrr_file_name(integral) +  ".hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"TensorComponents.hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CCPUGenerator::_write_bra_hrr_cpp_header(const I4CIntegral& integral) const
+{
+    auto fname = t4c::bra_hrr_file_name(integral) + ".hpp";
+        
+    std::ofstream fstream;
+               
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_bra_hrr_hpp_defines(fstream, integral, true);
+    
+    _write_bra_hrr_hpp_includes(fstream, integral);
+
+    _write_namespace(fstream, integral, true);
+
+    T4CHrrDocuDriver docs_drv;
+
+    docs_drv.write_bra_doc_str(fstream, integral);
+
+    T4CHrrDeclDriver decl_drv;
+
+    decl_drv.write_bra_func_decl(fstream, integral, true);
+
+    _write_namespace(fstream, integral, false);
+    
+    _write_bra_hrr_hpp_defines(fstream, integral, false);
+    
+    fstream.close();
+}
+
+void
+T4CCPUGenerator::_write_bra_hrr_hpp_defines(      std::ofstream& fstream,
+                                            const I4CIntegral&   integral,
+                                            const bool           start) const
+{
+    auto fname = t4c::bra_hrr_file_name(integral) + "_hpp";
+    
+    auto lines = VCodeLines();
+ 
+    if (start)
+    {
+        lines.push_back({0, 0, 1, "#ifndef " + fname});
+        
+        lines.push_back({0, 0, 2, "#define " + fname});
+    }
+    else
+    {
+        lines.push_back({0, 0, 1, "#endif /* " + fname + " */"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CCPUGenerator::_write_bra_hrr_hpp_includes(      std::ofstream& fstream,
+                                             const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"SimdArray.hpp\""});
+        
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CCPUGenerator::_write_bra_hrr_cpp_file(const I4CIntegral& integral) const
+{
+    auto fname = t4c::bra_hrr_file_name(integral) + ".cpp";
+        
+    std::ofstream fstream;
+        
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    _write_bra_hrr_cpp_includes(fstream, integral);
+
+    _write_namespace(fstream, integral, true);
+
+    T4CHrrDeclDriver decl_drv;
+    
+    decl_drv.write_bra_func_decl(fstream, integral, false);
+
+    T4CHrrFuncBodyDriver func_drv;
+
+    func_drv.write_bra_func_body(fstream, integral);
+    
+    fstream << std::endl;
+    
+    _write_namespace(fstream, integral, false);
+        
+    fstream.close();
+}
+
+void
+T4CCPUGenerator::_write_bra_hrr_cpp_includes(      std::ofstream& fstream,
+                                          const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + t4c::bra_hrr_file_name(integral) +  ".hpp\""});
     
     lines.push_back({0, 0, 2, "#include \"TensorComponents.hpp\""});
     

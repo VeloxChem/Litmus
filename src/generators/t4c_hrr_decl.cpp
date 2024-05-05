@@ -105,3 +105,90 @@ T4CHrrDeclDriver::_get_ket_recursion_variables_str(const I4CIntegral& integral,
  
     return vstr;
 }
+
+void
+T4CHrrDeclDriver::write_bra_func_decl(      std::ofstream& fstream,
+                                      const I4CIntegral&   integral,
+                                      const bool           terminus) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "auto"});
+    
+    for (const auto& label : _get_bra_buffers_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_bra_coordinates_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_bra_recursion_variables_str(integral, terminus))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+        
+    ost::write_code_lines(fstream, lines);
+}
+
+std::vector<std::string>
+T4CHrrDeclDriver::_get_bra_buffers_str(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    auto name = t4c::ket_hrr_compute_func_name(integral) + "(";
+    
+    const auto spacer = std::string(name.size(), ' ');
+    
+    auto label = t4c::get_hrr_buffer_label(integral, false);
+    
+    vstr.push_back(name + "CSimdArray<double>& " + label + "," );
+    
+    for (const auto& tint : t4c::get_bra_hrr_integrals(integral))
+    {
+        auto label = t4c::get_hrr_buffer_label(tint, false);
+        
+        vstr.push_back(spacer + "const CSimdArray<double>& " + label + "," );
+    }
+    
+    return vstr;
+}
+
+std::vector<std::string>
+T4CHrrDeclDriver::_get_bra_coordinates_str(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    auto name = t4c::ket_hrr_compute_func_name(integral) + "(";
+    
+    const auto spacer = std::string(name.size(), ' ');
+   
+    vstr.push_back(spacer + "const double ab_x,");
+        
+    vstr.push_back(spacer + "const double ab_y,");
+        
+    vstr.push_back(spacer + "const double ab_z,");
+        
+    return vstr;
+}
+
+std::vector<std::string>
+T4CHrrDeclDriver::_get_bra_recursion_variables_str(const I4CIntegral& integral,
+                                                   const bool         terminus) const
+{
+    std::vector<std::string> vstr;
+    
+    const auto tsymbol = (terminus) ? ";" : "";
+    
+    auto name = t4c::ket_hrr_compute_func_name(integral) + "(";
+    
+    const auto spacer = std::string(name.size(), ' ');
+    
+    vstr.push_back(spacer + "const int c_angmom,");
+        
+    vstr.push_back(spacer + "const int d_angmom) -> void" + tsymbol);
+ 
+    return vstr;
+}

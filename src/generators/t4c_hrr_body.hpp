@@ -43,6 +43,20 @@ class T4CHrrFuncBodyDriver
                                                   const VT4CIntegrals&      components,
                                                   const std::array<int, 2>& rec_range) const;
     
+    /// Generates vector of buffer strings.
+    /// @param integral The base four center integral.
+    /// @return The vector of buffer strings.
+    std::vector<std::string> _get_bra_buffers_str(const I4CIntegral& integral) const;
+    
+    /// Generates vector of buffer strings.
+    /// @param integral The base four center integral.
+    /// @param components The vector of integral components.
+    /// @param rec_range The recursion range [first, last) in integral components space.
+    /// @return The vector of buffer strings.
+    std::vector<std::string> _get_bra_buffers_str(const I4CIntegral&        integral,
+                                                  const VT4CIntegrals&      components,
+                                                  const std::array<int, 2>& rec_range) const;
+    
     /// Gets tensor label for integral.
     /// @param integral The base four center integral.
     /// @return The tensorial label.
@@ -63,12 +77,6 @@ class T4CHrrFuncBodyDriver
                                  const VT4CIntegrals&      components,
                                  const std::array<int, 2>& rec_range) const;
     
-    
-    /// Adds single loop computation of primitive integrals.
-    /// @param lines The code lines container to which loop start definition are added.
-    void _get_factor_lines(      VCodeLines&           lines,
-                           const std::vector<R4CDist>& rec_distributions) const;
-    
     /// Gets pragma string for vector of recursion distributions.
     /// @param integral The base four center integral.
     std::string _get_ket_pragma_str(const I4CIntegral& integral,
@@ -82,14 +90,46 @@ class T4CHrrFuncBodyDriver
     /// Creates code line for recursion expansion.
     /// @param rec_distribution The recursion distribution
     /// @return The string with code line.
-    std::string _get_code_line(const R4CDist& rec_distribution) const;
+    std::string _get_ket_code_line(const R4CDist& rec_distribution) const;
     
     /// Creates code string for recursion term.
     /// @param rec_term The recursion distribution.
     /// @param is_first The flag to indicate first term in recursion expnasion.
     /// @return The string with code term.
-    std::string _get_rterm_code(const R4CTerm& rec_term,
-                                const bool     is_first) const;
+    std::string _get_ket_rterm_code(const R4CTerm& rec_term,
+                                    const bool     is_first) const;
+    
+    /// Adds single loop computation of primitive integrals.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base four center integral.
+    /// @param components The vector of integral components.
+    /// @param rec_range The recursion range [first, last) in integral components space.
+    void _add_bra_recursion_loop(      VCodeLines&         lines,
+                                 const I4CIntegral&        integral,
+                                 const VT4CIntegrals&      components,
+                                 const std::array<int, 2>& rec_range) const;
+    
+    /// Gets pragma string for vector of recursion distributions.
+    /// @param integral The base four center integral.
+    std::string _get_bra_pragma_str(const I4CIntegral& integral,
+                                    const std::vector<R4CDist>& rec_distributions) const;
+    
+    /// Computes ket horizontal recursion for integral component.
+    /// @param integral The base four center integral component.
+    /// @return The recursion expansion of integral component.
+    R4CDist _get_bra_hrr_recursion(const T4CIntegral& integral) const;
+    
+    /// Creates code line for recursion expansion.
+    /// @param rec_distribution The recursion distribution
+    /// @return The string with code line.
+    std::string _get_bra_code_line(const R4CDist& rec_distribution) const;
+    
+    /// Creates code string for recursion term.
+    /// @param rec_term The recursion distribution.
+    /// @param is_first The flag to indicate first term in recursion expnasion.
+    /// @return The string with code term.
+    std::string _get_bra_rterm_code(const R4CTerm& rec_term,
+                                    const bool     is_first) const;
     
     /// Gets integral component label.
     /// @param integral The base four center integral component.
@@ -110,6 +150,21 @@ class T4CHrrFuncBodyDriver
     /// @param integral The base four center integral component.
     /// @return The string with integral offset label.
     std::string _get_ket_offset_label(const I4CIntegral& integral) const;
+    
+    /// Gets integral component label.
+    /// @param integral The base four center integral component.
+    /// @return The string with integral component label.
+    std::string _get_bra_component_label(const T4CIntegral& integral) const;
+    
+    /// Gets integral offset definition.
+    /// @param integral The base four center integral component.
+    /// @return The string with integral offset definition.
+    std::string _get_bra_offset_def(const I4CIntegral& integral) const;
+    
+    /// Gets integral offset label.
+    /// @param integral The base four center integral component.
+    /// @return The string with integral offset label.
+    std::string _get_bra_offset_label(const I4CIntegral& integral) const;
 
 public:
     /// Creates a two-center compute function body generator.
@@ -119,6 +174,12 @@ public:
     /// @param fstream the file stream.
     /// @param integral The base four center integral.
     void write_ket_func_body(      std::ofstream& fstream,
+                             const I4CIntegral&   integral) const;
+    
+    /// Writes body of primitive compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base four center integral.
+    void write_bra_func_body(      std::ofstream& fstream,
                              const I4CIntegral&   integral) const;
 };
 

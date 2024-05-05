@@ -47,6 +47,34 @@ T4CHrrDocuDriver::write_ket_doc_str(      std::ofstream& fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+void
+T4CHrrDocuDriver::write_bra_doc_str(      std::ofstream& fstream,
+                                    const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, _get_bra_compute_str(integral)});
+    
+    // TODO: Add special variables here
+    
+    for (const auto& label : _get_bra_buffers_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_bra_coordinates_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_bra_recursion_variables_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
 std::string
 T4CHrrDocuDriver::_get_ket_compute_str(const I4CIntegral& integral) const
 {
@@ -107,3 +135,65 @@ T4CHrrDocuDriver::_get_ket_recursion_variables_str(const I4CIntegral& integral) 
                        
     return vstr;
 }
+
+std::string
+T4CHrrDocuDriver::_get_bra_compute_str(const I4CIntegral& integral) const
+{
+    const auto bra_one = Tensor(integral[0]);
+    
+    const auto bra_two = Tensor(integral[1]);
+    
+    const auto integrand = integral.integrand();
+    
+    auto label = "/// Computes (" +  bra_one.label() + bra_two.label() + "|";
+   
+    label += t4c::integrand_label(integral.integrand()) + "XX)  integrals for set of data buffers.";
+    
+    return label;
+}
+
+std::vector<std::string>
+T4CHrrDocuDriver::_get_bra_buffers_str(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    auto label = t4c::get_hrr_buffer_label(integral, false);
+    
+    vstr.push_back("/// - Parameter " + label + ": the contracted integrals buffer.");
+    
+    for (const auto& tint : t4c::get_bra_hrr_integrals(integral))
+    {
+        auto label = t4c::get_hrr_buffer_label(tint, false);
+        
+        vstr.push_back("/// - Parameter " + label + ": the contracted integrals buffer.");
+    }
+
+    return vstr;
+}
+
+std::vector<std::string>
+T4CHrrDocuDriver::_get_bra_coordinates_str(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+   
+    vstr.push_back("/// - Parameter ab_x: the Cartesian X distance R(AB) = A - B.");
+    
+    vstr.push_back("/// - Parameter ab_y: the Cartesian Y distance R(AB) = A - B.");
+    
+    vstr.push_back("/// - Parameter ab_z: the Cartesian Z distance R(AB) = A - B.");
+        
+    return vstr;
+}
+
+std::vector<std::string>
+T4CHrrDocuDriver::_get_bra_recursion_variables_str(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("/// - Parameter c_angmom: the angular momentum on center C.");
+    
+    vstr.push_back("/// - Parameter d_angmom: the angular momentum on center D.");
+                       
+    return vstr;
+}
+

@@ -46,6 +46,26 @@ class T4CHrrDocuDriver
     /// @return The vector of recursion variables strings.
     std::vector<std::string> _get_ket_recursion_variables_str(const I4CIntegral& integral) const;
     
+    /// Generates compute string.
+    /// @param integral The base two center integral.
+    /// @return The compute string.
+    std::string _get_bra_compute_str(const I4CIntegral& integral) const;
+    
+    /// Generates vector of buffer strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffer strings.
+    std::vector<std::string> _get_bra_buffers_str(const I4CIntegral& integral) const;
+    
+    /// Generates vector of coordinates strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of coordinates strings.
+    std::vector<std::string> _get_bra_coordinates_str(const I4CIntegral& integral) const;
+    
+    /// Generates vector of recursion variables strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of recursion variables strings.
+    std::vector<std::string> _get_bra_recursion_variables_str(const I4CIntegral& integral) const;
+    
 public:
     /// Creates a primtive four-center documentation generator.
     T4CHrrDocuDriver() = default;
@@ -54,6 +74,12 @@ public:
     /// @param fstream the file stream.
     /// @param integral The base four center integral.
     void write_ket_doc_str(      std::ofstream& fstream,
+                           const I4CIntegral&   integral) const;
+    
+    /// Writes documentation string for primtive compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base four center integral.
+    void write_bra_doc_str(      std::ofstream& fstream,
                            const I4CIntegral&   integral) const;
     
 };
