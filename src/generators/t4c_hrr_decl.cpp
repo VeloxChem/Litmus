@@ -138,7 +138,7 @@ T4CHrrDeclDriver::_get_bra_buffers_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    auto name = t4c::ket_hrr_compute_func_name(integral) + "(";
+    auto name = t4c::bra_hrr_compute_func_name(integral) + "(";
     
     const auto spacer = std::string(name.size(), ' ');
     

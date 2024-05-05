@@ -247,7 +247,7 @@ T4CHrrFuncBodyDriver::_get_bra_buffers_str(const I4CIntegral&        integral,
     {
         const auto line = "auto " + _get_bra_component_label(components[i]) + " = " + label;
         
-        vstr.push_back(line + "[" + _get_bra_offset_label(integral) + " + " + std::to_string(i) + "];");
+        vstr.push_back(line + "[" + _get_bra_offset_label(integral) + " + " + std::to_string(i) + " * ccomps * dcomps];");
     }
     
     return vstr;
@@ -561,7 +561,7 @@ T4CHrrFuncBodyDriver::_get_bra_rterm_code(const R4CTerm& rec_term,
     {
         plabel+= " * " + fact.label();
             
-        if (fact.order() > 0) plabel += "[k]";
+        //if (fact.order() > 0) plabel += "[k]";
     }
     
     if (!is_first)
@@ -638,7 +638,7 @@ T4CHrrFuncBodyDriver::_get_bra_offset_def(const I4CIntegral& integral) const
     
     auto label = "const auto " + _get_bra_offset_label(integral) + " = ";
     
-    label += "(i * dcomps + j) + " + tlabel + " * ccomps * dcomps;";
+    label += "i * dcomps + j;";
     
     return fstr::lowercase(label);
 }
