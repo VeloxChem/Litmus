@@ -127,13 +127,13 @@ T4CFuncBodyDriver::_get_gto_pairs_def(const bool diagonal) const
         
         vstr.push_back("const auto b_coords_z = gto_pair_block.ket_coordinates_z();");
         
-        vstr.push_back("const auto a_exps = gto_pair_block.bra_exponents();");
+        vstr.push_back("const auto a_vec_exps = gto_pair_block.bra_exponents();");
         
-        vstr.push_back("const auto b_exps = gto_pair_block.ket_exponents();");
+        vstr.push_back("const auto b_vec_exps = gto_pair_block.ket_exponents();");
         
-        vstr.push_back("const auto ab_norms = gto_pair_block.normalization_factors();");
+        vstr.push_back("const auto ab_vec_norms = gto_pair_block.normalization_factors();");
         
-        vstr.push_back("const auto ab_ovls = gto_pair_block.overlap_factors();");
+        vstr.push_back("const auto ab_vec_ovls = gto_pair_block.overlap_factors();");
         
         vstr.push_back("const auto a_indices = gto_pair_block.bra_orbital_indices();");
         
@@ -161,13 +161,13 @@ T4CFuncBodyDriver::_get_gto_pairs_def(const bool diagonal) const
         
         vstr.push_back("const auto b_coords_z = bra_gto_pair_block.ket_coordinates_z();");
         
-        vstr.push_back("const auto a_exps = bra_gto_pair_block.bra_exponents();");
+        vstr.push_back("const auto a_vec_exps = bra_gto_pair_block.bra_exponents();");
         
-        vstr.push_back("const auto b_exps = bra_gto_pair_block.ket_exponents();");
+        vstr.push_back("const auto b_vec_exps = bra_gto_pair_block.ket_exponents();");
         
-        vstr.push_back("const auto ab_norms = bra_gto_pair_block.normalization_factors();");
+        vstr.push_back("const auto ab_vec_norms = bra_gto_pair_block.normalization_factors();");
         
-        vstr.push_back("const auto ab_ovls = bra_gto_pair_block.overlap_factors();");
+        vstr.push_back("const auto ab_vec_ovls = bra_gto_pair_block.overlap_factors();");
         
         vstr.push_back("const auto a_indices = bra_gto_pair_block.bra_orbital_indices();");
         
@@ -193,13 +193,13 @@ T4CFuncBodyDriver::_get_gto_pairs_def(const bool diagonal) const
         
         vstr.push_back("const auto d_coords_z = ket_gto_pair_block.ket_coordinates_z();");
         
-        vstr.push_back("const auto c_exps = ket_gto_pair_block.bra_exponents();");
+        vstr.push_back("const auto c_vec_exps = ket_gto_pair_block.bra_exponents();");
         
-        vstr.push_back("const auto d_exps = ket_gto_pair_block.ket_exponents();");
+        vstr.push_back("const auto d_vec_exps = ket_gto_pair_block.ket_exponents();");
         
-        vstr.push_back("const auto cd_norms = ket_gto_pair_block.normalization_factors();");
+        vstr.push_back("const auto cd_vec_norms = ket_gto_pair_block.normalization_factors();");
         
-        vstr.push_back("const auto cd_ovls = ket_gto_pair_block.overlap_factors();");
+        vstr.push_back("const auto cd_vec_ovls = ket_gto_pair_block.overlap_factors();");
         
         vstr.push_back("const auto c_indices = ket_gto_pair_block.bra_orbital_indices();");
         
@@ -269,13 +269,13 @@ T4CFuncBodyDriver::_get_ket_variables_def(const bool diagonal) const
 
         vstr.push_back("d_z.replicate(b_coords_z, ket_indices, npgtos);");
 
-        vstr.push_back("c_exps.load(a_exps, ket_indices, npgtos);");
+        vstr.push_back("c_exps.load(a_vec_exps, ket_indices, npgtos);");
         
-        vstr.push_back("d_exps.load(b_exps, ket_indices, npgtos);");
+        vstr.push_back("d_exps.load(b_vec_exps, ket_indices, npgtos);");
 
-        vstr.push_back("cd_norms.load(ab_norms, ket_indices, npgtos);");
+        vstr.push_back("cd_norms.load(ab_vec_norms, ket_indices, npgtos);");
         
-        vstr.push_back("cd_ovls.load(ab_ovls, ket_indices, npgtos);");
+        vstr.push_back("cd_ovls.load(ab_vec_ovls, ket_indices, npgtos);");
     }
     else
     {
@@ -291,13 +291,13 @@ T4CFuncBodyDriver::_get_ket_variables_def(const bool diagonal) const
 
         vstr.push_back("d_z.replicate(d_coords_z, ket_indices, ket_npgtos);");
 
-        vstr.push_back("c_exps.load(c_exps, ket_indices, ket_npgtos);");
+        vstr.push_back("c_exps.load(c_vec_exps, ket_indices, ket_npgtos);");
         
-        vstr.push_back("d_exps.load(d_exps, ket_indices, ket_npgtos);");
+        vstr.push_back("d_exps.load(d_vec_exps, ket_indices, ket_npgtos);");
 
-        vstr.push_back("cd_norms.load(cd_norms, ket_indices, ket_npgtos);");
+        vstr.push_back("cd_norms.load(cd_vec_norms, ket_indices, ket_npgtos);");
         
-        vstr.push_back("cd_ovls.load(cd_ovls, ket_indices, ket_npgtos);");
+        vstr.push_back("cd_ovls.load(cd_vec_ovls, ket_indices, ket_npgtos);");
     }
     
     return vstr;
@@ -779,23 +779,23 @@ T4CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
     
     if (diagonal && (integral[0] == integral[2]) && (integral[1] == integral[3]))
     {
-        lines.push_back({3, 0, 2, "const auto a_exp = a_exps[j * ncgtos + i];"});
+        lines.push_back({3, 0, 2, "const auto a_exp = a_vec_exps[j * ncgtos + i];"});
         
-        lines.push_back({3, 0, 2, "const auto b_exp = b_exps[j * ncgtos + i];"});
+        lines.push_back({3, 0, 2, "const auto b_exp = b_vec_exps[j * ncgtos + i];"});
             
-        lines.push_back({3, 0, 2, "const auto ab_norm = ab_norms[j * ncgtos + i];"});
+        lines.push_back({3, 0, 2, "const auto ab_norm = ab_vec_norms[j * ncgtos + i];"});
         
-        lines.push_back({3, 0, 2, "const auto ab_ovl = ab_ovls[j * ncgtos + i];"});
+        lines.push_back({3, 0, 2, "const auto ab_ovl = ab_vec_ovls[j * ncgtos + i];"});
     }
     else
     {
-        lines.push_back({3, 0, 2, "const auto a_exp = a_exps[j * bra_ncgtos + i];"});
+        lines.push_back({3, 0, 2, "const auto a_exp = a_vec_exps[j * bra_ncgtos + i];"});
         
-        lines.push_back({3, 0, 2, "const auto b_exp = b_exps[j * bra_ncgtos + i];"});
+        lines.push_back({3, 0, 2, "const auto b_exp = b_vec_exps[j * bra_ncgtos + i];"});
             
-        lines.push_back({3, 0, 2, "const auto ab_norm = ab_norms[j * bra_ncgtos + i];"});
+        lines.push_back({3, 0, 2, "const auto ab_norm = ab_vec_norms[j * bra_ncgtos + i];"});
         
-        lines.push_back({3, 0, 2, "const auto ab_ovl = ab_ovls[j * bra_ncgtos + i];"});
+        lines.push_back({3, 0, 2, "const auto ab_ovl = ab_vec_ovls[j * bra_ncgtos + i];"});
     }
     
     lines.push_back({3, 0, 2, "const auto p_x = (a_x * a_exp + b_x * b_exp) / (a_exp + b_exp);"});
@@ -836,7 +836,7 @@ T4CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
     
     lines.push_back({3, 0, 2, "bf_table.compute(bf_values, bf_args);"});
     
-    lines.push_back({3, 0, 2, "t4cfunc::comp_ovl_factor(fss_abcd, ab_ovl, cd_ovls[0], ab_norm, cd_norms[0], a_exp, b_exp, c_exps[0], d_exps[0]);"});
+    lines.push_back({3, 0, 2, "t4cfunc::comp_ovl_factors(fss_abcd, ab_ovl, cd_ovls[0], ab_norm, cd_norms[0], a_exp, b_exp, c_exps[0], d_exps[0]);"});
 }
 
 void
@@ -905,7 +905,7 @@ T4CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&    lines,
         {
             const auto label = std::to_string(tint.order());
                     
-            lines.push_back({3, 0, 2, "erirec::comp_prim_electron_repulsion_ssss(prim_buffer_" + label + "_ssss, fss_abcd, bf_values[" + label + "]);"});
+            lines.push_back({3, 0, 2, "erirec::comp_prim_electron_repulsion_ssss(prim_buffer_" + label + "_ssss, fss_abcd[0], bf_values[" + label + "]);"});
             
             // TODO: other integrals...
         }

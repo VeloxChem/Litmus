@@ -83,11 +83,11 @@ T4CPrimDeclDriver::_get_coordinates_str(const I4CIntegral& integral,
    
     if (integral[1] > 0)
     {
-        vstr.push_back(spacer + "const double* pb_x,");
+        vstr.push_back(spacer + "const double pb_x,");
         
-        vstr.push_back(spacer + "const double* pb_y,");
+        vstr.push_back(spacer + "const double pb_y,");
         
-        vstr.push_back(spacer + "const double* pb_z,");
+        vstr.push_back(spacer + "const double pb_z,");
         
         vstr.push_back(spacer + "const double* wp_x,");
         

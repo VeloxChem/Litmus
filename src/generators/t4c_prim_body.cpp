@@ -215,7 +215,10 @@ T4CPrimFuncBodyDriver::_get_pragma_str(const I4CIntegral&          integral,
             
             for (const auto& fact : rdist[i].factors())
             {
-                if (fact.order() > 0) tlabels.insert(fact.label());
+                if ((fact.order() > 0) &&
+                    (fact.label() != "pb_x") &&
+                    (fact.label() != "pb_y") &&
+                    (fact.label() != "pb_z")) tlabels.insert(fact.label());
             }
         }
     }
@@ -227,7 +230,7 @@ T4CPrimFuncBodyDriver::_get_pragma_str(const I4CIntegral&          integral,
         label += tlabel + ", ";
     }
     
-    if ((integral[0] + integral[1]) > 1) label += "b_exps";
+    if ((integral[0] + integral[1]) > 1) label += "c_exps, d_exps ";
     
     if (label[label.size() - 2] == ',') label.erase(label.end() - 2);
     
@@ -358,7 +361,10 @@ T4CPrimFuncBodyDriver::_get_rterm_code(const R4CTerm& rec_term,
     {
         plabel+= " * " + fact.label();
             
-        if (fact.order() > 0) plabel += "[i]";
+        if ((fact.order() > 0)       &&
+            (fact.label() != "pb_x") &&
+            (fact.label() != "pb_y") &&
+            (fact.label() != "pb_z")) plabel += "[i]";
     }
     
     if (!is_first)

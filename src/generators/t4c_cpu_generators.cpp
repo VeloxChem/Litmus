@@ -347,9 +347,9 @@ T4CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
     
-    lines.push_back({0, 0, 1, "#include \"T4CDistributor.hpp\""});
-    
     lines.push_back({0, 0, 1, "#include \"T4CUtils.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"T2CUtils.hpp\""});
     
     lines.push_back({0, 0, 2, "#include \"GtoPairBlock.hpp\""});
    
@@ -465,9 +465,9 @@ T4CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
     
-    lines.push_back({0, 0, 1, "#include \"T4CDistributor.hpp\""});
+    lines.push_back({0, 0, 1, "#include \"T4CUtils.hpp\""});
     
-    lines.push_back({0, 0, 2, "#include \"T4CUtils.hpp\""});
+    lines.push_back({0, 0, 2, "#include \"T2CUtils.hpp\""});
     
     ost::write_code_lines(fstream, lines);
 }

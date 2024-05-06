@@ -95,11 +95,11 @@ T4CPrimDocuDriver::_get_coordinates_str(const I4CIntegral& integral) const
    
     if (integral[1] > 0)
     {
-        vstr.push_back("/// - Parameter pb_x: the vector of Cartesian X distances R(PB) = P - B.");
+        vstr.push_back("/// - Parameter pb_x: the Cartesian X distances R(PB) = P - B.");
                        
-        vstr.push_back("/// - Parameter pb_y: the vector of Cartesian Y distances R(PB) = P - B.");
+        vstr.push_back("/// - Parameter pb_y: the Cartesian Y distances R(PB) = P - B.");
                                       
-        vstr.push_back("/// - Parameter pb_z: the vector of Cartesian Z distances R(PB) = P - B.");
+        vstr.push_back("/// - Parameter pb_z: the Cartesian Z distances R(PB) = P - B.");
         
         vstr.push_back("/// - Parameter wp_x: the vector of Cartesian X distances R(WP) = W - P.");
                        
