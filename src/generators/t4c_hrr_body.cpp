@@ -40,11 +40,11 @@ T4CHrrFuncBodyDriver::write_ket_func_body(      std::ofstream& fstream,
     
     lines.push_back({1, 0, 2, "const auto bcomps = tensor::number_of_cartesian_components(b_angmom);"});
     
-    lines.push_back({1, 0, 1, "for (size_t i = 0; i < acomps; i++)"});
+    lines.push_back({1, 0, 1, "for (int i = 0; i < acomps; i++)"});
     
     lines.push_back({1, 0, 1, "{"});
     
-    lines.push_back({2, 0, 1, "for (size_t j = 0; j < bcomps; j++)"});
+    lines.push_back({2, 0, 1, "for (int j = 0; j < bcomps; j++)"});
     
     lines.push_back({2, 0, 1, "{"});
     
@@ -98,15 +98,15 @@ T4CHrrFuncBodyDriver::write_bra_func_body(      std::ofstream& fstream,
                               t4c::get_hrr_buffer_label(integral, false) +
                               ".number_of_columns();"});
     
-    lines.push_back({1, 0, 2, "const auto ccomps = tensor::number_of_cartesian_components(c_angmom);"});
+    lines.push_back({1, 0, 2, "const auto ccomps = tensor::number_of_spherical_components(c_angmom);"});
     
-    lines.push_back({1, 0, 2, "const auto dcomps = tensor::number_of_cartesian_components(d_angmom);"});
+    lines.push_back({1, 0, 2, "const auto dcomps = tensor::number_of_spherical_components(d_angmom);"});
     
-    lines.push_back({1, 0, 1, "for (size_t i = 0; i < ccomps; i++)"});
+    lines.push_back({1, 0, 1, "for (int i = 0; i < ccomps; i++)"});
     
     lines.push_back({1, 0, 1, "{"});
     
-    lines.push_back({2, 0, 1, "for (size_t j = 0; j < dcomps; j++)"});
+    lines.push_back({2, 0, 1, "for (int j = 0; j < dcomps; j++)"});
     
     lines.push_back({2, 0, 1, "{"});
     
@@ -220,7 +220,7 @@ T4CHrrFuncBodyDriver::_get_bra_buffers_str(const I4CIntegral& integral) const
         {
             auto line = "auto " + _get_bra_component_label(tcomp) + " = " + label;
             
-            line += "[" + _get_bra_offset_label(tint) + " + "  + std::to_string(index) + "];";
+            line += "[" + _get_bra_offset_label(tint) + " + "  + std::to_string(index) + " * ccomps * dcomps];";
             
             vstr.push_back(fstr::lowercase(line));
             
@@ -482,11 +482,6 @@ T4CHrrFuncBodyDriver::_get_bra_pragma_str(const I4CIntegral&          integral,
             auto tint = rdist[i].integral();
             
             tlabels.insert(_get_bra_component_label(tint));
-            
-            for (const auto& fact : rdist[i].factors())
-            {
-                if (fact.order() > 0) tlabels.insert(fact.label());
-            }
         }
     }
     
