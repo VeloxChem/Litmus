@@ -139,7 +139,7 @@ T4CFuncBodyDriver::_get_gto_pairs_def(const bool diagonal) const
         
         vstr.push_back("const auto b_indices = gto_pair_block.bra_orbital_indices();");
         
-        vstr.push_back("const auto ang_mom = gto_pair_block.angular_momentums();");
+        //vstr.push_back("const auto ang_mom = gto_pair_block.angular_momentums();");
         
         vstr.push_back("const auto ncgtos = gto_pair_block.number_of_contracted_pairs();");
         
@@ -173,7 +173,7 @@ T4CFuncBodyDriver::_get_gto_pairs_def(const bool diagonal) const
         
         vstr.push_back("const auto b_indices = bra_gto_pair_block.ket_orbital_indices();");
         
-        vstr.push_back("const auto bra_ang_mom = bra_gto_pair_block.angular_momentums();");
+        //vstr.push_back("const auto bra_ang_mom = bra_gto_pair_block.angular_momentums();");
         
         vstr.push_back("const auto bra_ncgtos = bra_gto_pair_block.number_of_contracted_pairs();");
         
@@ -205,9 +205,9 @@ T4CFuncBodyDriver::_get_gto_pairs_def(const bool diagonal) const
         
         vstr.push_back("const auto d_indices = ket_gto_pair_block.ket_orbital_indices();");
         
-        vstr.push_back("const auto ket_ang_mom = ket_gto_pair_block.angular_momentums();");
+        //vstr.push_back("const auto ket_ang_mom = ket_gto_pair_block.angular_momentums();");
         
-        vstr.push_back("const auto ket_ncgtos = ket_gto_pair_block.number_of_contracted_pairs();");
+        //vstr.push_back("const auto ket_ncgtos = ket_gto_pair_block.number_of_contracted_pairs();");
         
         vstr.push_back("const auto ket_npgtos = ket_gto_pair_block.number_of_contracted_pairs();");
     }
@@ -723,6 +723,15 @@ T4CFuncBodyDriver::_add_loop_start(      VCodeLines&    lines,
     lines.push_back({2, 0, 2, "const auto b_y = b_coords_y[i];"});
 
     lines.push_back({2, 0, 2, "const auto b_z = b_coords_z[i];"});
+    
+    if (integral[0] > 0)
+    {
+        lines.push_back({2, 0, 2, "const auto ab_x = a_x - b_x;"});
+
+        lines.push_back({2, 0, 2, "const auto ab_y = a_y - b_y;"});
+
+        lines.push_back({2, 0, 2, "const auto ab_z = a_z - b_z;"});
+    }
 }
 
 void
@@ -1046,7 +1055,7 @@ T4CFuncBodyDriver::_add_ket_trafo_call_tree(      VCodeLines&  lines,
                 
             label += "("  +  t4c::get_buffer_label(tint, "ket_spher") + ", ";
             
-            label += t4c::get_buffer_label(tint, "ket_contr") + ", ";
+            label += t4c::get_buffer_label(tint, "contr") + ", ";
             
             label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
                 

@@ -316,7 +316,7 @@ T4CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     
     for (const auto& tint : vrr_integrals)
     {
-        if (((tint[0] + tint[2]) == 0) && (tint.order() == 0))
+        if ((tint[0] + tint[2]) == 0)
         {
             labels.insert(t4c::prim_file_name(tint));
         }
@@ -436,7 +436,7 @@ T4CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
     
     for (const auto& tint : vrr_integrals)
     {
-        if (((tint[0] + tint[2]) == 0) && (tint.order() == 0))
+        if ((tint[0] + tint[2]) == 0)
         {
             labels.insert(t4c::prim_file_name(tint));
         }
