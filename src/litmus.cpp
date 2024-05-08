@@ -26,11 +26,15 @@
 int main(int argc, char **argv)
 {
     // run configuration
-    
+
+    // "Which kind of integral? # of centers", "which type of integral" (which operator is associated with it?)
     const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
     
-    const int max_ang_mom = 4;
+    const int max_ang_mom = 1;
     
+    // from t2c_cpu_generators.hpp:
+    /// MR: First index: Summation or not (more than one term in the operator associated with the integrals (if any))
+    /// Second index: False: Return as matrix(ces); true: Return as scalars ("Contracted"/"distributed")
     const auto rec_form = std::pair<bool, bool>({false, false});
     
     // set up start timer
@@ -38,11 +42,15 @@ int main(int argc, char **argv)
     auto stime = std::chrono::high_resolution_clock::now();
     
     // case: two-center integrals
-    
+
+    // Three-center also needed for RI generation; otherwise we get what we need for now with 2, 4
+
     if (run_type.first == "t2c_cpu")
     {
+    // a, operator, b
         const std::array<int, 3> geom_drvs = {0, 0, 0};
-        
+
+
         const auto t2c_drv = T2CCPUGenerator();
         
         t2c_drv.generate(run_type.second, max_ang_mom, geom_drvs, rec_form);
@@ -52,6 +60,7 @@ int main(int argc, char **argv)
     
     if (run_type.first == "t4c_cpu")
     {
+    // a, b, operator, c, d
         const std::array<int, 5> geom_drvs = {0, 0, 0, 0, 0};
         
         const auto t4c_drv = T4CCPUGenerator();
