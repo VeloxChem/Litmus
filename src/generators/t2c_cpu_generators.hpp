@@ -137,6 +137,8 @@ public:
     /// @param max_ang_mom The maximum angular momentum of A and B centers.
     /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+    /// MR: First index: Summation or not (more than one term in the operator associated with the integrals (if any))
+    /// Second index: False: Return as matrix(ces); true: Return as scalars ("Contracted"/"distributed")
     void generate(const std::string&           label,
                   const int                    max_ang_mom,
                   const std::array<int, 3>&    geom_drvs,
