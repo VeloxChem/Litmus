@@ -491,26 +491,6 @@ T4CFuncBodyDriver::_get_contr_buffers_def(const SI4CIntegrals& bra_integrals,
         }
     }
     
-//    for (const auto& tint : bra_integrals)
-//    {
-//        if ((tint[0] > 0) && (tint[2] == 0))
-//        {
-//            std::string label = "CSimdArray<double> ";
-//
-//            label += t4c::get_buffer_label(tint, "contr");
-//
-//            const auto angpair = std::array<int, 2>({tint[0], tint[1]});
-//
-//            auto tcomps = t2c::number_of_cartesian_components(angpair);
-//
-//            tcomps *= t2c::number_of_cartesian_components(tint[3]);
-//
-//            label += "(" + std::to_string(tcomps) + ", ket_dim);";
-//
-//            vstr.push_back(label);
-//        }
-//    }
-    
     if (!vstr.empty())
     {
         vstr.insert(vstr.begin(), "// allocate aligned contracted integrals");

@@ -609,6 +609,14 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
             {
                 lines.push_back({3, 0, 2, "kinrec::comp_prim_kinetic_energy_ss(prim_buffer_kin_ss, prim_buffer_ovl_ss, ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0]);"});
             }
+
+            // Here example of change
+            if ((tint.integrand().name() == "r") && (!in_sum_loop))
+            {
+                // arguments here: first three args just pushback args, then string to be printed: Need to analyze this for each integral situation but it will be guided by the pen/paper Obara-Saika results
+                // Xin and MR can here figure out what to put as arg names together
+                lines.push_back({3, 0, 2, "diprec::comp_prim_dipole_ss(prim_buffer_dip_ss, prim_buffer_ovl_ss, pc_x[0], pc_y[0], pc_z[0]);"});
+            }
             
             if ((tint.integrand().name() == "A"))
             {
@@ -625,6 +633,7 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
     }
 }
 
+// May need to change this for new integral situations
 void
 T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
                                   const SI2CIntegrals& integrals,
@@ -692,6 +701,7 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
     }
 }
 
+// May need to change this for new integral situations
 std::string
 T2CFuncBodyDriver::_get_arguments(const I2CIntegral& integral) const
 {

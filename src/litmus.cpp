@@ -28,12 +28,28 @@ int main(int argc, char **argv)
     // run configuration
 
     // "Which kind of integral? # of centers", "which type of integral" (which operator is associated with it?)
-    const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
-    
-    const int max_ang_mom = 1;
-    
+    // Keywords are listed in
+    // 2c: "overlap" "kinetic energy" "nuclear potential" "dipole moment"
+    // 4c: "electron repulsion"
+
+    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "dipole moment"});
+
+    const int max_ang_mom = 4;
+
+    // To add new integral
+    // (Be careful about scalar vs non-scalar integrals (see dipole for example of non-scalar)
+    // 1. Add to is_available
+    // 2. In get_integral, add appropriate entry (need operator name, rank of tensor representing operator rank if not scalar)
+    // 3. In /recursions, make a driver file to house the new recursion that is needed and fill it with the appropriate recursion code
+    // 4. Fill that file according to the example with comments for dipole integrals
+    // 5. Make a v2i driver file or eqv for 4-center and fill it according to the according example for dipole
+    // 6. In t2(4)c_utils, register any new operator "name cases" (various places in this file)
+    // 7. In t2(4)c_body, register any new operator "name cases" (up to three (two?) places in this file, marked)
+    // 8. In t2(4)c_cpu_generators, register any new operator "name cases", (marked)
+    // 9. In t2(4)c_prim_body, make any (marked) changes (remember includes)
+
     // from t2c_cpu_generators.hpp:
-    /// MR: First index: Summation or not (more than one term in the operator associated with the integrals (if any))
+    /// MR: First index: Summation or not (explicitly incorporate any multi-term nature in the operator associated with the integrals (if any))
     /// Second index: False: Return as matrix(ces); true: Return as scalars ("Contracted"/"distributed")
     const auto rec_form = std::pair<bool, bool>({false, false});
     

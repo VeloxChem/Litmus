@@ -22,6 +22,7 @@
 #include "t2c_ovl_driver.hpp"
 #include "t2c_kin_driver.hpp"
 #include "t2c_npot_driver.hpp"
+#include "t2c_dip_driver.hpp"
 
 void
 T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
@@ -136,6 +137,7 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const I2CIntegral&        integral,
     return vstr;
 }
 
+// MR: Change for new integral cases
 std::string
 T2CPrimFuncBodyDriver::_get_tensor_label(const I2CIntegral& integral) const
 {
@@ -146,10 +148,13 @@ T2CPrimFuncBodyDriver::_get_tensor_label(const I2CIntegral& integral) const
     if (integral.integrand().name() == "T") label = "tk";
     
     if (integral.integrand().name() == "A") label = "ta";
+
+    if (integral.integrand().name() == "r") label = "tr";
     
     return label;
 }
 
+// MR: Change for new integral cases
 std::string
 T2CPrimFuncBodyDriver::_get_tensor_label(const T2CIntegral& integral) const
 {
@@ -160,7 +165,9 @@ T2CPrimFuncBodyDriver::_get_tensor_label(const T2CIntegral& integral) const
     if (integral.integrand().name() == "T") label = "tk";
     
     if (integral.integrand().name() == "A") label = "ta";
-    
+
+    if (integral.integrand().name() == "r") label = "tr";
+
     return label;
 }
 
@@ -243,6 +250,7 @@ T2CPrimFuncBodyDriver::_get_pragma_str(const I2CIntegral&          integral,
     return label;
 }
 
+// MR: Possibly change for new integral cases
 void
 T2CPrimFuncBodyDriver::_get_factor_lines(                VCodeLines& lines,
                                          const std::vector<R2CDist>& rec_distributions) const
@@ -292,6 +300,7 @@ T2CPrimFuncBodyDriver::_get_factor_lines(                VCodeLines& lines,
     }
 }
 
+// MR: Change for new integral cases
 R2CDist
 T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
 {
@@ -324,7 +333,23 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
             rdist = kin_drv.apply_ket_vrr(R2CTerm(integral));
         }
     }
-    
+
+
+    if (integral.integrand().name() == "r")
+    {
+        T2CMultipoleDriver dip_drv;
+
+        if (integral[0].order() > 0)
+        {
+            rdist = dip_drv.apply_bra_vrr(R2CTerm(integral));
+        }
+        else
+        {
+            rdist = dip_drv.apply_ket_vrr(R2CTerm(integral));
+        }
+    }
+
+
     if (integral.integrand().name() == "A")
     {
         T2CNuclearPotentialDriver npot_drv;
@@ -361,6 +386,7 @@ T2CPrimFuncBodyDriver::_get_code_line(const R2CDist& rec_distribution) const
     return line + ";";
 }
 
+// MR: Change for new integral cases unlikely but not impossible
 std::string
 T2CPrimFuncBodyDriver::_get_rterm_code(const R2CTerm& rec_term,
                                        const bool     is_first) const
@@ -403,6 +429,7 @@ T2CPrimFuncBodyDriver::_get_rterm_code(const R2CTerm& rec_term,
     return plabel;
 }
 
+// MR: May need to change for new integral cases
 std::string
 T2CPrimFuncBodyDriver::_get_component_label(const T2CIntegral& integral) const
 {

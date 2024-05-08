@@ -32,6 +32,7 @@
 
 #include "v2i_ovl_driver.hpp"
 #include "v2i_kin_driver.hpp"
+#include "v2i_dip_driver.hpp"
 #include "v2i_npot_driver.hpp"
 
 void
@@ -51,7 +52,9 @@ T2CCPUGenerator::generate(const std::string&           label,
                 const auto integral = _get_integral(label, {i, j}, geom_drvs);
                 
                 const auto integrals = _generate_integral_group(integral);
-                
+
+                std::cout << integrals.size();
+
                 _write_cpp_header(integral, rec_form);
                 
                 _write_cpp_file(integrals, integral, rec_form);
@@ -72,10 +75,13 @@ T2CCPUGenerator::generate(const std::string&           label,
     }
 }
 
+// MR: Need changes here
 bool
 T2CCPUGenerator::_is_available(const std::string& label) const
 {
     if (fstr::lowercase(label) == "overlap") return true;
+
+    if (fstr::lowercase(label) == "dipole moment") return true;
     
     if (fstr::lowercase(label) == "kinetic energy") return true;
     
@@ -84,6 +90,7 @@ T2CCPUGenerator::_is_available(const std::string& label) const
     return false;
 }
 
+// MR: Needs changes for new cases
 I2CIntegral
 T2CCPUGenerator::_get_integral(const std::string&        label,
                                const std::array<int, 2>& ang_moms,
@@ -122,6 +129,14 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
     {
         return I2CIntegral(bra, ket, Operator("T"), 0, prefixes);
     }
+
+    // dipole moment integrals
+
+    if (fstr::lowercase(label) == "dipole moment")
+    {
+    /// Operator takes one or two arguments; first name, then optionally rank of tensor associated with operator
+        return I2CIntegral(bra, ket, Operator("r", Tensor(1)), 0, prefixes);
+    }
     
     // nuclear potential integrals
     
@@ -133,6 +148,7 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
     return I2CIntegral();
 }
 
+// MR: Changes here for new integral cases
 SI2CIntegrals
 T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
 {
@@ -153,7 +169,20 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
             /// TODO: ...
         }
     }
-    
+
+    // Dipole moment integrals
+
+    if (integral.integrand() == Operator("r", Tensor(1)))
+    {
+        V2IDipoleDriver dip_drv;
+
+        tints = dip_drv.create_recursion({integral,});
+
+        V2IOverlapDriver ovl_drv;
+
+        tints = ovl_drv.create_recursion(tints);
+    }
+
     // Kinetic energy integrals
     
     if (integral.integrand() == Operator("T"))

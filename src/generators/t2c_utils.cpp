@@ -21,11 +21,13 @@
 #include "string_formater.hpp"
 
 #include "v2i_ovl_driver.hpp"
+#include "v2i_dip_driver.hpp"
 #include "v2i_kin_driver.hpp"
 #include "v2i_npot_driver.hpp"
 
 namespace t2c { // t2c namespace
 
+// MR: Need to amend this for any new integral labels
 std::string
 integral_label(const I2CIntegral& integral)
 {
@@ -106,6 +108,8 @@ integral_label(const I2CIntegral& integral)
     return std::string();
 }
 
+// MR: Need to amend this for any new integral labels
+// Split label means that the string representation of the integral has got more than one parts and the parts are separated by underscores
 std::string
 integral_split_label(const I2CIntegral& integral)
 {
@@ -125,10 +129,16 @@ integral_split_label(const I2CIntegral& integral)
     {
         return "Overlap";
     }
+
+    if (integrand.name() == "r")
+    {
+        return "Dipole";
+    }
     
     return std::string();
 }
 
+// MR: Need to amend this for any new integral labels (this one is the name of the namespace to be used)
 std::string
 namespace_label(const I2CIntegral& integral)
 {
@@ -175,6 +185,8 @@ namespace_label(const I2CIntegral& integral)
     return std::string();
 }
 
+// MR: Need to amend this for any new integral labels
+// This one is the name of the operator when used in caption/documentation
 std::string
 integrand_label(const Operator& integrand)
 {
@@ -195,6 +207,7 @@ integrand_label(const Operator& integrand)
     return iname;
 }
 
+// Only relevant for geometric derivatives
 std::pair<std::string, std::string>
 prefixes_label(const I2CIntegral& integral)
 {
@@ -224,6 +237,7 @@ prefixes_label(const I2CIntegral& integral)
     return std::make_pair(bra_geom, ket_geom);
 }
 
+// No changes ever needed here
 std::vector<std::string>
 integrand_labels(const I2CIntegral& integral,
                  const std::string& prefix)
@@ -264,6 +278,7 @@ prim_file_name(const I2CIntegral& integral)
     return t2c::integral_label(integral) + "PrimRec" + integral.label();
 }
 
+// May need to amend this for new integral cases
 std::string
 get_buffer_label(const I2CIntegral& integral,
                  const std::string& prefix)
@@ -273,6 +288,8 @@ get_buffer_label(const I2CIntegral& integral,
     if (integral.integrand().name() == "1") label += "ovl_";
     
     if (integral.integrand().name() == "T") label += "kin_";
+
+    if (integral.integrand().name() == "r") label += "dip_";
     
     if (integral.integrand().name() == "A")
     {
@@ -292,6 +309,7 @@ prim_compute_func_name(const I2CIntegral& integral)
     return fstr::lowercase(label);
 }
 
+// May need to amend this for new integral cases
 SI2CIntegrals
 get_integrals(const I2CIntegral& integral)
 {
@@ -352,7 +370,31 @@ get_integrals(const I2CIntegral& integral)
             tints.insert(xint);
         }
     }
-    
+
+    if (integral.integrand().name() == "r")
+    {
+        V2IDipoleDriver dip_drv;
+
+        if (integral[0] > 0)
+        {
+            tints = dip_drv.bra_vrr(integral);
+        }
+        else
+        {
+            tints = dip_drv.ket_vrr(integral);
+        }
+
+        if ((integral[0] + integral[1]) == 0)
+        {
+            auto xint = integral.replace(Operator("1"));
+
+            xint.set_order(0);
+
+            tints.insert(xint);
+        }
+    }
+
+
     return tints;
 }
 
