@@ -30,9 +30,18 @@
 class T2CPrimFuncBodyDriver
 {
     /// Generates vector of buffer strings.
+    /// @param rec_dists The vector of recursion distributions.
     /// @param integral The base two center integral.
     /// @return The vector of buffer strings.
-    std::vector<std::string> _get_buffers_str(const I2CIntegral& integral) const;
+    std::vector<std::string> _get_buffers_str(const std::vector<R2CDist>& rec_dists,
+                                              const I2CIntegral&          integral) const;
+    
+    /// Checks if integral is needed by recursion.
+    /// @param rec_dists The vector of recursion distributions.
+    /// @param integral The base two center integral.
+    /// @return True if integral component is actually used in simplified recursion, False otherwise.
+    bool _find_integral(const std::vector<R2CDist>& rec_dists,
+                        const T2CIntegral&          integral) const;
     
     /// Generates vector of buffer strings.
     /// @param integral The base two center integral.

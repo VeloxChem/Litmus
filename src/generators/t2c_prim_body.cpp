@@ -36,12 +36,19 @@ T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
                               t2c::get_buffer_label(integral, "prim") +
                               ".number_of_columns();"});
     
-    for (const auto& label : _get_buffers_str(integral))
+    const auto components = integral.components<T1CPair, T1CPair>();
+    
+    std::vector<R2CDist> rec_dists;
+    
+    for (const auto& component : components)
+    {
+        rec_dists.push_back(_get_vrr_recursion(component));
+    }
+    
+    for (const auto& label : _get_buffers_str(rec_dists, integral))
     {
         lines.push_back({1, 0, 2, label});
     }
-    
-    const auto components = integral.components<T1CPair, T1CPair>();
     
     if ((integral[0] == 0) || (integral[1] == 0))
     {
@@ -81,7 +88,8 @@ T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
 }
 
 std::vector<std::string>
-T2CPrimFuncBodyDriver::_get_buffers_str(const I2CIntegral& integral) const
+T2CPrimFuncBodyDriver::_get_buffers_str(const std::vector<R2CDist>& rec_dists,
+                                        const I2CIntegral&          integral) const
 {
     std::vector<std::string> vstr;
     
@@ -97,15 +105,33 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const I2CIntegral& integral) const
         
         for (const auto& tcomp : tint.components<T1CPair, T1CPair>())
         {
-            const auto line = "auto " + _get_component_label(tcomp) + " = " + label;
-            
-            vstr.push_back(line + "[" + std::to_string(index) + "];");
+            if (_find_integral(rec_dists, tcomp))
+            {
+                const auto line = "auto " + _get_component_label(tcomp) + " = " + label;
+                
+                vstr.push_back(line + "[" + std::to_string(index) + "];");
+            }
             
             index++;
         }
     }
     
     return vstr;
+}
+
+bool
+T2CPrimFuncBodyDriver::_find_integral(const std::vector<R2CDist>& rec_dists,
+                                      const T2CIntegral&          integral) const
+{
+    for (const auto& rdist : rec_dists)
+    {
+        for (const auto& tint : rdist.unique_integrals())
+        {
+            if (integral == tint) return true;
+        }
+    }
+    
+    return false;
 }
 
 std::vector<std::string>

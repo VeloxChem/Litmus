@@ -32,7 +32,8 @@ class T4CHrrFuncBodyDriver
     /// Generates vector of buffer strings.
     /// @param integral The base four center integral.
     /// @return The vector of buffer strings.
-    std::vector<std::string> _get_ket_buffers_str(const I4CIntegral& integral) const;
+    std::vector<std::string> _get_ket_buffers_str(const std::vector<R4CDist>& rec_dists,
+                                                  const I4CIntegral&          integral) const;
     
     /// Generates vector of buffer strings.
     /// @param integral The base four center integral.
@@ -46,7 +47,8 @@ class T4CHrrFuncBodyDriver
     /// Generates vector of buffer strings.
     /// @param integral The base four center integral.
     /// @return The vector of buffer strings.
-    std::vector<std::string> _get_bra_buffers_str(const I4CIntegral& integral) const;
+    std::vector<std::string> _get_bra_buffers_str(const std::vector<R4CDist>& rec_dists,
+                                                  const I4CIntegral&          integral) const;
     
     /// Generates vector of buffer strings.
     /// @param integral The base four center integral.
@@ -56,6 +58,13 @@ class T4CHrrFuncBodyDriver
     std::vector<std::string> _get_bra_buffers_str(const I4CIntegral&        integral,
                                                   const VT4CIntegrals&      components,
                                                   const std::array<int, 2>& rec_range) const;
+    
+    /// Checks if integral is needed by recursion.
+    /// @param rec_dists The vector of recursion distributions.
+    /// @param integral The base two center integral.
+    /// @return True if integral component is actually used in simplified recursion, False otherwise.
+    bool _find_integral(const std::vector<R4CDist>& rec_dists,
+                        const T4CIntegral&          integral) const;
     
     /// Gets tensor label for integral.
     /// @param integral The base four center integral.

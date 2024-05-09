@@ -48,12 +48,19 @@ T4CHrrFuncBodyDriver::write_ket_func_body(      std::ofstream& fstream,
     
     lines.push_back({2, 0, 1, "{"});
     
-    for (const auto& label : _get_ket_buffers_str(integral))
+    const auto components = integral.components<T2CPair, T2CPair>();
+    
+    std::vector<R4CDist> rec_dists;
+    
+    for (const auto& component : components)
+    {
+        rec_dists.push_back(_get_ket_hrr_recursion(component));
+    }
+    
+    for (const auto& label : _get_ket_buffers_str(rec_dists, integral))
     {
         lines.push_back({3, 0, 2, label});
     }
-    
-    const auto components = integral.components<T2CPair, T2CPair>();
     
     const auto bcomps = t2c::number_of_cartesian_components(integral[2]);
     
@@ -110,12 +117,19 @@ T4CHrrFuncBodyDriver::write_bra_func_body(      std::ofstream& fstream,
     
     lines.push_back({2, 0, 1, "{"});
     
-    for (const auto& label : _get_bra_buffers_str(integral))
+    const auto components = integral.components<T2CPair, T2CPair>();
+    
+    std::vector<R4CDist> rec_dists;
+    
+    for (const auto& component : components)
+    {
+        rec_dists.push_back(_get_bra_hrr_recursion(component));
+    }
+    
+    for (const auto& label : _get_bra_buffers_str(rec_dists, integral))
     {
         lines.push_back({3, 0, 2, label});
     }
-    
-    const auto components = integral.components<T2CPair, T2CPair>();
     
     const auto bcomps = t2c::number_of_cartesian_components(integral[0]);
     
@@ -150,7 +164,8 @@ T4CHrrFuncBodyDriver::write_bra_func_body(      std::ofstream& fstream,
 
 
 std::vector<std::string>
-T4CHrrFuncBodyDriver::_get_ket_buffers_str(const I4CIntegral& integral) const
+T4CHrrFuncBodyDriver::_get_ket_buffers_str(const std::vector<R4CDist>& rec_dists,
+                                           const I4CIntegral&          integral) const
 {
     std::vector<std::string> vstr;
     
@@ -166,11 +181,14 @@ T4CHrrFuncBodyDriver::_get_ket_buffers_str(const I4CIntegral& integral) const
         
         for (const auto& tcomp : tint.components<T2CPair, T2CPair>())
         {
-            auto line = "auto " + _get_ket_component_label(tcomp) + " = " + label;
-            
-            line += "[" + _get_ket_offset_label(tint) + " + "  + std::to_string(index) + "];";
-            
-            vstr.push_back(fstr::lowercase(line));
+            if (_find_integral(rec_dists, tcomp))
+            {
+                auto line = "auto " + _get_ket_component_label(tcomp) + " = " + label;
+                
+                line += "[" + _get_ket_offset_label(tint) + " + "  + std::to_string(index) + "];";
+                
+                vstr.push_back(fstr::lowercase(line));
+            }
             
             index++;
         }
@@ -202,7 +220,8 @@ T4CHrrFuncBodyDriver::_get_ket_buffers_str(const I4CIntegral&        integral,
 }
 
 std::vector<std::string>
-T4CHrrFuncBodyDriver::_get_bra_buffers_str(const I4CIntegral& integral) const
+T4CHrrFuncBodyDriver::_get_bra_buffers_str(const std::vector<R4CDist>& rec_dists,
+                                           const I4CIntegral&          integral) const
 {
     std::vector<std::string> vstr;
     
@@ -218,11 +237,14 @@ T4CHrrFuncBodyDriver::_get_bra_buffers_str(const I4CIntegral& integral) const
         
         for (const auto& tcomp : tint.components<T2CPair, T2CPair>())
         {
-            auto line = "auto " + _get_bra_component_label(tcomp) + " = " + label;
-            
-            line += "[" + _get_bra_offset_label(tint) + " + "  + std::to_string(index) + " * ccomps * dcomps];";
-            
-            vstr.push_back(fstr::lowercase(line));
+            if (_find_integral(rec_dists, tcomp))
+            {
+                auto line = "auto " + _get_bra_component_label(tcomp) + " = " + label;
+                
+                line += "[" + _get_bra_offset_label(tint) + " + "  + std::to_string(index) + " * ccomps * dcomps];";
+                
+                vstr.push_back(fstr::lowercase(line));
+            }
             
             index++;
         }
@@ -252,6 +274,22 @@ T4CHrrFuncBodyDriver::_get_bra_buffers_str(const I4CIntegral&        integral,
     
     return vstr;
 }
+
+bool
+T4CHrrFuncBodyDriver::_find_integral(const std::vector<R4CDist>& rec_dists,
+                                     const T4CIntegral&          integral) const
+{
+    for (const auto& rdist : rec_dists)
+    {
+        for (const auto& tint : rdist.unique_integrals())
+        {
+            if (integral == tint) return true;
+        }
+    }
+    
+    return false;
+}
+
 
 std::string
 T4CHrrFuncBodyDriver::_get_tensor_label(const I4CIntegral& integral) const
