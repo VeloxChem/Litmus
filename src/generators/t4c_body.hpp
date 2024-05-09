@@ -42,6 +42,22 @@ class T4CFuncBodyDriver
     /// @return The vector of distances in compute function.
     std::vector<std::string> _get_coordinates_def(const I4CIntegral& integral) const;
     
+    /// Generates vector of Cartesian buffer integrals.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @return The vector of Cartesian integrals in compute function.
+    SI4CIntegrals _get_cart_buffer_integrals(const SI4CIntegrals& bra_integrals,
+                                             const SI4CIntegrals& ket_integrals) const;
+    
+    /// Generates vector of half spherical buffer integrals.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param integral The base four center integral.
+    /// @return The vector of half spherical integrals in compute function.
+    SI4CIntegrals _get_half_spher_buffers_integrals(const SI4CIntegrals& bra_integrals,
+                                                    const SI4CIntegrals& ket_integrals,
+                                                    const I4CIntegral&   integral) const;
+    
     /// Generates vector of primitive buffers in compute function.
     /// @param integrals The set of inetrgals.
     /// @param integral The base two center integral.

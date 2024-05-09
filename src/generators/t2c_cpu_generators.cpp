@@ -53,8 +53,6 @@ T2CCPUGenerator::generate(const std::string&           label,
                 
                 const auto integrals = _generate_integral_group(integral);
 
-                std::cout << integrals.size();
-
                 _write_cpp_header(integral, rec_form);
                 
                 _write_cpp_file(integrals, integral, rec_form);
