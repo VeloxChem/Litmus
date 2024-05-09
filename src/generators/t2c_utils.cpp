@@ -24,6 +24,8 @@
 #include "v2i_dip_driver.hpp"
 #include "v2i_kin_driver.hpp"
 #include "v2i_npot_driver.hpp"
+#include "v2i_linmom_driver.hpp"
+#include "v2i_el_field_driver.hpp"
 
 namespace t2c { // t2c namespace
 
@@ -69,7 +71,19 @@ integral_label(const I2CIntegral& integral)
     {
         return (prefixes.empty()) ? "Overlap" : "Overlap" + suffix;
     }
-    
+
+    if (integrand.name() == "p")
+    {
+        return (prefixes.empty()) ? "LinearMomentum" : "LinearMomentum" + suffix;
+    }
+
+
+    if (integrand.name() == "A1")
+    {
+        return (prefixes.empty()) ? "ElectricField" : "ElectricField" + suffix;
+    }
+
+
     if (integrand.name() == "r")
     {
         const auto iorder = integrand.shape().order();
@@ -134,7 +148,18 @@ integral_split_label(const I2CIntegral& integral)
     {
         return "Dipole";
     }
-    
+
+    if (integrand.name() == "p")
+    {
+        return "LinearMomentum";
+    }
+
+
+    if (integrand.name() == "A1")
+    {
+        return "ElectricField";
+    }
+
     return std::string();
 }
 
@@ -164,6 +189,17 @@ namespace_label(const I2CIntegral& integral)
     if (integrand.name() == "1")
     {
         return "ovlrec";
+    }
+
+    if (integrand.name() == "p")
+    {
+        return "linmomrec";
+    }
+
+
+    if (integrand.name() == "A1")
+    {
+        return "elfieldrec";
     }
     
     if (integrand.name() == "r")
@@ -203,7 +239,17 @@ integrand_label(const Operator& integrand)
     {
         return iname + "^" + iorder;
     }
-    
+
+    if ((iname == "p") && (iorder != "1"))
+    {
+        return iname + "^" + iorder;
+    }
+
+    if ((iname == "A1") && (iorder != "1"))
+    {
+        return iname + "^" + iorder;
+    }
+
     return iname;
 }
 
@@ -290,7 +336,14 @@ get_buffer_label(const I2CIntegral& integral,
     if (integral.integrand().name() == "T") label += "kin_";
 
     if (integral.integrand().name() == "r") label += "dip_";
-    
+
+    if (integral.integrand().name() == "r") label += "linmom_";
+
+    if (integral.integrand().name() == "A1")
+    {
+        label += "el_field_" + std::to_string(integral.order()) + "_";
+    }
+
     if (integral.integrand().name() == "A")
     {
         label += "npot_" + std::to_string(integral.order()) + "_";
@@ -383,6 +436,38 @@ get_integrals(const I2CIntegral& integral)
         {
             tints = dip_drv.ket_vrr(integral);
         }
+
+        if ((integral[0] + integral[1]) == 0)
+        {
+            auto xint = integral.replace(Operator("1"));
+
+            xint.set_order(0);
+
+            tints.insert(xint);
+        }
+    }
+
+    if (integral.integrand().name() == "p")
+    {
+        V2ILinearMomentumDriver linmom_drv;
+
+        tints = linmom_drv.op_vrr(integral);
+
+        if ((integral[0] + integral[1]) == 0)
+        {
+            auto xint = integral.replace(Operator("1"));
+
+            xint.set_order(0);
+
+            tints.insert(xint);
+        }
+    }
+
+    if (integral.integrand().name() == "A1")
+    {
+        V2IElectricFieldDriver el_field_drv;
+
+        tints = el_field_drv.op_vrr(integral);
 
         if ((integral[0] + integral[1]) == 0)
         {

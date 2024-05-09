@@ -23,6 +23,8 @@
 #include "t2c_kin_driver.hpp"
 #include "t2c_npot_driver.hpp"
 #include "t2c_dip_driver.hpp"
+#include "t2c_linmom_driver.hpp"
+#include "t2c_el_field_driver.hpp"
 
 void
 T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
@@ -176,7 +178,11 @@ T2CPrimFuncBodyDriver::_get_tensor_label(const I2CIntegral& integral) const
     if (integral.integrand().name() == "A") label = "ta";
 
     if (integral.integrand().name() == "r") label = "tr";
-    
+
+    if (integral.integrand().name() == "p") label = "tp";
+
+    if (integral.integrand().name() == "A1") label = "ta1";
+
     return label;
 }
 
@@ -193,6 +199,10 @@ T2CPrimFuncBodyDriver::_get_tensor_label(const T2CIntegral& integral) const
     if (integral.integrand().name() == "A") label = "ta";
 
     if (integral.integrand().name() == "r") label = "tr";
+
+    if (integral.integrand().name() == "p") label = "tp";
+
+    if (integral.integrand().name() == "A1") label = "ta1";
 
     return label;
 }
@@ -375,6 +385,13 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
         }
     }
 
+    if (integral.integrand().name() == "r")
+    {
+        T2CLinearMomentumDriver linmom_drv;
+
+        rdist = linmom_drv.apply_op_vrr(R2CTerm(integral));
+    }
+
 
     if (integral.integrand().name() == "A")
     {
@@ -387,6 +404,16 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
         else
         {
             rdist = npot_drv.apply_ket_vrr(R2CTerm(integral));
+        }
+    }
+
+    if (integral.integrand().name() == "A1")
+    {
+        T2CElectricFieldDriver el_field_drv;
+
+        if (integral[0].order() > 0)
+        {
+            rdist = el_field_drv.apply_op_vrr(R2CTerm(integral));
         }
     }
     
@@ -465,6 +492,10 @@ T2CPrimFuncBodyDriver::_get_component_label(const T2CIntegral& integral) const
     {
         label += "_" + std::to_string(integral.order());
     }
-    
+
+    if (integral.integrand().name() == "A1")
+    {
+        label += "_" + std::to_string(integral.order());
+    }
     return label;
 }

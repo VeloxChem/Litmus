@@ -156,6 +156,7 @@ T2CMultipoleDriver::ket_vrr(const R2CTerm& rterm,
 {
     if (!is_multipole(rterm)) return std::nullopt;
 
+    // This does not change rterm but gives me a tval holder under which to accumulate "terms" (products of factors) (or it gives nothing if the step is invalid)
     if (const auto tval = rterm.shift(axis, -1, 1))
     {
         R2CDist t2crt(rterm);

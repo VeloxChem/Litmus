@@ -28,21 +28,23 @@ int main(int argc, char **argv)
     // run configuration
 
     // "Which kind of integral? # of centers", "which type of integral" (which operator is associated with it?)
-    // Keywords are listed in
-    // 2c: "overlap" "kinetic energy" "nuclear potential" "dipole moment"
+    // 2c: "overlap" "kinetic energy" "nuclear potential" "dipole moment" "linear momentum"
     // 4c: "electron repulsion"
 
-    const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "electric field"});
 
-    const int max_ang_mom = 4;
+    const int max_ang_mom = 2;
 
     // To add new integral
     // (Be careful about scalar vs non-scalar integrals (see dipole for example of non-scalar)
-    // 1. Add to is_available
-    // 2. In get_integral, add appropriate entry (need operator name, rank of tensor representing operator rank if not scalar)
+    // 1. Add to is_available in t2(4)c_cpu_generators
+    // 2. In get_integral (t2(4)c_cpu_generators), add appropriate entry (need operator name, rank of tensor representing operator rank if not scalar)
     // 3. In /recursions, make a driver file to house the new recursion that is needed and fill it with the appropriate recursion code
     // 4. Fill that file according to the example with comments for dipole integrals
-    // 5. Make a v2i driver file or eqv for 4-center and fill it according to the according example for dipole
+        // In some cases may need to get fixed-axis operation (see linmom_driver vs dip_driver)
+        // NB: In header file, may need to make changes like initalize to default (see difference like linmom_driver vs dip_driver)
+        // In some cases (e.g. linmom, there is no choice of axes and one does not need a "trial recursion" setup from which to choose
+    // 5. Make a v2(4)i driver file and fill it according to the example for dipole
     // 6. In t2(4)c_utils, register any new operator "name cases" (various places in this file)
     // 7. In t2(4)c_body, register any new operator "name cases" (up to three (two?) places in this file, marked)
     // 8. In t2(4)c_cpu_generators, register any new operator "name cases", (marked)
@@ -51,7 +53,7 @@ int main(int argc, char **argv)
     // from t2c_cpu_generators.hpp:
     /// MR: First index: Summation or not (explicitly incorporate any multi-term nature in the operator associated with the integrals (if any))
     /// Second index: False: Return as matrix(ces); true: Return as scalars ("Contracted"/"distributed")
-    const auto rec_form = std::pair<bool, bool>({false, false});
+    const auto rec_form = std::pair<bool, bool>({true, false});
     
     // set up start timer
     

@@ -34,6 +34,8 @@
 #include "v2i_kin_driver.hpp"
 #include "v2i_dip_driver.hpp"
 #include "v2i_npot_driver.hpp"
+#include "v2i_linmom_driver.hpp"
+#include "v2i_el_field_driver.hpp"
 
 void
 T2CCPUGenerator::generate(const std::string&           label,
@@ -84,6 +86,10 @@ T2CCPUGenerator::_is_available(const std::string& label) const
     if (fstr::lowercase(label) == "kinetic energy") return true;
     
     if (fstr::lowercase(label) == "nuclear potential") return true;
+
+    if (fstr::lowercase(label) == "linear momentum") return true;
+
+    if (fstr::lowercase(label) == "electric field") return true;
         
     return false;
 }
@@ -135,12 +141,26 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
     /// Operator takes one or two arguments; first name, then optionally rank of tensor associated with operator
         return I2CIntegral(bra, ket, Operator("r", Tensor(1)), 0, prefixes);
     }
-    
+
+    // linear momentum integrals
+
+    if (fstr::lowercase(label) == "linear momentum")
+    {
+        return I2CIntegral(bra, ket, Operator("p", Tensor(1)), 0, prefixes);
+    }
+
     // nuclear potential integrals
     
     if (fstr::lowercase(label) == "nuclear potential")
     {
         return I2CIntegral(bra, ket, Operator("A"), 0, prefixes);
+    }
+
+    // electric field integrals
+
+    if (fstr::lowercase(label) == "electric field")
+    {
+        return I2CIntegral(bra, ket, Operator("A1", Tensor(1)), 0, prefixes);
     }
     
     return I2CIntegral();
@@ -181,6 +201,19 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
         tints = ovl_drv.create_recursion(tints);
     }
 
+    // Linear momentum integrals
+
+    if (integral.integrand() == Operator("p", Tensor(1)))
+    {
+        V2ILinearMomentumDriver linmom_drv;
+
+        tints = linmom_drv.create_recursion({integral,});
+
+        V2IOverlapDriver ovl_drv;
+
+        tints = ovl_drv.create_recursion(tints);
+    }
+
     // Kinetic energy integrals
     
     if (integral.integrand() == Operator("T"))
@@ -210,6 +243,20 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
         if (integral.is_simple())
         {
             tints = npot_drv.create_recursion({integral,});
+        }
+        else
+        {
+            /// TODO: ...
+        }
+    }
+
+        if (integral.integrand() == Operator("A1"))
+    {
+        V2IElectricFieldDriver el_field_drv;
+
+        if (integral.is_simple())
+        {
+            tints = el_field_drv.create_recursion({integral,});
         }
         else
         {

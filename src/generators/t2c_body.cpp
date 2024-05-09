@@ -219,6 +219,17 @@ T2CFuncBodyDriver::_get_coordinates_def(const I2CIntegral& integral) const
 
         vstr.push_back("CSimdArray<double> p_z(1, ket_pdim);");
     }
+
+    if (integrand.name() == "A1")
+    {
+        vstr.push_back("// allocate aligned coordinates of P center");
+
+        vstr.push_back("CSimdArray<double> p_x(1, ket_pdim);");
+
+        vstr.push_back("CSimdArray<double> p_y(1, ket_pdim);");
+
+        vstr.push_back("CSimdArray<double> p_z(1, ket_pdim);");
+    }
     
     vstr.push_back("// allocate aligned distances R(AB) = A - B");
 
@@ -251,6 +262,17 @@ T2CFuncBodyDriver::_get_coordinates_def(const I2CIntegral& integral) const
     }
     
     if (integrand.name() == "A")
+    {
+        vstr.push_back("// allocate aligned distances R(PC) = P - C");
+
+        vstr.push_back("CSimdArray<double> pc_x(1, ket_pdim);");
+
+        vstr.push_back("CSimdArray<double> pc_y(1, ket_pdim);");
+
+        vstr.push_back("CSimdArray<double> pc_z(1, ket_pdim);");
+    }
+
+    if (integrand.name() == "A1")
     {
         vstr.push_back("// allocate aligned distances R(PC) = P - C");
 
@@ -330,6 +352,19 @@ T2CFuncBodyDriver::_get_boys_function_def(const I2CIntegral& integral) const
         
         vstr.push_back("const CBoysFunc<" + std::to_string(integral[0] + integral[1]) + "> bf_table;");
         
+        vstr.push_back("CSimdArray<double> bf_args(1, ket_pdim);");
+
+        vstr.push_back("CSimdArray<double> bf_values(" + std::to_string(integral[0] + integral[1] + 1) + ", ket_pdim);");
+    }
+
+    if (integral.integrand().name() == "A1")
+    {
+         std::to_string(integral.order());
+
+        vstr.push_back("// setup Boys fuction data");
+
+        vstr.push_back("const CBoysFunc<" + std::to_string(integral[0] + integral[1]) + "> bf_table;");
+
         vstr.push_back("CSimdArray<double> bf_args(1, ket_pdim);");
 
         vstr.push_back("CSimdArray<double> bf_values(" + std::to_string(integral[0] + integral[1] + 1) + ", ket_pdim);");
@@ -501,6 +536,32 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
         }
         
     }
+
+    if (integral[0] > 0)
+    {
+        if (integral.integrand().name() == "A1")
+        {
+            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], p_x[0], p_y[0], p_z[0], a_x, a_y, a_z, ket_pdim);"});
+        }
+        else
+        {
+            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
+        }
+
+    }
+
+    if (integral[1] > 0)
+    {
+        if (integral.integrand().name() == "A1")
+        {
+            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], p_x[0], p_y[0], p_z[0], b_x[0], b_y[0], b_z[0], ket_pdim);"});
+        }
+        else
+        {
+            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
+        }
+
+    }
 }
 
 void
@@ -551,6 +612,19 @@ T2CFuncBodyDriver::_add_sum_loop_start(      VCodeLines&            lines,
             
             lines.push_back({4, 0, 2, "bf_table.compute(bf_values, bf_args);"});
         }
+
+        if (integral.integrand().name() == "A1")
+        {
+            lines.push_back({3, 0, 1, "for (size_t k = 0; k < charges.size(); k++)"});
+
+            lines.push_back({3, 0, 1, "{"});
+
+            lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pc(pc_x[0], pc_y[0], pc_z[0], p_x[0], p_y[0], p_z[0], coords_x[k], coords_y[k], coords_z[k], ket_pdim);"});
+
+            lines.push_back({4, 0, 2, "t2cfunc::comp_boys_args(bf_args, pc_x[0], pc_y[0], pc_z[0], a_exp, b_exps[0]);"});
+
+            lines.push_back({4, 0, 2, "bf_table.compute(bf_values, bf_args);"});
+        }
     }
 }
 
@@ -586,6 +660,33 @@ T2CFuncBodyDriver::_add_sum_loop_end(      VCodeLines&            lines,
             lines.push_back({3, 0, 1, "}"});
         }
     }
+
+    if (rec_form.first)
+    {
+        if (integral.integrand().name() == "A1")
+        {
+            std::string label = "t2cfunc::reduce(";
+
+            label += t2c::get_buffer_label(integral, "cart") + ", ";
+
+            label += t2c::get_buffer_label(integral, "prim") + ", ";
+
+            label += "charges[k], ";
+
+            if (diagonal)
+            {
+                label += "ket_dim, npgtos);";
+            }
+            else
+            {
+                label += "ket_dim, ket_npgtos);";
+            }
+
+            lines.push_back({4, 0, 1, label});
+
+            lines.push_back({3, 0, 1, "}"});
+        }
+    }
 }
 
 void
@@ -616,6 +717,21 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
                 // arguments here: first three args just pushback args, then string to be printed: Need to analyze this for each integral situation but it will be guided by the pen/paper Obara-Saika results
                 // Xin and MR can here figure out what to put as arg names together
                 lines.push_back({3, 0, 2, "diprec::comp_prim_dipole_ss(prim_buffer_dip_ss, prim_buffer_ovl_ss, pc_x[0], pc_y[0], pc_z[0]);"});
+            }
+// MR: Need help here
+            if ((tint.integrand().name() == "p") && (!in_sum_loop))
+            {
+                lines.push_back({3, 0, 2, "linmomrec::comp_prim_dipole_ss(prim_buffer_dip_ss, prim_buffer_ovl_ss);"});
+            }
+
+            if ((tint.integrand().name() == "A1") && (in_sum_loop))
+            {
+                if (rec_form.first && in_sum_loop)
+                {
+                    const auto label = std::to_string(tint.order());
+
+                    lines.push_back({spacer, 0, 2, "npotrec::comp_prim_electric_field_ss(prim_buffer_npot_" + label + "_ss, prim_buffer_ovl_ss, bf_values[" + label + "], a_exp, b_exps[0]);"});
+                }
             }
             
             if ((tint.integrand().name() == "A"))
@@ -688,7 +804,20 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
                     label += "pc_x[0], pc_y[0], pc_z[0]";
                 }
             }
-            
+
+            if (tint.integrand().name() == "A1")
+            {
+                if ((tint[0] + tint[1]) > 1)
+                {
+                    label += "pc_x[0], pc_y[0], pc_z[0],";
+                }
+
+                if ((tint[0] + tint[1]) == 1)
+                {
+                    label += "pc_x[0], pc_y[0], pc_z[0]";
+                }
+            }
+
             if (((tint[0] + tint[1]) > 1) || (tint.integrand().name() == "T"))
             {
                 label += "a_exp, b_exps[0]";
