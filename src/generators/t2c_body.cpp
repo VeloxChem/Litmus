@@ -869,7 +869,7 @@ T2CFuncBodyDriver::_add_geom_call_tree(      VCodeLines&            lines,
                             
                         label += _get_arguments(tint);
                         
-                        label += "b_exps[0]);";
+                        label += "a_exp, b_exps[0]);";
                     
                         lines.push_back({spacer, 0, 2, label});
                     }

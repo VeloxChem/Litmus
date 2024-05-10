@@ -33,9 +33,12 @@ T2CPrimDeclDriver::write_func_decl(      std::ofstream&         fstream,
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_coordinates_str(integral, terminus))
+    if (integral.is_simple())
     {
-        lines.push_back({0, 0, 1, label});
+        for (const auto& label : _get_coordinates_str(integral, terminus))
+        {
+            lines.push_back({0, 0, 1, label});
+        }
     }
     
     for (const auto& label : _get_recursion_variables_str(integral, terminus))
@@ -166,29 +169,40 @@ T2CPrimDeclDriver::_get_recursion_variables_str(const I2CIntegral& integral,
     
     const auto spacer = std::string(name.size(), ' ');
     
-    if (((integral[0] + integral[1]) != 1) || (integral.integrand().name() == "T"))
+    if (!integral.is_simple())
     {
         vstr.push_back(spacer + "const double a_exp,");
         
-        if (((integral[0] + integral[1]) == 0) && (integral.integrand().name() == "1"))
-        {
-            vstr.push_back(spacer + "const double* b_exps,");
-        }
-        else
-        {
-            vstr.push_back(spacer + "const double* b_exps) -> void" + tsymbol);
-        }
+        vstr.push_back(spacer + "const double* b_exps) -> void" + tsymbol);
+        
     }
-   
-    if ((integral[0] + integral[1]) == 0)
+    else
     {
-        if (integral.integrand().name() == "1")
+        if (((integral[0] + integral[1]) != 1) || (integral.integrand().name() == "T"))
         {
-            vstr.push_back(spacer + "const double a_norm,");
+            vstr.push_back(spacer + "const double a_exp,");
             
-            vstr.push_back(spacer + "const double* b_norms) -> void" + tsymbol);
+            if (((integral[0] + integral[1]) == 0) && (integral.integrand().name() == "1"))
+            {
+                vstr.push_back(spacer + "const double* b_exps,");
+            }
+            else
+            {
+                vstr.push_back(spacer + "const double* b_exps) -> void" + tsymbol);
+            }
+        }
+       
+        if ((integral[0] + integral[1]) == 0)
+        {
+            if (integral.integrand().name() == "1")
+            {
+                vstr.push_back(spacer + "const double a_norm,");
+                
+                vstr.push_back(spacer + "const double* b_norms) -> void" + tsymbol);
+            }
         }
     }
     
+
     return vstr;
 }
