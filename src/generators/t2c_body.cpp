@@ -15,7 +15,7 @@
 // limitations under the License.
 
 #include "t2c_body.hpp"
-
+#include <iostream>
 #include "t2c_utils.hpp"
 
 void
@@ -300,6 +300,18 @@ T2CFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
     
     for (const auto& tint : integrals)
     {
+
+    if (tint.prefixes().size() == 2)
+    {
+    std::cout << "Geo integral in buffer loop: " << tint.label() << tint.prefixes()[0].shape().order() << " " <<tint.prefixes()[1].shape().order() << std::endl;
+
+    }
+    else
+    {
+    std::cout << "Non- geo integral in buffer loop: " << tint.label() << std::endl;
+
+
+    }
         std::string label = "CSimdArray<double> ";
         
         label += t2c::get_buffer_label(tint, "prim");

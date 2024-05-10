@@ -62,12 +62,9 @@ T2CCPUGenerator::generate(const std::string&           label,
                             
                             _write_cpp_header(integrals, integral, rec_form);
                             
-                            if (integral.is_simple())
-                            {
-                                _write_prim_cpp_header(integral, rec_form);
+                            _write_prim_cpp_header(integral, rec_form);
                                 
-                                _write_prim_cpp_file(integral);
-                            }
+                            _write_prim_cpp_file(integral);
                         //}
                     }
                 }
@@ -217,7 +214,14 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
     {
         V2IDipoleDriver dip_drv;
 
-        tints = dip_drv.create_recursion({integral,});
+        if (integral.is_simple())
+        {
+            tints = dip_drv.create_recursion({integral,});
+        }
+        else
+        {
+            tints = dip_drv.create_recursion(tints);
+        }
 
         V2IOverlapDriver ovl_drv;
 
@@ -230,7 +234,14 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
     {
         V2ILinearMomentumDriver linmom_drv;
 
-        tints = linmom_drv.create_recursion({integral,});
+        if (integral.is_simple())
+        {
+            tints = linmom_drv.create_recursion({integral,});
+        }
+        else
+        {
+            tints = linmom_drv.create_recursion(tints);
+        }
 
         V2IOverlapDriver ovl_drv;
 
@@ -246,15 +257,15 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
         if (integral.is_simple())
         {
             tints = kin_drv.create_recursion({integral,});
-            
-            V2IOverlapDriver ovl_drv;
-            
-            tints = ovl_drv.create_recursion(tints);
         }
         else
         {
-            /// TODO: ...
+            tints = kin_drv.create_recursion(tints);
         }
+
+        V2IOverlapDriver ovl_drv;
+
+            tints = ovl_drv.create_recursion(tints);
     }
     
     // Nuclear potential integrals
@@ -269,7 +280,7 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
         }
         else
         {
-            /// TODO: ...
+            tints = npot_drv.create_recursion(tints);
         }
     }
 
@@ -283,7 +294,7 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
         }
         else
         {
-            /// TODO: ...
+            tints = el_field_drv.create_recursion(tints);
         }
     }
     

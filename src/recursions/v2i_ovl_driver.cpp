@@ -16,7 +16,7 @@
 
 
 #include "v2i_ovl_driver.hpp"
-
+#include <iostream>
 bool
 V2IOverlapDriver::is_overlap(const I2CIntegral& integral) const
 {
@@ -210,6 +210,15 @@ V2IOverlapDriver::create_recursion(const SI2CIntegrals& integrals) const
     
     for (const auto& integral : integrals)
     {
+
+     if (integral.prefixes().size() == 2)
+    {
+    std::cout << "Geo integral in ovl loop: " << integral.label() << integral.prefixes()[0].shape().order() << " " << integral.prefixes()[1].shape().order() << std::endl;
+    }
+    else
+    {
+    std::cout << "Non- geo integral in ovl loop: " << integral.label() << std::endl;
+    }
         if (is_overlap(integral))
         {
             const auto ctints = apply_recursion({integral, });

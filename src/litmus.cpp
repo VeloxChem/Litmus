@@ -31,7 +31,7 @@ int main(int argc, char **argv)
     // 2c: "overlap" "kinetic energy" "nuclear potential" "dipole moment" "linear momentum"
     // 4c: "electron repulsion"
 
-    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "overlap"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "dipole moment"});
 
     const int max_ang_mom = 2;
 

@@ -354,7 +354,7 @@ get_buffer_label(const I2CIntegral& integral,
 
     if (integral.integrand().name() == "r") label += "dip_";
 
-    if (integral.integrand().name() == "r") label += "linmom_";
+    if (integral.integrand().name() == "p") label += "linmom_";
 
     if (integral.integrand().name() == "A1")
     {
@@ -424,11 +424,11 @@ get_integrals(const I2CIntegral& integral)
             if ((integral.prefixes()[0].shape().order() == 0) &&
                 (integral.prefixes()[1].shape().order() >  0))
             {
-                return geom_drv.apply_bra_ket_vrr(integral, 1);
+                return geom_drv.bra_ket_vrr(integral, 1);
             }
             else
             {
-                return geom_drv.apply_bra_ket_vrr(integral, 0);
+                return geom_drv.bra_ket_vrr(integral, 0);
             }
         }
     }

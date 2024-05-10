@@ -17,10 +17,12 @@
 #include "t2c_prim_body.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 #include "t2c_utils.hpp"
 #include "t2c_ovl_driver.hpp"
 #include "t2c_kin_driver.hpp"
+#include "t2c_center_driver.hpp"
 #include "t2c_npot_driver.hpp"
 #include "t2c_dip_driver.hpp"
 #include "t2c_linmom_driver.hpp"
@@ -324,7 +326,12 @@ T2CPrimFuncBodyDriver::_get_factor_lines(                VCodeLines& lines,
             lines.push_back({2, 0, 2, "const double fz_0 = a_exp * b_exps[i] / (a_exp + b_exps[i]);"});
         }
     }
-    
+
+    if (std::find(tlabels.begin(), tlabels.end(), "tbe_0") !=  tlabels.end())
+    {
+        lines.push_back({2, 0, 2, "const double tbe_0 = a_exp;"});
+    }
+
     if (std::find(tlabels.begin(), tlabels.end(), "fbe_0") !=  tlabels.end())
     {
         lines.push_back({2, 0, 2, "const double fbe_0 = 0.5 / a_exp;"});
@@ -341,7 +348,30 @@ R2CDist
 T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
 {
     R2CDist rdist;
-    
+
+    if (!integral.prefixes().empty())
+    {
+        T2CCenterDriver geom_drv;
+
+        const auto prefixes = integral.prefixes();
+
+        if (prefixes.size() == 2)
+        {
+            if ((integral.prefixes()[0].shape().order() == 0) &&
+                (integral.prefixes()[1].shape().order() >  0))
+            {
+                return geom_drv.apply_bra_ket_vrr(integral, 1);
+            }
+            else
+            {
+                return geom_drv.apply_bra_ket_vrr(integral, 0);
+            }
+        }
+
+
+    }
+
+
     if (integral.integrand().name() == "1")
     {
         T2COverlapDriver ovl_drv;
