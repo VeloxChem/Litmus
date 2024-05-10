@@ -39,6 +39,16 @@ public:
     /// @param integral The  kinetic energy integral.
     /// @return The set of integrals.
     SI2CIntegrals bra_ket_vrr(const I2CIntegral& integral, const int index) const;
+    
+    /// Applies vertical recursion to bra side of overlap integral.
+    /// @param integral The  overlap integral.
+    /// @return The recursion expansion of integral.
+    SI2CIntegrals apply_bra_ket_vrr(const I2CIntegral& integral, const int index) const;
+    
+    /// Recursively applies Obara-Saika recursion to recursion expansion.
+    /// @param integrals The  integral to apply recursion.
+    /// @return The set of integrals.
+    SI2CIntegrals apply_recursion(const SI2CIntegrals& integrals) const;
 };
 
 

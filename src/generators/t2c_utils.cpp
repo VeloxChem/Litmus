@@ -26,6 +26,7 @@
 #include "v2i_npot_driver.hpp"
 #include "v2i_linmom_driver.hpp"
 #include "v2i_el_field_driver.hpp"
+#include "v2i_center_driver.hpp"
 
 namespace t2c { // t2c namespace
 
@@ -312,8 +313,27 @@ compute_func_name(const I2CIntegral&           integral,
                   const std::pair<bool, bool>& rec_form)
 {
     std::string prefix = (rec_form.first) ? "comp_sum_" : "comp_";
+    
+    auto tint_prefixes = integral.prefixes();
+    
+    std::string geom_label;
+    
+    if (!tint_prefixes.empty())
+    {
+        if (tint_prefixes.size() == 1)
+        {
+            geom_label += "_geom" + std::to_string(tint_prefixes[0].shape().order()) + "00";
+        }
         
-    auto label = prefix  + t2c::integral_split_label(integral) + "_" + integral.label();
+        if (tint_prefixes.size() == 2)
+        {
+            geom_label += "_geom" + std::to_string(tint_prefixes[0].shape().order()) + "0";
+            
+            geom_label += std::to_string(tint_prefixes[1].shape().order());
+        }
+    }
+        
+    auto label = prefix  + t2c::integral_split_label(integral) + geom_label + "_" + integral.label();
         
     return fstr::lowercase(label);
 }
@@ -349,6 +369,21 @@ get_buffer_label(const I2CIntegral& integral,
         label += "npot_" + std::to_string(integral.order()) + "_";
     }
     
+    if (const auto prefixes = integral.prefixes(); !prefixes.empty())
+    {
+        if (prefixes.size() == 1)
+        {
+            label += "geom_" + std::to_string(prefixes[0].shape().order()) + "00_";
+        }
+        
+        if (prefixes.size() == 2)
+        {
+            label += "geom_" + std::to_string(prefixes[0].shape().order()) + "0";
+            
+            label +=  std::to_string(prefixes[1].shape().order()) + "_";
+        }
+    }
+    
     label += fstr::lowercase(integral.label());
 
     return label;
@@ -357,7 +392,26 @@ get_buffer_label(const I2CIntegral& integral,
 std::string
 prim_compute_func_name(const I2CIntegral& integral)
 {
-    auto label =  "comp_prim_" + t2c::integral_split_label(integral) + "_" + integral.label();
+    auto tint_prefixes = integral.prefixes();
+    
+    std::string geom_label;
+    
+    if (!tint_prefixes.empty())
+    {
+        if (tint_prefixes.size() == 1)
+        {
+            geom_label += "_geom" + std::to_string(tint_prefixes[0].shape().order()) + "00";
+        }
+        
+        if (tint_prefixes.size() == 2)
+        {
+            geom_label += "_geom" + std::to_string(tint_prefixes[0].shape().order()) + "0";
+            
+            geom_label += std::to_string(tint_prefixes[1].shape().order());
+        }
+    }
+    
+    auto label =  "comp_prim_" + t2c::integral_split_label(integral) +  geom_label + "_" + integral.label();
     
     return fstr::lowercase(label);
 }
@@ -367,6 +421,23 @@ SI2CIntegrals
 get_integrals(const I2CIntegral& integral)
 {
     SI2CIntegrals tints;
+    
+    if (!integral.is_simple())
+    {
+        V2ICenterDriver geom_drv;
+        
+        const auto prefixws = integral.prefixes();
+        
+        if (prefixws.size() == 1)
+        {
+            return geom_drv.apply_bra_ket_vrr(integral, 0);
+        }
+        
+        if (prefixws.size() == 2)
+        {
+            return geom_drv.apply_bra_ket_vrr(integral, 1);
+        }
+    }
     
     if (integral.integrand().name() == "1")
     {

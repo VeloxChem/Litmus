@@ -126,6 +126,15 @@ class T2CFuncBodyDriver
                         const SI2CIntegrals& integrals,
                         const std::pair<bool, bool>& rec_form) const;
     
+    
+    /// Adds call tree for recursion.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integrals The set of inetrgals.
+    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+    void _add_geom_call_tree(      VCodeLines&  lines,
+                             const SI2CIntegrals& integrals,
+                             const std::pair<bool, bool>& rec_form) const;
+    
     /// Gets arguments list for primitive function call.
     /// @param integral The base two center integral.
     std::string _get_arguments(const I2CIntegral& integral) const;

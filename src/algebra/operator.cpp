@@ -108,6 +108,12 @@ Operator::operator<(const Operator& other) const
     }
 }
 
+void
+Operator::set_shape(const Tensor& shape)
+{
+    _shape = shape;
+}
+
 std::string
 Operator::name() const
 {

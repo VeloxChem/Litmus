@@ -106,6 +106,16 @@ public:
     /// @return The optional integral.
     std::optional<Integral> shift_order(const int value) const;
     
+    /// Creates an optional integral from this integral by shifting prefix value
+    /// on targeted center.
+    /// @param value The value to shift prefix value.
+    /// @param index The index of targeted prefix.
+    /// @param noscalar The flag for scalar component: false  to keep,  true otherwise.
+    /// @return The optional integral.
+    std::optional<Integral> shift_prefix(const int  value,
+                                         const int  index,
+                                         const bool noscalar) const;
+    
     /// Gets operator of this integral.
     /// @return The operator of this integral.
     Operator integrand() const;
@@ -324,6 +334,40 @@ Integral<T, U>::shift_order(const int value) const
     if (const int torder = _order + value; torder > 0)
     {
         return Integral<T, U>(_bra, _ket, _integrand, torder, _prefixes);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template <class T, class U>
+std::optional<Integral<T, U>>
+Integral<T, U>::shift_prefix(const int  value,
+                             const int  index,
+                             const bool noscalar) const
+{
+    if (index < _prefixes.size())
+    {
+        auto new_prefixes = _prefixes;
+        
+        if (const auto order = _prefixes[index].shape().order() + value; order >= 0)
+        {
+            if (noscalar && (order == 0))
+            {
+                new_prefixes.erase(new_prefixes.begin() + index);
+            }
+            else
+            {
+                new_prefixes[index].set_shape(Tensor(order));
+            }
+            
+            return Integral<T, U>(_bra, _ket, _integrand, _order, new_prefixes);
+        }
+        else
+        {
+            return std::nullopt;
+        }
     }
     else
     {

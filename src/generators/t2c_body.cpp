@@ -66,6 +66,8 @@ T2CFuncBodyDriver::write_func_body(      std::ofstream&         fstream,
     
     _add_call_tree(lines, integrals, rec_form);
     
+    _add_geom_call_tree(lines, integrals, rec_form);
+    
     _add_sum_loop_end(lines, integral, rec_form, diagonal);
     
     _add_ket_loop_end(lines, integral, rec_form, diagonal);
@@ -302,9 +304,11 @@ T2CFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
         
         label += t2c::get_buffer_label(tint, "prim");
         
-        const auto angpair = std::array<int, 2>({tint[0], tint[1]});
+        // const auto angpair = std::array<int, 2>({tint[0], tint[1]});
         
-        const auto tcomps = t2c::number_of_cartesian_components(angpair);
+        // const auto tcomps = t2c::number_of_cartesian_components(angpair);
+        
+        const auto tcomps = tint.components<T1CPair, T1CPair>().size();
         
         label += "(" + std::to_string(tcomps) + ", ket_pdim);";
         
@@ -315,7 +319,9 @@ T2CFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
     
     const auto angpair = std::array<int, 2>({integral[0], integral[1]});
     
-    auto icomps = t2c::number_of_cartesian_components(angpair);
+    // auto icomps = t2c::number_of_cartesian_components(angpair);
+    
+    auto icomps = integral.components<T1CPair, T1CPair>().size(); 
     
     std::string label = "CSimdArray<double> ";
     
@@ -688,6 +694,8 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
     
     for (const auto& tint : integrals)
     {
+        if (!tint.is_simple()) continue;
+        
         if ((tint[0] == 0) && (tint[1] == 0))
         {
             if ((tint.integrand().name() == "1") && (!in_sum_loop))
@@ -748,6 +756,8 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
     
     for (const auto& tint : integrals)
     {
+        if (!tint.is_simple()) continue;
+        
         if ((tint[0] != 0) || (tint[1] != 0))
         {
             const auto name = t2c::prim_compute_func_name(tint);
@@ -794,6 +804,7 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
                 }
             }
 
+            // Magnus code
             if (tint.integrand().name() == "A1")
             {
                 if ((tint[0] + tint[1]) > 1)
@@ -819,12 +830,44 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
     }
 }
 
+void
+T2CFuncBodyDriver::_add_geom_call_tree(      VCodeLines&  lines,
+                                       const SI2CIntegrals& integrals,
+                                       const std::pair<bool, bool>& rec_form) const
+{
+    const int spacer = (rec_form.first) ? 4 : 3;
+    
+    for (size_t i = 1; i < 3; i++)
+    {
+        for (const auto& tint : integrals)
+        {
+            if (tint.prefixes().size() != i) continue;
+            
+            const auto name = t2c::prim_compute_func_name(tint);
+                
+            auto label = t2c::namespace_label(tint) + "::" + name + "(";
+                
+            label += _get_arguments(tint);
+                
+
+            if (((tint[0] + tint[1]) > 1) || (tint.integrand().name() == "T"))
+            {
+                label += "a_exp, b_exps[0]";
+            }
+                
+            label += ");";
+                
+            lines.push_back({spacer, 0, 2, label});
+        }
+    }
+}
+
 // May need to change this for new integral situations
 std::string
 T2CFuncBodyDriver::_get_arguments(const I2CIntegral& integral) const
 {
     std::string label = t2c::get_buffer_label(integral, {"prim"}) + ", ";;
-    
+   
     for (const auto& tint : t2c::get_integrals(integral))
     {
         label += t2c::get_buffer_label(tint, {"prim"}) + ", ";

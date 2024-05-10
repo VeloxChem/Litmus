@@ -35,26 +35,101 @@ V2ICenterDriver::bra_ket_vrr(const I2CIntegral& integral, const int index) const
 {
     SI2CIntegrals tints;
 
-    if (!is_auxiliary(integral, index)) return tints;
+    if (is_auxiliary(integral, index)) return tints;
 
     if (const auto tval = integral.shift_prefix(-1, index, true))
     {
-
         if (const auto r1val = tval->shift(1, index))
         {
-            auto x1val = *r1val;
-
-            tints.insert(x1val);
+            tints.insert(*r1val);
         }
 
-        if (const auto r2val = tval->shift(axis, -1, index))
+        if (const auto r2val = tval->shift(-1, index))
         {
-            auto x2val = *r2val;
-
-            tints.insert(x2val);
+            tints.insert(*r2val);
         }
-
     }
-           return tints;
+    
+    return tints;
 }
 
+SI2CIntegrals
+V2ICenterDriver::apply_bra_ket_vrr(const I2CIntegral& integral,
+                                   const int          index) const
+{
+    SI2CIntegrals tints;
+    
+    if (!is_auxiliary(integral, index))
+    {
+        SI2CIntegrals rtints({integral, });
+                
+        while (!rtints.empty())
+        {
+            SI2CIntegrals new_rtints;
+                
+            for (const auto& rtint : rtints)
+            {
+                if (!is_auxiliary(rtint, index))
+                {
+                   const auto ctints = bra_ket_vrr(rtint, index);
+                    
+                   for (const auto& ctint : ctints)
+                   {
+                       tints.insert(ctint);
+                       
+                       if (!is_auxiliary(ctint, index))
+                       {
+                           new_rtints.insert(ctint);
+                       }
+                   }
+                }
+                else
+                {
+                    tints.insert(rtint);
+                }
+            }
+            
+            rtints = new_rtints;
+        }
+    }
+   
+    //tints.insert(integral);
+    
+    return tints;
+}
+
+SI2CIntegrals
+V2ICenterDriver::apply_recursion(const SI2CIntegrals& integrals) const
+{
+    SI2CIntegrals tints;
+    
+    for (const auto& integral : integrals)
+    {
+        tints.insert(integral);
+        
+        if (integral.prefixes().size() == 2)
+        {
+            for (const auto& bintegral : apply_bra_ket_vrr(integral, 1))
+            {
+                if (!is_auxiliary(bintegral, 0))
+                {
+                    const auto ctints = apply_bra_ket_vrr(bintegral, 0);
+                    
+                    tints.insert(ctints.cbegin(), ctints.cend());
+                }
+              
+                tints.insert(bintegral);
+            }
+        }
+        
+        if (integral.prefixes().size() == 1)
+        {
+            for (const auto& bintegral : apply_bra_ket_vrr(integral, 0))
+            {
+                tints.insert(bintegral);
+            }
+        }
+    }
+        
+    return tints;
+}

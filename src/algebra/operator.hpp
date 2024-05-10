@@ -71,6 +71,9 @@ public:
     /// @returntrue if this operator is less than other operator, false otherwise.
     bool operator<(const Operator& other) const;
     
+    /// Sets  the shape of operator.
+    void set_shape(const Tensor& shape);
+    
     /// Gets  the shape of operator.
     /// @return The tensorial shape of operator.
     Tensor shape() const;

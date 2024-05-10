@@ -36,6 +36,7 @@
 #include "v2i_npot_driver.hpp"
 #include "v2i_linmom_driver.hpp"
 #include "v2i_el_field_driver.hpp"
+#include "v2i_center_driver.hpp"
 
 void
 T2CCPUGenerator::generate(const std::string&           label,
@@ -45,32 +46,33 @@ T2CCPUGenerator::generate(const std::string&           label,
 {
     if (_is_available(label))
     {
-        #pragma omp parallel
-        {
-            #pragma omp single nowait
-            {
+//        #pragma omp parallel
+//        {
+//            #pragma omp single nowait
+//            {
                 for (int i = 0; i <= max_ang_mom; i++)
                 {
                     for (int j = 0; j <= max_ang_mom; j++)
                     {
-                        #pragma omp task firstprivate(i,j)
-                        {
+//                        #pragma omp task firstprivate(i,j)
+//                        {
                             const auto integral = _get_integral(label, {i, j}, geom_drvs);
                             
                             const auto integrals = _generate_integral_group(integral);
                             
                             _write_cpp_header(integrals, integral, rec_form);
                             
-                            //_write_cpp_file(integrals, integral, rec_form);
-                            
-                            _write_prim_cpp_header(integral, rec_form);
-                            
-                            _write_prim_cpp_file(integral);
-                        }
+                            if (integral.is_simple())
+                            {
+                                _write_prim_cpp_header(integral, rec_form);
+                                
+                                _write_prim_cpp_file(integral);
+                            }
+                        //}
                     }
                 }
-            }
-        }
+//            }
+//        }
     }
     else
     {
@@ -179,6 +181,13 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
+    if (!integral.is_simple())
+    {
+        V2ICenterDriver geom_drv;
+        
+        tints = geom_drv.apply_recursion({integral,});
+    }
+    
     // Overlap integrals
     
     if (integral.integrand() == Operator("1"))
@@ -191,7 +200,14 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
         }
         else
         {
-            /// TODO: ...
+            tints = ovl_drv.create_recursion(tints);
+        }
+        
+        std::cout << "*** Referce: " << integral.label() << std::endl;
+        
+        for (const auto& tint: tints)
+        {
+            std::cout << "integral : " << tint.label()  << " prefixes : " << tint.prefixes().size() << std::endl;
         }
     }
 
