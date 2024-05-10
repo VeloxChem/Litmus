@@ -206,13 +206,25 @@ T2CFuncBodyDriver::_get_ket_variables_def(const bool diagonal) const
     return vstr;
 }
 
+// MR: Need to change this for new integral cases
 std::vector<std::string>
 T2CFuncBodyDriver::_get_coordinates_def(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
     const auto integrand = integral.integrand();
-    
+
+    if (integrand.name() == "r")
+    {
+        vstr.push_back("// allocate aligned coordinates of P center");
+
+        vstr.push_back("CSimdArray<double> p_x(1, ket_pdim);");
+
+        vstr.push_back("CSimdArray<double> p_y(1, ket_pdim);");
+
+        vstr.push_back("CSimdArray<double> p_z(1, ket_pdim);");
+    }
+
     if (integrand.name() == "A")
     {
         vstr.push_back("// allocate aligned coordinates of P center");
@@ -263,6 +275,17 @@ T2CFuncBodyDriver::_get_coordinates_def(const I2CIntegral& integral) const
         vstr.push_back("CSimdArray<double> pa_y(1, ket_pdim);");
         
         vstr.push_back("CSimdArray<double> pa_z(1, ket_pdim);");
+    }
+
+    if (integrand.name() == "r")
+    {
+        vstr.push_back("// allocate aligned distances R(PC) = P - C");
+
+        vstr.push_back("CSimdArray<double> pc_x(1, ket_pdim);");
+
+        vstr.push_back("CSimdArray<double> pc_y(1, ket_pdim);");
+
+        vstr.push_back("CSimdArray<double> pc_z(1, ket_pdim);");
     }
     
     if (integrand.name() == "A")
@@ -512,15 +535,16 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
             
         lines.push_back({3, 0, 2, "const auto a_norm = bra_gto_norms[j * bra_ncgtos + i];"});
     }
-    
-    if (integral.integrand().name() == "A")
+
+    if ((integral.integrand().name() == "A") || (integral.integrand().name() == "r"))
     {
         lines.push_back({3, 0, 2, "t2cfunc::comp_coordinates_p(p_x[0], p_y[0], p_z[0], a_x, a_y, a_z, b_x[0], b_y[0], b_z[0], a_exp, b_exps[0], ket_pdim);"});
     }
-    
+
+    // MR: This situation alt to prev clause for fine optimization
     if (integral[0] > 0)
     {
-        if (integral.integrand().name() == "A")
+        if ((integral.integrand().name() == "A") || (integral.integrand().name() == "r"))
         {
             lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], p_x[0], p_y[0], p_z[0], a_x, a_y, a_z, ket_pdim);"});
         }
@@ -533,7 +557,7 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
 
     if (integral[1] > 0)
     {
-        if (integral.integrand().name() == "A")
+        if ((integral.integrand().name() == "A") || (integral.integrand().name() == "r"))
         {
             lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], p_x[0], p_y[0], p_z[0], b_x[0], b_y[0], b_z[0], ket_pdim);"});
         }
@@ -568,6 +592,11 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
             lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
         }
 
+    }
+
+    if (integral.integrand().name() == "r")
+    {
+        lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pc(pc_x[0], pc_y[0], pc_z[0], p_x[0], p_y[0], p_z[0], coord_x, coord_y, coord_z, ket_pdim);"});
     }
 }
 

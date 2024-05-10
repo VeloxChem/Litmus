@@ -31,7 +31,7 @@ int main(int argc, char **argv)
     // 2c: "overlap" "kinetic energy" "nuclear potential" "dipole moment" "linear momentum"
     // 4c: "electron repulsion"
 
-    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "overlap"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "dipole moment"});
 
     const int max_ang_mom = 2;
 
@@ -46,9 +46,11 @@ int main(int argc, char **argv)
         // In some cases (e.g. linmom, there is no choice of axes and one does not need a "trial recursion" setup from which to choose
     // 5. Make a v2(4)i driver file and fill it according to the example for dipole
     // 6. In t2(4)c_utils, register any new operator "name cases" (various places in this file)
-    // 7. In t2(4)c_body, register any new operator "name cases" (up to three (two?) places in this file, marked)
+    // 7. In t2(4)c_body, register any new operator "name cases" (up to three (two?) places in this file, marked) including variable declarations
     // 8. In t2(4)c_cpu_generators, register any new operator "name cases", (marked)
     // 9. In t2(4)c_prim_body, make any (marked) changes (remember includes)
+    // 10. (see dipole for example) Add the primitive case to the "bottom" prim_ss autogen file (there will be blanks to fill in and you need to match this and the autogen func call that will call it)
+    // 11. Modify the function declaration for the non-primitive calls in t2(4)c_decl (and (cosmetic) in t2(4)c_docs)
 
     // from t2c_cpu_generators.hpp:
     /// MR: First index: Summation or not (explicitly incorporate any multi-term nature in the operator associated with the integrals (if any))

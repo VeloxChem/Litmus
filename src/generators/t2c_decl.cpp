@@ -73,6 +73,7 @@ T2CDeclDriver::_get_matrices_str(const I2CIntegral&           integral,
     return vstr;
 }
 
+// MR: This is the only place in this file where one should expect to have to make changes for new integral cases
 std::vector<std::string>
 T2CDeclDriver::_get_special_variables_str(const I2CIntegral& integral,
                                           const std::pair<bool, bool>& rec_form) const
@@ -107,6 +108,15 @@ T2CDeclDriver::_get_special_variables_str(const I2CIntegral& integral,
             
             vstr.push_back(spacer + "const double coord_z,");
         }
+    }
+    // MR: Here is additional declaration of variables in fn declaration for dipole integrals
+    if (integrand.name() == "r")
+    {
+        vstr.push_back(spacer + "const double coord_x,");
+
+        vstr.push_back(spacer + "const double coord_y,");
+
+        vstr.push_back(spacer + "const double coord_z,");
     }
     
     return vstr;

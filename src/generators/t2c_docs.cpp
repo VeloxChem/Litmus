@@ -128,7 +128,8 @@ T2CDocuDriver::_get_special_variables_str(const I2CIntegral& integral,
             vstr.push_back("/// - Parameter coord_z: the Cartesian Z coordinate of external charge.");
         }
     }
-    
+
+    // MR: Need to add these comments too for proper documentation
     if (integrand.name() == "r")
     {
         vstr.push_back("/// - Parameter coord_x: the vector of Cartesian X coordinate of external origin.");
