@@ -51,7 +51,9 @@ integral_label(const I2CIntegral& integral)
         if (nterms >= 2) korder = std::to_string(prefixes[1].shape().order());
     }
     
-    std::string suffix = "Geom" + border + iorder  + korder;
+    // std::string suffix = "Geom" + border + iorder  + korder;
+    
+    std::string suffix = "Geom" + border + korder;
     
     if (integrand.name() == "AG")
     {
@@ -314,22 +316,17 @@ compute_func_name(const I2CIntegral&           integral,
 {
     std::string prefix = (rec_form.first) ? "comp_sum_" : "comp_";
     
-    auto tint_prefixes = integral.prefixes();
-    
     std::string geom_label;
+    
+    auto tint_prefixes = integral.prefixes();
     
     if (!tint_prefixes.empty())
     {
-        if (tint_prefixes.size() == 1)
-        {
-            geom_label += "_geom" + std::to_string(tint_prefixes[0].shape().order()) + "00";
-        }
+        geom_label += "_geom";
         
-        if (tint_prefixes.size() == 2)
+        for (const auto& tint_prefix : tint_prefixes)
         {
-            geom_label += "_geom" + std::to_string(tint_prefixes[0].shape().order()) + "0";
-            
-            geom_label += std::to_string(tint_prefixes[1].shape().order());
+            geom_label += std::to_string(tint_prefix.shape().order());
         }
     }
         
@@ -369,19 +366,18 @@ get_buffer_label(const I2CIntegral& integral,
         label += "npot_" + std::to_string(integral.order()) + "_";
     }
     
-    if (const auto prefixes = integral.prefixes(); !prefixes.empty())
+    auto tint_prefixes = integral.prefixes();
+    
+    if (!tint_prefixes.empty())
     {
-        if (prefixes.size() == 1)
+        label += "geom";
+        
+        for (const auto& tint_prefix : tint_prefixes)
         {
-            label += "geom_" + std::to_string(prefixes[0].shape().order()) + "00_";
+            label += std::to_string(tint_prefix.shape().order());
         }
         
-        if (prefixes.size() == 2)
-        {
-            label += "geom_" + std::to_string(prefixes[0].shape().order()) + "0";
-            
-            label +=  std::to_string(prefixes[1].shape().order()) + "_";
-        }
+       label += "_";
     }
     
     label += fstr::lowercase(integral.label());
@@ -392,22 +388,17 @@ get_buffer_label(const I2CIntegral& integral,
 std::string
 prim_compute_func_name(const I2CIntegral& integral)
 {
-    auto tint_prefixes = integral.prefixes();
-    
     std::string geom_label;
+    
+    auto tint_prefixes = integral.prefixes();
     
     if (!tint_prefixes.empty())
     {
-        if (tint_prefixes.size() == 1)
-        {
-            geom_label += "_geom" + std::to_string(tint_prefixes[0].shape().order()) + "00";
-        }
+        geom_label += "_geom";
         
-        if (tint_prefixes.size() == 2)
+        for (const auto& tint_prefix : tint_prefixes)
         {
-            geom_label += "_geom" + std::to_string(tint_prefixes[0].shape().order()) + "0";
-            
-            geom_label += std::to_string(tint_prefixes[1].shape().order());
+            geom_label += std::to_string(tint_prefix.shape().order());
         }
     }
     
@@ -426,16 +417,19 @@ get_integrals(const I2CIntegral& integral)
     {
         V2ICenterDriver geom_drv;
         
-        const auto prefixws = integral.prefixes();
+        const auto prefixes = integral.prefixes();
         
-        if (prefixws.size() == 1)
+        if (prefixes.size() == 2)
         {
-            return geom_drv.apply_bra_ket_vrr(integral, 0);
-        }
-        
-        if (prefixws.size() == 2)
-        {
-            return geom_drv.apply_bra_ket_vrr(integral, 1);
+            if ((integral.prefixes()[0].shape().order() == 0) &&
+                (integral.prefixes()[1].shape().order() >  0))
+            {
+                return geom_drv.apply_bra_ket_vrr(integral, 1);
+            }
+            else
+            {
+                return geom_drv.apply_bra_ket_vrr(integral, 0);
+            }
         }
     }
     

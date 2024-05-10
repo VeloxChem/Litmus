@@ -66,7 +66,7 @@ T2CFuncBodyDriver::write_func_body(      std::ofstream&         fstream,
     
     _add_call_tree(lines, integrals, rec_form);
     
-    _add_geom_call_tree(lines, integrals, rec_form);
+    _add_geom_call_tree(lines, integrals, integral, rec_form);
     
     _add_sum_loop_end(lines, integral, rec_form, diagonal);
     
@@ -831,33 +831,38 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
 }
 
 void
-T2CFuncBodyDriver::_add_geom_call_tree(      VCodeLines&  lines,
-                                       const SI2CIntegrals& integrals,
+T2CFuncBodyDriver::_add_geom_call_tree(      VCodeLines&            lines,
+                                       const SI2CIntegrals&         integrals,
+                                       const I2CIntegral&           integral,
                                        const std::pair<bool, bool>& rec_form) const
 {
-    const int spacer = (rec_form.first) ? 4 : 3;
     
-    for (size_t i = 1; i < 3; i++)
+    if (integral.prefixes().size() == 2)
     {
-        for (const auto& tint : integrals)
+        const int spacer = (rec_form.first) ? 4 : 3;
+        
+        const auto geom_order = integral.prefixes()[0].shape().order() + integral.prefixes()[1].shape().order();
+        
+        for (int i = 1; i <= geom_order; i++)
         {
-            if (tint.prefixes().size() != i) continue;
-            
-            const auto name = t2c::prim_compute_func_name(tint);
-                
-            auto label = t2c::namespace_label(tint) + "::" + name + "(";
-                
-            label += _get_arguments(tint);
-                
-
-            if (((tint[0] + tint[1]) > 1) || (tint.integrand().name() == "T"))
+            for (const auto& tint : integrals)
             {
-                label += "a_exp, b_exps[0]";
+                if (tint.prefixes().size() == 2)
+                {
+                    if ((tint.prefixes()[0].shape().order() + tint.prefixes()[1].shape().order()) == i)
+                    {
+                        const auto name = t2c::prim_compute_func_name(tint);
+                            
+                        auto label = t2c::namespace_label(tint) + "::" + name + "(";
+                            
+                        label += _get_arguments(tint);
+                        
+                        label += "b_exps[0]);";
+                    
+                        lines.push_back({spacer, 0, 2, label});
+                    }
+                }
             }
-                
-            label += ");";
-                
-            lines.push_back({spacer, 0, 2, label});
         }
     }
 }

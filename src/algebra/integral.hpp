@@ -88,6 +88,9 @@ public:
     /// @param order The order of integral.
     void set_order(const int order);
     
+    /// Reduces scalar prefixes..
+    void reduce_prefixes();
+    
     /// Create new integral by replacing integrand.
     /// @param integrand The integrand to be replacement.
     /// @return The optional integral.
@@ -280,6 +283,18 @@ Integral<T, U>::operator<(const Integral<T, U>& other) const
     {
         return _prefixes < other._prefixes;
     }
+}
+
+template <class T, class U>
+void
+Integral<T, U>::reduce_prefixes()
+{
+    for (const auto prefix : _prefixes)
+    {
+        if (prefix.shape() != Tensor(0)) return;
+    }
+    
+    _prefixes.clear(); 
 }
 
 template <class T, class U>

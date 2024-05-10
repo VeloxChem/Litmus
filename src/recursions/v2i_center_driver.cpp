@@ -20,7 +20,7 @@
 bool
 V2ICenterDriver::is_auxiliary(const I2CIntegral& integral, const int index) const
 {
-    if (const auto nprefixes = integral.prefixes().size(); index >= nprefixes)
+    if (integral.prefixes()[index].shape() == Tensor(0))
     {
         return true;
     }
@@ -37,8 +37,10 @@ V2ICenterDriver::bra_ket_vrr(const I2CIntegral& integral, const int index) const
 
     if (is_auxiliary(integral, index)) return tints;
 
-    if (const auto tval = integral.shift_prefix(-1, index, true))
+    if (auto tval = integral.shift_prefix(-1, index, false))
     {
+        tval->reduce_prefixes(); 
+        
         if (const auto r1val = tval->shift(1, index))
         {
             tints.insert(*r1val);
@@ -59,6 +61,8 @@ V2ICenterDriver::apply_bra_ket_vrr(const I2CIntegral& integral,
 {
     SI2CIntegrals tints;
     
+    if (integral.is_simple()) return tints;
+    
     if (!is_auxiliary(integral, index))
     {
         SI2CIntegrals rtints({integral, });
@@ -69,19 +73,25 @@ V2ICenterDriver::apply_bra_ket_vrr(const I2CIntegral& integral,
                 
             for (const auto& rtint : rtints)
             {
-                if (!is_auxiliary(rtint, index))
+                if (!rtint.is_simple())
                 {
-                   const auto ctints = bra_ket_vrr(rtint, index);
-                    
-                   for (const auto& ctint : ctints)
-                   {
-                       tints.insert(ctint);
-                       
-                       if (!is_auxiliary(ctint, index))
-                       {
-                           new_rtints.insert(ctint);
-                       }
-                   }
+                    if (!is_auxiliary(rtint, index))
+                    {
+                        const auto ctints = bra_ket_vrr(rtint, index);
+                        
+                        for (const auto& ctint : ctints)
+                        {
+                            tints.insert(ctint);
+                            
+                            if (!ctint.is_simple())
+                            {
+                                if (!is_auxiliary(ctint, index))
+                                {
+                                    new_rtints.insert(ctint);
+                                }
+                            }
+                        }
+                    }
                 }
                 else
                 {
@@ -107,7 +117,7 @@ V2ICenterDriver::apply_recursion(const SI2CIntegrals& integrals) const
     {
         tints.insert(integral);
         
-        if (integral.prefixes().size() == 2)
+        if (!is_auxiliary(integral, 1))
         {
             for (const auto& bintegral : apply_bra_ket_vrr(integral, 1))
             {
@@ -122,7 +132,7 @@ V2ICenterDriver::apply_recursion(const SI2CIntegrals& integrals) const
             }
         }
         
-        if (integral.prefixes().size() == 1)
+        if ((!is_auxiliary(integral, 0)) && (is_auxiliary(integral, 1)))
         {
             for (const auto& bintegral : apply_bra_ket_vrr(integral, 0))
             {
