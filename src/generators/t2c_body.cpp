@@ -151,14 +151,16 @@ T2CFuncBodyDriver::_get_ket_variables_def(const bool diagonal) const
     
     vstr.push_back("// allocate aligned 2D arrays for ket side");
     
-    vstr.push_back("const auto ket_dim = ket_indices[1] - ket_indices[0];");
-    
     if (diagonal)
     {
+        vstr.push_back("const auto ket_dim = gto_range[1] - gto_range[0];");
+        
         vstr.push_back("const auto ket_pdim = ket_dim * npgtos;");
     }
     else
     {
+        vstr.push_back("const auto ket_dim = ket_range[1] - ket_range[0];");
+        
         vstr.push_back("const auto ket_pdim = ket_dim * ket_npgtos;");
     }
     
@@ -176,27 +178,27 @@ T2CFuncBodyDriver::_get_ket_variables_def(const bool diagonal) const
 
     if (diagonal)
     {
-        vstr.push_back("b_x.replicate(gto_coords_x, ket_indices, npgtos);");
+        vstr.push_back("b_x.replicate(gto_coords_x, gto_range, npgtos);");
 
-        vstr.push_back("b_y.replicate(gto_coords_y, ket_indices, npgtos);");
+        vstr.push_back("b_y.replicate(gto_coords_y, gto_range, npgtos);");
 
-        vstr.push_back("b_z.replicate(gto_coords_z, ket_indices, npgtos);");
+        vstr.push_back("b_z.replicate(gto_coords_z, gto_range, npgtos);");
 
-        vstr.push_back("b_exps.load(gto_exps, ket_indices, npgtos);");
+        vstr.push_back("b_exps.load(gto_exps, gto_range, npgtos);");
 
-        vstr.push_back("b_norms.load(gto_norms, ket_indices, npgtos);");
+        vstr.push_back("b_norms.load(gto_norms, gto_range, npgtos);");
     }
     else
     {
-        vstr.push_back("b_x.replicate(ket_gto_coords_x, ket_indices, ket_npgtos);");
+        vstr.push_back("b_x.replicate(ket_gto_coords_x, ket_range, ket_npgtos);");
 
-        vstr.push_back("b_y.replicate(ket_gto_coords_y, ket_indices, ket_npgtos);");
+        vstr.push_back("b_y.replicate(ket_gto_coords_y, ket_range, ket_npgtos);");
 
-        vstr.push_back("b_z.replicate(ket_gto_coords_z, ket_indices, ket_npgtos);");
+        vstr.push_back("b_z.replicate(ket_gto_coords_z, ket_range, ket_npgtos);");
 
-        vstr.push_back("b_exps.load(ket_gto_exps, ket_indices, ket_npgtos);");
+        vstr.push_back("b_exps.load(ket_gto_exps, ket_range, ket_npgtos);");
 
-        vstr.push_back("b_norms.load(ket_gto_norms, ket_indices, ket_npgtos);");
+        vstr.push_back("b_norms.load(ket_gto_norms, ket_range, ket_npgtos);");
     }
     
     return vstr;
@@ -379,17 +381,21 @@ T2CFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
                                    const bool         diagonal) const
 {
     lines.push_back({1, 0, 2, "// loop over contracted GTOs on bra side"});
-        
-    lines.push_back({1, 0, 1, "for (auto i = bra_indices[0]; i < bra_indices[1]; i++)"});
+   
+    if (diagonal)
+    {
+        lines.push_back({1, 0, 1, "for (auto i = gto_range[0]; i < gto_range[1]; i++)"});
+    }
+    else
+    {
+        lines.push_back({1, 0, 1, "for (auto i = bra_range[0]; i < bra_range[1]; i++)"});
+    }
     
     lines.push_back({1, 0, 1, "{"});
     
     lines.push_back({2, 0, 2, t2c::get_buffer_label(integral, {"cart"}) +".zero();"});
 
-    if ((integral[0] > 1) || (integral[1] > 1))
-    {
-        lines.push_back({2, 0, 2, t2c::get_buffer_label(integral, {"spher"}) +".zero();"});
-    }
+    lines.push_back({2, 0, 2, t2c::get_buffer_label(integral, {"spher"}) +".zero();"});
 
     if (diagonal && (integral[0] == integral[1]))
     {
@@ -419,30 +425,20 @@ T2CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
 {
     std::string label;
     
-    if ((integral[0] > 1) || (integral[1] > 1))
-    {
-        label = "t2cfunc::transform<"  + std::to_string(integral[0]);
+    label = "t2cfunc::transform<"  + std::to_string(integral[0]);
         
-        label += ", " + std::to_string(integral[1]) + ">(";
+    label += ", " + std::to_string(integral[1]) + ">(";
         
-        label += t2c::get_buffer_label(integral, "spher") + ", ";
+    label += t2c::get_buffer_label(integral, "spher") + ", ";
         
-        label += t2c::get_buffer_label(integral, "cart") + ");";
+    label += t2c::get_buffer_label(integral, "cart") + ");";
         
-        lines.push_back({2, 0, 2, label});
-    }
+    lines.push_back({2, 0, 2, label});
     
     // TODO: Fix matrices labels...
 
-    if ((integral[0] > 1) || (integral[1] > 1))
-    {
-        label = "t2cfunc::distribute(matrix, " + t2c::get_buffer_label(integral, "spher") + ", ";
-    }
-    else
-    {
-        label = "t2cfunc::distribute(matrix, " + t2c::get_buffer_label(integral, "cart") + ", ";
-    }
-        
+    label = "distributor->distribute(" + t2c::get_buffer_label(integral, "spher") + ", ";
+    
     if (diagonal)
     {
         label += "gto_indices, ";
@@ -455,23 +451,16 @@ T2CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
     label += std::to_string(integral[0]) + ", ";
             
     label += std::to_string(integral[1]) + ", ";
-            
+
     if (diagonal)
     {
-        label += "i, ket_indices);";
+        label += "i, gto_range);";
     }
     else
     {
-        if (integral[0] == integral[1])
-        {
-            label += "i, ket_indices, mat_type);";
-        }
-        else
-        {
-            label += "i, ket_indices, ang_order);";
-        }
+        label += "i, ket_range);";
     }
-            
+    
     lines.push_back({2, 0, 1, label});
    
     lines.push_back({1, 0, 1, "}"});

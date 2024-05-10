@@ -47,12 +47,12 @@ T2CDocuDriver::write_doc_str(      std::ofstream&         fstream,
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_distributor_variables_str(integral, diagonal))
-    {
-        lines.push_back({0, 0, 1, label});
-    }
+//    for (const auto& label : _get_distributor_variables_str(integral, diagonal))
+//    {
+//        lines.push_back({0, 0, 1, label});
+//    }
     
-    for (const auto& label : _get_indices_str())
+    for (const auto& label : _get_indices_str(diagonal))
     {
         lines.push_back({0, 0, 1, label});
     }
@@ -92,18 +92,8 @@ T2CDocuDriver::_get_matrices_str(const I2CIntegral&           integral,
 {
     std::vector<std::string> vstr;
     
-    if (integral.is_simple())
-    {
-        for (const auto& label : t2c::integrand_labels(integral, "matrix"))
-        {
-            vstr.push_back("/// - Parameter " + label + ": the pointer to matrix for storage of integrals.");
-        }
-    }
-    else
-    {
-        // TODO: Add derrivatives
-    }
-             
+    vstr.push_back("/// - Parameter distributor: the pointer to integrals distributor.");
+
     return vstr;
 }
 
@@ -137,6 +127,15 @@ T2CDocuDriver::_get_special_variables_str(const I2CIntegral& integral,
             
             vstr.push_back("/// - Parameter coord_z: the Cartesian Z coordinate of external charge.");
         }
+    }
+    
+    if (integrand.name() == "r")
+    {
+        vstr.push_back("/// - Parameter coord_x: the vector of Cartesian X coordinate of external origin.");
+        
+        vstr.push_back("/// - Parameter coord_y: the vector of Cartesian Y coordinate of external origin.");
+        
+        vstr.push_back("/// - Parameter coord_z: the vector of Cartesian Z coordinate of external origin.");
     }
     
     return vstr;
@@ -184,14 +183,21 @@ T2CDocuDriver::_get_distributor_variables_str(const I2CIntegral& integral,
 }
 
 std::vector<std::string>
-T2CDocuDriver::_get_indices_str() const
+T2CDocuDriver::_get_indices_str(const bool diagonal) const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("/// - Parameter bra_indices: the range [bra_first, bra_last) of GTOs on bra side.");
-    
-    vstr.push_back("/// - Parameter ket_indices: the range [ket_first, ket_last) of GTOs on ket side.");
-    
+    if (diagonal)
+    {
+        vstr.push_back("/// - Parameter gto_range: the range [gto_first, gto_last) of GTOs on bra and ket sides.");
+    }
+    else
+    {
+        vstr.push_back("/// - Parameter bra_range: the range [bra_first, bra_last) of GTOs on bra side.");
+        
+        vstr.push_back("/// - Parameter ket_range: the range [ket_first, ket_last) of GTOs on ket side.");
+    }
+
     return vstr;
 }
 

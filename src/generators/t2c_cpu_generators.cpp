@@ -45,23 +45,30 @@ T2CCPUGenerator::generate(const std::string&           label,
 {
     if (_is_available(label))
     {
-        SI2CIntegrals all_integrals;
-        
-        for (int i = 0; i <= max_ang_mom; i++)
+        #pragma omp parallel
         {
-            for (int j = 0; j <= max_ang_mom; j++)
+            #pragma omp single nowait
             {
-                const auto integral = _get_integral(label, {i, j}, geom_drvs);
-                
-                const auto integrals = _generate_integral_group(integral);
-
-                _write_cpp_header(integral, rec_form);
-                
-                _write_cpp_file(integrals, integral, rec_form);
-                
-                _write_prim_cpp_header(integral, rec_form);
-                
-                _write_prim_cpp_file(integral);
+                for (int i = 0; i <= max_ang_mom; i++)
+                {
+                    for (int j = 0; j <= max_ang_mom; j++)
+                    {
+                        #pragma omp task firstprivate(i,j)
+                        {
+                            const auto integral = _get_integral(label, {i, j}, geom_drvs);
+                            
+                            const auto integrals = _generate_integral_group(integral);
+                            
+                            _write_cpp_header(integrals, integral, rec_form);
+                            
+                            //_write_cpp_file(integrals, integral, rec_form);
+                            
+                            _write_prim_cpp_header(integral, rec_form);
+                            
+                            _write_prim_cpp_file(integral);
+                        }
+                    }
+                }
             }
         }
     }
@@ -281,7 +288,8 @@ T2CCPUGenerator::_file_name(const I2CIntegral&           integral,
 }
 
 void
-T2CCPUGenerator::_write_cpp_header(const I2CIntegral&           integral,
+T2CCPUGenerator::_write_cpp_header(const SI2CIntegrals&         integrals,
+                                   const I2CIntegral&           integral,
                                    const std::pair<bool, bool>& rec_form) const
 {
     auto fname = _file_name(integral, rec_form) + ".hpp";
@@ -292,26 +300,32 @@ T2CCPUGenerator::_write_cpp_header(const I2CIntegral&           integral,
     
     _write_hpp_defines(fstream, integral, rec_form, false, true);
     
-    _write_hpp_includes(fstream, integral, rec_form);
+    _write_hpp_includes(fstream, integrals, integral, rec_form);
     
     _write_namespace(fstream, integral, true);
     
     T2CDocuDriver docs_drv;
     
     T2CDeclDriver decl_drv;
+    
+    T2CFuncBodyDriver func_drv;
 
     if ((integral[0] == integral[1]) && integral.is_simple())
     {
         docs_drv.write_doc_str(fstream, integral, rec_form, true);
         
-        decl_drv.write_func_decl(fstream, integral, rec_form, true, true);
+        decl_drv.write_func_decl(fstream, integral, rec_form, true, false);
+        
+        func_drv.write_func_body(fstream, integrals, integral, rec_form, true);
         
         fstream << std::endl;
     }
 
     docs_drv.write_doc_str(fstream, integral, rec_form, false);
     
-    decl_drv.write_func_decl(fstream, integral, rec_form, false, true);
+    decl_drv.write_func_decl(fstream, integral, rec_form, false, false);
+    
+    func_drv.write_func_body(fstream, integrals, integral, rec_form, false);
 
     _write_namespace(fstream, integral, false);
         
@@ -347,6 +361,7 @@ T2CCPUGenerator::_write_hpp_defines(      std::ofstream&         fstream,
 
 void
 T2CCPUGenerator::_write_hpp_includes(      std::ofstream&         fstream,
+                                     const SI2CIntegrals&         integrals,
                                      const I2CIntegral&           integral,
                                      const std::pair<bool, bool>& rec_form) const
 {
@@ -355,14 +370,21 @@ T2CCPUGenerator::_write_hpp_includes(      std::ofstream&         fstream,
     lines.push_back({0, 0, 2, "#include <array>"});
     
     lines.push_back({0, 0, 1, "#include \"GtoBlock.hpp\""});
-
-    if (integral[0] == integral[1])
+    
+    lines.push_back({0, 0, 1, "#include \"SimdArray.hpp\""});
+    
+    for (const auto& tint : integrals)
     {
-       lines.push_back({0, 0, 1, "#include \"Matrix.hpp\""});
+        lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(tint) + ".hpp\""});
     }
     
-    lines.push_back({0, 0, 2, "#include \"SubMatrix.hpp\""});
-        
+    if (integral.integrand().name() == "A")
+    {
+        lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
+    }
+    
+    lines.push_back({0, 0, 2, "#include \"T2CUtils.hpp\""});
+    
     ost::write_code_lines(fstream, lines);
 }
 

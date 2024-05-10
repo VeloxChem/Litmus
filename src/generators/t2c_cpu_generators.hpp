@@ -55,9 +55,11 @@ class T2CCPUGenerator
                            const std::pair<bool, bool>& rec_form) const;
     
     /// Writes header file for recursion.
+    /// @param integrals The set of unique integrals.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    void _write_cpp_header(const I2CIntegral&           integral,
+    void _write_cpp_header(const SI2CIntegrals&         integrals,
+                           const I2CIntegral&           integral,
                            const std::pair<bool, bool>& rec_form) const;
     
     /// Writes definitions of define for header file.
@@ -74,9 +76,11 @@ class T2CCPUGenerator
     
     /// Writes definitions of includes for header file.
     /// @param fstream the file stream.
+    /// @param integrals The set of unique integrals.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
     void _write_hpp_includes(      std::ofstream&         fstream,
+                             const SI2CIntegrals&         integrals,
                              const I2CIntegral&           integral,
                              const std::pair<bool, bool>& rec_form) const;
     

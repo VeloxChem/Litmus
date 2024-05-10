@@ -28,6 +28,8 @@ T2CDeclDriver::write_func_decl(      std::ofstream&         fstream,
 {
     auto lines = VCodeLines();
     
+    lines.push_back({0, 0, 1, "template <class T>"});
+    
     lines.push_back({0, 0, 1, "auto"});
     
     for (const auto& label : _get_matrices_str(integral, rec_form))
@@ -45,10 +47,10 @@ T2CDeclDriver::write_func_decl(      std::ofstream&         fstream,
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_distributor_variables_str(integral, rec_form, diagonal))
-    {
-        lines.push_back({0, 0, 1, label});
-    }
+//    for (const auto& label : _get_distributor_variables_str(integral, rec_form, diagonal))
+//    {
+//        lines.push_back({0, 0, 1, label});
+//    }
     
     for (const auto& label : _get_indices_str(integral, rec_form, diagonal, terminus))
     {
@@ -62,25 +64,11 @@ std::vector<std::string>
 T2CDeclDriver::_get_matrices_str(const I2CIntegral&           integral,
                                  const std::pair<bool, bool>& rec_form) const
 {
-    const auto labels = t2c::integrand_labels(integral, "matrix");
-    
-    if (!integral.is_simple())
-    {
-        // TODO: Add derrivatives
-    }
-    
     std::vector<std::string> vstr;
     
     auto name = t2c::compute_func_name(integral, rec_form) + "(";
     
-    const auto spacer = std::string(name.size(), ' ');
-    
-    for (size_t i = 0; i < labels.size(); i++)
-    {
-        name = (i == 0) ? name  : spacer;
-       
-        vstr.push_back(name + "CSubMatrix* " + labels[i] + ",");
-    }
+    vstr.push_back(name + "T* distributor,");
     
     return vstr;
 }
@@ -187,11 +175,18 @@ T2CDeclDriver::_get_indices_str(const I2CIntegral&           integral,
     
     const auto spacer = std::string(name.size(), ' ');
     
-    vstr.push_back(spacer + "const std::array<int, 2>& bra_indices,");
-    
     const auto tsymbol = (terminus) ? ";" : "";
     
-    vstr.push_back(spacer + "const std::array<int, 2>& ket_indices) -> void" + tsymbol);
-    
+    if (diagonal)
+    {
+        vstr.push_back(spacer + "const std::array<int, 2>& gto_range) -> void" + tsymbol);
+    }
+    else
+    {
+        vstr.push_back(spacer + "const std::array<int, 2>& bra_range,");
+        
+        vstr.push_back(spacer + "const std::array<int, 2>& ket_range) -> void" + tsymbol);
+    }
+   
     return vstr;
 }

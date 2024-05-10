@@ -61,8 +61,9 @@ class T2CDocuDriver
                                                             const bool         diagonal) const;
     
     /// Generates vector of indices strings.
+    /// /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @return The vector of indices strings.
-    std::vector<std::string> _get_indices_str() const;
+    std::vector<std::string> _get_indices_str(const bool diagonal) const;
     
 public:
     /// Creates a two-center documentation generator.
