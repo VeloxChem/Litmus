@@ -219,7 +219,6 @@ T2CPrimFuncBodyDriver::_add_recursion_loop(      VCodeLines&         lines,
     
     for (int i = rec_range[0]; i < rec_range[1]; i++)
     {
-    std::cout << "getting rec dist" << i << std::endl;
         rec_dists.push_back(_get_vrr_recursion(components[i]));
     }
     
@@ -238,7 +237,6 @@ T2CPrimFuncBodyDriver::_add_recursion_loop(      VCodeLines&         lines,
     for (size_t i = 0; i < rec_dists.size(); i++)
     {
 
-    std::cout << "in rd loop" << i << std::endl;
         if (i < (rec_dists.size() - 1))
         {
             lines.push_back({2, 0, 2, _get_code_line(rec_dists[i])});
@@ -354,7 +352,6 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
 
     if (!integral.prefixes().empty())
     {
-    std::cout << "has prefixes " << integral.prefixes().size() << std::endl;
         T2CCenterDriver geom_drv;
 
         const auto prefixes = integral.prefixes();
@@ -362,7 +359,6 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
         if ((prefixes.size() == 2) || (prefixes.size() == 1))
         {
 
-        std::cout << "geo diff pref  in get vrr rec"  << std::endl;
             if ((integral.prefixes()[0].shape().order() == 0) &&
                 (integral.prefixes()[1].shape().order() >  0))
             {
@@ -411,17 +407,14 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
     {
         T2CMultipoleDriver dip_drv;
 
-        std::cout << "appying dip rec"  << std::endl;
 
         if (integral[0].order() > 0)
         {
-        std::cout << "r bra rec"  << std::endl;
 
             rdist = dip_drv.apply_bra_vrr(R2CTerm(integral));
         }
         else
         {
-        std::cout << "r ket rec"  << std::endl;
             rdist = dip_drv.apply_ket_vrr(R2CTerm(integral));
         }
     }
@@ -470,17 +463,14 @@ T2CPrimFuncBodyDriver::_get_code_line(const R2CDist& rec_distribution) const
     
     std::string line = _get_component_label(tint) + "[i] = ";
 
-    std::cout << "code line a" << line << std::endl;
 
     for (size_t i = 0; i < rec_distribution.terms(); i++)
     {
-    std::cout << "in i loop" << i << std::endl;
         auto tint = rec_distribution[i].integral();
         
         line += _get_rterm_code(rec_distribution[i], i == 0);
     }
 
-    std::cout << "code line" << line << std::endl;
 
     return line + ";";
 }
@@ -503,7 +493,6 @@ T2CPrimFuncBodyDriver::_get_rterm_code(const R2CTerm& rec_term,
     auto tint = rec_term.integral();
     
     plabel += _get_component_label(tint) + "[i]";
-     std::cout << "plabel" << plabel << std::endl;
 
     for (const auto& fact : rec_term.factors())
     {
