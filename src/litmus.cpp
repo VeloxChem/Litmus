@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 
     const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "dipole moment"});
 
-    const int max_ang_mom = 0;
+    const int max_ang_mom = 1;
 
     // To add new integral
     // (Be careful about scalar vs non-scalar integrals (see dipole for example of non-scalar)
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     if (run_type.first == "t2c_cpu")
     {
     // a, operator, b
-        const std::array<int, 3> geom_drvs = {1, 0, 0};
+        const std::array<int, 3> geom_drvs = {0, 0, 0};
 
         const auto t2c_drv = T2CCPUGenerator();
         

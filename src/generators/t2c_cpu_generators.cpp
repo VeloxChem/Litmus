@@ -224,6 +224,8 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
         }
 
         V2IOverlapDriver ovl_drv;
+std::cout << "about to call ovl drv" << std::endl;
+std::cout << "Continue here: I think these integrals not fully registered as ovl or something w the operator" << std::endl;
 
         tints = ovl_drv.create_recursion(tints);
     }
@@ -564,6 +566,8 @@ T2CCPUGenerator::_write_prim_cpp_file(const I2CIntegral& integral) const
     decl_drv.write_func_decl(fstream, integral, false);
 
     T2CPrimFuncBodyDriver func_drv;
+
+    std::cout << "writing prim func body" << std::endl;
 
     func_drv.write_func_body(fstream, integral);
     
