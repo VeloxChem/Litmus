@@ -116,8 +116,6 @@ V2ICenterDriver::apply_recursion(const SI2CIntegrals& integrals) const
     
     for (const auto& integral : integrals)
     {
-        tints.insert(integral);
-        
         if (!is_auxiliary(integral, 1))
         {
             for (const auto& bintegral : apply_bra_ket_vrr(integral, 1))
