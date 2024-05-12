@@ -21,11 +21,15 @@ V2IOverlapDriver::is_overlap(const I2CIntegral& integral) const
 {
     if (!(integral.prefixes()).empty())
     {
+        std::cout << "has prefixes " << std::endl;
+
         return false;
     }
     
     if (integral.integrand() != Operator("1"))
     {
+    std::cout << "operator is not 1 but instead " << integral.integrand().name() << std::endl;
+
         return false;
     }
     else
@@ -209,14 +213,27 @@ V2IOverlapDriver::create_recursion(const SI2CIntegrals& integrals) const
     
     for (const auto& integral : integrals)
     {
+
+     if (integral.prefixes().size() == 2)
+    {
+    std::cout << "Geo integral in ovl loop: " << integral.label() << integral.prefixes()[0].shape().order() << " " << integral.prefixes()[1].shape().order() << std::endl;
+    }
+    else
+    {
+    std::cout << "Non- geo integral in ovl loop: " << integral.label() << std::endl;
+    }
+
         if (is_overlap(integral))
         {
+
+        std::cout << "not overlap" << std::endl;
             const auto ctints = apply_recursion({integral, });
             
             tints.insert(ctints.cbegin(), ctints.cend());
         }
         else
         {
+        std::cout << "is overlap" << std::endl;
             tints.insert(integral);
         }
     }
