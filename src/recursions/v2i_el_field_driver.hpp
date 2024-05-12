@@ -37,7 +37,12 @@ public:
     /// Applies vertical recursion to bra side of nuclear potential integral.
     /// @param integral The  overlap integral.
     /// @return The set of integrals.
-    SI2CIntegrals op_vrr(const I2CIntegral& integral) const;
+    SI2CIntegrals bra_vrr(const I2CIntegral& integral) const;
+
+    /// Applies vertical recursion to ket side of nuclear potential integral.
+    /// @param integral The  overlap integral.
+    /// @return The set of integrals.
+    SI2CIntegrals ket_vrr(const I2CIntegral& integral) const;
 
     /// Applies vertical recursion to auxilary nuclear potential integral.
     /// @param integral The  overlap integral.
@@ -47,7 +52,12 @@ public:
     /// Applies vertical recursion to bra side of nuclear potential integral.
     /// @param integral The  overlap integral.
     /// @return The recursion expansion of integral.
-    SI2CIntegrals apply_op_vrr(const I2CIntegral& integral) const;
+    SI2CIntegrals apply_bra_vrr(const I2CIntegral& integral) const;
+
+    /// Applies vertical recursion to ket side of nuclear potential integral.
+    /// @param integral The  overlap integral.
+    /// @return The recursion expansion of integral.
+    SI2CIntegrals apply_ket_vrr(const I2CIntegral& integral) const;
 
     /// Recursively applies Obara-Saika recursion to recursion expansion.
     /// @param integrals The  integral to apply recursion.

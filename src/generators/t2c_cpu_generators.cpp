@@ -120,7 +120,7 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
     {
         prefixes.push_back(Operator("d/dR", Tensor(geom_drvs[0])));
     }
-    
+
     if (geom_drvs[2] > 0)
     {
         prefixes.push_back(Operator("d/dR", Tensor(geom_drvs[2])));
@@ -166,7 +166,7 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
 
     if (fstr::lowercase(label) == "electric field")
     {
-        return I2CIntegral(bra, ket, Operator("A1", Tensor(1)), 0, prefixes);
+        return I2CIntegral(bra, ket, Operator("A1", Tensor(geom_drvs[1])), 0, prefixes);
     }
     
     return I2CIntegral();
@@ -278,7 +278,8 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
         }
     }
 
-        if (integral.integrand() == Operator("A1"))
+
+    if (integral.integrand() == Operator("A1"))
     {
         V2IElectricFieldDriver el_field_drv;
 

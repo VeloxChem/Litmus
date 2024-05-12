@@ -32,9 +32,9 @@ int main(int argc, char **argv)
     // 2c: "overlap" "kinetic energy" "nuclear potential" "dipole moment" "linear momentum"
     // 4c: "electron repulsion"
 
-    const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "electric field"});
 
-    const int max_ang_mom = 2;
+    const int max_ang_mom = 1;
 
     // To add new integral
     // (Be careful about scalar vs non-scalar integrals (see dipole for example of non-scalar)
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
     // from t2c_cpu_generators.hpp:
     /// MR: First index: Summation or not (explicitly incorporate any multi-term nature in the operator associated with the integrals (if any))
     /// Second index: False: Return as matrix(ces); true: Return as scalars ("Contracted"/"distributed")
-    const auto rec_form = std::pair<bool, bool>({false, false});
+    const auto rec_form = std::pair<bool, bool>({true, false});
     
     // set up start timer
     
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     if (run_type.first == "t2c_cpu")
     {
     // a, operator, b
-        const std::array<int, 3> geom_drvs = {0, 0, 0};
+        const std::array<int, 3> geom_drvs = {0, 1, 0};
 
         const auto t2c_drv = T2CCPUGenerator();
         
