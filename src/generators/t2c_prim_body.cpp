@@ -17,7 +17,6 @@
 #include "t2c_prim_body.hpp"
 
 #include <algorithm>
-#include <iostream>
 
 #include "t2c_utils.hpp"
 #include "t2c_ovl_driver.hpp"
@@ -49,7 +48,6 @@ T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
         rec_dists.push_back(_get_vrr_recursion(component));
     }
 
-    std::cout << "getting buffers str a" << std::endl;
     for (const auto& label : _get_buffers_str(rec_dists, integral))
     {
 
@@ -60,7 +58,6 @@ T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     {
         const std::array<int, 2> rec_range({0, static_cast<int>(components.size())});
 
-        std::cout << "getting buffers str b" << std::endl;
         for (const auto& label : _get_buffers_str(integral, components, rec_range))
         {
 
@@ -108,19 +105,13 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const std::vector<R2CDist>& rec_dists,
         vstr.push_back("/// Set up components of auxilary buffer : " + label);
         
         const auto tlabel = _get_tensor_label(tint);
-
-        std::cout << "setting up aux buffer comps " << std::endl;
-        std::cout << "tlabel: " << tlabel << std::endl;
         
         int index = 0;
         
         for (const auto& tcomp : tint.components<T1CPair, T1CPair>())
         {
-        std::cout << "tcomp loop" << std::endl;
-
             if (_find_integral(rec_dists, tcomp))
             {
-            std::cout << "found integral" << std::endl;
                 const auto line = "auto " + _get_component_label(tcomp) + " = " + label;
                 
                 vstr.push_back(line + "[" + std::to_string(index) + "];");
@@ -359,8 +350,6 @@ R2CDist
 T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
 {
     R2CDist rdist;
-
-    std::cout << "getting vrr recursion for " << integral.integrand().name() << std::endl;
 
     if (!integral.prefixes().empty())
     {

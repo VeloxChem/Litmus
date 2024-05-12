@@ -121,7 +121,7 @@ T2CMultipoleDriver::bra_vrr(const R2CTerm& rterm,
         // fourth recursion term
         // a-1, operator - 1
         // Here: Special for this operator (possibly other operators too): Step downwards in orders of multipole expansion (e.g. quadrupole to dipole, dipole to identity, identity to fail/stop)
-        if (const auto r4val = tval->shift_operator(axis, -1))
+        if (const auto r4val = rterm.shift_operator(axis, -1))
         {
             auto x4val = *r4val;
 
@@ -187,7 +187,7 @@ T2CMultipoleDriver::ket_vrr(const R2CTerm& rterm,
 
         // third recursion term
 
-        if (const auto r3val = tval->shift_operator(axis, -1))
+        if (const auto r3val = rterm.shift_operator(axis, -1))
         {
             auto x3val = *r3val;
 

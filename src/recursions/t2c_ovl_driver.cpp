@@ -15,7 +15,7 @@
 // limitations under the License.
 
 #include "t2c_ovl_driver.hpp"
-#include <iostream>
+
 #include "axes.hpp"
 #include "t2c_utils.hpp"
 
@@ -48,8 +48,6 @@ std::optional<R2CDist>
 T2COverlapDriver::bra_vrr(const R2CTerm& rterm,
                           const char     axis) const
 {
-std::cout << "in ovlrec and is it overlap?" << !is_overlap(rterm) << std::endl;
-
     if (!is_overlap(rterm)) return std::nullopt;
     
     if (const auto tval = rterm.shift(axis, -1, 0))

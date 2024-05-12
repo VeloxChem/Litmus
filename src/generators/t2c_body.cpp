@@ -15,7 +15,7 @@
 // limitations under the License.
 
 #include "t2c_body.hpp"
-#include <iostream>
+
 #include "t2c_utils.hpp"
 
 void
@@ -323,18 +323,6 @@ T2CFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
     
     for (const auto& tint : integrals)
     {
-
-    if (tint.prefixes().size() == 2)
-    {
-    std::cout << "Geo integral in buffer loop: " << tint.label() << tint.prefixes()[0].shape().order() << " " <<tint.prefixes()[1].shape().order() << std::endl;
-
-    }
-    else
-    {
-    std::cout << "Non- geo integral in buffer loop: " << tint.label() << std::endl;
-
-
-    }
         std::string label = "CSimdArray<double> ";
         
         label += t2c::get_buffer_label(tint, "prim");
@@ -568,31 +556,31 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
         
     }
 
-    if (integral[0] > 0)
-    {
-        if (integral.integrand().name() == "A1")
-        {
-            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], p_x[0], p_y[0], p_z[0], a_x, a_y, a_z, ket_pdim);"});
-        }
-        else
-        {
-            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
-        }
+//    if (integral[0] > 0)
+//    {
+//        if (integral.integrand().name() == "A1")
+//        {
+//            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], p_x[0], p_y[0], p_z[0], a_x, a_y, a_z, ket_pdim);"});
+//        }
+//        else
+//        {
+//            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
+//        }
+//
+//    }
 
-    }
-
-    if (integral[1] > 0)
-    {
-        if (integral.integrand().name() == "A1")
-        {
-            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], p_x[0], p_y[0], p_z[0], b_x[0], b_y[0], b_z[0], ket_pdim);"});
-        }
-        else
-        {
-            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
-        }
-
-    }
+//    if (integral[1] > 0)
+//    {
+//        if (integral.integrand().name() == "A1")
+//        {
+//            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], p_x[0], p_y[0], p_z[0], b_x[0], b_y[0], b_z[0], ket_pdim);"});
+//        }
+//        else
+//        {
+//            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
+//        }
+//
+//    }
 
     if (integral.integrand().name() == "r")
     {
