@@ -41,6 +41,8 @@ T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     
     const auto components = integral.components<T1CPair, T1CPair>();
     
+    const auto ncomps = static_cast<int>(components.size());
+    
     std::vector<R2CDist> rec_dists;
     
     for (const auto& component : components)
@@ -56,7 +58,7 @@ T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     
     if ((integral[0] == 0) || (integral[1] == 0))
     {
-        const std::array<int, 2> rec_range({0, static_cast<int>(components.size())});
+        const std::array<int, 2> rec_range({0, ncomps});
 
         for (const auto& label : _get_buffers_str(integral, components, rec_range))
         {
@@ -68,11 +70,11 @@ T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     }
     else
     {
-        const auto bcomps = t2c::number_of_cartesian_components(integral[0]);
-        
         const auto kcomps = t2c::number_of_cartesian_components(integral[1]);
+       
+        const auto nblocks = ncomps / kcomps;
         
-        for (int i = 0; i < bcomps; i++)
+        for (int i = 0; i < nblocks; i++)
         {
             const std::array<int, 2> rec_range({i * kcomps, (i + 1) * kcomps});
             
@@ -83,7 +85,7 @@ T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
             
             _add_recursion_loop(lines, integral, components, {i * kcomps, (i + 1) * kcomps});
             
-            if (i < (bcomps - 1))  lines.push_back({0, 0, 1, ""});;
+            if (i < (ncomps - 1))  lines.push_back({0, 0, 1, ""});;
         }
     }
     

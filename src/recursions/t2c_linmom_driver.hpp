@@ -38,7 +38,6 @@ public:
 
     /// Applies vertical recursion to bra side of given recursion term.
     /// @param rterm The recursion term.
-    /// @param axis The axis of vertical recursion.
     /// @return The recursion expansion of given recursion term.
     std::optional<R2CDist> op_vrr(const R2CTerm& rterm) const;
 

@@ -60,7 +60,7 @@ T2CElectricFieldDriver::op_vrr(const R2CTerm& rterm,
 {
     if (!is_electric_field(rterm)) return std::nullopt;
 
-    const auto axel = rterm.integrand().shape().primary();
+    // const auto axel = rterm.integrand().shape().primary();
 
     if (const auto tval = rterm.shift(axis, -1, 0))
     {
