@@ -38,18 +38,32 @@ public:
     /// @return True if reccursion expansion belongs to nuclear potential recursion, False otherwise.
     bool is_electric_field(const R2CTerm& rterm) const;
 
-    /// Applies vertical recursion to bra side of given recursion term.
+
+   /// Applies vertical recursion to bra side of given recursion term.
     /// @param rterm The recursion term.
     /// @param axis The axis of vertical recursion.
     /// @return The recursion expansion of given recursion term.
-    std::optional<R2CDist> op_vrr(const R2CTerm& rterm,
+    std::optional<R2CDist> bra_vrr(const R2CTerm& rterm,
+                                   const char     axis) const;
+
+    /// Applies vertical recursion to ket side of given recursion term.
+    /// @param rterm The recursion term.
+    /// @param axis The axis of vertical recursion.
+    /// @return The recursion expansion of given recursion term.
+    std::optional<R2CDist> ket_vrr(const R2CTerm& rterm,
                                    const char     axis) const;
 
     /// Applies vertical recursion to bra side recursion term containing nuclear potential
     /// integral.
     /// @param rterm The recursion term with nuclear potential integral.
     /// @return The recursion expansion of given recursion term.
-    R2CDist apply_op_vrr(const R2CTerm& rterm) const;
+    R2CDist apply_bra_vrr(const R2CTerm& rterm) const;
+
+    /// Applies vertical recursion to ket side recursion term containing nuclear potential
+    /// integral.
+    /// @param rterm The recursion term with nuclear potential integral.
+    /// @return The recursion expansion of given recursion term.
+    R2CDist apply_ket_vrr(const R2CTerm& rterm) const;
 
     /// Recursively applies Obara-Saika recursion to recursion expansion.
     /// @param rdist The recursion expansion.
@@ -57,7 +71,11 @@ public:
 
     /// Recursively applies vertical recursion to bra side of given recursion expansion.
     /// @param rdist The recursion expansion.
-    void apply_op_vrr(R2CDist& rdist) const;
+    void apply_bra_vrr(R2CDist& rdist) const;
+
+    /// Recursively applies vertical recursion to ket side of given recursion expansion.
+    /// @param rdist The recursion expansion.
+    void apply_ket_vrr(R2CDist& rdist) const;
 
     /// Creates recursion group from vector of nuclear potential integral components.
     /// @param vints The  vector of nuclear potnetial integral components.

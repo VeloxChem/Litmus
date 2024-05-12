@@ -45,7 +45,8 @@ class T2CCPUGenerator
     /// Generates set of integrals required for vertical Obara-Saika recursion.
     /// @param integral The base two center integral.
     /// @return The set of integrals.
-    SI2CIntegrals _generate_integral_group(const I2CIntegral& integral) const;
+    SI2CIntegrals _generate_integral_group(const I2CIntegral& integral,
+                                           const std::array<int, 3>& geom_drvs) const;
     
     /// Gets file name of file with recursion functions for two center integral.
     /// @param integral The base two center integral.

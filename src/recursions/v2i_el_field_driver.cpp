@@ -80,17 +80,19 @@ V2IElectricFieldDriver::bra_vrr(const I2CIntegral& integral) const
                 tints.insert(*r6val);
             }
         }
-    }
 
-
-    // Seventh recursion term
-    if (const auto r7val = integral.shift_operator(-1))
-    {
-         if (r7val.integrand().shape() == Tensor(0))
-                    {
-                        r7val = r7val.replace(OperatorComponent("A"));
-                    }
+        // Seventh recursion term
+        if (const auto r7val = tval->shift_operator(-1))
+        {
+            if (const auto r7val_ex = r7val->shift_order(1))
+            {
+                if (r7val_ex->integrand().shape() == Tensor(0))
+                {
+                    tints.insert(r7val_ex->replace(OperatorComponent("A")));
+                }
             }
+
+        }
     }
 
     return tints;
@@ -105,6 +107,9 @@ V2IElectricFieldDriver::ket_vrr(const I2CIntegral& integral) const
 
     if (const auto tval = integral.shift(-1, 1))
     {
+
+        // first recursion term
+
         tints.insert(*tval);
 
         // second recursion term
@@ -114,7 +119,7 @@ V2IElectricFieldDriver::ket_vrr(const I2CIntegral& integral) const
             tints.insert(*r2val);
         }
 
-        // third and fourth recursion terms
+        // fifth and sixth
 
         if (const auto r3val = tval->shift(-1, 1))
         {
@@ -125,16 +130,19 @@ V2IElectricFieldDriver::ket_vrr(const I2CIntegral& integral) const
                 tints.insert(*r4val);
             }
         }
-    }
 
-    // Seventh recursion term
-    if (const auto r7val = integral.shift_operator(-1))
-    {
-         if (r7val.integrand().shape() == Tensor(0))
-                    {
-                        r7val = r7val.replace(OperatorComponent("A"));
-                    }
+        // Seventh recursion term
+        if (const auto r7val = tval->shift_operator(-1))
+        {
+            if (const auto r7val_ex = r7val->shift_order(1))
+            {
+                if (r7val_ex->integrand().shape() == Tensor(0))
+                {
+                    tints.insert(r7val_ex->replace(OperatorComponent("A")));
+                }
             }
+
+        }
     }
 
     return tints;

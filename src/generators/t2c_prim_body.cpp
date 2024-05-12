@@ -450,7 +450,11 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
 
         if (integral[0].order() > 0)
         {
-            rdist = el_field_drv.apply_op_vrr(R2CTerm(integral));
+            rdist = el_field_drv.apply_bra_vrr(R2CTerm(integral));
+        }
+        else
+        {
+            rdist = el_field_drv.apply_ket_vrr(R2CTerm(integral));
         }
     }
     

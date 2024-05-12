@@ -57,9 +57,17 @@ T2CCPUGenerator::generate(const std::string&           label,
                         #pragma omp task firstprivate(i,j)
                         {
                             const auto integral = _get_integral(label, {i, j}, geom_drvs);
-                            
-                            const auto integrals = _generate_integral_group(integral);
-                            
+
+                            const auto integrals = _generate_integral_group(integral, geom_drvs);
+
+                            std::cout << "Integrals:" << std::endl;
+
+                            for (const auto& tint : integrals)
+                            {
+                                std::cout << "Another integral identified" << std::endl;
+                            }
+                            std::cout << "End integrals id-d" << std::endl;
+
                             _write_cpp_header(integrals, integral, rec_form);
                             
                             _write_prim_cpp_header(integral, rec_form);
@@ -174,7 +182,8 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
 
 // MR: Changes here for new integral cases
 SI2CIntegrals
-T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
+T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral,
+                               const std::array<int, 3>& geom_drvs) const
 {
     SI2CIntegrals tints;
 
@@ -266,6 +275,9 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
     
     if (integral.integrand() == Operator("A"))
     {
+
+        std::cout << "This is an A integral" << std::endl;
+
         V2INuclearPotentialDriver npot_drv;
         
         if (integral.is_simple())
@@ -279,8 +291,11 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
     }
 
 
-    if (integral.integrand() == Operator("A1"))
+    if (integral.integrand() == Operator("A1", Tensor(geom_drvs[1])))
     {
+
+        std::cout << "This is an A1 integral" << std::endl;
+
         V2IElectricFieldDriver el_field_drv;
 
         if (integral.is_simple())
