@@ -209,8 +209,10 @@ V2IOverlapDriver::create_recursion(const SI2CIntegrals& integrals) const
     
     for (const auto& integral : integrals)
     {
+
         if (is_overlap(integral))
         {
+
             const auto ctints = apply_recursion({integral, });
             
             tints.insert(ctints.cbegin(), ctints.cend());

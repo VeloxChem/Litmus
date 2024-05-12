@@ -188,6 +188,7 @@ T2COverlapDriver::apply_ket_vrr(const R2CTerm& rterm) const
 void
 T2COverlapDriver::apply_recursion(R2CDist& rdist) const
 {
+
     // vertical recursions on bra side
     
     apply_bra_vrr(rdist);
@@ -351,7 +352,7 @@ R2Group
 T2COverlapDriver::create_recursion(const VT2CIntegrals& vints) const
 {
     // create reference group
-    
+
     R2Group r2group;
     
     for (const auto& tcomp : vints)

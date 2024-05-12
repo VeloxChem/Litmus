@@ -177,7 +177,7 @@ SI2CIntegrals
 T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
-    
+
     if (!integral.is_simple())
     {
         V2ICenterDriver geom_drv;
@@ -219,6 +219,7 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
         V2IOverlapDriver ovl_drv;
 
         tints = ovl_drv.create_recursion(tints);
+
     }
 
     // Linear momentum integrals
