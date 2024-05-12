@@ -44,6 +44,26 @@ public:
     /// @return The set of integrals.
     SI4CIntegrals ket_hrr(const I4CIntegral& integral) const;
     
+    /// Applies vertical recursion to bra side center A of given recursion term.
+    /// @param integral The  electron repulsion integral.
+    /// @return The set of integrals.
+    SI4CIntegrals bra_vrr_a(const I4CIntegral& integral) const;
+    
+    /// Applies vertical recursion to bra side center B of given recursion term.
+    /// @param integral The  electron repulsion integral.
+    /// @return The set of integrals.
+    SI4CIntegrals bra_vrr_b(const I4CIntegral& integral) const;
+    
+    /// Applies vertical recursion to ket side center C of given recursion term.
+    /// @param integral The  electron repulsion integral.
+    /// @return The set of integrals.
+    SI4CIntegrals ket_vrr_c(const I4CIntegral& integral) const;
+    
+    /// Applies vertical recursion to ket side center D of given recursion term.
+    /// @param integral The  electron repulsion integral.
+    /// @return The set of integrals.
+    SI4CIntegrals ket_vrr_d(const I4CIntegral& integral) const;
+    
     /// Applies vertical recursion to bra side of electron repulsion integral.
     /// @param integral The  electron repulsion integral.
     /// @return The set of integrals.
@@ -74,6 +94,26 @@ public:
     /// @return The set of integrals.
     SI4CIntegrals apply_ket_vrr_recursion(const I4CIntegral& integral) const;
     
+    /// Creates bra vrr recursion on center A.
+    /// @param integrals The  set of integrals to apply recursion.
+    /// @return The set of integrals.
+    SI4CIntegrals apply_bra_vrr_a(const SI4CIntegrals& integrals) const;
+    
+    /// Creates bra vrr recursion on center B.
+    /// @param integrals The  set of integrals to apply recursion.
+    /// @return The set of integrals.
+    SI4CIntegrals apply_bra_vrr_b(const SI4CIntegrals& integrals) const;
+    
+    /// Creates ket vrr recursion on center C.
+    /// @param integrals The  set of integrals to apply recursion.
+    /// @return The set of integrals.
+    SI4CIntegrals apply_ket_vrr_c(const SI4CIntegrals& integrals) const;
+    
+    /// Creates bra vrr recursion on center D.
+    /// @param integrals The  set of integrals to apply recursion.
+    /// @return The set of integrals.
+    SI4CIntegrals apply_ket_vrr_d(const SI4CIntegrals& integrals) const;
+    
     /// Creates bra hrr recursion expansion for set of integral.
     /// @param integrals The  set of integrals to apply recursion.
     /// @return The set of integrals.
@@ -88,6 +128,11 @@ public:
     /// @param integrals The  set of integrals to apply recursion.
     /// @return The set of integrals.
     SI4CIntegrals create_vrr_recursion(const SI4CIntegrals& integrals) const;
+    
+    /// Creates full vrr recursion expansion for set of integral.
+    /// @param integrals The  set of integrals to apply recursion.
+    /// @return The set of integrals.
+    SI4CIntegrals create_full_vrr_recursion(const SI4CIntegrals& integrals) const;
 };
 
 

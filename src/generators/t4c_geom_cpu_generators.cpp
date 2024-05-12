@@ -139,7 +139,7 @@ T4CGeomCPUGenerator::_generate_vrr_integral_group(const I4CIntegral& integral,
     {
         V4IElectronRepulsionDriver eri_drv;
         
-        tints = eri_drv.create_vrr_recursion(ref_tints);
+        tints = eri_drv.create_full_vrr_recursion(ref_tints);
     }
     
     return tints;
