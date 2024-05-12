@@ -46,10 +46,10 @@ T2CCPUGenerator::generate(const std::string&           label,
 {
     if (_is_available(label))
     {
-        #pragma omp parallel
-        {
-            #pragma omp single nowait
-            {
+        //#pragma omp parallel
+        //{
+            //#pragma omp single nowait
+           // {
                 for (int i = 0; i <= max_ang_mom; i++)
                 {
                     for (int j = 0; j <= max_ang_mom; j++)
@@ -57,9 +57,9 @@ T2CCPUGenerator::generate(const std::string&           label,
                         #pragma omp task firstprivate(i,j)
                         {
                             const auto integral = _get_integral(label, {i, j}, geom_drvs);
-                            
-                            const auto integrals = _generate_integral_group(integral);
-                            
+
+                            const auto integrals = _generate_integral_group(integral, geom_drvs);
+
                             _write_cpp_header(integrals, integral, rec_form);
                             
                             _write_prim_cpp_header(integral, rec_form);
@@ -68,8 +68,8 @@ T2CCPUGenerator::generate(const std::string&           label,
                         }
                     }
                 }
-            }
-        }
+           // }
+       // }
     }
     else
     {
@@ -120,7 +120,7 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
     {
         prefixes.push_back(Operator("d/dR", Tensor(geom_drvs[0])));
     }
-    
+
     if (geom_drvs[2] > 0)
     {
         prefixes.push_back(Operator("d/dR", Tensor(geom_drvs[2])));
@@ -166,7 +166,7 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
 
     if (fstr::lowercase(label) == "electric field")
     {
-        return I2CIntegral(bra, ket, Operator("A1", Tensor(1)), 0, prefixes);
+        return I2CIntegral(bra, ket, Operator("A1", Tensor(geom_drvs[1])), 0, prefixes);
     }
     
     return I2CIntegral();
@@ -174,7 +174,8 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
 
 // MR: Changes here for new integral cases
 SI2CIntegrals
-T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
+T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral,
+                               const std::array<int, 3>& geom_drvs) const
 {
     SI2CIntegrals tints;
 
@@ -266,6 +267,7 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
     
     if (integral.integrand() == Operator("A"))
     {
+
         V2INuclearPotentialDriver npot_drv;
         
         if (integral.is_simple())
@@ -278,8 +280,10 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
         }
     }
 
-        if (integral.integrand() == Operator("A1"))
+
+    if (integral.integrand() == Operator("A1", Tensor(geom_drvs[1])))
     {
+
         V2IElectricFieldDriver el_field_drv;
 
         if (integral.is_simple())

@@ -532,7 +532,14 @@ get_integrals(const I2CIntegral& integral)
     {
         V2IElectricFieldDriver el_field_drv;
 
-        tints = el_field_drv.op_vrr(integral);
+        if (integral[0] > 0)
+        {
+            tints = el_field_drv.bra_vrr(integral);
+        }
+        else
+        {
+            tints = el_field_drv.ket_vrr(integral);
+        }
 
         if ((integral[0] + integral[1]) == 0)
         {

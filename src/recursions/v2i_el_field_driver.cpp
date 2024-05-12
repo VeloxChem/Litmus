@@ -26,7 +26,7 @@ V2IElectricFieldDriver::is_electric_field(const I2CIntegral& integral) const
         return false;
     }
 
-    if (integral.integrand() != Operator("A1"))
+    if (integral.integrand().name() != "A1")
     {
         return false;
     }
@@ -36,8 +36,9 @@ V2IElectricFieldDriver::is_electric_field(const I2CIntegral& integral) const
     }
 }
 
+
 SI2CIntegrals
-V2IElectricFieldDriver::op_vrr(const I2CIntegral& integral) const
+V2IElectricFieldDriver::bra_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
 
@@ -53,15 +54,9 @@ V2IElectricFieldDriver::op_vrr(const I2CIntegral& integral) const
 
         if (const auto r2val = tval->shift_order(1))
         {
+
             tints.insert(*r2val);
         }
-
-        // NB: Seventh recursion term
-        // MR: Need something else here? This doesn't work here
-        // if (const auto r7val = tval->shift_operator(axis, -1))
-        // {
-        //    tints.insert(*r7val);
-        // }
 
         // third and fourth recursion terms
 
@@ -86,12 +81,73 @@ V2IElectricFieldDriver::op_vrr(const I2CIntegral& integral) const
                 tints.insert(*r6val);
             }
         }
+
+        // Seventh recursion term
+        if (const auto r7val = tval->shift_operator(-1))
+        {
+            if (const auto r7val_ex = r7val->shift_order(1))
+            {
+                if (r7val_ex->integrand().shape() == Tensor(0))
+                {
+                    tints.insert(r7val_ex->replace(OperatorComponent("A")));
+                }
+            }
+
+        }
     }
 
     return tints;
 }
 
-// MR: Figure this out
+SI2CIntegrals
+V2IElectricFieldDriver::ket_vrr(const I2CIntegral& integral) const
+{
+    SI2CIntegrals tints;
+
+    if (!is_electric_field(integral)) return tints;
+
+    if (const auto tval = integral.shift(-1, 1))
+    {
+
+        // first recursion term
+        tints.insert(*tval);
+
+        // second recursion term
+
+        if (const auto r2val = tval->shift_order(1))
+        {
+            tints.insert(*r2val);
+        }
+
+        // fifth and sixth
+
+        if (const auto r3val = tval->shift(-1, 1))
+        {
+            tints.insert(*r3val);
+
+            if (const auto r4val = r3val->shift_order(1))
+            {
+                tints.insert(*r4val);
+            }
+        }
+
+        // Seventh recursion term
+        if (const auto r7val = tval->shift_operator(-1))
+        {
+            if (const auto r7val_ex = r7val->shift_order(1))
+            {
+                if (r7val_ex->integrand().shape() == Tensor(0))
+                {
+                    tints.insert(r7val_ex->replace(OperatorComponent("A")));
+                }
+            }
+
+        }
+    }
+
+    return tints;
+}
+
 I2CIntegral
 V2IElectricFieldDriver::aux_vrr(const I2CIntegral& integral) const
 {
@@ -110,7 +166,7 @@ V2IElectricFieldDriver::aux_vrr(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V2IElectricFieldDriver::apply_op_vrr(const I2CIntegral& integral) const
+V2IElectricFieldDriver::apply_bra_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
 
@@ -126,13 +182,57 @@ V2IElectricFieldDriver::apply_op_vrr(const I2CIntegral& integral) const
             {
                 if (rtint[0] != 0)
                 {
-                   const auto ctints = op_vrr(rtint);
+                   const auto ctints = bra_vrr(rtint);
 
                    for (const auto& ctint : ctints)
                    {
                        tints.insert(ctint);
 
                        if (ctint[0] != 0)
+                       {
+                           new_rtints.insert(ctint);
+                       }
+                   }
+                }
+                else
+                {
+                    tints.insert(rtint);
+                }
+            }
+
+            rtints = new_rtints;
+        }
+    }
+
+    tints.insert(integral);
+
+    return tints;
+}
+
+SI2CIntegrals
+V2IElectricFieldDriver::apply_ket_vrr(const I2CIntegral& integral) const
+{
+    SI2CIntegrals tints;
+
+    if (integral[1] > 0)
+    {
+        SI2CIntegrals rtints({integral, });
+
+        while (!rtints.empty())
+        {
+            SI2CIntegrals new_rtints;
+
+            for (const auto& rtint : rtints)
+            {
+                if (rtint[1] != 0)
+                {
+                   const auto ctints = ket_vrr(rtint);
+
+                   for (const auto& ctint : ctints)
+                   {
+                       tints.insert(ctint);
+
+                       if (ctint[1] != 0)
                        {
                            new_rtints.insert(ctint);
                        }
@@ -162,9 +262,32 @@ V2IElectricFieldDriver::apply_recursion(const SI2CIntegrals& integrals) const
     {
         tints.insert(integral);
 
-        for (const auto& bintegral : apply_op_vrr({integral, }))
+        for (const auto& bintegral : apply_bra_vrr({integral, }))
         {
-            tints.insert(bintegral);
+            if (bintegral[0] == 0)
+            {
+                if (bintegral[1] != 0)
+                {
+                    const auto ctints = apply_ket_vrr(bintegral);
+
+                    for (const auto& ctint : ctints)
+                    {
+                        tints.insert(ctint);
+
+                        tints.insert(aux_vrr(ctint));
+                    }
+                }
+                else
+                {
+                    tints.insert(bintegral);
+
+                    tints.insert(aux_vrr(bintegral));
+                }
+            }
+            else
+            {
+                tints.insert(bintegral);
+            }
         }
     }
 

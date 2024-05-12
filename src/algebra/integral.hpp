@@ -415,7 +415,8 @@ Integral<T, U>::shift_operator(const int value) const
 {
     if (const auto op = _integrand.shift(value))
     {
-        return IntegralComponent<T, U>(_bra, _ket, *op, _order, _prefixes);
+    // MR: I changed this from IntegralComponent - is that right? Otherwise I didn't find a matching func call
+        return Integral<T, U>(_bra, _ket, *op, _order, _prefixes);
     }
     else
     {

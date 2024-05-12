@@ -65,9 +65,10 @@ V2IDipoleDriver::bra_vrr(const I2CIntegral& integral) const
         }
         // fourth recursion term
 
-            // We can say 1 here because we know that we start from dipole and walk down to identity
-            // but if this were meant to support higher multipole moments then we need further steps down here
-        tints.insert(integral.replace(Operator("1")));
+        // We can say 1 here because we know that we start from dipole and walk down to identity
+        // but if this were meant to support higher multipole moments then we need further steps down here
+        // MR: Should we not make the replacement w.r.t tval instead of integral here???
+        tints.insert(tval->replace(Operator("1")));
     }
 
     return tints;
