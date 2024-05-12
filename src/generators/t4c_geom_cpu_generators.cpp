@@ -21,6 +21,10 @@
 #include "string_formater.hpp"
 #include "file_stream.hpp"
 
+#include "t4c_utils.hpp"
+#include "t4c_docs.hpp"
+#include "t4c_decl.hpp"
+#include "t4c_body.hpp"
 #include "v4i_center_driver.hpp"
 #include "v4i_eri_driver.hpp"
 
@@ -43,14 +47,16 @@ T4CGeomCPUGenerator::generate(const std::string&        label,
                         
                         const auto geom_integrals = _generate_geom_integral_group(integral);
                         
+                        const auto vrr_integrals = _generate_vrr_integral_group(integral, geom_integrals);
+                        
+                        _write_cpp_header(geom_integrals, vrr_integrals, integral);
+                        
                         std::cout << " *** REFERENCE: " << integral.prefix_label() << " | " << integral.label() << std::endl;
                         
                         for (const auto& tint : geom_integrals)
                         {
                             std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
                         }
-                        
-                        const auto vrr_integrals = _generate_vrr_integral_group(integral, geom_integrals);
                         
                         std::cout << " --- VRR --- " << std::endl;
                         
@@ -143,4 +149,150 @@ T4CGeomCPUGenerator::_generate_vrr_integral_group(const I4CIntegral& integral,
     }
     
     return tints;
+}
+
+std::string
+T4CGeomCPUGenerator::_file_name(const I4CIntegral& integral) const
+{
+    std::string label = "Rec" + integral.label();
+    
+    return t4c::integral_label(integral) + label;
+}
+
+void
+T4CGeomCPUGenerator::_write_cpp_header(const SI4CIntegrals& geom_integrals,
+                                       const SI4CIntegrals& vrr_integrals,
+                                       const I4CIntegral&   integral) const
+{
+    auto fname = _file_name(integral) + ".hpp";
+        
+    std::ofstream fstream;
+               
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_hpp_defines(fstream, integral, true);
+    
+    _write_hpp_includes(fstream, geom_integrals, vrr_integrals, integral);
+    
+    _write_namespace(fstream, integral, true);
+    
+    T4CDocuDriver docs_drv;
+    
+    T4CDeclDriver decl_drv;
+    
+    T4CFuncBodyDriver func_drv;
+
+    docs_drv.write_doc_str(fstream, integral, false);
+    
+    decl_drv.write_func_decl(fstream, integral, false, false);
+    
+    func_drv.write_geom_func_body(fstream, geom_integrals, vrr_integrals, integral);
+    
+    fstream << std::endl;
+
+    _write_namespace(fstream, integral, false);
+        
+    _write_hpp_defines(fstream, integral, false);
+    
+    fstream.close();
+}
+
+void
+T4CGeomCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
+                                        const I4CIntegral&   integral,
+                                        const bool           start) const
+{
+    auto fname = _file_name(integral) + "_hpp";
+    
+    auto lines = VCodeLines();
+ 
+    if (start)
+    {
+        lines.push_back({0, 0, 1, "#ifndef " + fname});
+        
+        lines.push_back({0, 0, 2, "#define " + fname});
+    }
+    else
+    {
+        lines.push_back({0, 0, 1, "#endif /* " + fname + " */"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
+                                         const SI4CIntegrals& geom_integrals,
+                                         const SI4CIntegrals& vrr_integrals,
+                                         const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include <array>"});
+    
+    std::set<std::string> labels;
+    
+    for (const auto& tint : vrr_integrals)
+    {
+        if ((tint[0] + tint[2]) == 0)
+        {
+            labels.insert(t4c::prim_file_name(tint));
+        }
+    }
+    
+//    for (const auto& tint : ket_integrals)
+//    {
+//        if ((tint[0] == 0) && (tint[2] > 0))
+//        {
+//            labels.insert(t4c::ket_hrr_file_name(tint));
+//        }
+//    }
+//
+//    for (const auto& tint : bra_integrals)
+//    {
+//        if ((tint[0] > 0) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
+//        {
+//            labels.insert(t4c::bra_hrr_file_name(tint));
+//        }
+//    }
+    
+    for (const auto& label : labels)
+    {
+        lines.push_back({0, 0, 1, "#include \"" + label + ".hpp\""});
+    }
+    
+    lines.push_back({0, 0, 1, "#include \"SimdArray.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"T4CUtils.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"T2CUtils.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"GtoPairBlock.hpp\""});
+   
+    
+        
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CGeomCPUGenerator::_write_namespace(      std::ofstream& fstream,
+                                      const I4CIntegral&   integral,
+                                      const bool           start) const
+{
+    const auto label = t4c::namespace_label(integral);
+    
+    auto lines = VCodeLines();
+    
+    if (start)
+    {
+        lines.push_back({0, 0, 2, "namespace " + label + " { // " + label + " namespace"});
+    }
+    else
+    {
+        lines.push_back({0, 0, 2, "} // " + label + " namespace"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
 }

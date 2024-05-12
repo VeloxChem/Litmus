@@ -25,11 +25,26 @@ namespace t4c { // t4c namespace
 std::string
 integral_label(const I4CIntegral& integral)
 {
+    std::string suffix = "Geom";
+    
+    const auto prefixes = integral.prefixes();
+    
+    if (const auto nterms = prefixes.size(); nterms == 4)
+    {
+        suffix += std::to_string(prefixes[0].shape().order());
+        
+        suffix += std::to_string(prefixes[1].shape().order());
+        
+        suffix += std::to_string(prefixes[2].shape().order());
+        
+        suffix += std::to_string(prefixes[3].shape().order());
+    }
+    
     const auto integrand = integral.integrand();
     
     if (integrand.name() == "1/|r-r'|")
     {
-        return "ElectronRepulsion";
+        return (prefixes.empty()) ? "ElectronRepulsion" : "ElectronRepulsion" + suffix;
     }
     
     return std::string(); 
@@ -74,7 +89,21 @@ integrand_label(const Operator& integrand)
 std::string
 compute_func_name(const I4CIntegral& integral)
 {
-    auto label = "comp_" + t4c::integral_split_label(integral) + "_" + integral.label();
+    std::string geom_label; 
+    
+    auto tint_prefixes = integral.prefixes();
+    
+    if (!tint_prefixes.empty())
+    {
+        geom_label += "_geom";
+        
+        for (const auto& tint_prefix : tint_prefixes)
+        {
+            geom_label += std::to_string(tint_prefix.shape().order());
+        }
+    }
+    
+    auto label = "comp_" + t4c::integral_split_label(integral) +  geom_label + "_" + integral.label();
         
     return fstr::lowercase(label);
 }

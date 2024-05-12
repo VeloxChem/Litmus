@@ -65,6 +65,13 @@ class T4CFuncBodyDriver
     std::vector<std::string> _get_prim_buffers_def(const SI4CIntegrals& integrals,
                                                    const I4CIntegral&   integral) const;
     
+    /// Generates vector of primitive buffers in compute function.
+    /// @param integrals The set of inetrgals.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffers in compute function.
+    std::vector<std::string> _get_full_prim_buffers_def(const SI4CIntegrals& integrals,
+                                                        const I4CIntegral&   integral) const;
+    
     /// Generates vector of Cartesian buffers in compute function.
     /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
     /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
@@ -218,6 +225,16 @@ public:
                          const SI4CIntegrals& vrr_integrals,
                          const I4CIntegral&   integral,
                          const bool           diagonal) const;
+    
+    /// Writes body of compute function.
+    /// @param fstream the file stream.
+    /// @param geom_integrals The set of unique integrals for geometrical recursion.
+    /// @param vrr_integrals The set of unique integrals for vertical recursion.
+    /// @param integral The base two center integral.
+    void write_geom_func_body(      std::ofstream& fstream,
+                              const SI4CIntegrals& geom_integrals,
+                              const SI4CIntegrals& vrr_integrals,
+                              const I4CIntegral&   integral) const;
 };
 
 

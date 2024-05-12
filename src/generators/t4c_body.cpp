@@ -101,6 +101,46 @@ T4CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+void
+T4CFuncBodyDriver::write_geom_func_body(      std::ofstream& fstream,
+                                        const SI4CIntegrals& geom_integrals,
+                                        const SI4CIntegrals& vrr_integrals,
+                                        const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "{"});
+    
+    for (const auto& label : _get_gto_pairs_def(false))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    for (const auto& label : _get_ket_variables_def(false))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    for (const auto& label : _get_coordinates_def(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    for (const auto& label : _get_full_prim_buffers_def(vrr_integrals, integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    for (const auto& label : _get_boys_function_def(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    lines.push_back({0, 0, 1, "}"});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
 std::vector<std::string>
 T4CFuncBodyDriver::_get_gto_pairs_def(const bool diagonal) const
 {
@@ -466,6 +506,36 @@ T4CFuncBodyDriver::_get_prim_buffers_def(const SI4CIntegrals& integrals,
 }
 
 std::vector<std::string>
+T4CFuncBodyDriver::_get_full_prim_buffers_def(const SI4CIntegrals& integrals,
+                                              const I4CIntegral&   integral) const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("// allocate aligned primitive integrals");
+    
+    for (const auto& tint : integrals)
+    {
+        std::string label = "CSimdArray<double> ";
+            
+        label += t4c::get_buffer_label(tint, "prim");
+            
+        auto angpair = std::array<int, 2>({tint[0], tint[1]});
+            
+        auto tcomps = t2c::number_of_cartesian_components(angpair);
+        
+        angpair = std::array<int, 2>({tint[2], tint[3]});
+            
+        tcomps *= t2c::number_of_cartesian_components(angpair);
+            
+        label += "(" + std::to_string(tcomps) + ", ket_pdim);";
+            
+        vstr.push_back(label);
+    }
+    
+    return vstr;
+}
+
+std::vector<std::string>
 T4CFuncBodyDriver::_get_cart_buffers_def(const SI4CIntegrals& bra_integrals,
                                          const SI4CIntegrals& ket_integrals,
                                          const I4CIntegral&   integral) const
@@ -592,7 +662,15 @@ T4CFuncBodyDriver::_get_boys_function_def(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    const auto order = integral[0] + integral[1] + integral[2] + integral[3];
+    auto order = integral[0] + integral[1] + integral[2] + integral[3];
+    
+    if (const auto prefixes = integral.prefixes(); !prefixes.empty())
+    {
+        for (const auto& prefix : prefixes)
+        {
+            order += prefix.shape().order(); 
+        }
+    }
         
     vstr.push_back("// setup Boys fuction data");
         
