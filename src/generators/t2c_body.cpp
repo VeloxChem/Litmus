@@ -853,6 +853,10 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
             {
                 label += "a_exp, b_exps[0]";
             }
+           else if (((tint[0] + tint[1]) > 0) && (tint.integrand().name() == "r"))
+            {
+                label += ", a_exp, b_exps[0]";
+            }
             
             label += ");";
             

@@ -189,7 +189,6 @@ void
 T2COverlapDriver::apply_recursion(R2CDist& rdist) const
 {
 
-std::cout << "applying ovl recursion" << std::endl;
     // vertical recursions on bra side
     
     apply_bra_vrr(rdist);

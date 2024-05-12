@@ -178,9 +178,6 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
 
-    std::cout << "Generating integral group" << integral.label() << std::endl;
-
-
     if (!integral.is_simple())
     {
         V2ICenterDriver geom_drv;
@@ -212,20 +209,16 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
 
         if (integral.is_simple())
         {
-        std::cout << "simple r integral" << std::endl;
             tints = dip_drv.create_recursion({integral,});
         }
         else
         {
-        std::cout << "non-simple r integral" << std::endl;
             tints = dip_drv.create_recursion(tints);
         }
 
         V2IOverlapDriver ovl_drv;
-std::cout << "about to call ovl drv" << std::endl;
 
         tints = ovl_drv.create_recursion(tints);
-std::cout << "back from ovl drv" << std::endl;
 
     }
 
