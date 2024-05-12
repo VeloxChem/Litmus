@@ -15,7 +15,7 @@
 // limitations under the License.
 
 #include "t2c_el_field_driver.hpp"
-
+#include <iostream>
 #include "axes.hpp"
 
 T2CElectricFieldDriver::T2CElectricFieldDriver()
@@ -245,7 +245,7 @@ T2CElectricFieldDriver::apply_bra_vrr(const R2CTerm& rterm) const
 {
     R2CDist t2crt;
 
-    size_t nints = 7;
+    size_t nints = 8;
 
     for (const auto axis : "xyz")
     {
@@ -268,7 +268,7 @@ T2CElectricFieldDriver::apply_ket_vrr(const R2CTerm& rterm) const
 {
     R2CDist t2crt;
 
-    size_t nints = 5;
+    size_t nints = 6;
 
     for (const auto axis : "xyz")
     {

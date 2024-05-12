@@ -26,7 +26,7 @@ V2IElectricFieldDriver::is_electric_field(const I2CIntegral& integral) const
         return false;
     }
 
-    if (integral.integrand() != Operator("A1"))
+    if (integral.integrand().name() != "A1")
     {
         return false;
     }
@@ -54,6 +54,7 @@ V2IElectricFieldDriver::bra_vrr(const I2CIntegral& integral) const
 
         if (const auto r2val = tval->shift_order(1))
         {
+
             tints.insert(*r2val);
         }
 
@@ -109,7 +110,6 @@ V2IElectricFieldDriver::ket_vrr(const I2CIntegral& integral) const
     {
 
         // first recursion term
-
         tints.insert(*tval);
 
         // second recursion term

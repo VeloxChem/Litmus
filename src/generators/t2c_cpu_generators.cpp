@@ -46,10 +46,10 @@ T2CCPUGenerator::generate(const std::string&           label,
 {
     if (_is_available(label))
     {
-        #pragma omp parallel
-        {
-            #pragma omp single nowait
-            {
+        //#pragma omp parallel
+        //{
+            //#pragma omp single nowait
+           // {
                 for (int i = 0; i <= max_ang_mom; i++)
                 {
                     for (int j = 0; j <= max_ang_mom; j++)
@@ -60,14 +60,6 @@ T2CCPUGenerator::generate(const std::string&           label,
 
                             const auto integrals = _generate_integral_group(integral, geom_drvs);
 
-                            std::cout << "Integrals:" << std::endl;
-
-                            for (const auto& tint : integrals)
-                            {
-                                std::cout << "Another integral identified" << std::endl;
-                            }
-                            std::cout << "End integrals id-d" << std::endl;
-
                             _write_cpp_header(integrals, integral, rec_form);
                             
                             _write_prim_cpp_header(integral, rec_form);
@@ -76,8 +68,8 @@ T2CCPUGenerator::generate(const std::string&           label,
                         }
                     }
                 }
-            }
-        }
+           // }
+       // }
     }
     else
     {
@@ -276,8 +268,6 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral,
     if (integral.integrand() == Operator("A"))
     {
 
-        std::cout << "This is an A integral" << std::endl;
-
         V2INuclearPotentialDriver npot_drv;
         
         if (integral.is_simple())
@@ -293,8 +283,6 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral,
 
     if (integral.integrand() == Operator("A1", Tensor(geom_drvs[1])))
     {
-
-        std::cout << "This is an A1 integral" << std::endl;
 
         V2IElectricFieldDriver el_field_drv;
 
