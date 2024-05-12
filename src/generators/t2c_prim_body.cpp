@@ -55,6 +55,8 @@ T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
 
         lines.push_back({1, 0, 2, label});
     }
+        
+    const auto kcomps = t2c::number_of_cartesian_components(integral[1]);
     
     if ((integral[0] == 0) || (integral[1] == 0))
     {
@@ -70,8 +72,6 @@ T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     }
     else
     {
-        const auto kcomps = t2c::number_of_cartesian_components(integral[1]);
-       
         const auto nblocks = ncomps / kcomps;
         
         for (int i = 0; i < nblocks; i++)

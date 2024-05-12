@@ -42,6 +42,34 @@ public:
     /// @param rterm The recursion term.
     /// @param axis The axis of vertical recursion.
     /// @return The recursion expansion of given recursion term.
+    std::optional<R4CDist> bra_vrr_a(const R4CTerm& rterm,
+                                     const char     axis) const;
+    
+    /// Applies vertical recursion to bra side center B of given recursion term.
+    /// @param rterm The recursion term.
+    /// @param axis The axis of vertical recursion.
+    /// @return The recursion expansion of given recursion term.
+    std::optional<R4CDist> bra_vrr_b(const R4CTerm& rterm,
+                                     const char     axis) const;
+    
+    /// Applies vertical recursion to ket side center C of given recursion term.
+    /// @param rterm The recursion term.
+    /// @param axis The axis of vertical recursion.
+    /// @return The recursion expansion of given recursion term.
+    std::optional<R4CDist> ket_vrr_c(const R4CTerm& rterm,
+                                     const char     axis) const;
+    
+    /// Applies vertical recursion to ket side center D of given recursion term.
+    /// @param rterm The recursion term.
+    /// @param axis The axis of vertical recursion.
+    /// @return The recursion expansion of given recursion term.
+    std::optional<R4CDist> ket_vrr_d(const R4CTerm& rterm,
+                                     const char     axis) const;
+    
+    /// Applies vertical recursion to bra side center A of given recursion term.
+    /// @param rterm The recursion term.
+    /// @param axis The axis of vertical recursion.
+    /// @return The recursion expansion of given recursion term.
     std::optional<R4CDist> bra_vrr(const R4CTerm& rterm,
                                    const char     axis) const;
     

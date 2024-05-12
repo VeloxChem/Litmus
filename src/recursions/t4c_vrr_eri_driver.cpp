@@ -45,6 +45,359 @@ T4CVrrElectronRepulsionDriver::is_electron_repulsion(const R4CTerm& rterm) const
 }
 
 std::optional<R4CDist>
+T4CVrrElectronRepulsionDriver::bra_vrr_a(const R4CTerm& rterm,
+                                          const char     axis) const
+{
+    if (!is_electron_repulsion(rterm)) return std::nullopt;
+    
+    if (const auto tval = rterm.shift(axis, -1, 0))
+    {
+        R4CDist t4crt(rterm);
+        
+        // first recursion term
+        
+        auto x1val = *tval;
+        
+        const auto coord = _rxyz[axes::to_index(axis)];
+        
+        x1val.add(Factor("PA", "pa", coord), Fraction(1));
+        
+        t4crt.add(x1val);
+        
+        // second recursion term
+        
+        if (const auto r2val = tval->shift_order(1))
+        {
+            auto x2val = *r2val;
+            
+            x2val.add(Factor("WP", "wp", coord), Fraction(1));
+            
+            t4crt.add(x2val);
+        }
+        
+        // third and fourth recursion terms
+        
+        if (const auto r3val = tval->shift(axis, -1, 0))
+        {
+            auto x3val = *r3val;
+            
+            const auto na = x1val[0][axis];
+            
+            x3val.add(Factor("1/eta", "fi_ab"), Fraction(na, 2));
+            
+            t4crt.add(x3val);
+            
+            if (const auto r4val = r3val->shift_order(1))
+            {
+                auto x4val = *r4val;
+                
+                x4val.add(Factor("1/eta^2", "fti_ab"), Fraction(-na, 2));
+                
+                t4crt.add(x4val);
+            }
+        }
+        
+        // fifth and sixth recursion terms
+        
+        if (const auto r5val = tval->shift(axis, -1, 1))
+        {
+            auto x5val = *r5val;
+            
+            const auto nb = x1val[1][axis];
+            
+            x5val.add(Factor("1/eta", "fi_ab"), Fraction(nb, 2));
+            
+            t4crt.add(x5val);
+            
+            if (const auto r6val = r5val->shift_order(1))
+            {
+                auto x6val = *r6val;
+                
+                x6val.add(Factor("1/eta^2", "fti_ab"), Fraction(-nb, 2));
+                
+                t4crt.add(x6val);
+            }
+        }
+        
+        // seventh recursion term
+        
+        if (const auto xval = tval->shift(axis, -1, 2))
+        {
+            if (const auto r7val = xval->shift_order(1))
+            {
+                auto x7val = *r7val;
+               
+                const auto nc = x1val[2][axis];
+               
+                x7val.add(Factor("1/(eta+nu)", "fi_abcd"), Fraction(nc, 2));
+               
+                t4crt.add(x7val);
+            }
+        }
+        
+        // eigth recursion term
+        
+        if (const auto xval = tval->shift(axis, -1, 3))
+        {
+            if (const auto r8val = xval->shift_order(1))
+            {
+                auto x8val = *r8val;
+               
+                const auto nd = x1val[3][axis];
+               
+                x8val.add(Factor("1/(eta+nu) ", "fi_abcd"), Fraction(nd, 2));
+               
+                t4crt.add(x8val);
+            }
+        }
+        
+        return t4crt;
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+std::optional<R4CDist>
+T4CVrrElectronRepulsionDriver::bra_vrr_b(const R4CTerm& rterm,
+                                         const char     axis) const
+{
+    if (!is_electron_repulsion(rterm)) return std::nullopt;
+    
+    if (const auto tval = rterm.shift(axis, -1, 1))
+    {
+        R4CDist t4crt(rterm);
+        
+        // first recursion term
+        
+        auto x1val = *tval;
+        
+        const auto coord = _rxyz[axes::to_index(axis)];
+        
+        x1val.add(Factor("PB", "pb", coord), Fraction(1));
+        
+        t4crt.add(x1val);
+        
+        // second recursion term
+        
+        if (const auto r2val = tval->shift_order(1))
+        {
+            auto x2val = *r2val;
+            
+            x2val.add(Factor("WP", "wp", coord), Fraction(1));
+            
+            t4crt.add(x2val);
+        }
+        
+        // third and fourth recursion terms
+        
+        if (const auto r3val = tval->shift(axis, -1, 1))
+        {
+            auto x3val = *r3val;
+            
+            const auto nb = x1val[1][axis];
+            
+            x3val.add(Factor("1/eta", "fi_ab"), Fraction(nb, 2));
+            
+            t4crt.add(x3val);
+            
+            if (const auto r4val = r3val->shift_order(1))
+            {
+                auto x4val = *r4val;
+                
+                x4val.add(Factor("1/eta^2", "fti_ab"), Fraction(-nb, 2));
+                
+                t4crt.add(x4val);
+            }
+        }
+        
+        // fifth recursion term
+        
+        if (const auto xval = tval->shift(axis, -1, 2))
+        {
+            if (const auto r5val = xval->shift_order(1))
+            {
+                auto x5val = *r5val;
+               
+                const auto nc = x1val[2][axis];
+               
+                x5val.add(Factor("1/(eta+nu)", "fi_abcd"), Fraction(nc, 2));
+               
+                t4crt.add(x5val);
+            }
+        }
+        
+        // sixth recursion term
+        
+        if (const auto xval = tval->shift(axis, -1, 3))
+        {
+            if (const auto r6val = xval->shift_order(1))
+            {
+                auto x6val = *r6val;
+               
+                const auto nd = x1val[3][axis];
+               
+                x6val.add(Factor("1/(eta+nu) ", "fi_abcd"), Fraction(nd, 2));
+               
+                t4crt.add(x6val);
+            }
+        }
+        
+        return t4crt;
+    }
+    else
+    {
+        return std::nullopt;
+    }
+   
+}
+
+std::optional<R4CDist>
+T4CVrrElectronRepulsionDriver::ket_vrr_c(const R4CTerm& rterm,
+                                         const char     axis) const
+{
+    if (!is_electron_repulsion(rterm)) return std::nullopt;
+    
+    if (const auto tval = rterm.shift(axis, -1, 2))
+    {
+        R4CDist t4crt(rterm);
+        
+        // first recursion term
+        
+        auto x1val = *tval;
+        
+        const auto coord = _rxyz[axes::to_index(axis)];
+        
+        x1val.add(Factor("QC", "qc", coord), Fraction(1));
+        
+        t4crt.add(x1val);
+        
+        // second recursion term
+        
+        if (const auto r2val = tval->shift_order(1))
+        {
+            auto x2val = *r2val;
+            
+            x2val.add(Factor("WQ", "wq", coord), Fraction(1));
+            
+            t4crt.add(x2val);
+        }
+        
+        // third and fourth recursion terms
+        
+        if (const auto r3val = tval->shift(axis, -1, 2))
+        {
+            auto x3val = *r3val;
+            
+            const auto nc = x1val[2][axis];
+            
+            x3val.add(Factor("1/nu", "fi_cd"), Fraction(nc, 2));
+            
+            t4crt.add(x3val);
+            
+            if (const auto r4val = r3val->shift_order(1))
+            {
+                auto x4val = *r4val;
+                
+                x3val.add(Factor("1/nu^2", "fti_cd"), Fraction(-nc, 2));
+                
+                t4crt.add(x3val);
+            }
+        }
+        
+        // fifth and sixth recursion terms
+        
+        if (const auto r5val = tval->shift(axis, -1, 3))
+        {
+            auto x5val = *r5val;
+            
+            const auto nd = x1val[3][axis];
+            
+            x5val.add(Factor("1/nu", "fi_cd"), Fraction(nd, 2));
+            
+            t4crt.add(x5val);
+            
+            if (const auto r6val = r5val->shift_order(1))
+            {
+                auto x6val = *r6val;
+                
+                x6val.add(Factor("1/nu^2", "fti_cd"), Fraction(-nd, 2));
+                
+                t4crt.add(x6val);
+            }
+        }
+        
+        return t4crt;
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+std::optional<R4CDist>
+T4CVrrElectronRepulsionDriver::ket_vrr_d(const R4CTerm& rterm,
+                                          const char     axis) const
+{
+    if (!is_electron_repulsion(rterm)) return std::nullopt;
+    
+    if (const auto tval = rterm.shift(axis, -1, 3))
+    {
+        R4CDist t4crt(rterm);
+        
+        // first recursion term
+        
+        auto x1val = *tval;
+        
+        const auto coord = _rxyz[axes::to_index(axis)];
+        
+        x1val.add(Factor("QD", "qd", coord), Fraction(1));
+        
+        t4crt.add(x1val);
+        
+        // second recursion term
+        
+        if (const auto r2val = tval->shift_order(1))
+        {
+            auto x2val = *r2val;
+            
+            x2val.add(Factor("WQ", "wq", coord), Fraction(1));
+            
+            t4crt.add(x2val);
+        }
+        
+        // third and fourth recursion terms
+        
+        if (const auto r3val = tval->shift(axis, -1, 3))
+        {
+            auto x3val = *r3val;
+            
+            const auto nd = x1val[3][axis];
+            
+            x3val.add(Factor("1/nu", "fi_cd"), Fraction(nd, 2));
+            
+            t4crt.add(x3val);
+            
+            if (const auto r4val = r3val->shift_order(1))
+            {
+                auto x4val = *r4val;
+                
+                x4val.add(Factor("1/nu^2", "fti_cd"), Fraction(-nd, 2));
+                
+                t4crt.add(x4val);
+            }
+        }
+        
+        return t4crt;
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+std::optional<R4CDist>
 T4CVrrElectronRepulsionDriver::bra_vrr(const R4CTerm& rterm,
                                        const char     axis) const
 {
