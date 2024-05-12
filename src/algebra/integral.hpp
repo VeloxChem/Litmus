@@ -84,6 +84,9 @@ public:
     /// @return true if this integral is less than other integral, false otherwise.
     bool operator<(const Integral<T, U>& other) const;
     
+    /// generates base integral by removing prefixes.
+    Integral base() const;
+    
     /// Sets order of integral.
     /// @param order The order of integral.
     void set_order(const int order);
@@ -119,6 +122,11 @@ public:
                                          const int  index,
                                          const bool noscalar) const;
     
+    /// Creates an optional integral from this integral by shifting operator value.
+    /// @param value The value to shift operator value.
+    /// @return The optional integral.
+    std::optional<Integral> shift_operator(const int value) const;
+    
     /// Gets operator of this integral.
     /// @return The operator of this integral.
     Operator integrand() const;
@@ -138,6 +146,10 @@ public:
     /// Creates primitive textual label of this integral.
     /// @return The string with primitive textual label of integral.
     std::string label(const bool use_order = false) const;
+    
+    /// Creates textual label of this integral prefixes.
+    /// @return The string with primitive textual label of integral prefixes.
+    std::string prefix_label() const;
     
     /// Gets vector of prefix operators.
     /// @return The vector of prefix operators.
@@ -286,6 +298,13 @@ Integral<T, U>::operator<(const Integral<T, U>& other) const
 }
 
 template <class T, class U>
+Integral<T, U>
+Integral<T, U>::base() const
+{
+    return Integral<T, U>(_bra, _ket, _integrand, _order, {});
+}
+
+template <class T, class U>
 void
 Integral<T, U>::reduce_prefixes()
 {
@@ -308,7 +327,7 @@ template <class T, class U>
 Integral<T, U>
 Integral<T, U>::replace(const Operator& integrand) const
 {
-    return Integral<T, U>(_bra, _ket, integrand, _order, _prefixes);;
+    return Integral<T, U>(_bra, _ket, integrand, _order, _prefixes);
 }
 
 template <class T, class U>
@@ -391,6 +410,20 @@ Integral<T, U>::shift_prefix(const int  value,
 }
 
 template <class T, class U>
+std::optional<Integral<T, U>>
+Integral<T, U>::shift_operator(const int value) const
+{
+    if (const auto op = _integrand.shift(value))
+    {
+        return IntegralComponent<T, U>(_bra, _ket, *op, _order, _prefixes);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+template <class T, class U>
 Operator
 Integral<T, U>::integrand() const
 {
@@ -435,6 +468,28 @@ Integral<T, U>::label(const bool use_order) const
 
     return intstr;
 }
+
+template <class T, class U>
+std::string
+Integral<T, U>::prefix_label() const
+{
+    if (!_prefixes.empty())
+    {
+        std::string intstr = "g{";
+        
+        for (const auto& prefix : _prefixes)
+        {
+            intstr += std::to_string(prefix.shape().order());
+        }
+        
+        return intstr + "}";
+    }
+    else
+    {
+        return std::string();
+    }
+}
+
 
 template <class T, class U>
 VOperators

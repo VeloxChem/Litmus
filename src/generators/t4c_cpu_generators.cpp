@@ -35,9 +35,8 @@
 #include "v4i_eri_driver.hpp"
 
 void
-T4CCPUGenerator::generate(const std::string&        label,
-                          const int                 max_ang_mom,
-                          const std::array<int, 5>& geom_drvs) const
+T4CCPUGenerator::generate(const std::string& label,
+                          const int          max_ang_mom) const
 {
     if (_is_available(label))
     {
@@ -49,7 +48,7 @@ T4CCPUGenerator::generate(const std::string&        label,
                 {
                     for (int l = k; l <= max_ang_mom; l++)
                     {
-                        const auto integral = _get_integral(label, {i, j, k, l}, geom_drvs);
+                        const auto integral = _get_integral(label, {i, j, k, l});
                         
                         const auto bra_integrals = _generate_bra_hrr_integral_group(integral);
                         
@@ -71,7 +70,7 @@ T4CCPUGenerator::generate(const std::string&        label,
         {
             for (int j = 0; j <= 2 * max_ang_mom; j++)
             {
-                const auto integral = _get_integral(label, {0, i, 0, j}, geom_drvs);
+                const auto integral = _get_integral(label, {0, i, 0, j});
                 
                 _write_prim_cpp_header(integral);
                 
@@ -83,7 +82,7 @@ T4CCPUGenerator::generate(const std::string&        label,
         {
             for (int j = i; j <= (2 * max_ang_mom - i) ; j++)
             {
-                const auto integral = _get_integral(label, {0, 0, i, j}, geom_drvs);
+                const auto integral = _get_integral(label, {0, 0, i, j});
                 
                 _write_ket_hrr_cpp_header(integral);
                 
@@ -95,7 +94,7 @@ T4CCPUGenerator::generate(const std::string&        label,
         {
             for (int j = i; j <= (2 * max_ang_mom - i) ; j++)
             {
-                const auto integral = _get_integral(label, {i, j, 0, 0}, geom_drvs);
+                const auto integral = _get_integral(label, {i, j, 0, 0});
                 
                 _write_bra_hrr_cpp_header(integral);
                 
@@ -123,11 +122,8 @@ T4CCPUGenerator::_is_available(const std::string& label) const
 
 I4CIntegral
 T4CCPUGenerator::_get_integral(const std::string&        label,
-                               const std::array<int, 4>& ang_moms,
-                               const std::array<int, 5>& geom_drvs) const
+                               const std::array<int, 4>& ang_moms) const
 {
-    // TODO: Add prefixes support.
-    
     // bra and ket sides
     
     const auto bpair = I2CPair("GA", ang_moms[0], "GB", ang_moms[1]);

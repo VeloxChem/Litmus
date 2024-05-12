@@ -22,6 +22,7 @@
 
 #include "t2c_cpu_generators.hpp"
 #include "t4c_cpu_generators.hpp"
+#include "t4c_geom_cpu_generators.hpp"
 
 int main(int argc, char **argv)
 {
@@ -31,7 +32,7 @@ int main(int argc, char **argv)
     // 2c: "overlap" "kinetic energy" "nuclear potential" "dipole moment" "linear momentum"
     // 4c: "electron repulsion"
 
-    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "dipole moment"});
+    const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
 
     const int max_ang_mom = 1;
 
@@ -80,11 +81,20 @@ int main(int argc, char **argv)
     if (run_type.first == "t4c_cpu")
     {
     // a, b, operator, c, d
-        const std::array<int, 5> geom_drvs = {0, 0, 0, 0, 0};
+        std::array<int, 5> geom_drvs = {1, 2, 0, 0, 2};
         
-        const auto t4c_drv = T4CCPUGenerator();
-        
-        t4c_drv.generate(run_type.second, max_ang_mom, geom_drvs);
+        if (geom_drvs == std::array<int, 5>({0, 0, 0, 0, 0}))
+        {
+            const auto t4c_drv = T4CCPUGenerator();
+            
+            t4c_drv.generate(run_type.second, max_ang_mom);
+        }
+        else
+        {
+            const auto t4c_drv = T4CGeomCPUGenerator();
+            
+            t4c_drv.generate(run_type.second, max_ang_mom, geom_drvs);
+        }
     }
    
     // set up end timer & compute elapsed time

@@ -36,11 +36,9 @@ class T4CCPUGenerator
     /// Gets four-center inetgral with requested label.
     /// @param label The label of requested four-center integral.
     /// @param ang_moms The angular momentum of  A and B centers.
-    /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
     /// @return The four-center integral.
     I4CIntegral _get_integral(const std::string&        label,
-                              const std::array<int, 4>& ang_moms,
-                              const std::array<int, 5>& geom_drvs) const;
+                              const std::array<int, 4>& ang_moms) const;
     
     /// Generates set of integrals required for horizontal Obara-Saika recursion on bra side.
     /// @param integral The base four center integral.
@@ -217,10 +215,8 @@ public:
     /// Generates selected four-center integrals up to given angular momentum (inclusive)  on A, B, C, and D centers.
     /// @param label The label of requested two-center integral.
     /// @param max_ang_mom The maximum angular momentum of A and B centers.
-    /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
-    void generate(const std::string&        label,
-                  const int                 max_ang_mom,
-                  const std::array<int, 5>& geom_drvs) const;
+    void generate(const std::string& label,
+                  const int          max_ang_mom) const;
 };
 
 #endif /* t4c_cpu_generators_hpp */

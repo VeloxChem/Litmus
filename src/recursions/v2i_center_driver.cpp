@@ -15,7 +15,6 @@
 // limitations under the License.
 
 #include "v2i_center_driver.hpp"
-#include <iostream>
 
 bool
 V2ICenterDriver::is_auxiliary(const I2CIntegral& integral, const int index) const
@@ -117,64 +116,30 @@ V2ICenterDriver::apply_recursion(const SI2CIntegrals& integrals) const
     
     for (const auto& integral : integrals)
     {
-
-    std::cout << "apply rec integral: " << integral.label() << std::endl;
         tints.insert(integral);
         
         if (!is_auxiliary(integral, 1))
         {
             for (const auto& bintegral : apply_bra_ket_vrr(integral, 1))
             {
-                    if (bintegral.prefixes().size() == 2)
-    {
-    std::cout << "Geo integral in buffer loop: " << bintegral.label() << bintegral.prefixes()[0].shape().order() << " " << bintegral.prefixes()[1].shape().order() << std::endl;
-    }
-    else
-    {
-    std::cout << "Non- geo integral in buffer loop: " << bintegral.label() << std::endl;
-    }
-            std::cout << "non-aux rec result: " << bintegral.label() << std::endl;
-                if (!is_auxiliary(bintegral, 0))
+                if (bintegral.prefixes().size() == 2)
                 {
-                std::cout << "that int was not aux:" << std::endl;
-                    const auto ctints = apply_bra_ket_vrr(bintegral, 0);
-
-         for (const auto& ctint : ctints)
-    {
-
-        if (ctint.prefixes().size() == 2)
-    {
-    std::cout << "Geo integral in buffer loop: " << ctint.label() << ctint.prefixes()[0].shape().order() << " " <<ctint.prefixes()[1].shape().order() << std::endl;
-    }
-    else
-    {
-    std::cout << "Non- geo integral in buffer loop: " << ctint.label() << std::endl;
-    }
-
-                    std::cout << "the rec result was then: " << ctint.label() << std::endl;
-
-    }
-
-                    tints.insert(ctints.cbegin(), ctints.cend());
-                    std::cout << "the size is now inner" << tints.size() << std::endl;
+                    if (!is_auxiliary(bintegral, 0))
+                    {
+                        const auto ctints = apply_bra_ket_vrr(bintegral, 0);
+                        
+                        tints.insert(ctints.cbegin(), ctints.cend());
+                    }
+                    
+                    tints.insert(bintegral);
                 }
-
-              std::cout << "I also insert it:" << std::endl;
-
-
-                tints.insert(bintegral);
-                std::cout << "the size is now " << tints.size() << std::endl;
             }
         }
         
         if ((!is_auxiliary(integral, 0)) && (is_auxiliary(integral, 1)))
         {
-        std::cout << "bra was not aux but ket was aux " << std::endl;
-
             for (const auto& bintegral : apply_bra_ket_vrr(integral, 0))
             {
-            std::cout << "non-aux rec result: " << bintegral.label() << std::endl;
-
                 tints.insert(bintegral);
             }
         }

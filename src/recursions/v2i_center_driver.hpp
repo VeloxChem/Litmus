@@ -51,5 +51,4 @@ public:
     SI2CIntegrals apply_recursion(const SI2CIntegrals& integrals) const;
 };
 
-
 #endif /* v2i_center_driver_hpp */

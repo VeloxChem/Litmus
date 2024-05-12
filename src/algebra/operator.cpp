@@ -114,6 +114,19 @@ Operator::set_shape(const Tensor& shape)
     _shape = shape;
 }
 
+std::optional<Operator>
+Operator::shift(const int value) const
+{
+    if (const auto torder = _shape.order() + value; torder >= 0)
+    {
+        return Operator(_name, Tensor(torder), _target, _center);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
 std::string
 Operator::name() const
 {

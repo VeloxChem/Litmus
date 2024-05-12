@@ -74,6 +74,11 @@ public:
     /// Sets  the shape of operator.
     void set_shape(const Tensor& shape);
     
+    /// Creates an optional operator from this operator  by shifting  value of operator.
+    /// @param value The value to shift axial value.
+    /// @return The optional operator.
+    std::optional<Operator> shift(const int value) const;
+    
     /// Gets  the shape of operator.
     /// @return The tensorial shape of operator.
     Tensor shape() const;
