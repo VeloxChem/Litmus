@@ -319,6 +319,21 @@ prim_file_name(const I4CIntegral& integral)
 }
 
 std::string
+geom_file_name(const I4CIntegral& integral)
+{
+    std::string label = "GeomeDerivatives";
+    
+    for (const auto& prefix : integral.prefixes())
+    {
+        label += std::to_string(prefix.shape().order());
+    }
+    
+    label += "For" + integral.label() + "_";
+    
+    return label + std::to_string(integral.integrand().shape().order());
+}
+
+std::string
 ket_hrr_file_name(const I4CIntegral& integral)
 {
     const auto ket_one = Tensor(integral[2]);

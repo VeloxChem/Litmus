@@ -234,32 +234,19 @@ T4CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     
     for (const auto& tint : vrr_integrals)
     {
-        if ((tint[0] + tint[2]) == 0)
-        {
-            labels.insert(t4c::prim_file_name(tint));
-        }
+        auto red_tint = tint;
+        
+        red_tint.set_order(0);
+       
+        labels.insert(t4c::prim_file_name(tint));
     }
-    
-//    for (const auto& tint : ket_integrals)
-//    {
-//        if ((tint[0] == 0) && (tint[2] > 0))
-//        {
-//            labels.insert(t4c::ket_hrr_file_name(tint));
-//        }
-//    }
-//
-//    for (const auto& tint : bra_integrals)
-//    {
-//        if ((tint[0] > 0) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
-//        {
-//            labels.insert(t4c::bra_hrr_file_name(tint));
-//        }
-//    }
     
     for (const auto& label : labels)
     {
         lines.push_back({0, 0, 1, "#include \"" + label + ".hpp\""});
     }
+    
+    lines.push_back({0, 0, 1, "#include \"" + t4c::geom_file_name(integral) + ".hpp\""});
     
     lines.push_back({0, 0, 1, "#include \"SimdArray.hpp\""});
     
