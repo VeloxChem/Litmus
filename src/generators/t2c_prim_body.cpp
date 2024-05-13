@@ -17,6 +17,7 @@
 #include "t2c_prim_body.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 #include "t2c_utils.hpp"
 #include "t2c_ovl_driver.hpp"
@@ -44,7 +45,7 @@ T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     const auto ncomps = static_cast<int>(components.size());
     
     std::vector<R2CDist> rec_dists;
-    
+
     for (const auto& component : components)
     {
         rec_dists.push_back(_get_vrr_recursion(component));
@@ -104,7 +105,7 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const std::vector<R2CDist>& rec_dists,
     {
         auto label = t2c::get_buffer_label(tint, "prim");
         
-        vstr.push_back("/// Set up components of auxilary buffer : " + label);
+        vstr.push_back("/// Set up components of auxiliary buffer : " + label);
         
         const auto tlabel = _get_tensor_label(tint);
         

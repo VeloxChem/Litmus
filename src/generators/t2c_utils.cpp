@@ -545,6 +545,9 @@ get_integrals(const I2CIntegral& integral)
             tints = el_field_drv.ket_vrr(integral);
         }
 
+
+    // MR: I think this is the troublemaker
+
         if ((integral[0] + integral[1]) == 0)
         {
             auto xint = integral.replace(Operator("1"));

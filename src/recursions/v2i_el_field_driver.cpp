@@ -89,7 +89,7 @@ V2IElectricFieldDriver::bra_vrr(const I2CIntegral& integral) const
             {
                 if (r7val_ex->integrand().shape() == Tensor(0))
                 {
-                    tints.insert(r7val_ex->replace(OperatorComponent("A")));
+                    tints.insert(r7val_ex->replace(Operator("A")));
                 }
                 else
                 {
@@ -123,7 +123,7 @@ V2IElectricFieldDriver::ket_vrr(const I2CIntegral& integral) const
             tints.insert(*r2val);
         }
 
-        // fifth and sixth
+        // third and fourth recursion terms
 
         if (const auto r3val = tval->shift(-1, 1))
         {
@@ -142,7 +142,7 @@ V2IElectricFieldDriver::ket_vrr(const I2CIntegral& integral) const
             {
                 if (r7val_ex->integrand().shape() == Tensor(0))
                 {
-                    tints.insert(r7val_ex->replace(OperatorComponent("A")));
+                    tints.insert(r7val_ex->replace(Operator("A")));
                 }
                 else
                 {
