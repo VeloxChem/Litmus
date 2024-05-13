@@ -104,6 +104,11 @@ SI4CIntegrals get_bra_hrr_integrals(const I4CIntegral& integral);
 /// @return The primitive file name.
 std::string prim_file_name(const I4CIntegral& integral);
 
+/// Generates geometrical derivatives file name.
+/// @param integral The base four center integral.
+/// @return The primitive file name.
+std::string geom_file_name(const I4CIntegral& integral);
+
 /// Generates ket horizontal recursion file name.
 /// @param integral The base four center integral.
 /// @return The primitive file name.

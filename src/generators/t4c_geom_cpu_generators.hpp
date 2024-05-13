@@ -51,8 +51,8 @@ class T4CGeomCPUGenerator
     /// @param integral The base four center integral.
     /// @param integrals The set of geometrical derivative integrals.
     /// @return The set of integrals.
-    SI4CIntegrals _generate_vrr_integral_group(const I4CIntegral& integral,
-                                               const SI4CIntegrals& integrals) const;
+     SI4CIntegrals _generate_vrr_integral_group(const I4CIntegral& integral,
+                                                const SI4CIntegrals& integrals) const;
     
     /// Gets file name of file with recursion functions for two center integral.
     /// @param integral The base two center integral.
