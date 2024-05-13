@@ -379,7 +379,7 @@ T2CFuncBodyDriver::_get_boys_function_def(const I2CIntegral& integral) const
     {
          std::to_string(integral.order());
         
-        vstr.push_back("// setup Boys fuction data");
+        vstr.push_back("// setup Boys function data");
         
         vstr.push_back("const CBoysFunc<" + std::to_string(integral[0] + integral[1]) + "> bf_table;");
         
@@ -392,13 +392,18 @@ T2CFuncBodyDriver::_get_boys_function_def(const I2CIntegral& integral) const
     {
          std::to_string(integral.order());
 
-        vstr.push_back("// setup Boys fuction data");
+        vstr.push_back("// setup Boys function data");
 
-        vstr.push_back("const CBoysFunc<" + std::to_string(integral[0] + integral[1]) + "> bf_table;");
+        auto st1 = std::stoi(std::to_string(integral[0]));
+        auto st2 = std::stoi(std::to_string(integral[1]));
+        auto st3 = std::stoi(std::to_string(integral.integrand().shape().order()));
+
+        vstr.push_back("const CBoysFunc<" + std::to_string( st1 + st2 + st3) + "> bf_table;");
 
         vstr.push_back("CSimdArray<double> bf_args(1, ket_pdim);");
 
-        vstr.push_back("CSimdArray<double> bf_values(" + std::to_string(integral[0] + integral[1] + 1) + ", ket_pdim);");
+
+        vstr.push_back("CSimdArray<double> bf_values(" + std::to_string( st1 + st2 + st3 + 1) + ", ket_pdim);");
     }
    
     return vstr;
@@ -524,7 +529,7 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
         lines.push_back({3, 0, 2, "const auto a_norm = bra_gto_norms[j * bra_ncgtos + i];"});
     }
 
-    if ((integral.integrand().name() == "A") || (integral.integrand().name() == "r"))
+    if (((integral.integrand().name() == "A") || (integral.integrand().name() == "r")) || (integral.integrand().name() == "A1"))
     {
         lines.push_back({3, 0, 2, "t2cfunc::comp_coordinates_p(p_x[0], p_y[0], p_z[0], a_x, a_y, a_z, b_x[0], b_y[0], b_z[0], a_exp, b_exps[0], ket_pdim);"});
     }
@@ -532,7 +537,7 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
     // MR: This situation alt to prev clause for fine optimization
     if (integral[0] > 0)
     {
-        if ((integral.integrand().name() == "A") || (integral.integrand().name() == "r"))
+        if ((integral.integrand().name() == "A") || (integral.integrand().name() == "r") || (integral.integrand().name() == "A1"))
         {
             lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], p_x[0], p_y[0], p_z[0], a_x, a_y, a_z, ket_pdim);"});
         }
@@ -545,7 +550,7 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
 
     if (integral[1] > 0)
     {
-        if ((integral.integrand().name() == "A") || (integral.integrand().name() == "r"))
+        if ((integral.integrand().name() == "A") || (integral.integrand().name() == "r") || (integral.integrand().name() == "A1"))
         {
             lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], p_x[0], p_y[0], p_z[0], b_x[0], b_y[0], b_z[0], ket_pdim);"});
         }
@@ -752,12 +757,26 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
                 lines.push_back({3, 0, 2, "linmomrec::comp_prim_dipole_ss(prim_buffer_dip_ss, prim_buffer_ovl_ss);"});
             }
 
-            if ((tint.integrand().name() == "A1") && (in_sum_loop))
+            if ((tint.integrand().name() == "A1"))
             {
+
+            //  then also pc coords
                 if (rec_form.first && in_sum_loop)
                 {
+
                     const auto label = std::to_string(tint.order());
-                    lines.push_back({spacer, 0, 2, "elfield" + std::to_string(tint.integrand().shape().order()) + "rec::comp_prim_electric_field_ss(prim_buffer_npot_" + label + "_ss, prim_buffer_ovl_ss, bf_values[" + label + "], a_exp, b_exps[0]);"});
+                    const auto adiff = std::to_string(tint.integrand().shape().order());
+                    const auto atot = std::stoi(label) + std::stoi(adiff);
+
+                    auto bf_str =  "bf_values[" + std::to_string(atot) + "], ";
+
+                    for (int bind = 1; bind < std::stoi(adiff); bind++)
+                    {
+                        int atot_extra = atot - bind;
+                        bf_str = bf_str + "bf_values[" + std::to_string(atot_extra) + "], ";
+                    }
+
+                    lines.push_back({spacer, 0, 2, "elfield" + adiff + "rec::comp_prim_electric_field_ss(prim_buffer_elfield_A" + adiff + "_" + label + "_ss, prim_buffer_ovl_ss, " + bf_str + "pc_x[0], pc_y[0], pc_z[0], a_exp, b_exps[0]);"});
                 }
             }
             
@@ -799,7 +818,7 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
             
             if (tint[0] > 0)
             {
-                if ((tint[0] == 1) && (tint[1] == 0) && (tint.integrand().name() != "T") && (tint.integrand().name() != "A"))
+                if ((tint[0] == 1) && (tint[1] == 0) && (tint.integrand().name() != "T") && (tint.integrand().name() != "A") && (tint.integrand().name() != "A1"))
                 {
                     label += "pa_x[0], pa_y[0], pa_z[0]";
                 }
@@ -811,7 +830,7 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
             
             if ((tint[1] > 0) && (tint[0] == 0))
             {
-                if ((tint[1] == 1) && (tint[0] == 0) && (tint.integrand().name() != "T") && (tint.integrand().name() != "A"))
+                if ((tint[1] == 1) && (tint[0] == 0) && (tint.integrand().name() != "T") && (tint.integrand().name() != "A") && (tint.integrand().name() != "A1"))
                 {
                     label += "pb_x[0], pb_y[0], pb_z[0]";
                 }
@@ -825,7 +844,7 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
             {
                 if ((tint[0] + tint[1]) > 1)
                 {
-                    label += "pc_x[0], pc_y[0], pc_z[0],";
+                    label += "pc_x[0], pc_y[0], pc_z[0], ";
                 }
                 
                 if ((tint[0] + tint[1]) == 1)
@@ -839,7 +858,7 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
             {
                 if ((tint[0] + tint[1]) > 1)
                 {
-                    label += "pc_x[0], pc_y[0], pc_z[0],";
+                    label += "pc_x[0], pc_y[0], pc_z[0], ";
                 }
 
                 if ((tint[0] + tint[1]) == 1)

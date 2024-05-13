@@ -119,7 +119,7 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const std::vector<R2CDist>& rec_dists,
                 
                 vstr.push_back(line + "[" + std::to_string(index) + "];");
             }
-            
+
             index++;
         }
     }
