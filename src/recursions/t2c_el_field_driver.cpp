@@ -133,21 +133,21 @@ T2CElectricFieldDriver::bra_vrr(const R2CTerm& rterm,
         // Seventh recursion term
         if (const auto r7val = tval->shift_operator(axis, -1))
         {
-
-            auto x7val = *r7val;
-
-            // if the operator downwards step reduced it to "scalar", then make the operator be the identity (and then next downwards steo will be the end condition)
-            if (x7val.integrand().shape() == TensorComponent(0, 0, 0))
+            if (const auto r7val_ex = r7val->shift_order(1))
             {
-                x7val = x7val.replace(OperatorComponent("A"));
+                auto x7val = *r7val_ex;
+
+                if (x7val.integrand().shape() == TensorComponent(0, 0, 0))
+                {
+                    x7val = x7val.replace(OperatorComponent("A"));
+                }
+
+                const auto nc = tval->integrand()[axis];
+
+                x7val.add(Factor("1", "1"), Fraction(nc));
+
+                t2crt.add(x7val);
             }
-
-
-            const auto nc = tval->integrand()[axis];
-
-            x7val.add(Factor("1", "1"), Fraction(nc));
-
-            t2crt.add(x7val);
 
         }
 
@@ -215,20 +215,21 @@ T2CElectricFieldDriver::ket_vrr(const R2CTerm& rterm,
         // Seventh recursion term
         if (const auto r7val = tval->shift_operator(axis, -1))
         {
-
-            auto x7val = *r7val;
-
-            // if the operator downwards step reduced it to "scalar", then make the operator be the identity (and then next downwards steo will be the end condition)
-            if (x7val.integrand().shape() == TensorComponent(0, 0, 0))
+            if (const auto r7val_ex = r7val->shift_order(1))
             {
-                x7val = x7val.replace(OperatorComponent("A"));
+                auto x7val = *r7val_ex;
+
+                if (x7val.integrand().shape() == TensorComponent(0, 0, 0))
+                {
+                    x7val = x7val.replace(OperatorComponent("A"));
+                }
+
+                const auto nc = tval->integrand()[axis];
+
+                x7val.add(Factor("1", "1"), Fraction(nc));
+
+                t2crt.add(x7val);
             }
-
-            const auto nc = tval->integrand()[axis];
-
-            x7val.add(Factor("1", "1"), Fraction(nc));
-
-            t2crt.add(x7val);
 
         }
 

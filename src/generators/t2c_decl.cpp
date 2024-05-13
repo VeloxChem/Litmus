@@ -86,7 +86,7 @@ T2CDeclDriver::_get_special_variables_str(const I2CIntegral& integral,
     
     const auto spacer = std::string(name.size(), ' ');
     
-    if (integrand.name() == "A")
+    if ((integrand.name() == "A") || (integrand.name() == "A1"))
     {
         if (rec_form.first)
         {

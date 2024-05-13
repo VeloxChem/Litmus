@@ -746,7 +746,7 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
                 // then have whatever arguments it turned out were needed there be matched by the list written here (which is the call that the autogen routine will make to this new manual elementary routine)
                 lines.push_back({3, 0, 2, "diprec::comp_prim_dipole_ss(prim_buffer_dip_ss, prim_buffer_ovl_ss, pc_x[0], pc_y[0], pc_z[0]);"});
             }
-// MR: Need help here
+
             if ((tint.integrand().name() == "p") && (!in_sum_loop))
             {
                 lines.push_back({3, 0, 2, "linmomrec::comp_prim_dipole_ss(prim_buffer_dip_ss, prim_buffer_ovl_ss);"});
@@ -757,8 +757,7 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
                 if (rec_form.first && in_sum_loop)
                 {
                     const auto label = std::to_string(tint.order());
-
-                    lines.push_back({spacer, 0, 2, "npotrec::comp_prim_electric_field_ss(prim_buffer_npot_" + label + "_ss, prim_buffer_ovl_ss, bf_values[" + label + "], a_exp, b_exps[0]);"});
+                    lines.push_back({spacer, 0, 2, "elfield" + std::to_string(tint.integrand().shape().order()) + "rec::comp_prim_electric_field_ss(prim_buffer_npot_" + label + "_ss, prim_buffer_ovl_ss, bf_values[" + label + "], a_exp, b_exps[0]);"});
                 }
             }
             

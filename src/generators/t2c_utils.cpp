@@ -154,13 +154,12 @@ integral_split_label(const I2CIntegral& integral)
 
     if (integrand.name() == "p")
     {
-        return "LinearMomentum";
+        return "Linear_Momentum";
     }
-
 
     if (integrand.name() == "A1")
     {
-        return "ElectricField";
+        return "Electric_Field";
     }
 
     return std::string();
@@ -202,7 +201,7 @@ namespace_label(const I2CIntegral& integral)
 
     if (integrand.name() == "A1")
     {
-        return "elfieldrec";
+        return "elfield" + std::to_string(integrand.shape().order()) + "rec";
     }
     
     if (integrand.name() == "r")
@@ -338,6 +337,11 @@ compute_func_name(const I2CIntegral&           integral,
 std::string
 prim_file_name(const I2CIntegral& integral)
 {
+ if (integral.integrand().name() == "A1")
+    {
+        return t2c::integral_label(integral) + "_A" + std::to_string(integral.integrand().shape().order()) + "_" + "PrimRec" + integral.label();
+    }
+
     return t2c::integral_label(integral) + "PrimRec" + integral.label();
 }
 
@@ -358,7 +362,7 @@ get_buffer_label(const I2CIntegral& integral,
 
     if (integral.integrand().name() == "A1")
     {
-        label += "el_field_" + std::to_string(integral.order()) + "_";
+        label += "el_field_A" + std::to_string(integral.integrand().shape().order()) + "_" + std::to_string(integral.order()) + "_";
     }
 
     if (integral.integrand().name() == "A")
@@ -540,6 +544,9 @@ get_integrals(const I2CIntegral& integral)
         {
             tints = el_field_drv.ket_vrr(integral);
         }
+
+
+    // MR: I think this is the troublemaker
 
         if ((integral[0] + integral[1]) == 0)
         {
