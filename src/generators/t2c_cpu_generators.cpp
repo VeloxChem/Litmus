@@ -490,11 +490,11 @@ T2CCPUGenerator::_write_cpp_includes(      std::ofstream&         fstream,
         lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(tint) + ".hpp\""});
     }
     
-    if (integral.integrand().name() == "A")
+    if (integral.integrand().name() == "A" || integral.integrand().name() == "A1")
     {
         lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
     }
-    
+
     lines.push_back({0, 0, 1, "#include \"T2CDistributor.hpp\""});
     
     lines.push_back({0, 0, 2, "#include \"T2CUtils.hpp\""});
