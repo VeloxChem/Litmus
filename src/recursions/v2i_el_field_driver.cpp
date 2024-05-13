@@ -91,6 +91,10 @@ V2IElectricFieldDriver::bra_vrr(const I2CIntegral& integral) const
                 {
                     tints.insert(r7val_ex->replace(OperatorComponent("A")));
                 }
+                else
+                {
+                    tints.insert(*r7val_ex);
+                }
             }
 
         }
@@ -139,6 +143,10 @@ V2IElectricFieldDriver::ket_vrr(const I2CIntegral& integral) const
                 if (r7val_ex->integrand().shape() == Tensor(0))
                 {
                     tints.insert(r7val_ex->replace(OperatorComponent("A")));
+                }
+                else
+                {
+                    tints.insert(*r7val_ex);
                 }
             }
 
