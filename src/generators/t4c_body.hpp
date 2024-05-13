@@ -42,6 +42,11 @@ class T4CFuncBodyDriver
     /// @return The vector of distances in compute function.
     std::vector<std::string> _get_coordinates_def(const I4CIntegral& integral) const;
     
+    /// Generates vector of distances in compute function.
+    /// @param integral The base two center integral.
+    /// @return The vector of distances in compute function.
+    std::vector<std::string> _get_full_coordinates_def(const I4CIntegral& integral) const;
+    
     /// Generates vector of Cartesian buffer integrals.
     /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
     /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
@@ -80,6 +85,13 @@ class T4CFuncBodyDriver
     std::vector<std::string> _get_cart_buffers_def(const SI4CIntegrals& bra_integrals,
                                                    const SI4CIntegrals& ket_integrals,
                                                    const I4CIntegral&   integral) const;
+    
+    /// Generates vector of Cartesian buffer integrals.
+    /// @param integrals The set of unique integrals.
+    /// @param integral The base four center integral.
+    /// @return The vector of Cartesian integrals in compute function.
+    std::vector<std::string> _get_full_cart_buffers_def(const SI4CIntegrals& integrals,
+                                                        const I4CIntegral&   integral) const;
     
     /// Generates vector of contracted buffers in compute function.
     /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
@@ -128,6 +140,14 @@ class T4CFuncBodyDriver
                          const I4CIntegral& integral,
                          const bool         diagonal) const;
     
+    /// Adds loop start definitions to code lines container.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integrals The set of unique integrals.
+    /// @param integral The base two center integral.
+    void _add_full_loop_start(      VCodeLines&    lines,
+                              const SI4CIntegrals& integrals,
+                              const I4CIntegral&   integral) const;
+    
     /// Adds loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param integral The base two center integral.
@@ -135,6 +155,12 @@ class T4CFuncBodyDriver
     void _add_loop_end(      VCodeLines&  lines,
                        const I4CIntegral& integral,
                        const bool         diagonal) const;
+    
+    /// Adds loop end definitions to code lines container.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base two center integral.
+    void _add_full_loop_end(      VCodeLines&  lines,
+                            const I4CIntegral& integral) const;
     
     /// Adds ket loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.

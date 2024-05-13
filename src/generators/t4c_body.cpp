@@ -121,7 +121,7 @@ T4CFuncBodyDriver::write_geom_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_coordinates_def(integral))
+    for (const auto& label : _get_full_coordinates_def(integral))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -131,10 +131,35 @@ T4CFuncBodyDriver::write_geom_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
+    for (const auto& label : _get_full_cart_buffers_def(geom_integrals, integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
     for (const auto& label : _get_boys_function_def(integral))
     {
         lines.push_back({1, 0, 2, label});
     }
+    
+    _add_full_loop_start(lines, geom_integrals, integral);
+    
+//    _add_ket_loop_start(lines, integral, diagonal);
+//
+//    _add_auxilary_integrals(lines, vrr_integrals);
+//
+//    _add_vrr_call_tree(lines, vrr_integrals);
+//
+//    _add_ket_loop_end(lines, bra_integrals, ket_integrals, integral, diagonal);
+//
+//    _add_ket_hrr_call_tree(lines, ket_integrals);
+//
+//    _add_ket_trafo_call_tree(lines, bra_integrals, ket_integrals, integral);
+//
+//    _add_bra_hrr_call_tree(lines, bra_integrals);
+//
+//    _add_bra_trafo_call_tree(lines, integral);
+//
+    _add_full_loop_end(lines, integral);
     
     lines.push_back({0, 0, 1, "}"});
     
@@ -416,6 +441,110 @@ T4CFuncBodyDriver::_get_coordinates_def(const I4CIntegral& integral) const
     return vstr;
 }
 
+std::vector<std::string>
+T4CFuncBodyDriver::_get_full_coordinates_def(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    const auto integrand = integral.integrand();
+    
+    auto a_angmom = integral[0];
+    
+    auto b_angmom = integral[1];
+    
+    auto c_angmom = integral[2];
+    
+    auto d_angmom = integral[3];
+    
+    if (const auto prefixes = integral.prefixes(); !prefixes.empty())
+    {
+        a_angmom += prefixes[0].shape().order();
+        
+        b_angmom += prefixes[1].shape().order();
+        
+        c_angmom += prefixes[2].shape().order();
+        
+        d_angmom += prefixes[3].shape().order();
+    }
+    
+    vstr.push_back("// allocate aligned coordinates of Q center");
+
+    vstr.push_back("CSimdArray<double> q_x(1, ket_pdim);");
+
+    vstr.push_back("CSimdArray<double> q_y(1, ket_pdim);");
+
+    vstr.push_back("CSimdArray<double> q_z(1, ket_pdim);");
+        
+    if ((a_angmom + b_angmom + c_angmom + d_angmom) > 0)
+    {
+        vstr.push_back("// allocate aligned coordinates of W center");
+
+        vstr.push_back("CSimdArray<double> w_x(1, ket_pdim);");
+
+        vstr.push_back("CSimdArray<double> w_y(1, ket_pdim);");
+
+        vstr.push_back("CSimdArray<double> w_z(1, ket_pdim);");
+    }
+    
+    vstr.push_back("// allocate aligned distances R(PQ) = P - Q");
+
+    vstr.push_back("CSimdArray<double> pq_x(1, ket_pdim);");
+
+    vstr.push_back("CSimdArray<double> pq_y(1, ket_pdim);");
+
+    vstr.push_back("CSimdArray<double> pq_z(1, ket_pdim);");
+    
+    if (c_angmom > 0)
+    {
+        vstr.push_back("// allocate aligned distances R(QC) = Q - C");
+        
+        vstr.push_back("CSimdArray<double> qc_x(1, ket_pdim);");
+        
+        vstr.push_back("CSimdArray<double> qc_y(1, ket_pdim);");
+        
+        vstr.push_back("CSimdArray<double> qc_z(1, ket_pdim);");
+    }
+    
+    if (d_angmom > 0)
+    {
+        vstr.push_back("// allocate aligned distances R(QD) = Q - D");
+        
+        vstr.push_back("CSimdArray<double> qd_x(1, ket_pdim);");
+        
+        vstr.push_back("CSimdArray<double> qd_y(1, ket_pdim);");
+        
+        vstr.push_back("CSimdArray<double> qd_z(1, ket_pdim);");
+    }
+    
+    if ((c_angmom + d_angmom) > 0)
+    {
+        vstr.push_back("// allocate aligned distances R(WQ) = W - Q");
+        
+        vstr.push_back("CSimdArray<double> wq_x(1, ket_pdim);");
+        
+        vstr.push_back("CSimdArray<double> wq_y(1, ket_pdim);");
+        
+        vstr.push_back("CSimdArray<double> wq_z(1, ket_pdim);");
+    }
+    
+    if ((a_angmom + b_angmom) > 0)
+    {
+        vstr.push_back("// allocate aligned distances R(WP) = W - P");
+        
+        vstr.push_back("CSimdArray<double> wp_x(1, ket_pdim);");
+        
+        vstr.push_back("CSimdArray<double> wp_y(1, ket_pdim);");
+        
+        vstr.push_back("CSimdArray<double> wp_z(1, ket_pdim);");
+    }
+    
+    vstr.push_back("// allocate combined overlap factor");
+    
+    vstr.push_back("CSimdArray<double> fss_abcd(1, ket_pdim);");
+    
+    return vstr;
+}
+
 SI4CIntegrals
 T4CFuncBodyDriver::_get_cart_buffer_integrals(const SI4CIntegrals& bra_integrals,
                                               const SI4CIntegrals& ket_integrals) const
@@ -560,6 +689,39 @@ T4CFuncBodyDriver::_get_cart_buffers_def(const SI4CIntegrals& bra_integrals,
             
             vstr.push_back(label);
         }
+    }
+    
+    return vstr;
+}
+
+std::vector<std::string>
+T4CFuncBodyDriver::_get_full_cart_buffers_def(const SI4CIntegrals& integrals,
+                                              const I4CIntegral&   integral) const
+{
+    SI4CIntegrals ref_tints;
+    
+    for (const auto& tint : integrals)
+    {
+        ref_tints.insert(tint.base());
+    }
+    
+    ref_tints.insert(integral);
+    
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("// allocate aligned Cartesian integrals");
+    
+    for (const auto& tint : ref_tints)
+    {
+        std::string label = "CSimdArray<double> ";
+            
+        label += t4c::get_buffer_label(tint, "cart");
+            
+        const auto tcomps = tint.components<T2CPair, T2CPair>().size();
+        
+        label += "(" + std::to_string(tcomps) + ", ket_dim);";
+            
+        vstr.push_back(label);
     }
     
     return vstr;
@@ -737,6 +899,50 @@ T4CFuncBodyDriver::_add_loop_start(      VCodeLines&    lines,
 }
 
 void
+T4CFuncBodyDriver::_add_full_loop_start(      VCodeLines&    lines,
+                                        const SI4CIntegrals& integrals,
+                                        const I4CIntegral&   integral) const
+{
+    SI4CIntegrals ref_tints;
+    
+    for (const auto& tint : integrals)
+    {
+        ref_tints.insert(tint.base());
+    }
+    
+    ref_tints.insert(integral);
+    
+    lines.push_back({1, 0, 2, "// loop over contracted GTOs on bra side"});
+        
+    lines.push_back({1, 0, 1, "for (auto i = bra_indices[0]; i < bra_indices[1]; i++)"});
+    
+    lines.push_back({1, 0, 1, "{"});
+    
+    for (const auto& tint : ref_tints)
+    {
+        std::string label = t4c::get_buffer_label(tint, "cart")  + ".zero();";
+            
+        lines.push_back({2, 0, 2, label});
+    }
+    
+    std::string label = t4c::get_buffer_label(integral, "spher")  + ".zero();";
+        
+    lines.push_back({2, 0, 2, label});
+
+    lines.push_back({2, 0, 2, "const auto a_x = a_coords_x[i];"});
+
+    lines.push_back({2, 0, 2, "const auto a_y = a_coords_y[i];"});
+
+    lines.push_back({2, 0, 2, "const auto a_z = a_coords_z[i];"});
+    
+    lines.push_back({2, 0, 2, "const auto b_x = b_coords_x[i];"});
+
+    lines.push_back({2, 0, 2, "const auto b_y = b_coords_y[i];"});
+
+    lines.push_back({2, 0, 2, "const auto b_z = b_coords_z[i];"});
+}
+
+void
 T4CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
                                  const I4CIntegral& integral,
                                  const bool         diagonal) const
@@ -763,6 +969,44 @@ T4CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
         label += std::to_string(integral[2]) + ", ";
                 
         label += std::to_string(integral[3]) + ", ";
+    }
+            
+    label += "i, ket_indices);";
+            
+    lines.push_back({2, 0, 1, label});
+   
+    lines.push_back({1, 0, 1, "}"});
+}
+
+void
+T4CFuncBodyDriver::_add_full_loop_end(      VCodeLines&  lines,
+                                      const I4CIntegral& integral) const
+{
+    std::string label = "distributor->distribute(";
+
+    label +=  t4c::get_buffer_label(integral, "spher") + ", ";
+        
+    label += "a_indices, b_indices, c_indices, d_indices, ";
+            
+    label += std::to_string(integral[0]) + ", ";
+            
+    label += std::to_string(integral[1]) + ", ";
+    
+    label += std::to_string(integral[2]) + ", ";
+                
+    label += std::to_string(integral[3]) + ", ";
+    
+    const auto prefixes = integral.prefixes();
+    
+    if (!prefixes.empty())
+    {
+        label += std::to_string(prefixes[0].shape().order()) + ", ";
+                
+        label += std::to_string(prefixes[1].shape().order()) + ", ";
+        
+        label += std::to_string(prefixes[2].shape().order()) + ", ";
+                    
+        label += std::to_string(prefixes[3].shape().order()) + ", ";
     }
             
     label += "i, ket_indices);";

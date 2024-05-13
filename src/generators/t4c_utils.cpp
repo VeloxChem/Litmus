@@ -116,6 +116,20 @@ get_buffer_label(const I4CIntegral& integral,
     
     label += std::to_string(integral.order()) + "_";
     
+    auto tint_prefixes = integral.prefixes();
+    
+    if (!tint_prefixes.empty())
+    {
+        label += "geom";
+        
+        for (const auto& tint_prefix : tint_prefixes)
+        {
+            label += std::to_string(tint_prefix.shape().order());
+        }
+        
+       label += "_";
+    }
+    
     label += fstr::lowercase(integral.label());
 
     return label;
