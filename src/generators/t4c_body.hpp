@@ -123,6 +123,11 @@ class T4CFuncBodyDriver
     /// @return The vector of buffers in compute function.
     std::vector<std::string> _get_spher_buffers_def(const I4CIntegral& integral) const;
     
+    /// Generates vector of half transformed buffers in compute function.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffers in compute function.
+    std::vector<std::string> _get_full_spher_buffers_def(const I4CIntegral& integral) const;
+    
     /// Generates vector of Boys function definitions in compute function.
     /// @param integral The base two center integral.
     /// @return The vector of Boys function definitions in compute function.
@@ -170,6 +175,12 @@ class T4CFuncBodyDriver
                              const I4CIntegral& integral,
                              const bool         diagonal) const;
     
+    /// Adds ket loop start definitions to code lines container.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base two center integral.
+    void _add_full_ket_loop_start(      VCodeLines&  lines,
+                                  const I4CIntegral& integral) const;
+    
     /// Adds ket loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
@@ -181,6 +192,12 @@ class T4CFuncBodyDriver
                            const SI4CIntegrals& ket_integrals,
                            const I4CIntegral&   integral,
                            const bool           diagonal) const;
+    
+    /// Adds ket loop end definitions to code lines container.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base two center integral.
+    void _add_full_ket_loop_end(      VCodeLines&    lines,
+                                const I4CIntegral&   integral) const;
     
     /// Adds auxilary integrals.
     /// @param lines The code lines container to which loop start definition are added.
@@ -194,9 +211,33 @@ class T4CFuncBodyDriver
     void _add_vrr_call_tree(      VCodeLines&  lines,
                             const SI4CIntegrals& integrals) const;
     
+    /// Adds call tree for vertical recursion.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integrals The set of inetrgals.
+    void _add_full_vrr_call_tree(      VCodeLines&  lines,
+                                 const SI4CIntegrals& integrals) const;
+    
     /// Gets arguments list for primitive vertical recursion function call.
     /// @param integral The base four center integral.
     std::string _get_vrr_arguments(const I4CIntegral& integral) const;
+    
+    /// Gets arguments list for primitive vertical recursion function call.
+    /// @param integral The base four center integral.
+    std::string _get_full_vrr_arguments(const I4CIntegral& integral) const;
+    
+    /// Adds call tree for vertical recursion.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integrals The set of inetrgals.
+    /// @param integral The base four center integral.
+    void _add_geom_call_tree(      VCodeLines&    lines,
+                             const SI4CIntegrals& integrals,
+                             const I4CIntegral&   integral) const;
+    
+    /// Gets arguments list for primitive vertical recursion function call.
+    /// @param integrals The set of inetrgals.
+    /// @param integral The base four center integral.
+    std::string _get_geom_arguments(const SI4CIntegrals& integrals,
+                                    const I4CIntegral&   integral) const;
     
     /// Adds call tree for ket horizontal recursion.
     /// @param lines The code lines container to which loop start definition are added.
@@ -233,6 +274,12 @@ class T4CFuncBodyDriver
     /// @param integral The base two center integral.
     void _add_bra_trafo_call_tree(      VCodeLines&  lines,
                                   const I4CIntegral& integral) const;
+    
+    /// Adds call for full transformation.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base two center integral.
+    void _add_full_trafo(      VCodeLines&  lines,
+                         const I4CIntegral& integral) const;
     
 public:
     /// Creates a four-center compute function body generator.

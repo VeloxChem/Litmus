@@ -136,6 +136,11 @@ T4CFuncBodyDriver::write_geom_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
+    for (const auto& label : _get_full_spher_buffers_def(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
     for (const auto& label : _get_boys_function_def(integral))
     {
         lines.push_back({1, 0, 2, label});
@@ -143,22 +148,18 @@ T4CFuncBodyDriver::write_geom_func_body(      std::ofstream& fstream,
     
     _add_full_loop_start(lines, geom_integrals, integral);
     
-//    _add_ket_loop_start(lines, integral, diagonal);
-//
-//    _add_auxilary_integrals(lines, vrr_integrals);
-//
-//    _add_vrr_call_tree(lines, vrr_integrals);
-//
-//    _add_ket_loop_end(lines, bra_integrals, ket_integrals, integral, diagonal);
-//
-//    _add_ket_hrr_call_tree(lines, ket_integrals);
-//
-//    _add_ket_trafo_call_tree(lines, bra_integrals, ket_integrals, integral);
-//
-//    _add_bra_hrr_call_tree(lines, bra_integrals);
-//
-//    _add_bra_trafo_call_tree(lines, integral);
-//
+    _add_full_ket_loop_start(lines, integral);
+
+    _add_auxilary_integrals(lines, vrr_integrals);
+
+    _add_full_vrr_call_tree(lines, vrr_integrals);
+    
+    _add_geom_call_tree(lines, geom_integrals, integral);
+
+    _add_full_ket_loop_end(lines, integral);
+
+    _add_full_trafo(lines, integral);
+
     _add_full_loop_end(lines, integral);
     
     lines.push_back({0, 0, 1, "}"});
@@ -698,31 +699,19 @@ std::vector<std::string>
 T4CFuncBodyDriver::_get_full_cart_buffers_def(const SI4CIntegrals& integrals,
                                               const I4CIntegral&   integral) const
 {
-    SI4CIntegrals ref_tints;
-    
-    for (const auto& tint : integrals)
-    {
-        ref_tints.insert(tint.base());
-    }
-    
-    ref_tints.insert(integral);
-    
     std::vector<std::string> vstr;
     
     vstr.push_back("// allocate aligned Cartesian integrals");
     
-    for (const auto& tint : ref_tints)
-    {
-        std::string label = "CSimdArray<double> ";
+    std::string label = "CSimdArray<double> ";
             
-        label += t4c::get_buffer_label(tint, "cart");
+    label += t4c::get_buffer_label(integral, "cart");
             
-        const auto tcomps = tint.components<T2CPair, T2CPair>().size();
+    const auto tcomps = integral.components<T2CPair, T2CPair>().size();
         
-        label += "(" + std::to_string(tcomps) + ", ket_dim);";
+    label += "(" + std::to_string(tcomps) + ", ket_dim);";
             
-        vstr.push_back(label);
-    }
+    vstr.push_back(label);
     
     return vstr;
 }
@@ -820,6 +809,38 @@ T4CFuncBodyDriver::_get_spher_buffers_def(const I4CIntegral& integral) const
 }
 
 std::vector<std::string>
+T4CFuncBodyDriver::_get_full_spher_buffers_def(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("// allocate aligned spherical integrals");
+     
+    std::string label = "CSimdArray<double> ";
+                    
+    label += t4c::get_buffer_label(integral, "spher");
+                    
+    auto angpair = std::array<int, 2>({integral[2], integral[3]});
+                    
+    auto tcomps = t2c::number_of_spherical_components(angpair);
+                    
+    angpair = std::array<int, 2>({integral[0], integral[1]});
+                    
+    tcomps *= t2c::number_of_spherical_components(angpair);
+    
+    for (const auto& prefix : integral.prefixes())
+    {
+        tcomps *= prefix.components().size();
+    }
+                    
+    label += "(" + std::to_string(tcomps) + ", ket_dim);";
+                    
+    vstr.push_back(label);
+   
+    return vstr;
+}
+
+
+std::vector<std::string>
 T4CFuncBodyDriver::_get_boys_function_def(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
@@ -903,29 +924,17 @@ T4CFuncBodyDriver::_add_full_loop_start(      VCodeLines&    lines,
                                         const SI4CIntegrals& integrals,
                                         const I4CIntegral&   integral) const
 {
-    SI4CIntegrals ref_tints;
-    
-    for (const auto& tint : integrals)
-    {
-        ref_tints.insert(tint.base());
-    }
-    
-    ref_tints.insert(integral);
-    
     lines.push_back({1, 0, 2, "// loop over contracted GTOs on bra side"});
         
     lines.push_back({1, 0, 1, "for (auto i = bra_indices[0]; i < bra_indices[1]; i++)"});
     
     lines.push_back({1, 0, 1, "{"});
     
-    for (const auto& tint : ref_tints)
-    {
-        std::string label = t4c::get_buffer_label(tint, "cart")  + ".zero();";
-            
-        lines.push_back({2, 0, 2, label});
-    }
+    std::string label = t4c::get_buffer_label(integral, "cart")  + ".zero();";
+        
+    lines.push_back({2, 0, 2, label});
     
-    std::string label = t4c::get_buffer_label(integral, "spher")  + ".zero();";
+    label = t4c::get_buffer_label(integral, "spher")  + ".zero();";
         
     lines.push_back({2, 0, 2, label});
 
@@ -1080,9 +1089,106 @@ T4CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
     if ((integral[2] + integral[3]) > 0)
     {
         lines.push_back({3, 0, 2, "t4cfunc::comp_distances_wq(wq_x[0], wq_y[0], wq_z[0], w_x[0], w_y[0], w_z[0], q_x[0], q_y[0], q_z[0], ket_pdim);"});
+        
+        lines.push_back({3, 0, 2, "t4cfunc::comp_distances_qd(qd_x[0], qd_y[0], qd_z[0], q_x[0], q_y[0], q_z[0], d_x[0], d_y[0], d_z[0], ket_pdim);"});
     }
     
     if ((integral[0] + integral[1]) > 0)
+    {
+        lines.push_back({3, 0, 2, "t4cfunc::comp_distances_wp(wp_x[0], wp_y[0], wp_z[0], w_x[0], w_y[0], w_z[0], p_x, p_y, p_z, ket_pdim);"});
+    }
+    
+    lines.push_back({3, 0, 2, "t4cfunc::comp_boys_args(bf_args, pq_x[0], pq_y[0], pq_z[0], a_exp, b_exp, c_exps[0], d_exps[0]);"});
+    
+    lines.push_back({3, 0, 2, "bf_table.compute(bf_values, bf_args);"});
+    
+    lines.push_back({3, 0, 2, "t4cfunc::comp_ovl_factors(fss_abcd, ab_ovl, cd_ovls[0], ab_norm, cd_norms[0], a_exp, b_exp, c_exps[0], d_exps[0]);"});
+}
+
+void
+T4CFuncBodyDriver::_add_full_ket_loop_start(      VCodeLines&  lines,
+                                            const I4CIntegral& integral) const
+{
+    lines.push_back({2, 0, 1, "for (int j = 0; j < bra_npgtos; j++)"});
+    
+    lines.push_back({2, 0, 1, "{"});
+    
+    lines.push_back({3, 0, 2, "const auto a_exp = a_vec_exps[j * bra_ncgtos + i];"});
+    
+    lines.push_back({3, 0, 2, "const auto b_exp = b_vec_exps[j * bra_ncgtos + i];"});
+        
+    lines.push_back({3, 0, 2, "const auto ab_norm = ab_vec_norms[j * bra_ncgtos + i];"});
+    
+    lines.push_back({3, 0, 2, "const auto ab_ovl = ab_vec_ovls[j * bra_ncgtos + i];"});
+    
+    lines.push_back({3, 0, 2, "const auto p_x = (a_x * a_exp + b_x * b_exp) / (a_exp + b_exp);"});
+    
+    lines.push_back({3, 0, 2, "const auto p_y = (a_y * a_exp + b_y * b_exp) / (a_exp + b_exp);"});
+    
+    lines.push_back({3, 0, 2, "const auto p_z = (a_z * a_exp + b_z * b_exp) / (a_exp + b_exp);"});
+    
+    auto a_angmom = integral[0];
+    
+    auto b_angmom = integral[1];
+    
+    auto c_angmom = integral[2];
+    
+    auto d_angmom = integral[3];
+    
+    if (const auto prefixes = integral.prefixes(); !prefixes.empty())
+    {
+        a_angmom += prefixes[0].shape().order();
+        
+        b_angmom += prefixes[1].shape().order();
+        
+        c_angmom += prefixes[2].shape().order();
+        
+        d_angmom += prefixes[3].shape().order();
+    }
+    
+    if (a_angmom > 0)
+    {
+        lines.push_back({3, 0, 2, "const auto pa_x = p_x - a_x;"});
+        
+        lines.push_back({3, 0, 2, "const auto pa_y = p_y - a_y;"});
+        
+        lines.push_back({3, 0, 2, "const auto pa_z = p_z - a_z;"});
+    }
+    
+    if (b_angmom > 0)
+    {
+        lines.push_back({3, 0, 2, "const auto pb_x = p_x - b_x;"});
+        
+        lines.push_back({3, 0, 2, "const auto pb_y = p_y - b_y;"});
+        
+        lines.push_back({3, 0, 2, "const auto pb_z = p_z - b_z;"});
+    }
+    
+    lines.push_back({3, 0, 2, "t4cfunc::comp_coordinates_q(q_x[0], q_y[0], q_z[0], c_x[0], c_y[0], c_z[0], d_x[0], d_y[0], d_z[0], c_exps[0], d_exps[0], ket_pdim);"});
+    
+    if ((a_angmom + b_angmom + c_angmom + d_angmom) > 0)
+    {
+        lines.push_back({3, 0, 2, "t4cfunc::comp_coordinates_w(w_x[0], w_y[0], w_z[0], p_x, p_y, p_z, q_x[0], q_y[0], q_z[0], a_exp, b_exp, c_exps[0], d_exps[0], ket_pdim);"});
+    }
+    
+    lines.push_back({3, 0, 2, "t4cfunc::comp_distances_pq(pq_x[0], pq_y[0], pq_z[0], p_x, p_y, p_z, q_x[0], q_y[0], q_z[0], ket_pdim);"});
+    
+    if ((c_angmom + d_angmom) > 0)
+    {
+        lines.push_back({3, 0, 2, "t4cfunc::comp_distances_wq(wq_x[0], wq_y[0], wq_z[0], w_x[0], w_y[0], w_z[0], q_x[0], q_y[0], q_z[0], ket_pdim);"});
+    }
+    
+    if (c_angmom > 0)
+    {
+        lines.push_back({3, 0, 2, "t4cfunc::comp_distances_qc(qc_x[0], qc_y[0], qc_z[0], q_x[0], q_y[0], q_z[0], c_x[0], c_y[0], c_z[0], ket_pdim);"});
+    }
+    
+    if (d_angmom > 0)
+    {
+        lines.push_back({3, 0, 2, "t4cfunc::comp_distances_qd(qd_x[0], qd_y[0], qd_z[0], q_x[0], q_y[0], q_z[0], d_x[0], d_y[0], d_z[0], ket_pdim);"});
+    }
+    
+    if ((a_angmom + b_angmom) > 0)
     {
         lines.push_back({3, 0, 2, "t4cfunc::comp_distances_wp(wp_x[0], wp_y[0], wp_z[0], w_x[0], w_y[0], w_z[0], p_x, p_y, p_z, ket_pdim);"});
     }
@@ -1151,6 +1257,23 @@ T4CFuncBodyDriver::_add_ket_loop_end(      VCodeLines&  lines,
 }
 
 void
+T4CFuncBodyDriver::_add_full_ket_loop_end(      VCodeLines&  lines,
+                                          const I4CIntegral& integral) const
+{
+    std::string label = "t2cfunc::reduce(";
+    
+    label += t4c::get_buffer_label(integral, "cart") + ", ";
+    
+    label += t4c::get_buffer_label(integral, "prim") + ", ";
+    
+    label += "ket_dim, ket_npgtos);";
+    
+    lines.push_back({3, 0, 1, label});
+    
+    lines.push_back({2, 0, 2, "}"});
+}
+
+void
 T4CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&    lines,
                                            const SI4CIntegrals& integrals) const
 {
@@ -1205,16 +1328,6 @@ T4CFuncBodyDriver::_add_vrr_call_tree(      VCodeLines&  lines,
                 }
             }
             
-//            if ((tint[1] > 1) && (tint[3] == 0))
-//            {
-//                label += "a_exp, b_exp";
-//            }
-//
-//            if ((tint[1] == 0) && (tint[3] > 1))
-//            {
-//                label += "c_exps[0], d_exps[0]";
-//            }
-            
             if ((tint[1] + tint[3]) > 1)
             {
                 label += "a_exp, b_exp, c_exps[0], d_exps[0]";
@@ -1226,6 +1339,81 @@ T4CFuncBodyDriver::_add_vrr_call_tree(      VCodeLines&  lines,
         }
     }
 }
+
+void
+T4CFuncBodyDriver::_add_full_vrr_call_tree(      VCodeLines&  lines,
+                                           const SI4CIntegrals& integrals) const
+{
+    for (const auto& tint : integrals)
+    {
+        if ((tint[0] + tint[1] + tint[2] + tint[3]) > 0)
+        {
+            const auto name = t4c::prim_compute_func_name(tint);
+            
+            auto label = t4c::namespace_label(tint) + "::" + name + "(";
+            
+            label += _get_full_vrr_arguments(tint);
+            
+            if (tint[0] > 0)
+            {
+                if ((tint[0] == 1) && ((tint[1] + tint[2] + tint[3]) == 0))
+                {
+                    label += "pa_x, pa_y, pa_z, wp_x[0], wp_y[0], wp_z[0]";
+                }
+                else
+                {
+                    label += "pa_x, pa_y, pa_z, wp_x[0], wp_y[0], wp_z[0], ";
+                }
+            }
+            
+            if ((tint[1] > 0) && (tint[0] == 0))
+            {
+                if ((tint[1] == 1) && ((tint[2] + tint[3]) == 0))
+                {
+                    label += "pb_x, pb_y, pb_z, wp_x[0], wp_y[0], wp_z[0]";
+                }
+                else
+                {
+                    label += "pb_x, pb_y, pb_z, wp_x[0], wp_y[0], wp_z[0], ";
+                }
+            }
+            
+            if ((tint[2] > 0) && ((tint[0] + tint[1]) == 0))
+            {
+                if ((tint[2] == 1) && (tint[3] == 0))
+                {
+                    label += "qc_x, qc_y, qc_z, wq_x[0], wq_y[0], wq_z[0]";
+                }
+                else
+                {
+                    label += "qc_x, qc_y, qc_z, wq_x[0], wq_y[0], wq_z[0], ";
+                }
+            }
+            
+            if ((tint[3] > 0) && ((tint[0] + tint[1] + tint[2]) == 0))
+            {
+                if (tint[3] == 1)
+                {
+                    label += "qd_x, qd_y, qd_z, wq_x[0], wq_y[0], wq_z[0]";
+                }
+                else
+                {
+                    label += "qd_x, qd_y, qd_z, wq_x[0], wq_y[0], wq_z[0], ";
+                }
+            }
+            
+            if ((tint[0] + tint[1] + tint[2] + tint[3]) > 1)
+            {
+                label += "a_exp, b_exp, c_exps[0], d_exps[0]";
+            }
+            
+            label += ");";
+            
+            lines.push_back({3, 0, 2, label});
+        }
+    }
+}
+
 
 std::string
 T4CFuncBodyDriver::_get_vrr_arguments(const I4CIntegral& integral) const
@@ -1239,6 +1427,69 @@ T4CFuncBodyDriver::_get_vrr_arguments(const I4CIntegral& integral) const
     
     return label;
     
+}
+
+std::string
+T4CFuncBodyDriver::_get_full_vrr_arguments(const I4CIntegral& integral) const
+{
+    std::string label = t4c::get_buffer_label(integral, {"prim"}) + ", ";;
+    
+    for (const auto& tint : t4c::get_full_vrr_integrals(integral))
+    {
+        label += t4c::get_buffer_label(tint, {"prim"}) + ", ";
+    }
+    
+    return label;
+}
+
+void
+T4CFuncBodyDriver::_add_geom_call_tree(      VCodeLines&    lines,
+                                       const SI4CIntegrals& integrals,
+                                       const I4CIntegral&   integral) const
+{
+    const auto name = t4c::geom_compute_func_name(integral);
+    
+    auto label = t4c::geom_namespace_label() + "::" + name + "(";
+    
+    label += _get_geom_arguments(integrals, integral);
+    
+    if (const auto prefixes = integral.prefixes(); !prefixes.empty())
+    {
+        if (prefixes[0].shape().order() > 0) label += "a_exp, ";
+        
+        if (prefixes[1].shape().order() > 0) label += "b_exp, ";
+        
+        if (prefixes[2].shape().order() > 0) label += "c_exps[0], ";
+        
+        if (prefixes[3].shape().order() > 0) label += "d_exps[0]";
+    }
+    
+    if (label[label.size() - 2] == ',') label.erase(label.end() - 2);
+    
+    label += ");";
+    
+    lines.push_back({3, 0, 2, label});
+}
+
+std::string
+T4CFuncBodyDriver::_get_geom_arguments(const SI4CIntegrals& integrals,
+                                       const I4CIntegral&   integral) const
+{
+    std::string label = t4c::get_buffer_label(integral, {"prim"}) + ", ";
+    
+    SI4CIntegrals ref_tints;
+    
+    for (const auto& tint : integrals)
+    {
+        ref_tints.insert(tint.base());
+    }
+    
+    for (const auto& tint : ref_tints)
+    {
+        label += t4c::get_buffer_label(tint, {"prim"}) + ", ";
+    }
+    
+    return label;
 }
 
 void
@@ -1391,6 +1642,25 @@ T4CFuncBodyDriver::_add_bra_trafo_call_tree(      VCodeLines&  lines,
     label += t4c::get_buffer_label(integral, "ket_spher") + ", ";
     
     label += std::to_string(integral[2]) + ", " + std::to_string(integral[3]) + ");";
+        
+    lines.push_back({2, 0, 2, label});
+}
+
+void
+T4CFuncBodyDriver::_add_full_trafo(      VCodeLines&  lines,
+                                   const I4CIntegral& integral) const
+{
+    std::string label = "t4cfunc::full_transform<" + std::to_string(integral[0]) + ", ";
+    
+    label += std::to_string(integral[1]) + ", ";
+    
+    label += std::to_string(integral[2]) + ", ";
+    
+    label += std::to_string(integral[3]) + ">";
+        
+    label += "("  +  t4c::get_buffer_label(integral, "spher") + ", ";
+    
+    label += t4c::get_buffer_label(integral, "cart_spher") + ");";
         
     lines.push_back({2, 0, 2, label});
 }

@@ -77,6 +77,12 @@ namespace_label(const I4CIntegral& integral)
 }
 
 std::string
+geom_namespace_label()
+{
+    return std::string("t4c_geom");
+}
+
+std::string
 integrand_label(const Operator& integrand)
 {
     const auto iname = integrand.name();
@@ -170,6 +176,28 @@ prim_compute_func_name(const I4CIntegral& integral)
 }
 
 std::string
+geom_compute_func_name(const I4CIntegral& integral)
+{
+    std::string geom_label;
+    
+    auto tint_prefixes = integral.prefixes();
+    
+    if (!tint_prefixes.empty())
+    {
+        geom_label += "_geom";
+        
+        for (const auto& tint_prefix : tint_prefixes)
+        {
+            geom_label += std::to_string(tint_prefix.shape().order());
+        }
+    }
+    
+    auto label =  "comp" + geom_label + "_" + integral.label() + "_" +  std::to_string(integral.integrand().shape().order());
+    
+    return fstr::lowercase(label);
+}
+
+std::string
 ket_hrr_compute_func_name(const I4CIntegral& integral)
 {
     const auto ket_one = Tensor(integral[2]);
@@ -209,6 +237,39 @@ get_vrr_integrals(const I4CIntegral& integral)
         else
         {
             tints = eri_drv.ket_vrr(integral);
+        }
+    }
+    
+    return tints;
+}
+
+SI4CIntegrals
+get_full_vrr_integrals(const I4CIntegral& integral)
+{
+    SI4CIntegrals tints;
+    
+    if (integral.integrand().name() == "1/|r-r'|")
+    {
+        V4IElectronRepulsionDriver eri_drv;
+        
+        if (integral[0] > 0)
+        {
+            tints = eri_drv.bra_vrr_a(integral);
+        }
+        
+        if ((integral[1] > 0) && (integral[0] == 0))
+        {
+            tints = eri_drv.bra_vrr_b(integral);
+        }
+        
+        if ((integral[2] > 0) && ((integral[0] + integral[1]) == 0))
+        {
+            tints = eri_drv.ket_vrr_c(integral);
+        }
+        
+        if ((integral[3] > 0) && ((integral[0] + integral[1] + integral[2]) == 0))
+        {
+            tints = eri_drv.ket_vrr_d(integral);
         }
     }
     

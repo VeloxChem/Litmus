@@ -36,6 +36,10 @@ std::string integral_split_label(const I4CIntegral& integral);
 /// @return The recursion namespace label of standart integral.
 std::string namespace_label(const I4CIntegral& integral);
 
+/// Gets geometrical derrivatives namespace label of standart integral.
+/// @return The recursion namespace label of standart integral.
+std::string geom_namespace_label();
+
 /// Gets label of standart integrand.
 /// @param integrand the integrand operator.
 /// @return The label of standart integrand.
@@ -64,6 +68,11 @@ std::string get_hrr_buffer_label(const I4CIntegral& integral,
 /// @return The primitive compute function name.
 std::string prim_compute_func_name(const I4CIntegral& integral);
 
+/// Generates geometrical derivatives compute function name.
+/// @param integral The base two center integral.
+/// @return The geometrical derivatives compute function name.
+std::string geom_compute_func_name(const I4CIntegral& integral);
+
 /// Generates ket horizontal recursion compute function name.
 /// @param integral The base two center integral.
 /// @return The primitive compute function name.
@@ -77,6 +86,10 @@ std::string bra_hrr_compute_func_name(const I4CIntegral& integral);
 /// Gets arguments list for primitive vertical recursion function call.
 /// @param integral The base two center integral.
 SI4CIntegrals get_vrr_integrals(const I4CIntegral& integral);
+
+/// Gets arguments list for primitive vertical recursion function call.
+/// @param integral The base two center integral.
+SI4CIntegrals get_full_vrr_integrals(const I4CIntegral& integral);
 
 /// Gets arguments list for ket horizontal recursion function call.
 /// @param integral The base two center integral.
