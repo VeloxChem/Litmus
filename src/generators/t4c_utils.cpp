@@ -25,11 +25,26 @@ namespace t4c { // t4c namespace
 std::string
 integral_label(const I4CIntegral& integral)
 {
+    std::string suffix = "Geom";
+    
+    const auto prefixes = integral.prefixes();
+    
+    if (const auto nterms = prefixes.size(); nterms == 4)
+    {
+        suffix += std::to_string(prefixes[0].shape().order());
+        
+        suffix += std::to_string(prefixes[1].shape().order());
+        
+        suffix += std::to_string(prefixes[2].shape().order());
+        
+        suffix += std::to_string(prefixes[3].shape().order());
+    }
+    
     const auto integrand = integral.integrand();
     
     if (integrand.name() == "1/|r-r'|")
     {
-        return "ElectronRepulsion";
+        return (prefixes.empty()) ? "ElectronRepulsion" : "ElectronRepulsion" + suffix;
     }
     
     return std::string(); 
@@ -62,6 +77,12 @@ namespace_label(const I4CIntegral& integral)
 }
 
 std::string
+geom_namespace_label()
+{
+    return std::string("t4c_geom");
+}
+
+std::string
 integrand_label(const Operator& integrand)
 {
     const auto iname = integrand.name();
@@ -74,7 +95,21 @@ integrand_label(const Operator& integrand)
 std::string
 compute_func_name(const I4CIntegral& integral)
 {
-    auto label = "comp_" + t4c::integral_split_label(integral) + "_" + integral.label();
+    std::string geom_label; 
+    
+    auto tint_prefixes = integral.prefixes();
+    
+    if (!tint_prefixes.empty())
+    {
+        geom_label += "_geom";
+        
+        for (const auto& tint_prefix : tint_prefixes)
+        {
+            geom_label += std::to_string(tint_prefix.shape().order());
+        }
+    }
+    
+    auto label = "comp_" + t4c::integral_split_label(integral) +  geom_label + "_" + integral.label();
         
     return fstr::lowercase(label);
 }
@@ -86,6 +121,20 @@ get_buffer_label(const I4CIntegral& integral,
     std::string label = prefix + "_buffer_";
     
     label += std::to_string(integral.order()) + "_";
+    
+    auto tint_prefixes = integral.prefixes();
+    
+    if (!tint_prefixes.empty())
+    {
+        label += "geom";
+        
+        for (const auto& tint_prefix : tint_prefixes)
+        {
+            label += std::to_string(tint_prefix.shape().order());
+        }
+        
+       label += "_";
+    }
     
     label += fstr::lowercase(integral.label());
 
@@ -122,6 +171,28 @@ std::string
 prim_compute_func_name(const I4CIntegral& integral)
 {
     auto label =  "comp_prim_" + t4c::integral_split_label(integral) + "_" + integral.label();
+    
+    return fstr::lowercase(label);
+}
+
+std::string
+geom_compute_func_name(const I4CIntegral& integral)
+{
+    std::string geom_label;
+    
+    auto tint_prefixes = integral.prefixes();
+    
+    if (!tint_prefixes.empty())
+    {
+        geom_label += "_geom";
+        
+        for (const auto& tint_prefix : tint_prefixes)
+        {
+            geom_label += std::to_string(tint_prefix.shape().order());
+        }
+    }
+    
+    auto label =  "comp" + geom_label + "_" + integral.label() + "_" +  std::to_string(integral.integrand().shape().order());
     
     return fstr::lowercase(label);
 }
@@ -166,6 +237,39 @@ get_vrr_integrals(const I4CIntegral& integral)
         else
         {
             tints = eri_drv.ket_vrr(integral);
+        }
+    }
+    
+    return tints;
+}
+
+SI4CIntegrals
+get_full_vrr_integrals(const I4CIntegral& integral)
+{
+    SI4CIntegrals tints;
+    
+    if (integral.integrand().name() == "1/|r-r'|")
+    {
+        V4IElectronRepulsionDriver eri_drv;
+        
+        if (integral[0] > 0)
+        {
+            tints = eri_drv.bra_vrr_a(integral);
+        }
+        
+        if ((integral[1] > 0) && (integral[0] == 0))
+        {
+            tints = eri_drv.bra_vrr_b(integral);
+        }
+        
+        if ((integral[2] > 0) && ((integral[0] + integral[1]) == 0))
+        {
+            tints = eri_drv.ket_vrr_c(integral);
+        }
+        
+        if ((integral[3] > 0) && ((integral[0] + integral[1] + integral[2]) == 0))
+        {
+            tints = eri_drv.ket_vrr_d(integral);
         }
     }
     

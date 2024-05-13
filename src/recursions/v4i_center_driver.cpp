@@ -64,28 +64,109 @@ V4ICenterDriver::apply_bra_ket_vrr(const I4CIntegral& integral) const
     
     tints.insert(integral);
     
-    auto rtints = tints;
-    
     if (const auto prefixes = integral.prefixes(); !prefixes.empty())
     {
-        for (int i = 0; i < static_cast<int>(prefixes.size()); i++)
+        // apply recursion on A center
+        
+        auto rtints = tints;
+        
+        SI4CIntegrals a_tints;
+        
+        for (int i = 0; i < prefixes[0].shape().order(); i++)
         {
-            for (int j = 0; j < prefixes[i].shape().order(); j++)
+            SI4CIntegrals new_rtints;
+            
+            for (const auto& rtint : rtints)
             {
-                SI4CIntegrals new_rtints;
+                const auto ctints = bra_ket_vrr(rtint, 0);
                 
-                for (const auto& rtint : rtints)
-                {
-                    const auto ctints = bra_ket_vrr(rtint, i);
-                    
-                    new_rtints.insert(ctints.cbegin(), ctints.cend());
-                }
-                
-                rtints = new_rtints;
-                
-                tints.insert(new_rtints.begin(), new_rtints.end());
+                new_rtints.insert(ctints.cbegin(), ctints.cend());
             }
+            
+            rtints = new_rtints;
+            
+            a_tints.insert(new_rtints.begin(), new_rtints.end());
         }
+        
+        tints.insert(a_tints.begin(), a_tints.end());
+       
+        if (a_tints.empty()) a_tints = tints;
+        
+        // apply recursion on B center
+        
+        rtints = a_tints;
+        
+        SI4CIntegrals b_tints;
+        
+        for (int i = 0; i < prefixes[1].shape().order(); i++)
+        {
+            SI4CIntegrals new_rtints;
+            
+            for (const auto& rtint : rtints)
+            {
+                const auto ctints = bra_ket_vrr(rtint, 1);
+                
+                new_rtints.insert(ctints.cbegin(), ctints.cend());
+            }
+            
+            rtints = new_rtints;
+            
+            b_tints.insert(new_rtints.begin(), new_rtints.end());
+        }
+        
+        tints.insert(b_tints.begin(), b_tints.end());
+        
+        if (b_tints.empty()) b_tints = a_tints;
+        
+        // apply recursion on C center
+        
+        rtints = b_tints;
+        
+        SI4CIntegrals c_tints;
+        
+        for (int i = 0; i < prefixes[2].shape().order(); i++)
+        {
+            SI4CIntegrals new_rtints;
+            
+            for (const auto& rtint : rtints)
+            {
+                const auto ctints = bra_ket_vrr(rtint, 2);
+                
+                new_rtints.insert(ctints.cbegin(), ctints.cend());
+            }
+            
+            rtints = new_rtints;
+            
+            c_tints.insert(new_rtints.begin(), new_rtints.end());
+        }
+        
+        tints.insert(c_tints.begin(), c_tints.end());
+        
+        if (c_tints.empty()) c_tints = b_tints;
+        
+        // apply recursion on D center
+        
+        rtints = c_tints;
+        
+        SI4CIntegrals d_tints;
+        
+        for (int i = 0; i < prefixes[3].shape().order(); i++)
+        {
+            SI4CIntegrals new_rtints;
+            
+            for (const auto& rtint : rtints)
+            {
+                const auto ctints = bra_ket_vrr(rtint, 3);
+                
+                new_rtints.insert(ctints.cbegin(), ctints.cend());
+            }
+            
+            rtints = new_rtints;
+            
+            d_tints.insert(new_rtints.begin(), new_rtints.end());
+        }
+        
+        tints.insert(d_tints.begin(), d_tints.end());
     }
     
     return tints;
