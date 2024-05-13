@@ -403,7 +403,7 @@ T2CCPUGenerator::_write_hpp_includes(      std::ofstream&         fstream,
         lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(tint) + ".hpp\""});
     }
     
-    if (integral.integrand().name() == "A")
+    if ((integral.integrand().name() == "A") || (integral.integrand().name() == "A1"))
     {
         lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
     }

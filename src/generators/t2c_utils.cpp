@@ -337,8 +337,12 @@ compute_func_name(const I2CIntegral&           integral,
 std::string
 prim_file_name(const I2CIntegral& integral)
 {
-    return t2c::integral_label(integral) + "_A" + std::to_string(integral.integrand().shape().order()) + "_"
-"PrimRec" + integral.label();
+ if (integral.integrand().name() == "A1")
+    {
+        return t2c::integral_label(integral) + "_A" + std::to_string(integral.integrand().shape().order()) + "_" + "PrimRec" + integral.label();
+    }
+
+    return t2c::integral_label(integral) + "PrimRec" + integral.label();
 }
 
 // May need to amend this for new integral cases
