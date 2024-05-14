@@ -15,7 +15,6 @@
 // limitations under the License.
 
 #include "t2c_center_driver.hpp"
-
 #include "axes.hpp"
 #include "t2c_utils.hpp"
 
@@ -63,8 +62,8 @@ T2CCenterDriver::bra_ket_vrr(const R2CTerm& rterm,
             {
                 x1val.add(Factor("k_e", "tke"), Fraction(2));
             }
-            
-            t2crt.add(x1val); 
+
+            t2crt.add(x1val);
         }
         
         if (const auto r2val = tval->shift(axis, -1, index))
@@ -72,7 +71,7 @@ T2CCenterDriver::bra_ket_vrr(const R2CTerm& rterm,
             auto x2val = *r2val;
             
             x2val.scale(Fraction(-(*tval)[index][axis]));
-            
+
             t2crt.add(x2val);
         }
         

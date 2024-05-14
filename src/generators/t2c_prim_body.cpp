@@ -106,19 +106,19 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const std::vector<R2CDist>& rec_dists,
         auto label = t2c::get_buffer_label(tint, "prim");
         
         vstr.push_back("/// Set up components of auxiliary buffer : " + label);
-        
+
         const auto tlabel = _get_tensor_label(tint);
         
         int index = 0;
         
         for (const auto& tcomp : tint.components<T1CPair, T1CPair>())
         {
-            if (_find_integral(rec_dists, tcomp))
-            {
+            //if (_find_integral(rec_dists, tcomp))
+            //{
                 const auto line = "auto " + _get_component_label(tcomp) + " = " + label;
                 
                 vstr.push_back(line + "[" + std::to_string(index) + "];");
-            }
+            //}
 
             index++;
         }

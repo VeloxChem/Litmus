@@ -184,6 +184,8 @@ public:
     /// @param multiplier The fractional multiplier accompanying factor to add.
     void add(const Factor&   factor,
              const Fraction& multiplier = Fraction(1));
+
+    void add(const Fraction& multiplier = Fraction(1));
     
     /// Scales prefactor of this recursion term with the given factor.
     /// @param factor The fractional factor to scale recurion term.
@@ -500,6 +502,13 @@ RecursionTerm<T>::add(const Factor&   factor,
         _factors[factor] = 1;
     }
     
+    _prefactor = _prefactor * multiplier;
+}
+
+template <class T>
+void
+RecursionTerm<T>::add(const Fraction& multiplier)
+{
     _prefactor = _prefactor * multiplier;
 }
 

@@ -144,7 +144,7 @@ T2CElectricFieldDriver::bra_vrr(const R2CTerm& rterm,
 
                 const auto nc = tval->integrand()[axis];
 
-                x7val.add(Factor("1", "1"), Fraction(nc));
+                x7val.add(Fraction(nc));
 
                 t2crt.add(x7val);
             }
@@ -226,7 +226,7 @@ T2CElectricFieldDriver::ket_vrr(const R2CTerm& rterm,
 
                 const auto nc = tval->integrand()[axis];
 
-                x7val.add(Factor("1", "1"), Fraction(nc));
+                x7val.add(Fraction(nc));
 
                 t2crt.add(x7val);
             }
