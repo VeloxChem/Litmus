@@ -72,7 +72,7 @@ int main(int argc, char **argv)
     if (run_type.first == "t2c_cpu")
     {
     // a, operator, b
-        const std::array<int, 3> geom_drvs = {1, 0, 1};
+        const std::array<int, 3> geom_drvs = {1, 0, 0};
 
         const auto t2c_drv = T2CCPUGenerator();
         

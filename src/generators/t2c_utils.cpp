@@ -423,7 +423,7 @@ get_integrals(const I2CIntegral& integral)
         
         const auto prefixes = integral.prefixes();
         
-        if (prefixes.size() == 2)
+        if ((prefixes.size() == 2) || (prefixes.size() == 1))
         {
             if ((integral.prefixes()[0].shape().order() == 0) &&
                 (integral.prefixes()[1].shape().order() >  0))
