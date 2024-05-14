@@ -77,6 +77,9 @@ public:
     /// @return true if this integral  component is less than other integral component, false otherwise.
     bool operator<(const IntegralComponent<T, U>& other) const;
     
+    /// Generates base integral component by removing prefixes.
+    IntegralComponent base() const;
+    
     /// Checks if this integral component is similar to other integral component.
     /// @param other The other integral component to compare.
     /// @return True if integral components  are similar, false otherwise.
@@ -259,6 +262,13 @@ IntegralComponent<T,U>::operator<(const IntegralComponent<T, U>& other) const
     {
         return _prefixes < other._prefixes;
     }
+}
+
+template <class T, class U>
+IntegralComponent<T, U>
+IntegralComponent<T,U>::base() const
+{
+    return IntegralComponent(_bra, _ket, _integrand, _order, {});
 }
 
 template <class T, class U>

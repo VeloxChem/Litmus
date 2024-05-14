@@ -16,9 +16,11 @@
 
 #include "t4c_center_driver.hpp"
 
+#include <iostream>
 
 #include "axes.hpp"
 #include "t2c_utils.hpp"
+#include "t4c_utils.hpp"
 
 T4CCenterDriver::T4CCenterDriver()
 {
@@ -31,7 +33,7 @@ bool
 T4CCenterDriver::is_auxilary(const R4CTerm& rterm,
                              const int      index) const
 {
-    if (const auto nprefixes = rterm.prefixes().size(); index >= nprefixes)
+    if (rterm.prefixes()[index].shape().order() == 0)
     {
         return true;
     }
@@ -48,7 +50,7 @@ T4CCenterDriver::bra_ket_vrr(const R4CTerm& rterm,
 {
     if (is_auxilary(rterm, index)) return std::nullopt;
     
-    if (const auto tval = rterm.shift_prefix(axis, -1, index, true))
+    if (const auto tval = rterm.shift_prefix(axis, -1, index, false))
     {
         R4CDist t4crt(rterm);
         
@@ -58,22 +60,22 @@ T4CCenterDriver::bra_ket_vrr(const R4CTerm& rterm,
             
             if (index == 0)
             {
-                x1val.add(Factor("ba_e", "tba_e"), Fraction(2));
+                x1val.add(Factor("ba_e", "a_exp"), Fraction(2));
             }
             
             if (index == 1)
             {
-                x1val.add(Factor("bb_e", "tbb_e"), Fraction(2));
+                x1val.add(Factor("bb_e", "b_exp"), Fraction(2));
             }
             
             if (index == 2)
             {
-                x1val.add(Factor("kc_e", "tkc_e"), Fraction(2));
+                x1val.add(Factor("kc_e", "c_exps"), Fraction(2));
             }
             
             if (index == 3)
             {
-                x1val.add(Factor("kd_e", "tkd_e"), Fraction(2));
+                x1val.add(Factor("kd_e", "d_exps"), Fraction(2));
             }
             
             t4crt.add(x1val);
@@ -102,21 +104,13 @@ T4CCenterDriver::apply_bra_ket_vrr(const R4CTerm& rterm,
 {
     R4CDist t4crt;
     
-    size_t nints = 3;
-    
-    for (const auto axis : "xyz")
+    if (const auto prefixes = rterm.integral().prefixes(); !prefixes.empty())
     {
-        if (const auto trec = bra_ket_vrr(rterm, axis, index))
-        {
-            if (const auto nterms = trec->terms(); nterms < nints)
-            {
-                t4crt = *trec;
-                
-                nints = nterms;
-            }
-        }
+        const auto axis = prefixes[index].shape().primary();
+        
+        if (const auto trec = bra_ket_vrr(rterm, axis, index)) t4crt = *trec;
     }
-    
+   
     return t4crt;
 }
 
@@ -127,7 +121,7 @@ T4CCenterDriver::apply_recursion(R4CDist& rdist) const
     
     apply_bra_ket_vrr(rdist, 3);
     
-    // vertical recursions on C side
+    //vertical recursions on C side
     
     apply_bra_ket_vrr(rdist, 2);
     

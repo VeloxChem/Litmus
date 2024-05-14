@@ -142,6 +142,28 @@ get_buffer_label(const I4CIntegral& integral,
 }
 
 std::string
+get_geom_buffer_label(const I4CIntegral& integral)
+{
+    std::string label = "buffer_";
+    
+    auto tint_prefixes = integral.prefixes();
+    
+    if (!tint_prefixes.empty())
+    {
+        for (const auto& tint_prefix : tint_prefixes)
+        {
+            label += std::to_string(tint_prefix.shape().order());
+        }
+        
+       label += "_";
+    }
+    
+    label += fstr::lowercase(integral.label());
+
+    return label;
+}
+
+std::string
 get_hrr_buffer_label(const I4CIntegral& integral,
                      const bool         use_ket)
 {
@@ -321,16 +343,26 @@ prim_file_name(const I4CIntegral& integral)
 std::string
 geom_file_name(const I4CIntegral& integral)
 {
-    std::string label = "GeomeDerivatives";
+    std::string label = "GeomDeriv";
     
     for (const auto& prefix : integral.prefixes())
     {
         label += std::to_string(prefix.shape().order());
     }
     
-    label += "For" + integral.label() + "_";
+    if (integral.integrand().shape().order() == 0)
+    {
+        label += "OfScalar";
+    }
     
-    return label + std::to_string(integral.integrand().shape().order());
+    if (integral.integrand().shape().order() == 1)
+    {
+        label += "OfVector";
+    }
+    
+    label += "For" + integral.label();
+    
+    return label;
 }
 
 std::string
@@ -351,6 +383,37 @@ bra_hrr_file_name(const I4CIntegral& integral)
     const auto bra_two = Tensor(integral[1]);
     
     return t4c::integral_label(integral) + "ContrRec" + bra_one.label() + bra_two.label() + "XX";
+}
+
+// Only relevant for geometric derivatives
+std::string
+prefixes_label(const I4CIntegral& integral)
+{
+    const auto prefixes = integral.prefixes();
+    
+    std::string label;
+    
+    if (const auto border = prefixes[0].shape().order(); border > 0)
+    {
+        label += "d^(" + std::to_string(border) + ")/dA^(" + std::to_string(border) + ")";
+    }
+    
+    if (const auto border = prefixes[1].shape().order(); border > 0)
+    {
+        label += "d^(" + std::to_string(border) + ")/dB^(" + std::to_string(border) + ")";
+    }
+    
+    if (const auto border = prefixes[2].shape().order(); border > 0)
+    {
+        label += "d^(" + std::to_string(border) + ")/dC^(" + std::to_string(border) + ")";
+    }
+    
+    if (const auto border = prefixes[3].shape().order(); border > 0)
+    {
+        label += "d^(" + std::to_string(border) + ")/dD^(" + std::to_string(border) + ")";
+    }
+    
+    return label;
 }
 
 } // t4c namespace

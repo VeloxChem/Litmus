@@ -16,8 +16,15 @@
 
 #include "t4c_geom_deriv_cpu_generators.hpp"
 
+#include <iostream>
+
+#include "file_stream.hpp"
+
 #include "t4c_utils.hpp"
-#include "t4c_center_driver.hpp"
+#include "t4c_geom_docs.hpp"
+#include "t4c_geom_decl.hpp"
+#include "t4c_geom_body.hpp"
+#include "v4i_center_driver.hpp"
 
 void
 T4CGeomDerivCPUGenerator::generate(const int max_ang_mom,
@@ -53,11 +60,11 @@ T4CGeomDerivCPUGenerator::generate(const int max_ang_mom,
                                         
                                         const auto integral = _get_integral({i, j, k, l}, {m, n, p, q});
                                         
-                                        const auto components = integral.components<T2CPair, T2CPair>();
+                                        const auto geom_integrals = _generate_geom_integral_group(integral);
                                         
-                                        const auto rgroup = _generate_integral_group(components, integral);
+                                        _write_cpp_header(geom_integrals, integral);
                                         
-                                        _write_cpp_header(integral);
+                                        _write_cpp_file(geom_integrals, integral);
                                     }
                                 }
                             }
@@ -92,19 +99,24 @@ T4CGeomDerivCPUGenerator::_get_integral(const std::array<int, 4>& ang_moms,
     return I4CIntegral(bpair, kpair, Operator("1"), 0, prefixes);
 }
 
-R4Group
-T4CGeomDerivCPUGenerator::_generate_integral_group(const VT4CIntegrals& components,
-                                                   const I4CIntegral&   integral) const
+SI4CIntegrals
+T4CGeomDerivCPUGenerator::_generate_geom_integral_group(const I4CIntegral& integral) const
 {
-    R4Group rgroup;
-        
-    T4CCenterDriver t4c_geom_drv;
-        
-    return t4c_geom_drv.create_recursion(components);
+    V4ICenterDriver geom_drv;
+    
+    SI4CIntegrals ref_tints;
+    
+    for (const auto& tint : geom_drv.apply_bra_ket_vrr(integral))
+    {
+        ref_tints.insert(tint.base());
+    }
+    
+    return ref_tints;
 }
 
 void
-T4CGeomDerivCPUGenerator::_write_cpp_header(const I4CIntegral& integral) const
+T4CGeomDerivCPUGenerator::_write_cpp_header(const SI4CIntegrals& geom_integrals,
+                                            const I4CIntegral&   integral) const
 {
     auto fname = t4c::geom_file_name(integral) + ".hpp";
         
@@ -112,29 +124,119 @@ T4CGeomDerivCPUGenerator::_write_cpp_header(const I4CIntegral& integral) const
                
     fstream.open(fname.c_str(), std::ios_base::trunc);
     
-    //_write_hpp_defines(fstream, integral, true);
+    _write_hpp_defines(fstream, integral, true);
     
-    //_write_hpp_includes(fstream, geom_integrals, vrr_integrals, integral);
+    _write_hpp_includes(fstream,  integral);
     
-    //_write_namespace(fstream, integral, true);
+    _write_namespace(fstream, true);
     
-//    T4CDocuDriver docs_drv;
-//
-//    T4CDeclDriver decl_drv;
-//
-//    T4CFuncBodyDriver func_drv;
-//
-//    docs_drv.write_doc_str(fstream, integral, false);
-//
-//    decl_drv.write_func_decl(fstream, integral, false, false);
-//
-//    func_drv.write_geom_func_body(fstream, geom_integrals, vrr_integrals, integral);
-//
-//    fstream << std::endl;
-//
-//    _write_namespace(fstream, integral, false);
-//
-//    _write_hpp_defines(fstream, integral, false);
+    T4CGeomDocuDriver docs_drv;
+
+    T4CGeomDeclDriver decl_drv;
+
+    docs_drv.write_doc_str(fstream, geom_integrals, integral);
+
+    decl_drv.write_func_decl(fstream, geom_integrals, integral, false);
+
+    fstream << std::endl;
+    
+    _write_namespace(fstream, false);
+
+    _write_hpp_defines(fstream, integral, false);
     
     fstream.close();
+}
+
+void
+T4CGeomDerivCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
+                                             const I4CIntegral&   integral,
+                                             const bool           start) const
+{
+    auto fname = t4c::geom_file_name(integral) + "_hpp";
+    
+    auto lines = VCodeLines();
+ 
+    if (start)
+    {
+        lines.push_back({0, 0, 1, "#ifndef " + fname});
+        
+        lines.push_back({0, 0, 2, "#define " + fname});
+    }
+    else
+    {
+        lines.push_back({0, 0, 1, "#endif /* " + fname + " */"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CGeomDerivCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
+                                              const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"SimdArray.hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CGeomDerivCPUGenerator::_write_namespace(      std::ofstream& fstream,
+                                           const bool           start) const
+{
+    const auto label = t4c::geom_namespace_label();
+    
+    auto lines = VCodeLines();
+    
+    if (start)
+    {
+        lines.push_back({0, 0, 2, "namespace " + label + " { // " + label + " namespace"});
+    }
+    else
+    {
+        lines.push_back({0, 0, 2, "} // " + label + " namespace"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CGeomDerivCPUGenerator::_write_cpp_file(const SI4CIntegrals& geom_integrals,
+                                          const I4CIntegral&   integral) const
+{
+    auto fname = t4c::geom_file_name(integral) + ".cpp";
+        
+    std::ofstream fstream;
+        
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    _write_cpp_includes(fstream, integral);
+
+    _write_namespace(fstream, true);
+
+    T4CGeomDeclDriver decl_drv;
+    
+    decl_drv.write_func_decl(fstream, geom_integrals, integral, false);
+
+    T4CGeomFuncBodyDriver func_drv;
+
+    func_drv.write_func_body(fstream, geom_integrals, integral);
+    
+    fstream << std::endl;
+    
+    _write_namespace(fstream, false);
+        
+    fstream.close();
+}
+
+void
+T4CGeomDerivCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
+                                              const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + t4c::geom_file_name(integral) +  ".hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
 }

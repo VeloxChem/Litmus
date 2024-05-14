@@ -17,6 +17,9 @@
 #ifndef t4c_utils_hpp
 #define t4c_utils_hpp
 
+#include <string>
+#include <array>
+
 #include "t4c_defs.hpp"
 
 namespace t4c { // t4c namespace
@@ -55,6 +58,11 @@ std::string compute_func_name(const I4CIntegral& integral);
 /// @return The string with integral label.
 std::string get_buffer_label(const I4CIntegral& integral,
                              const std::string& prefix);
+
+/// Generates integral buffer label.
+/// @param integral The base two center integral.
+/// @return The string with integral label.
+std::string get_geom_buffer_label(const I4CIntegral& integral);
 
 /// Generates horizontal recursion integral buffer label.
 /// @param integral The base two center integral.
@@ -118,6 +126,11 @@ std::string ket_hrr_file_name(const I4CIntegral& integral);
 /// @param integral The base four center integral.
 /// @return The primitive file name.
 std::string bra_hrr_file_name(const I4CIntegral& integral);
+
+/// Generates geometrical derrivatives labels.
+/// @param integral The base four center integral.
+/// @return The geometrical derivative labels.
+std::string prefixes_label(const I4CIntegral& integral);
 
 } // t4c namespace
 
