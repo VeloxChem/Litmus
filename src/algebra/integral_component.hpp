@@ -21,6 +21,7 @@
 
 #include <vector>
 #include <set>
+#include <iostream>
 
 /// Integral component.
 template <class T, class U>
@@ -327,12 +328,15 @@ std::string
 IntegralComponent<T,U>::label(const bool use_order) const
 {
     std::string intstr;
-    
+
     if (!_prefixes.empty())
     {
         for (const auto& prefix : _prefixes)
         {
-            intstr.append(prefix.label() + "_");
+            if (prefix.label() != "0")
+            {
+                intstr.append(prefix.label() + "_");
+            }
         }
     }
     
@@ -340,9 +344,9 @@ IntegralComponent<T,U>::label(const bool use_order) const
     {
         intstr.append(lblstr + "_");
     }
-    
+
     intstr.append(_bra.label() + "_");
-    
+
     intstr.append(_ket.label());
     
     if (use_order)
