@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <iostream>
 #include "t2c_body.hpp"
 
 #include "t2c_utils.hpp"
@@ -889,20 +890,58 @@ T2CFuncBodyDriver::_add_geom_call_tree(      VCodeLines&            lines,
                                        const I2CIntegral&           integral,
                                        const std::pair<bool, bool>& rec_form) const
 {
-    
-    if (integral.prefixes().size() == 2)
+
+    if (integral.prefixes().size() > 0)
     {
         const int spacer = (rec_form.first) ? 4 : 3;
-        
-        const auto geom_order = integral.prefixes()[0].shape().order() + integral.prefixes()[1].shape().order();
-        
+
+        auto geom_order = 0;
+
+        if (integral.prefixes().size() == 1)
+        {
+
+            if (integral.prefixes()[0].shape().order() == 0)
+            {
+                geom_order = geom_order + integral.prefixes()[1].shape().order();
+            }
+            else
+            {
+                geom_order = integral.prefixes()[0].shape().order();
+            }
+        }
+
+        if (integral.prefixes().size() == 2)
+        {
+           geom_order = integral.prefixes()[0].shape().order() + integral.prefixes()[1].shape().order();
+        }
+
         for (int i = 1; i <= geom_order; i++)
         {
             for (const auto& tint : integrals)
             {
-                if (tint.prefixes().size() == 2)
+                if (tint.prefixes().size() > 0)
                 {
-                    if ((tint.prefixes()[0].shape().order() + tint.prefixes()[1].shape().order()) == i)
+                    auto tint_geom_order = 0;
+
+                    if (tint.prefixes().size() == 1)
+                    {
+
+                        if (tint.prefixes()[0].shape().order() == 0)
+                        {
+                            tint_geom_order = tint_geom_order + tint.prefixes()[1].shape().order();
+                        }
+                        else
+                        {
+                            tint_geom_order = tint.prefixes()[0].shape().order();
+                        }
+                    }
+
+                    if (tint.prefixes().size() == 2)
+                    {
+                       tint_geom_order = tint.prefixes()[0].shape().order() + tint.prefixes()[1].shape().order();
+                    }
+
+                    if (tint_geom_order == i)
                     {
                         const auto name = t2c::prim_compute_func_name(tint);
                             

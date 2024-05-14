@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     // "Which kind of integral? # of centers", "which type of integral" (which operator is associated with it?)
     // 2c: "overlap" "kinetic energy" "nuclear potential" "dipole moment" "linear momentum"
     // 4c: "electron repulsion"
-    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "electric field"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "overlap"});
     //const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "nuclear potential"});
 
     const int max_ang_mom = 1;
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
     if (run_type.first == "t2c_cpu")
     {
     // a, operator, b
-        const std::array<int, 3> geom_drvs = {0, 1, 0};
+        const std::array<int, 3> geom_drvs = {1, 0, 1};
 
         const auto t2c_drv = T2CCPUGenerator();
         
