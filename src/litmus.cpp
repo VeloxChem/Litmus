@@ -32,13 +32,11 @@ int main(int argc, char **argv)
     // "Which kind of integral? # of centers", "which type of integral" (which operator is associated with it?)
     // 2c: "overlap" "kinetic energy" "nuclear potential" "dipole moment" "linear momentum"
     // 4c: "electron repulsion"
-    const auto run_type = std::pair<std::string, std::string>({"t4c_geom_cpu", "none"});
+    const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
 
     //const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "nuclear potential"});
 
-    const int max_ang_mom = 1;
-
-    const int max_geom_order = 2;
+    const int max_ang_mom = 4;
 
     // To add new integral
     // (Be careful about scalar vs non-scalar integrals (see dipole for example of non-scalar)
@@ -85,7 +83,7 @@ int main(int argc, char **argv)
     if (run_type.first == "t4c_cpu")
     {
     // a, b, operator, c, d
-        std::array<int, 5> geom_drvs = {1, 2, 0, 0, 2};
+        std::array<int, 5> geom_drvs = {0, 0, 0, 0, 0};
         
         if (geom_drvs == std::array<int, 5>({0, 0, 0, 0, 0}))
         {
@@ -103,9 +101,11 @@ int main(int argc, char **argv)
     
     if (run_type.first == "t4c_geom_cpu")
     {
+        std::array<int, 4> geom_drvs = {1, 0, 0, 0};
+        
         const auto t4c_geom_drv = T4CGeomDerivCPUGenerator();
             
-        t4c_geom_drv.generate(max_ang_mom, max_geom_order);
+        t4c_geom_drv.generate(max_ang_mom, geom_drvs);
     }
    
     // set up end timer & compute elapsed time

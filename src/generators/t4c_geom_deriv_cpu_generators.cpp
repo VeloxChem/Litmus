@@ -27,9 +27,10 @@
 #include "v4i_center_driver.hpp"
 
 void
-T4CGeomDerivCPUGenerator::generate(const int max_ang_mom,
-                                   const int max_geom_order) const
+T4CGeomDerivCPUGenerator::generate(const int                 max_ang_mom,
+                                   const std::array<int, 4>& geom_drvs) const
 {
+    
     for (int i = 0; i <= max_ang_mom; i++)
     {
         for (int j = i; j <= max_ang_mom; j++)
@@ -38,38 +39,13 @@ T4CGeomDerivCPUGenerator::generate(const int max_ang_mom,
             {
                 for (int l = k; l <= max_ang_mom; l++)
                 {
-                    for (int m = 0; m <= max_geom_order; m++)
-                    {
-                        for (int n = 0; n <= max_geom_order; n++)
-                        {
-                            for (int p = 0; p <= max_geom_order; p++)
-                            {
-                                for (int q = 0; q <= max_geom_order; q++)
-                                {
-                                    const auto gorder = m + n + p + q;
-                                    
-                                    if ((gorder > 0) && (gorder <= max_geom_order))
-                                    {
-                                        if (n > m) continue;
+                    const auto integral = _get_integral({i, j, k, l}, geom_drvs);
                                         
-                                        if (q > p) continue;
+                    const auto geom_integrals = t4c::get_geom_integrals(integral);
                                         
-                                        if ((p + q) > (m + n)) continue;
+                    _write_cpp_header(geom_integrals, integral);
                                         
-                                        const auto integral = _get_integral({i, j, k, l}, {m, n, p, q});
-                                        
-                                        const auto geom_integrals = t4c::get_geom_integrals(integral); 
-                                        
-                                        //const auto geom_integrals = _generate_geom_integral_group(integral);
-                                        
-                                        _write_cpp_header(geom_integrals, integral);
-                                        
-                                        _write_cpp_file(geom_integrals, integral);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    _write_cpp_file(geom_integrals, integral);
                 }
             }
         }
@@ -136,7 +112,7 @@ T4CGeomDerivCPUGenerator::_write_cpp_header(const SI4CIntegrals& geom_integrals,
 
     docs_drv.write_doc_str(fstream, geom_integrals, integral);
 
-    decl_drv.write_func_decl(fstream, geom_integrals, integral, false);
+    decl_drv.write_func_decl(fstream, geom_integrals, integral, true);
 
     fstream << std::endl;
     

@@ -198,7 +198,7 @@ T4CFuncBodyDriver::_get_gto_pairs_def(const bool diagonal) const
         
         vstr.push_back("const auto a_indices = gto_pair_block.bra_orbital_indices();");
         
-        vstr.push_back("const auto b_indices = gto_pair_block.bra_orbital_indices();");
+        vstr.push_back("const auto b_indices = gto_pair_block.ket_orbital_indices();");
         
         vstr.push_back("const auto ncgtos = gto_pair_block.number_of_contracted_pairs();");
         

@@ -45,7 +45,9 @@ T4CGeomCPUGenerator::generate(const std::string&        label,
                     {
                         const auto integral = _get_integral(label, {i, j, k, l}, geom_drvs);
                         
-                        const auto geom_integrals = _generate_geom_integral_group(integral);
+                        //const auto geom_integrals = _generate_geom_integral_group(integral);
+                        
+                        const auto geom_integrals = t4c::get_geom_integrals(integral); 
                         
                         const auto vrr_integrals = _generate_vrr_integral_group(integral, geom_integrals);
                         

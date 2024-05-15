@@ -32,7 +32,7 @@ class T4CGeomDerivCPUGenerator
    
     /// Gets four-center inetgral with requested label.
     /// @param ang_moms The angular momentum of  A, B, C, and D centers.
-    /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
+    /// @param geom_drvs The geometrical derivative of bra and  ket sides.
     /// @return The four-center integral.
     I4CIntegral _get_integral(const std::array<int, 4>& ang_moms,
                               const std::array<int, 4>& geom_drvs) const;
@@ -86,9 +86,9 @@ public:
      
     /// Generates selected four-center integrals up to given angular momentum (inclusive)  on A, B, C, and D centers.
     /// @param max_ang_mom The maximum angular momentum of A, B, C and D centers.
-    /// @param max_geom_order The maximum order of geometrical derrivatives.
-    void generate(const int max_ang_mom,
-                  const int max_geom_order) const;
+    /// @param geom_drvs The geometrical derivative of bra and  ket sides.
+    void generate(const int                 max_ang_mom,
+                  const std::array<int, 4>& geom_drvs) const;
 };
 
 

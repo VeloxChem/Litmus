@@ -83,7 +83,7 @@ T4CVrrElectronRepulsionDriver::bra_vrr_a(const R4CTerm& rterm,
             
             const auto na = x1val[0][axis];
             
-            x3val.add(Factor("1/eta", "fi_ab"), Fraction(na, 2));
+            x3val.add(Factor("1/eta", "fi_ab"), Fraction(na));
             
             t4crt.add(x3val);
             
@@ -91,7 +91,7 @@ T4CVrrElectronRepulsionDriver::bra_vrr_a(const R4CTerm& rterm,
             {
                 auto x4val = *r4val;
                 
-                x4val.add(Factor("1/eta^2", "fti_ab"), Fraction(-na, 2));
+                x4val.add(Factor("rho/eta", "fti_ab"), Fraction(-na));
                 
                 t4crt.add(x4val);
             }
@@ -105,7 +105,7 @@ T4CVrrElectronRepulsionDriver::bra_vrr_a(const R4CTerm& rterm,
             
             const auto nb = x1val[1][axis];
             
-            x5val.add(Factor("1/eta", "fi_ab"), Fraction(nb, 2));
+            x5val.add(Factor("1/eta", "fi_ab"), Fraction(nb));
             
             t4crt.add(x5val);
             
@@ -113,7 +113,7 @@ T4CVrrElectronRepulsionDriver::bra_vrr_a(const R4CTerm& rterm,
             {
                 auto x6val = *r6val;
                 
-                x6val.add(Factor("1/eta^2", "fti_ab"), Fraction(-nb, 2));
+                x6val.add(Factor("rho/eta", "fti_ab"), Fraction(-nb));
                 
                 t4crt.add(x6val);
             }
@@ -129,7 +129,7 @@ T4CVrrElectronRepulsionDriver::bra_vrr_a(const R4CTerm& rterm,
                
                 const auto nc = x1val[2][axis];
                
-                x7val.add(Factor("1/(eta+nu)", "fi_abcd"), Fraction(nc, 2));
+                x7val.add(Factor("1/(eta+nu) ", "fi_abcd"), Fraction(nc));
                
                 t4crt.add(x7val);
             }
@@ -145,7 +145,7 @@ T4CVrrElectronRepulsionDriver::bra_vrr_a(const R4CTerm& rterm,
                
                 const auto nd = x1val[3][axis];
                
-                x8val.add(Factor("1/(eta+nu) ", "fi_abcd"), Fraction(nd, 2));
+                x8val.add(Factor("1/(eta+nu) ", "fi_abcd"), Fraction(nd));
                
                 t4crt.add(x8val);
             }
@@ -198,7 +198,7 @@ T4CVrrElectronRepulsionDriver::bra_vrr_b(const R4CTerm& rterm,
             
             const auto nb = x1val[1][axis];
             
-            x3val.add(Factor("1/eta", "fi_ab"), Fraction(nb, 2));
+            x3val.add(Factor("1/eta", "fi_ab"), Fraction(nb));
             
             t4crt.add(x3val);
             
@@ -206,7 +206,7 @@ T4CVrrElectronRepulsionDriver::bra_vrr_b(const R4CTerm& rterm,
             {
                 auto x4val = *r4val;
                 
-                x4val.add(Factor("1/eta^2", "fti_ab"), Fraction(-nb, 2));
+                x4val.add(Factor("rho/eta", "fti_ab"), Fraction(-nb));
                 
                 t4crt.add(x4val);
             }
@@ -222,7 +222,7 @@ T4CVrrElectronRepulsionDriver::bra_vrr_b(const R4CTerm& rterm,
                
                 const auto nc = x1val[2][axis];
                
-                x5val.add(Factor("1/(eta+nu)", "fi_abcd"), Fraction(nc, 2));
+                x5val.add(Factor("1/(eta+nu) ", "fi_abcd"), Fraction(nc));
                
                 t4crt.add(x5val);
             }
@@ -238,7 +238,7 @@ T4CVrrElectronRepulsionDriver::bra_vrr_b(const R4CTerm& rterm,
                
                 const auto nd = x1val[3][axis];
                
-                x6val.add(Factor("1/(eta+nu) ", "fi_abcd"), Fraction(nd, 2));
+                x6val.add(Factor("1/(eta+nu) ", "fi_abcd"), Fraction(nd));
                
                 t4crt.add(x6val);
             }
@@ -292,7 +292,7 @@ T4CVrrElectronRepulsionDriver::ket_vrr_c(const R4CTerm& rterm,
             
             const auto nc = x1val[2][axis];
             
-            x3val.add(Factor("1/nu", "fi_cd"), Fraction(nc, 2));
+            x3val.add(Factor("1/nu", "fi_cd"), Fraction(nc));
             
             t4crt.add(x3val);
             
@@ -300,7 +300,7 @@ T4CVrrElectronRepulsionDriver::ket_vrr_c(const R4CTerm& rterm,
             {
                 auto x4val = *r4val;
                 
-                x3val.add(Factor("1/nu^2", "fti_cd"), Fraction(-nc, 2));
+                x3val.add(Factor("rho/nu", "fti_cd"), Fraction(-nc));
                 
                 t4crt.add(x3val);
             }
@@ -314,7 +314,7 @@ T4CVrrElectronRepulsionDriver::ket_vrr_c(const R4CTerm& rterm,
             
             const auto nd = x1val[3][axis];
             
-            x5val.add(Factor("1/nu", "fi_cd"), Fraction(nd, 2));
+            x5val.add(Factor("1/nu", "fi_cd"), Fraction(nd));
             
             t4crt.add(x5val);
             
@@ -322,7 +322,7 @@ T4CVrrElectronRepulsionDriver::ket_vrr_c(const R4CTerm& rterm,
             {
                 auto x6val = *r6val;
                 
-                x6val.add(Factor("1/nu^2", "fti_cd"), Fraction(-nd, 2));
+                x6val.add(Factor("rho/nu", "fti_cd"), Fraction(-nd));
                 
                 t4crt.add(x6val);
             }
@@ -375,7 +375,7 @@ T4CVrrElectronRepulsionDriver::ket_vrr_d(const R4CTerm& rterm,
             
             const auto nd = x1val[3][axis];
             
-            x3val.add(Factor("1/nu", "fi_cd"), Fraction(nd, 2));
+            x3val.add(Factor("1/nu", "fi_cd"), Fraction(nd));
             
             t4crt.add(x3val);
             
@@ -383,7 +383,7 @@ T4CVrrElectronRepulsionDriver::ket_vrr_d(const R4CTerm& rterm,
             {
                 auto x4val = *r4val;
                 
-                x4val.add(Factor("1/nu^2", "fti_cd"), Fraction(-nd, 2));
+                x4val.add(Factor("rho/nu", "fti_cd"), Fraction(-nd));
                 
                 t4crt.add(x4val);
             }
