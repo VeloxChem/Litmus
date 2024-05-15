@@ -49,35 +49,29 @@ T4CGeomFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     {
         _add_recursion_loop(lines, rgroup, integral, {0, ncomps});
     }
-    
-    if (((acomps * bcomps * ccomps * dcomps) == dcomps) && (dcomps > 1))
+    else
     {
+        int rcomps = dcomps;
+        
+        if (rcomps == 1) rcomps = ccomps;
+        
+        if (rcomps == 1) rcomps = bcomps;
+        
+        if (rcomps == 1) rcomps = acomps;
+        
+        int blkoff = 0;
+        
         for (int i = 0; i < ocomps; i++)
         {
-            _add_recursion_loop(lines, rgroup, integral, {i * dcomps, (i + 1) * dcomps});
+            for (int j = 0; j < ncomps / (ocomps * rcomps); j++)
+            {
+                _add_recursion_loop(lines, rgroup, integral, {blkoff, blkoff + rcomps});
+                
+                blkoff += rcomps;
+            }
         }
     }
-    
-    int rcomps = dcomps;
-    
-    if (rcomps == 1) rcomps = ccomps;
-    
-    if (rcomps == 1) rcomps = bcomps;
-    
-    if (rcomps == 1) rcomps = acomps;
-    
-    int blkoff = 0;
-    
-    for (int i = 0; i < ocomps; i++)
-    {
-        for (int j = 0; j < ncomps / (ocomps * rcomps); j++)
-        {
-            _add_recursion_loop(lines, rgroup, integral, {blkoff, blkoff + rcomps});
-            
-            blkoff += rcomps;
-        }
-    }
-    
+        
     lines.push_back({0, 0, 1, "}"});
     
     ost::write_code_lines(fstream, lines);

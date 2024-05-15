@@ -54,13 +54,13 @@ T4CGeomDerivCPUGenerator::generate(const int max_ang_mom,
                                         
                                         if (q > p) continue;
                                         
-                                        if (p > m) continue;
-                                        
-                                        if (q > n) continue;
+                                        if ((p + q) > (m + n)) continue;
                                         
                                         const auto integral = _get_integral({i, j, k, l}, {m, n, p, q});
                                         
-                                        const auto geom_integrals = _generate_geom_integral_group(integral);
+                                        const auto geom_integrals = t4c::get_geom_integrals(integral); 
+                                        
+                                        //const auto geom_integrals = _generate_geom_integral_group(integral);
                                         
                                         _write_cpp_header(geom_integrals, integral);
                                         

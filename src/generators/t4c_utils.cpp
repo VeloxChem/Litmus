@@ -19,6 +19,7 @@
 #include "string_formater.hpp"
 
 #include "v4i_eri_driver.hpp"
+#include "t4c_center_driver.hpp"
 
 namespace t4c { // t4c namespace
 
@@ -328,6 +329,28 @@ get_bra_hrr_integrals(const I4CIntegral& integral)
         if (integral[0] > 0)
         {
             tints = eri_drv.bra_hrr(integral);
+        }
+    }
+    
+    return tints;
+}
+
+SI4CIntegrals
+get_geom_integrals(const I4CIntegral& integral)
+{
+    R4Group rgroup;
+        
+    T4CCenterDriver t4c_geom_drv;
+        
+    rgroup = t4c_geom_drv.create_recursion(integral.components<T2CPair, T2CPair>());
+    
+    SI4CIntegrals tints;
+    
+    for (size_t i = 0; i < rgroup.expansions(); i++)
+    {
+        for (size_t j = 0; j < rgroup[i].terms(); j++)
+        {
+            tints.insert(I4CIntegral(rgroup[i][j].integral().base()));
         }
     }
     
