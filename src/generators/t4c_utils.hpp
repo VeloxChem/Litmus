@@ -53,6 +53,11 @@ std::string integrand_label(const Operator& integrand);
 /// @return The compute function name.
 std::string compute_func_name(const I4CIntegral& integral);
 
+/// Generates compute function  name.
+/// @param integral The base four center integral.
+/// @return The compute function name.
+std::string diag_compute_func_name(const I4CIntegral& integral);
+
 /// Generates integral buffer label.
 /// @param integral The base two center integral.
 /// @return The string with integral label.

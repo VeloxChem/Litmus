@@ -116,6 +116,16 @@ compute_func_name(const I4CIntegral& integral)
 }
 
 std::string
+diag_compute_func_name(const I4CIntegral& integral)
+{
+    std::string geom_label;
+    
+    auto label = "comp_diag_" + t4c::integral_split_label(integral) + "_" + integral.label();
+        
+    return fstr::lowercase(label);
+}
+
+std::string
 get_buffer_label(const I4CIntegral& integral,
                  const std::string& prefix)
 {

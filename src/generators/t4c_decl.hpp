@@ -47,6 +47,23 @@ class T4CDeclDriver
     std::vector<std::string> _get_indices_str(const I4CIntegral& integral,
                                               const bool         diagonal,
                                               const bool         terminus) const;
+    
+    /// Generates vector of matrix strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of matrix strings.
+    std::vector<std::string> _get_diag_matrices_str(const I4CIntegral& integral) const;
+    
+    /// Generates vector of GTOs block strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of GTOs block strings,
+    std::vector<std::string> _get_diag_gto_pair_blocks_str(const I4CIntegral& integral) const;
+        
+    /// Generates vector of indices strings.
+    /// @param integral The base two center integral.
+    /// @param terminus The flag to add termination symbol.
+    /// @return The vector of indices strings.
+    std::vector<std::string> _get_diag_indices_str(const I4CIntegral& integral,
+                                                   const bool         terminus) const;
 
 public:
     /// Creates a four-center functions declaration generator.
@@ -61,6 +78,14 @@ public:
                          const I4CIntegral&   integral,
                          const bool           diagonal,
                          const bool           terminus) const;
+    
+    /// Writes declaration for compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base four center integral.
+    /// @param terminus The flag to add termination symbol.
+    void write_diag_func_decl(      std::ofstream& fstream,
+                              const I4CIntegral&   integral,
+                              const bool           terminus) const;
 };
 
 

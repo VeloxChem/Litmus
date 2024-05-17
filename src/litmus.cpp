@@ -22,6 +22,7 @@
 
 #include "t2c_cpu_generators.hpp"
 #include "t4c_cpu_generators.hpp"
+#include "t4c_diag_cpu_generators.hpp"
 #include "t4c_geom_cpu_generators.hpp"
 #include "t4c_geom_deriv_cpu_generators.hpp"
 #include "t4c_eri_tree_generators.hpp"
@@ -33,11 +34,11 @@ int main(int argc, char **argv)
     // "Which kind of integral? # of centers", "which type of integral" (which operator is associated with it?)
     // 2c: "overlap" "kinetic energy" "nuclear potential" "dipole moment" "linear momentum"
     // 4c: "electron repulsion"
-    const auto run_type = std::pair<std::string, std::string>({"t4c_call_tree", "electron repulsion"});
+    const auto run_type = std::pair<std::string, std::string>({"t4c_diag_cpu", "electron repulsion"});
 
     //const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "nuclear potential"});
 
-    const int max_ang_mom = 4;
+    const int max_ang_mom = 1;
 
     // To add new integral
     // (Be careful about scalar vs non-scalar integrals (see dipole for example of non-scalar)
@@ -107,6 +108,13 @@ int main(int argc, char **argv)
         const auto t4c_geom_drv = T4CGeomDerivCPUGenerator();
             
         t4c_geom_drv.generate(max_ang_mom, geom_drvs);
+    }
+    
+    if (run_type.first == "t4c_diag_cpu")
+    {
+        const auto t4c_diag_drv = T4CDiagCPUGenerator();
+            
+        t4c_diag_drv.generate(run_type.second, max_ang_mom);
     }
    
     if (run_type.first == "t4c_call_tree")

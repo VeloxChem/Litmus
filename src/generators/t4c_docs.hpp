@@ -49,6 +49,25 @@ class T4CDocuDriver
     /// @return The vector of indices strings.
     std::vector<std::string> _get_indices_str() const;
     
+    /// Generates compute string.
+    /// @param integral The base two center integral.
+    /// @return The compute string.
+    std::string _get_diag_compute_str(const I4CIntegral& integral) const;
+    
+    /// Generates vector of matrix strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of matrix strings.
+    std::vector<std::string> _get_diag_matrices_str(const I4CIntegral& integral) const;
+    
+    /// Generates vector of GTOs block strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of GTOs block strings,
+    std::vector<std::string> _get_diag_gto_pair_blocks_str(const I4CIntegral& integral) const;
+  
+    /// Generates vector of indices strings.
+    /// @return The vector of indices strings.
+    std::vector<std::string> _get_diag_indices_str() const;
+    
 public:
     /// Creates a four-center documentation generator.
     T4CDocuDriver() = default;
@@ -60,6 +79,12 @@ public:
     void write_doc_str(      std::ofstream& fstream,
                        const I4CIntegral&   integral,
                        const bool           diagonal) const;
+    
+    /// Writes documentation string for compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void write_diag_doc_str(      std::ofstream& fstream,
+                            const I4CIntegral&   integral) const;
 };
 
 
