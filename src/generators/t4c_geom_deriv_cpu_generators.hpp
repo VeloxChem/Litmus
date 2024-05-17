@@ -91,5 +91,4 @@ public:
                   const std::array<int, 4>& geom_drvs) const;
 };
 
-
 #endif /* t4c_geom_deriv_cpu_generators_hpp */

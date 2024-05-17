@@ -24,6 +24,7 @@
 #include "t4c_cpu_generators.hpp"
 #include "t4c_geom_cpu_generators.hpp"
 #include "t4c_geom_deriv_cpu_generators.hpp"
+#include "t4c_eri_tree_generators.hpp"
 
 int main(int argc, char **argv)
 {
@@ -32,7 +33,7 @@ int main(int argc, char **argv)
     // "Which kind of integral? # of centers", "which type of integral" (which operator is associated with it?)
     // 2c: "overlap" "kinetic energy" "nuclear potential" "dipole moment" "linear momentum"
     // 4c: "electron repulsion"
-    const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
+    const auto run_type = std::pair<std::string, std::string>({"t4c_call_tree", "electron repulsion"});
 
     //const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "nuclear potential"});
 
@@ -108,6 +109,13 @@ int main(int argc, char **argv)
         t4c_geom_drv.generate(max_ang_mom, geom_drvs);
     }
    
+    if (run_type.first == "t4c_call_tree")
+    {
+        const auto t4c_call_drv = T4CCallTreeGenerator();
+            
+        t4c_call_drv.generate(run_type.second, max_ang_mom);
+    }
+    
     // set up end timer & compute elapsed time
     
     auto etime = std::chrono::high_resolution_clock::now();

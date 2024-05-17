@@ -260,8 +260,6 @@ T4CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 2, "#include \"GtoPairBlock.hpp\""});
    
-    
-        
     ost::write_code_lines(fstream, lines);
 }
 
