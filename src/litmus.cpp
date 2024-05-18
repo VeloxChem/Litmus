@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 
     //const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "nuclear potential"});
 
-    const int max_ang_mom = 1;
+    const int max_ang_mom = 4;
 
     // To add new integral
     // (Be careful about scalar vs non-scalar integrals (see dipole for example of non-scalar)
