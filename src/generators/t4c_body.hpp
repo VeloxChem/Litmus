@@ -187,6 +187,10 @@ class T4CFuncBodyDriver
     /// @return The vector of Boys function definitions in compute function.
     std::vector<std::string> _get_diag_boys_function_def(const I4CIntegral& integral) const;
     
+    /// Generates vector of maximum integral values in compute function.
+    /// @return The vector of maximum integral values  in compute function.
+    std::vector<std::string> _get_max_array_def() const;
+    
     /// Adds loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
@@ -198,6 +202,16 @@ class T4CFuncBodyDriver
                          const SI4CIntegrals& ket_integrals,
                          const I4CIntegral& integral,
                          const bool         diagonal) const;
+    
+    /// Adds loop start definitions to code lines container.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param integral The base two center integral.
+    void _add_diag_loop_start(      VCodeLines&  lines,
+                              const SI4CIntegrals& bra_integrals,
+                              const SI4CIntegrals& ket_integrals,
+                              const I4CIntegral& integral) const;
     
     /// Adds loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
@@ -218,6 +232,12 @@ class T4CFuncBodyDriver
     /// Adds loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param integral The base two center integral.
+    void _add_diag_loop_end(      VCodeLines&  lines,
+                            const I4CIntegral& integral) const;
+    
+    /// Adds loop end definitions to code lines container.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base two center integral.
     void _add_full_loop_end(      VCodeLines&  lines,
                             const I4CIntegral& integral) const;
     
@@ -228,6 +248,12 @@ class T4CFuncBodyDriver
     void _add_ket_loop_start(      VCodeLines&  lines,
                              const I4CIntegral& integral,
                              const bool         diagonal) const;
+    
+    /// Adds ket loop start definitions to code lines container.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base two center integral.
+    void _add_diag_ket_loop_start(      VCodeLines&  lines,
+                                  const I4CIntegral& integral) const;
     
     /// Adds ket loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
@@ -249,6 +275,16 @@ class T4CFuncBodyDriver
     
     /// Adds ket loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param integral The base two center integral.
+    void _add_diag_ket_loop_end(      VCodeLines&    lines,
+                                const SI4CIntegrals& bra_integrals,
+                                const SI4CIntegrals& ket_integrals,
+                                const I4CIntegral&   integral) const;
+    
+    /// Adds ket loop end definitions to code lines container.
+    /// @param lines The code lines container to which loop start definition are added.
     /// @param integral The base two center integral.
     void _add_full_ket_loop_end(      VCodeLines&    lines,
                                 const I4CIntegral&   integral) const;
@@ -258,7 +294,7 @@ class T4CFuncBodyDriver
     /// @param integrals The set of inetrgals.
     void _add_auxilary_integrals(      VCodeLines&    lines,
                                  const SI4CIntegrals& integrals) const;
-    
+        
     /// Adds call tree for vertical recursion.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param integrals The set of inetrgals.

@@ -182,7 +182,7 @@ T4CCPUGenerator::_generate_ket_hrr_integral_group(const I4CIntegral&   integral,
             {
                 const auto ctints = eri_drv.create_ket_hrr_recursion({tint, });
                 
-                tints.insert(ctints.cbegin(), ctints.cend()); 
+                tints.insert(ctints.cbegin(), ctints.cend());
             }
         }
     }

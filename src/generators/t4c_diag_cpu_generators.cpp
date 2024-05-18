@@ -253,6 +253,8 @@ T4CDiagCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
 {
     auto lines = VCodeLines();
     
+    lines.push_back({0, 0, 1, "#include <vector>"});
+    
     lines.push_back({0, 0, 2, "#include <array>"});
     
     std::set<std::string> labels;
