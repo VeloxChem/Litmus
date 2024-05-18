@@ -210,7 +210,7 @@ T4CDiagCPUGenerator::_write_cpp_header(const SI4CIntegrals& bra_integrals,
         
     decl_drv.write_diag_func_decl(fstream, integral, false);
         
-    func_drv.write_func_body(fstream, bra_integrals, ket_integrals, vrr_integrals, integral, true);
+    func_drv.write_diag_func_body(fstream, bra_integrals, ket_integrals, vrr_integrals, integral);
 
     fstream << std::endl;
 

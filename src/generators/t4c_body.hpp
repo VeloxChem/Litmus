@@ -34,13 +34,23 @@ class T4CFuncBodyDriver
     std::vector<std::string> _get_gto_pairs_def(const bool diagonal) const;
     
     /// Generates vector of ket factors in compute function.
+    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @return The vector of ket factors in compute function.
     std::vector<std::string> _get_ket_variables_def(const bool diagonal) const;
+    
+    /// Generates vector of ket factors in compute function.
+    /// @return The vector of ket factors in compute function.
+    std::vector<std::string> _get_diag_ket_variables_def() const;
     
     /// Generates vector of distances in compute function.
     /// @param integral The base two center integral.
     /// @return The vector of distances in compute function.
     std::vector<std::string> _get_coordinates_def(const I4CIntegral& integral) const;
+    
+    /// Generates vector of distances in compute function.
+    /// @param integral The base two center integral.
+    /// @return The vector of distances in compute function.
+    std::vector<std::string> _get_diag_coordinates_def(const I4CIntegral& integral) const;
     
     /// Generates vector of distances in compute function.
     /// @param integral The base two center integral.
@@ -74,6 +84,13 @@ class T4CFuncBodyDriver
     /// @param integrals The set of inetrgals.
     /// @param integral The base two center integral.
     /// @return The vector of buffers in compute function.
+    std::vector<std::string> _get_diag_prim_buffers_def(const SI4CIntegrals& integrals,
+                                                        const I4CIntegral&   integral) const;
+    
+    /// Generates vector of primitive buffers in compute function.
+    /// @param integrals The set of inetrgals.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffers in compute function.
     std::vector<std::string> _get_full_prim_buffers_def(const SI4CIntegrals& integrals,
                                                         const I4CIntegral&   integral) const;
     
@@ -85,6 +102,15 @@ class T4CFuncBodyDriver
     std::vector<std::string> _get_cart_buffers_def(const SI4CIntegrals& bra_integrals,
                                                    const SI4CIntegrals& ket_integrals,
                                                    const I4CIntegral&   integral) const;
+    
+    /// Generates vector of Cartesian buffers in compute function.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffers in compute function.
+    std::vector<std::string> _get_diag_cart_buffers_def(const SI4CIntegrals& bra_integrals,
+                                                        const SI4CIntegrals& ket_integrals,
+                                                        const I4CIntegral&   integral) const;
     
     /// Generates vector of Cartesian buffer integrals.
     /// @param integrals The set of unique integrals.
@@ -102,6 +128,15 @@ class T4CFuncBodyDriver
                                                     const SI4CIntegrals& ket_integrals,
                                                     const I4CIntegral&   integral) const;
     
+    /// Generates vector of contracted buffers in compute function.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffers in compute function.
+    std::vector<std::string> _get_diag_contr_buffers_def(const SI4CIntegrals& bra_integrals,
+                                                         const SI4CIntegrals& ket_integrals,
+                                                         const I4CIntegral&   integral) const;
+    
     /// Generates vector of half transformed buffers in compute function.
     /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
     /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
@@ -110,6 +145,15 @@ class T4CFuncBodyDriver
     std::vector<std::string> _get_half_spher_buffers_def(const SI4CIntegrals& bra_integrals,
                                                          const SI4CIntegrals& ket_integrals,
                                                          const I4CIntegral&   integral) const;
+    
+    /// Generates vector of half transformed buffers in compute function.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffers in compute function.
+    std::vector<std::string> _get_diag_half_spher_buffers_def(const SI4CIntegrals& bra_integrals,
+                                                              const SI4CIntegrals& ket_integrals,
+                                                              const I4CIntegral&   integral) const;
     
     /// Generates vector of half transformed buffers in compute function.
     /// @param integrals The set of unique integrals for ket horizontal recursion.
@@ -126,12 +170,22 @@ class T4CFuncBodyDriver
     /// Generates vector of half transformed buffers in compute function.
     /// @param integral The base two center integral.
     /// @return The vector of buffers in compute function.
+    std::vector<std::string> _get_diag_spher_buffers_def(const I4CIntegral& integral) const;
+    
+    /// Generates vector of half transformed buffers in compute function.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffers in compute function.
     std::vector<std::string> _get_full_spher_buffers_def(const I4CIntegral& integral) const;
     
     /// Generates vector of Boys function definitions in compute function.
     /// @param integral The base two center integral.
     /// @return The vector of Boys function definitions in compute function.
     std::vector<std::string> _get_boys_function_def(const I4CIntegral& integral) const;
+    
+    /// Generates vector of Boys function definitions in compute function.
+    /// @param integral The base two center integral.
+    /// @return The vector of Boys function definitions in compute function.
+    std::vector<std::string> _get_diag_boys_function_def(const I4CIntegral& integral) const;
     
     /// Adds loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
@@ -298,6 +352,18 @@ public:
                          const SI4CIntegrals& vrr_integrals,
                          const I4CIntegral&   integral,
                          const bool           diagonal) const;
+    
+    /// Writes body of compute function.
+    /// @param fstream the file stream.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param vrr_integrals The set of unique integrals for vertical recursion.
+    /// @param integral The base two center integral.
+    void write_diag_func_body(      std::ofstream& fstream,
+                              const SI4CIntegrals& bra_integrals,
+                              const SI4CIntegrals& ket_integrals,
+                              const SI4CIntegrals& vrr_integrals,
+                              const I4CIntegral&   integral) const;
     
     /// Writes body of compute function.
     /// @param fstream the file stream.
