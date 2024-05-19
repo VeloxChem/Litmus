@@ -1479,7 +1479,7 @@ void
 T4CFuncBodyDriver::_add_diag_loop_end(      VCodeLines&  lines,
                                       const I4CIntegral& integral) const
 {
-    std::string label = "t4c::update_max_values(max_values, ";
+    std::string label = "t4cfunc::update_max_values(max_values, ";
 
     label +=  t4c::get_buffer_label(integral, "spher") + ", i - gto_indices[0]); ";
     
@@ -1487,7 +1487,7 @@ T4CFuncBodyDriver::_add_diag_loop_end(      VCodeLines&  lines,
    
     lines.push_back({1, 0, 2, "}"});
     
-    lines.push_back({1, 0, 1, "distributor->distribute(max_values, gto_indices, " + std::to_string(integral[0]) + ", " + std::to_string(integral[1]) + ");"});
+    lines.push_back({1, 0, 1, "distributor->distribute(max_values, gto_indices);"});
 
 }
 
