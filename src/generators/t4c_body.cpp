@@ -361,9 +361,13 @@ T4CFuncBodyDriver::_get_ket_variables_def(const bool diagonal) const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("// allocate aligned 2D arrays for ket side");
+    vstr.push_back("// set up dimensions of bra and ket ranges");
+    
+    vstr.push_back("const auto bra_dim = bra_indices[1] - bra_indices[0];");
     
     vstr.push_back("const auto ket_dim = ket_indices[1] - ket_indices[0];");
+    
+    vstr.push_back("// allocate aligned 2D arrays for ket side");
     
     if (diagonal)
     {
@@ -1130,6 +1134,19 @@ T4CFuncBodyDriver::_get_spher_buffers_def(const I4CIntegral& integral) const
     label += "(" + std::to_string(tcomps) + ", ket_dim);";
                     
     vstr.push_back(label);
+    
+    vstr.push_back("// allocate accumulation buffer for integrals");
+    
+    if (tcomps == 1)
+    {
+        label = "CSimdArray<double> buffer(bra_dim, ket_dim);";
+    }
+    else
+    {
+        label = "CSimdArray<double> buffer(bra_dim * " + std::to_string(tcomps) + ", ket_dim);";
+    }
+    
+    vstr.push_back(label);
    
     return vstr;
 }
@@ -1444,9 +1461,60 @@ T4CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
                                  const I4CIntegral& integral,
                                  const bool         diagonal) const
 {
-    std::string label = "distributor->distribute(";
+    std::string label = "t4cfunc::store_values(buffer, " + t4c::get_buffer_label(integral, "spher") + ", ";
+    
+    auto angpair = std::array<int, 2>({integral[2], integral[3]});
+                    
+    auto tcomps = t2c::number_of_spherical_components(angpair);
+                    
+    angpair = std::array<int, 2>({integral[0], integral[1]});
+                    
+    tcomps *= t2c::number_of_spherical_components(angpair);
+    
+    if (tcomps == 1)
+    {
+        label += "i - bra_indices[0]);";
+    }
+    else
+    {
+        label += std::to_string(tcomps) + " * (i - bra_indices[0]));";
+    }
+    
+    lines.push_back({2, 0, 1, label});
 
-    label +=  t4c::get_buffer_label(integral, "spher") + ", ";
+//    label = "distributor->distribute(";
+//
+//    label +=  t4c::get_buffer_label(integral, "spher") + ", ";
+//
+//    if (diagonal)
+//    {
+//        label += "a_indices, b_indices, ";
+//    }
+//    else
+//    {
+//        label += "a_indices, b_indices, c_indices, d_indices, ";
+//    }
+//
+//    label += std::to_string(integral[0]) + ", ";
+//
+//    label += std::to_string(integral[1]) + ", ";
+//
+//    if (!diagonal)
+//    {
+//        label += std::to_string(integral[2]) + ", ";
+//
+//        label += std::to_string(integral[3]) + ", ";
+//    }
+//
+//    label += "i, ket_indices);";
+//
+//    lines.push_back({2, 0, 1, label});
+   
+    lines.push_back({1, 0, 2, "}"});
+    
+    lines.push_back({1, 0, 1, "#pragma omp critical"});
+    
+    label = "distributor->distribute(buffer, ";
         
     if (diagonal)
     {
@@ -1468,11 +1536,9 @@ T4CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
         label += std::to_string(integral[3]) + ", ";
     }
             
-    label += "i, ket_indices);";
+    label += "bra_indices, ket_indices);";
             
-    lines.push_back({2, 0, 1, label});
-   
-    lines.push_back({1, 0, 1, "}"});
+    lines.push_back({1, 0, 1, label});
 }
 
 void
