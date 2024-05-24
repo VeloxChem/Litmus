@@ -34,7 +34,7 @@ int main(int argc, char **argv)
     // "Which kind of integral? # of centers", "which type of integral" (which operator is associated with it?)
     // 2c: "overlap" "kinetic energy" "nuclear potential" "dipole moment" "linear momentum"
     // 4c: "electron repulsion"
-    const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "dipole moment"});
 
     //const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "nuclear potential"});
 
@@ -55,12 +55,7 @@ int main(int argc, char **argv)
     // 8. In t2(4)c_cpu_generators, register any new operator "name cases", (marked)
     // 9. In t2(4)c_prim_body, make any (marked) changes (remember includes)
     // 10. (see dipole for example) Add the primitive case to the "bottom" prim_ss autogen file (there will be blanks to fill in and you need to match this and the autogen func call that will call it)
-    // 11. Modify the function declaration for the non-primitive calls in t2(4)c_decl (and (cosmetic) in t2(4)c_docs)
-
-    // from t2c_cpu_generators.hpp:
-    /// MR: First index: Summation or not (explicitly incorporate any multi-term nature in the operator associated with the integrals (if any))
-    /// Second index: False: Return as matrix(ces); true: Return as scalars ("Contracted"/"distributed")
-    const auto rec_form = std::pair<bool, bool>({false, false});
+    // 11. Modify the function declaration for the non-primitive calls in t2(4)c_decl (and (cosmetic) in t2(4)c_docs
     
     // set up start timer
     
@@ -72,8 +67,9 @@ int main(int argc, char **argv)
 
     if (run_type.first == "t2c_cpu")
     {
-    // a, operator, b
-        const std::array<int, 3> geom_drvs = {1, 0, 1};
+        const std::array<int, 3> geom_drvs = {0, 0, 0};
+        
+        const auto rec_form = std::pair<bool, bool>({false, false});
 
         const auto t2c_drv = T2CCPUGenerator();
         

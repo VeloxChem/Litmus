@@ -66,7 +66,7 @@ V2IDipoleDriver::bra_vrr(const I2CIntegral& integral) const
         
         // fourth recursion term
         
-        tints.insert(integral.replace(Operator("1")));
+        tints.insert(tval->replace(Operator("1")));
     }
 
     return tints;
@@ -97,7 +97,7 @@ V2IDipoleDriver::ket_vrr(const I2CIntegral& integral) const
 
         // third recursion term
 
-        tints.insert(integral.replace(Operator("1")));
+        tints.insert(tval->replace(Operator("1")));
 
     }
 

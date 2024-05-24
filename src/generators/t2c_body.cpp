@@ -355,18 +355,17 @@ T2CFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
     
     vstr.push_back(label);
     
-    if ((integral[0] > 1) || (integral[1] > 1))
-    {
-        icomps = t2c::number_of_spherical_components(angpair);
+    icomps = t2c::number_of_spherical_components(angpair);
+    
+    icomps *= t2c::number_of_cartesian_components(integral.integrand().shape().order()); 
         
-        std::string label = "CSimdArray<double> ";
+    label = "CSimdArray<double> ";
         
-        label += t2c::get_buffer_label(integral, "spher");
+    label += t2c::get_buffer_label(integral, "spher");
         
-        label += "(" + std::to_string(icomps) + ", ket_dim);";
+    label += "(" + std::to_string(icomps) + ", ket_dim);";
         
-        vstr.push_back(label);
-    }
+    vstr.push_back(label);
     
     return vstr;
 }
@@ -484,8 +483,11 @@ T2CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
     }
             
     label += std::to_string(integral[0]) + ", ";
-            
-    label += std::to_string(integral[1]) + ", ";
+    
+    if (!diagonal)
+    {
+        label += std::to_string(integral[1]) + ", ";
+    }
 
     if (diagonal)
     {

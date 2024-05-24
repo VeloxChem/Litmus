@@ -46,10 +46,10 @@ T2CCPUGenerator::generate(const std::string&           label,
 {
     if (_is_available(label))
     {
-        //#pragma omp parallel
-        //{
-            //#pragma omp single nowait
-           // {
+        #pragma omp parallel
+        {
+            #pragma omp single nowait
+            {
                 for (int i = 0; i <= max_ang_mom; i++)
                 {
                     for (int j = 0; j <= max_ang_mom; j++)
@@ -68,8 +68,8 @@ T2CCPUGenerator::generate(const std::string&           label,
                         }
                     }
                 }
-           // }
-       // }
+            }
+        }
     }
     else
     {
