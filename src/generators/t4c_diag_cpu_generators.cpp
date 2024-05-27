@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "t4c_cpu_generators.hpp"
+#include "t4c_diag_cpu_generators.hpp"
 
 #include <iostream>
 
@@ -35,7 +35,7 @@
 #include "v4i_eri_driver.hpp"
 
 void
-T4CCPUGenerator::generate(const std::string& label,
+T4CDiagCPUGenerator::generate(const std::string& label,
                           const int          max_ang_mom) const
 {
     if (_is_available(label))
@@ -44,63 +44,21 @@ T4CCPUGenerator::generate(const std::string& label,
         {
             for (int j = i; j <= max_ang_mom; j++)
             {
-                for (int k = 0; k <= max_ang_mom; k++)
-                {
-                    for (int l = k; l <= max_ang_mom; l++)
-                    {
-                        const auto integral = _get_integral(label, {i, j, k, l});
+                const auto integral = _get_integral(label, {i, j, i, j});
                         
-                        const auto bra_integrals = _generate_bra_hrr_integral_group(integral);
+                const auto bra_integrals = _generate_bra_hrr_integral_group(integral);
                         
-                        const auto ket_integrals = _generate_ket_hrr_integral_group(integral, bra_integrals);
+                const auto ket_integrals = _generate_ket_hrr_integral_group(integral, bra_integrals);
                         
-                        auto hrr_integrals = bra_integrals;
+                auto hrr_integrals = bra_integrals;
                         
-                        hrr_integrals.insert(ket_integrals.begin(), ket_integrals.end());
+                hrr_integrals.insert(ket_integrals.begin(), ket_integrals.end());
                         
-                        const auto vrr_integrals = _generate_vrr_integral_group(integral, hrr_integrals);
+                const auto vrr_integrals = _generate_vrr_integral_group(integral, hrr_integrals);
                         
-                        _write_cpp_header(bra_integrals, ket_integrals, vrr_integrals, integral);
-                    }
-                }
+                _write_cpp_header(bra_integrals, ket_integrals, vrr_integrals, integral);
             }
         }
-        
-//        for (int i = 0; i <= 2 * max_ang_mom; i++)
-//        {
-//            for (int j = 0; j <= 2 * max_ang_mom; j++)
-//            {
-//                const auto integral = _get_integral(label, {0, i, 0, j});
-//                
-//                _write_prim_cpp_header(integral);
-//                
-//                _write_prim_cpp_file(integral);
-//            }
-//        }
-//        
-//        for (int i = 1; i <= max_ang_mom; i++)
-//        {
-//            for (int j = i; j <= (2 * max_ang_mom - i) ; j++)
-//            {
-//                const auto integral = _get_integral(label, {0, 0, i, j});
-//                
-//                _write_ket_hrr_cpp_header(integral);
-//                
-//                _write_ket_hrr_cpp_file(integral);
-//            }
-//        }
-//        
-//        for (int i = 1; i <= max_ang_mom; i++)
-//        {
-//            for (int j = i; j <= (2 * max_ang_mom - i) ; j++)
-//            {
-//                const auto integral = _get_integral(label, {i, j, 0, 0});
-//                
-//                _write_bra_hrr_cpp_header(integral);
-//                
-//                _write_bra_hrr_cpp_file(integral);
-//            }
-//        }
     }
     else
     {
@@ -113,7 +71,7 @@ T4CCPUGenerator::generate(const std::string& label,
 }
 
 bool
-T4CCPUGenerator::_is_available(const std::string& label) const
+T4CDiagCPUGenerator::_is_available(const std::string& label) const
 {
     if (fstr::lowercase(label) == "electron repulsion") return true;
     
@@ -121,7 +79,7 @@ T4CCPUGenerator::_is_available(const std::string& label) const
 }
 
 I4CIntegral
-T4CCPUGenerator::_get_integral(const std::string&        label,
+T4CDiagCPUGenerator::_get_integral(const std::string&        label,
                                const std::array<int, 4>& ang_moms) const
 {
     // bra and ket sides
@@ -141,7 +99,7 @@ T4CCPUGenerator::_get_integral(const std::string&        label,
 }
 
 SI4CIntegrals
-T4CCPUGenerator::_generate_bra_hrr_integral_group(const I4CIntegral& integral) const
+T4CDiagCPUGenerator::_generate_bra_hrr_integral_group(const I4CIntegral& integral) const
 {
     SI4CIntegrals tints;
     
@@ -165,7 +123,7 @@ T4CCPUGenerator::_generate_bra_hrr_integral_group(const I4CIntegral& integral) c
 }
 
 SI4CIntegrals
-T4CCPUGenerator::_generate_ket_hrr_integral_group(const I4CIntegral&   integral,
+T4CDiagCPUGenerator::_generate_ket_hrr_integral_group(const I4CIntegral&   integral,
                                                   const SI4CIntegrals& integrals) const
 {
     SI4CIntegrals tints;
@@ -191,7 +149,7 @@ T4CCPUGenerator::_generate_ket_hrr_integral_group(const I4CIntegral&   integral,
 }
 
 SI4CIntegrals
-T4CCPUGenerator::_generate_vrr_integral_group(const I4CIntegral&   integral,
+T4CDiagCPUGenerator::_generate_vrr_integral_group(const I4CIntegral&   integral,
                                               const SI4CIntegrals& integrals) const
 {
     SI4CIntegrals tints;
@@ -217,15 +175,15 @@ T4CCPUGenerator::_generate_vrr_integral_group(const I4CIntegral&   integral,
 }
 
 std::string
-T4CCPUGenerator::_file_name(const I4CIntegral& integral) const
+T4CDiagCPUGenerator::_file_name(const I4CIntegral& integral) const
 {
-    std::string label = "Rec" + integral.label();
+    std::string label = "DiagRec" + integral.label();
     
     return t4c::integral_label(integral) + label;
 }
 
 void
-T4CCPUGenerator::_write_cpp_header(const SI4CIntegrals& bra_integrals,
+T4CDiagCPUGenerator::_write_cpp_header(const SI4CIntegrals& bra_integrals,
                                    const SI4CIntegrals& ket_integrals,
                                    const SI4CIntegrals& vrr_integrals,
                                    const I4CIntegral&   integral) const
@@ -247,24 +205,13 @@ T4CCPUGenerator::_write_cpp_header(const SI4CIntegrals& bra_integrals,
     T4CDeclDriver decl_drv;
     
     T4CFuncBodyDriver func_drv;
-
-    if ((integral[0] == integral[2]) && (integral[1] == integral[3]))
-    {
-        docs_drv.write_doc_str(fstream, integral, true);
+    
+    docs_drv.write_diag_doc_str(fstream, integral);
         
-        decl_drv.write_func_decl(fstream, integral, true, false);
+    decl_drv.write_diag_func_decl(fstream, integral, false);
         
-        func_drv.write_func_body(fstream, bra_integrals, ket_integrals, vrr_integrals, integral, true);
+    func_drv.write_diag_func_body(fstream, bra_integrals, ket_integrals, vrr_integrals, integral);
 
-        fstream << std::endl;
-    }
-
-    docs_drv.write_doc_str(fstream, integral, false);
-    
-    decl_drv.write_func_decl(fstream, integral, false, false);
-    
-    func_drv.write_func_body(fstream, bra_integrals, ket_integrals, vrr_integrals, integral, false);
-    
     fstream << std::endl;
 
     _write_namespace(fstream, integral, false);
@@ -275,7 +222,7 @@ T4CCPUGenerator::_write_cpp_header(const SI4CIntegrals& bra_integrals,
 }
 
 void
-T4CCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
+T4CDiagCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
                                     const I4CIntegral&   integral,
                                     const bool           start) const
 {
@@ -298,13 +245,15 @@ T4CCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
 }
 
 void
-T4CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
+T4CDiagCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
                                      const SI4CIntegrals& bra_integrals,
                                      const SI4CIntegrals& ket_integrals,
                                      const SI4CIntegrals& vrr_integrals,
                                      const I4CIntegral&   integral) const
 {
     auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "#include <vector>"});
     
     lines.push_back({0, 0, 2, "#include <array>"});
     
@@ -355,7 +304,7 @@ T4CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
 }
 
 void
-T4CCPUGenerator::_write_namespace(      std::ofstream& fstream,
+T4CDiagCPUGenerator::_write_namespace(      std::ofstream& fstream,
                                   const I4CIntegral&   integral,
                                   const bool           start) const
 {
@@ -376,7 +325,7 @@ T4CCPUGenerator::_write_namespace(      std::ofstream& fstream,
 }
 
 void
-T4CCPUGenerator::_write_cpp_file(const SI4CIntegrals& bra_integrals,
+T4CDiagCPUGenerator::_write_cpp_file(const SI4CIntegrals& bra_integrals,
                                  const SI4CIntegrals& ket_integrals,
                                  const SI4CIntegrals& vrr_integrals,
                                  const I4CIntegral&   integral) const
@@ -416,7 +365,7 @@ T4CCPUGenerator::_write_cpp_file(const SI4CIntegrals& bra_integrals,
 }
 
 void
-T4CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
+T4CDiagCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
                                      const SI4CIntegrals& bra_integrals,
                                      const SI4CIntegrals& ket_integrals,
                                      const SI4CIntegrals& vrr_integrals,
@@ -469,7 +418,7 @@ T4CCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
 }
 
 void
-T4CCPUGenerator::_write_prim_cpp_header(const I4CIntegral& integral) const
+T4CDiagCPUGenerator::_write_prim_cpp_header(const I4CIntegral& integral) const
 {
     auto fname = t4c::prim_file_name(integral) + ".hpp";
         
@@ -499,7 +448,7 @@ T4CCPUGenerator::_write_prim_cpp_header(const I4CIntegral& integral) const
 }
 
 void
-T4CCPUGenerator::_write_prim_hpp_defines(      std::ofstream& fstream,
+T4CDiagCPUGenerator::_write_prim_hpp_defines(      std::ofstream& fstream,
                                          const I4CIntegral&   integral,
                                          const bool           start) const
 {
@@ -522,7 +471,7 @@ T4CCPUGenerator::_write_prim_hpp_defines(      std::ofstream& fstream,
 }
 
 void
-T4CCPUGenerator::_write_prim_hpp_includes(      std::ofstream& fstream,
+T4CDiagCPUGenerator::_write_prim_hpp_includes(      std::ofstream& fstream,
                                           const I4CIntegral&   integral) const
 {
     auto lines = VCodeLines();
@@ -533,7 +482,7 @@ T4CCPUGenerator::_write_prim_hpp_includes(      std::ofstream& fstream,
 }
 
 void
-T4CCPUGenerator::_write_prim_cpp_file(const I4CIntegral& integral) const
+T4CDiagCPUGenerator::_write_prim_cpp_file(const I4CIntegral& integral) const
 {
     auto fname = t4c::prim_file_name(integral) + ".cpp";
         
@@ -561,7 +510,7 @@ T4CCPUGenerator::_write_prim_cpp_file(const I4CIntegral& integral) const
 }
 
 void
-T4CCPUGenerator::_write_prim_cpp_includes(      std::ofstream& fstream,
+T4CDiagCPUGenerator::_write_prim_cpp_includes(      std::ofstream& fstream,
                                           const I4CIntegral&   integral) const
 {
     auto lines = VCodeLines();
@@ -572,7 +521,7 @@ T4CCPUGenerator::_write_prim_cpp_includes(      std::ofstream& fstream,
 }
 
 void
-T4CCPUGenerator::_write_ket_hrr_cpp_header(const I4CIntegral& integral) const
+T4CDiagCPUGenerator::_write_ket_hrr_cpp_header(const I4CIntegral& integral) const
 {
     auto fname = t4c::ket_hrr_file_name(integral) + ".hpp";
         
@@ -602,7 +551,7 @@ T4CCPUGenerator::_write_ket_hrr_cpp_header(const I4CIntegral& integral) const
 }
 
 void
-T4CCPUGenerator::_write_ket_hrr_hpp_defines(      std::ofstream& fstream,
+T4CDiagCPUGenerator::_write_ket_hrr_hpp_defines(      std::ofstream& fstream,
                                             const I4CIntegral&   integral,
                                             const bool           start) const
 {
@@ -625,7 +574,7 @@ T4CCPUGenerator::_write_ket_hrr_hpp_defines(      std::ofstream& fstream,
 }
 
 void
-T4CCPUGenerator::_write_ket_hrr_hpp_includes(      std::ofstream& fstream,
+T4CDiagCPUGenerator::_write_ket_hrr_hpp_includes(      std::ofstream& fstream,
                                              const I4CIntegral&   integral) const
 {
     auto lines = VCodeLines();
@@ -636,7 +585,7 @@ T4CCPUGenerator::_write_ket_hrr_hpp_includes(      std::ofstream& fstream,
 }
 
 void
-T4CCPUGenerator::_write_ket_hrr_cpp_file(const I4CIntegral& integral) const
+T4CDiagCPUGenerator::_write_ket_hrr_cpp_file(const I4CIntegral& integral) const
 {
     auto fname = t4c::ket_hrr_file_name(integral) + ".cpp";
         
@@ -664,7 +613,7 @@ T4CCPUGenerator::_write_ket_hrr_cpp_file(const I4CIntegral& integral) const
 }
 
 void
-T4CCPUGenerator::_write_ket_hrr_cpp_includes(      std::ofstream& fstream,
+T4CDiagCPUGenerator::_write_ket_hrr_cpp_includes(      std::ofstream& fstream,
                                           const I4CIntegral&   integral) const
 {
     auto lines = VCodeLines();
@@ -677,7 +626,7 @@ T4CCPUGenerator::_write_ket_hrr_cpp_includes(      std::ofstream& fstream,
 }
 
 void
-T4CCPUGenerator::_write_bra_hrr_cpp_header(const I4CIntegral& integral) const
+T4CDiagCPUGenerator::_write_bra_hrr_cpp_header(const I4CIntegral& integral) const
 {
     auto fname = t4c::bra_hrr_file_name(integral) + ".hpp";
         
@@ -707,7 +656,7 @@ T4CCPUGenerator::_write_bra_hrr_cpp_header(const I4CIntegral& integral) const
 }
 
 void
-T4CCPUGenerator::_write_bra_hrr_hpp_defines(      std::ofstream& fstream,
+T4CDiagCPUGenerator::_write_bra_hrr_hpp_defines(      std::ofstream& fstream,
                                             const I4CIntegral&   integral,
                                             const bool           start) const
 {
@@ -730,7 +679,7 @@ T4CCPUGenerator::_write_bra_hrr_hpp_defines(      std::ofstream& fstream,
 }
 
 void
-T4CCPUGenerator::_write_bra_hrr_hpp_includes(      std::ofstream& fstream,
+T4CDiagCPUGenerator::_write_bra_hrr_hpp_includes(      std::ofstream& fstream,
                                              const I4CIntegral&   integral) const
 {
     auto lines = VCodeLines();
@@ -741,7 +690,7 @@ T4CCPUGenerator::_write_bra_hrr_hpp_includes(      std::ofstream& fstream,
 }
 
 void
-T4CCPUGenerator::_write_bra_hrr_cpp_file(const I4CIntegral& integral) const
+T4CDiagCPUGenerator::_write_bra_hrr_cpp_file(const I4CIntegral& integral) const
 {
     auto fname = t4c::bra_hrr_file_name(integral) + ".cpp";
         
@@ -769,7 +718,7 @@ T4CCPUGenerator::_write_bra_hrr_cpp_file(const I4CIntegral& integral) const
 }
 
 void
-T4CCPUGenerator::_write_bra_hrr_cpp_includes(      std::ofstream& fstream,
+T4CDiagCPUGenerator::_write_bra_hrr_cpp_includes(      std::ofstream& fstream,
                                           const I4CIntegral&   integral) const
 {
     auto lines = VCodeLines();

@@ -84,7 +84,7 @@ public:
     /// @return true if this integral is less than other integral, false otherwise.
     bool operator<(const Integral<T, U>& other) const;
     
-    /// generates base integral by removing prefixes.
+    /// Generates base integral by removing prefixes.
     Integral base() const;
     
     /// Sets order of integral.

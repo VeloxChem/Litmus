@@ -19,6 +19,7 @@
 #include "string_formater.hpp"
 
 #include "v4i_eri_driver.hpp"
+#include "t4c_center_driver.hpp"
 
 namespace t4c { // t4c namespace
 
@@ -115,6 +116,16 @@ compute_func_name(const I4CIntegral& integral)
 }
 
 std::string
+diag_compute_func_name(const I4CIntegral& integral)
+{
+    std::string geom_label;
+    
+    auto label = "comp_diag_" + t4c::integral_split_label(integral) + "_" + integral.label();
+        
+    return fstr::lowercase(label);
+}
+
+std::string
 get_buffer_label(const I4CIntegral& integral,
                  const std::string& prefix)
 {
@@ -128,6 +139,28 @@ get_buffer_label(const I4CIntegral& integral,
     {
         label += "geom";
         
+        for (const auto& tint_prefix : tint_prefixes)
+        {
+            label += std::to_string(tint_prefix.shape().order());
+        }
+        
+       label += "_";
+    }
+    
+    label += fstr::lowercase(integral.label());
+
+    return label;
+}
+
+std::string
+get_geom_buffer_label(const I4CIntegral& integral)
+{
+    std::string label = "buffer_";
+    
+    auto tint_prefixes = integral.prefixes();
+    
+    if (!tint_prefixes.empty())
+    {
         for (const auto& tint_prefix : tint_prefixes)
         {
             label += std::to_string(tint_prefix.shape().order());
@@ -312,6 +345,28 @@ get_bra_hrr_integrals(const I4CIntegral& integral)
     return tints;
 }
 
+SI4CIntegrals
+get_geom_integrals(const I4CIntegral& integral)
+{
+    R4Group rgroup;
+        
+    T4CCenterDriver t4c_geom_drv;
+        
+    rgroup = t4c_geom_drv.create_recursion(integral.components<T2CPair, T2CPair>());
+    
+    SI4CIntegrals tints;
+    
+    for (size_t i = 0; i < rgroup.expansions(); i++)
+    {
+        for (size_t j = 0; j < rgroup[i].terms(); j++)
+        {
+            tints.insert(I4CIntegral(rgroup[i][j].integral().base()));
+        }
+    }
+    
+    return tints;
+}
+
 std::string
 prim_file_name(const I4CIntegral& integral)
 {
@@ -321,16 +376,26 @@ prim_file_name(const I4CIntegral& integral)
 std::string
 geom_file_name(const I4CIntegral& integral)
 {
-    std::string label = "GeomeDerivatives";
+    std::string label = "GeomDeriv";
     
     for (const auto& prefix : integral.prefixes())
     {
         label += std::to_string(prefix.shape().order());
     }
     
-    label += "For" + integral.label() + "_";
+    if (integral.integrand().shape().order() == 0)
+    {
+        label += "OfScalar";
+    }
     
-    return label + std::to_string(integral.integrand().shape().order());
+    if (integral.integrand().shape().order() == 1)
+    {
+        label += "OfVector";
+    }
+    
+    label += "For" + integral.label();
+    
+    return label;
 }
 
 std::string
@@ -351,6 +416,37 @@ bra_hrr_file_name(const I4CIntegral& integral)
     const auto bra_two = Tensor(integral[1]);
     
     return t4c::integral_label(integral) + "ContrRec" + bra_one.label() + bra_two.label() + "XX";
+}
+
+// Only relevant for geometric derivatives
+std::string
+prefixes_label(const I4CIntegral& integral)
+{
+    const auto prefixes = integral.prefixes();
+    
+    std::string label;
+    
+    if (const auto border = prefixes[0].shape().order(); border > 0)
+    {
+        label += "d^(" + std::to_string(border) + ")/dA^(" + std::to_string(border) + ")";
+    }
+    
+    if (const auto border = prefixes[1].shape().order(); border > 0)
+    {
+        label += "d^(" + std::to_string(border) + ")/dB^(" + std::to_string(border) + ")";
+    }
+    
+    if (const auto border = prefixes[2].shape().order(); border > 0)
+    {
+        label += "d^(" + std::to_string(border) + ")/dC^(" + std::to_string(border) + ")";
+    }
+    
+    if (const auto border = prefixes[3].shape().order(); border > 0)
+    {
+        label += "d^(" + std::to_string(border) + ")/dD^(" + std::to_string(border) + ")";
+    }
+    
+    return label;
 }
 
 } // t4c namespace

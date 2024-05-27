@@ -48,6 +48,33 @@ T4CDocuDriver::write_doc_str(      std::ofstream& fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+void
+T4CDocuDriver::write_diag_doc_str(      std::ofstream& fstream,
+                                  const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, _get_diag_compute_str(integral)});
+    
+    for (const auto& label : _get_diag_matrices_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+
+    for (const auto& label : _get_diag_gto_pair_blocks_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+        
+    for (const auto& label : _get_diag_indices_str())
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+
 std::string
 T4CDocuDriver::_get_compute_str(const I4CIntegral& integral,
                                 const bool         diagonal) const
@@ -111,6 +138,56 @@ T4CDocuDriver::_get_indices_str() const
     vstr.push_back("/// - Parameter bra_indices: the range [bra_first, bra_last) of GTOs on bra side.");
     
     vstr.push_back("/// - Parameter ket_indices: the range [ket_first, ket_last) of GTOs on ket side.");
+    
+    return vstr;
+}
+
+std::string
+T4CDocuDriver::_get_diag_compute_str(const I4CIntegral& integral) const
+{
+    const auto bra_one = Tensor(integral[0]);
+    
+    const auto bra_two = Tensor(integral[1]);
+    
+    const auto integrand = integral.integrand();
+    
+    auto label = "/// Computes (" + bra_one.label() + bra_two.label();
+    
+    label +=  "|" + t4c::integrand_label(integral.integrand()) + "|";
+   
+    label += bra_one.label() + bra_two.label() + ")  integrals for ";
+        
+    label += "GTOs pair block.";
+    
+    return label;
+}
+
+std::vector<std::string>
+T4CDocuDriver::_get_diag_matrices_str(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("/// - Parameter distributor: the pointer to screening data distributor.");
+             
+    return vstr;
+}
+
+std::vector<std::string>
+T4CDocuDriver::_get_diag_gto_pair_blocks_str(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("/// - Parameter gto_pair_block: the GTOs pair block.");
+        
+    return vstr;
+}
+
+std::vector<std::string>
+T4CDocuDriver::_get_diag_indices_str() const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("/// - Parameter go_indices: the range [gto_first, gto_last) of GTOs on bra and ket sides.");
     
     return vstr;
 }

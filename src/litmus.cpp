@@ -22,8 +22,10 @@
 
 #include "t2c_cpu_generators.hpp"
 #include "t4c_cpu_generators.hpp"
+#include "t4c_diag_cpu_generators.hpp"
 #include "t4c_geom_cpu_generators.hpp"
 #include "t4c_geom_deriv_cpu_generators.hpp"
+#include "t4c_eri_tree_generators.hpp"
 
 int main(int argc, char **argv)
 {
@@ -32,12 +34,11 @@ int main(int argc, char **argv)
     // "Which kind of integral? # of centers", "which type of integral" (which operator is associated with it?)
     // 2c: "overlap" "kinetic energy" "nuclear potential" "dipole moment" "linear momentum"
     // 4c: "electron repulsion"
-    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "overlap"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "dipole moment"});
+
     //const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "nuclear potential"});
 
-    const int max_ang_mom = 0;
-
-    const int max_geom_order = 4;
+    const int max_ang_mom = 4;
 
     // To add new integral
     // (Be careful about scalar vs non-scalar integrals (see dipole for example of non-scalar)
@@ -54,12 +55,7 @@ int main(int argc, char **argv)
     // 8. In t2(4)c_cpu_generators, register any new operator "name cases", (marked)
     // 9. In t2(4)c_prim_body, make any (marked) changes (remember includes)
     // 10. (see dipole for example) Add the primitive case to the "bottom" prim_ss autogen file (there will be blanks to fill in and you need to match this and the autogen func call that will call it)
-    // 11. Modify the function declaration for the non-primitive calls in t2(4)c_decl (and (cosmetic) in t2(4)c_docs)
-
-    // from t2c_cpu_generators.hpp:
-    /// MR: First index: Summation or not (explicitly incorporate any multi-term nature in the operator associated with the integrals (if any))
-    /// Second index: False: Return as matrix(ces); true: Return as scalars ("Contracted"/"distributed")
-    const auto rec_form = std::pair<bool, bool>({false, false});
+    // 11. Modify the function declaration for the non-primitive calls in t2(4)c_decl (and (cosmetic) in t2(4)c_docs
     
     // set up start timer
     
@@ -71,8 +67,9 @@ int main(int argc, char **argv)
 
     if (run_type.first == "t2c_cpu")
     {
-    // a, operator, b
-        const std::array<int, 3> geom_drvs = {1, 0, 1};
+        const std::array<int, 3> geom_drvs = {0, 0, 0};
+        
+        const auto rec_form = std::pair<bool, bool>({false, false});
 
         const auto t2c_drv = T2CCPUGenerator();
         
@@ -84,7 +81,7 @@ int main(int argc, char **argv)
     if (run_type.first == "t4c_cpu")
     {
     // a, b, operator, c, d
-        std::array<int, 5> geom_drvs = {1, 2, 0, 0, 2};
+        std::array<int, 5> geom_drvs = {0, 0, 0, 0, 0};
         
         if (geom_drvs == std::array<int, 5>({0, 0, 0, 0, 0}))
         {
@@ -102,11 +99,27 @@ int main(int argc, char **argv)
     
     if (run_type.first == "t4c_geom_cpu")
     {
+        std::array<int, 4> geom_drvs = {1, 0, 0, 0};
+        
         const auto t4c_geom_drv = T4CGeomDerivCPUGenerator();
             
-        t4c_geom_drv.generate(max_ang_mom, max_geom_order);
+        t4c_geom_drv.generate(max_ang_mom, geom_drvs);
+    }
+    
+    if (run_type.first == "t4c_diag_cpu")
+    {
+        const auto t4c_diag_drv = T4CDiagCPUGenerator();
+            
+        t4c_diag_drv.generate(run_type.second, max_ang_mom);
     }
    
+    if (run_type.first == "t4c_call_tree")
+    {
+        const auto t4c_call_drv = T4CCallTreeGenerator();
+            
+        t4c_call_drv.generate(run_type.second, max_ang_mom);
+    }
+    
     // set up end timer & compute elapsed time
     
     auto etime = std::chrono::high_resolution_clock::now();
