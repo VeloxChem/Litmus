@@ -485,8 +485,6 @@ T2CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
             
     label += std::to_string(integral[0]) + ", ";
             
-    label += std::to_string(integral[1]) + ", ";
-
     if (diagonal)
     {
         label += "i, gto_range);";
