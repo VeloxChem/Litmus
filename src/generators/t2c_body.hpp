@@ -82,10 +82,12 @@ class T2CFuncBodyDriver
     
     /// Adds ket loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
+    /// @param integrals The set of inetrgals.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_ket_loop_end(      VCodeLines&  lines,
+                           const SI2CIntegrals& integrals,
                            const I2CIntegral& integral,
                            const std::pair<bool, bool>& rec_form,
                            const bool         diagonal) const;
@@ -100,10 +102,12 @@ class T2CFuncBodyDriver
     
     /// Adds sum loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
+    /// @param integrals The set of inetrgals.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_sum_loop_end(      VCodeLines&            lines,
+                           const SI2CIntegrals&         integrals,
                            const I2CIntegral&           integral,
                            const std::pair<bool, bool>& rec_form,
                            const bool                   diagonal) const;
@@ -139,6 +143,30 @@ class T2CFuncBodyDriver
     /// Gets arguments list for primitive function call.
     /// @param integral The base two center integral.
     std::string _get_arguments(const I2CIntegral& integral) const;
+    
+    /// Gets arguments list for primitive function call.
+    /// @param integral The base two center integral.
+    /// @param integrals The set of inetrgals.
+    std::string _get_arguments(const I2CIntegral&   integral,
+                               const SI2CIntegrals& integrals) const;
+    
+    /// Gets position of integral in integrals buffer.
+    /// @param integral The base two center integral.
+    /// @param integrals The set of inetrgals.
+    size_t _get_position(const I2CIntegral&   integral,
+                         const SI2CIntegrals& integrals) const;
+    
+    /// Checks if coordinates of center P are required for integration.
+    /// @param integral The base two center integral.
+    bool _need_center_p(const I2CIntegral& integral) const;
+    
+    /// Checks if distances of (P-C) are required for integration.
+    /// @param integral The base two center integral.
+    bool _need_distances_pc(const I2CIntegral& integral) const;
+    
+    /// Checks if Boys function data are required for integration.
+    /// @param integral The base two center integral.
+    bool _need_boys_func(const I2CIntegral& integral) const;
     
 public:
     /// Creates a two-center compute function body generator.

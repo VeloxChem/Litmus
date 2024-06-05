@@ -130,6 +130,11 @@ number_of_spherical_components(const std::array<int, N>& orders) -> int
 std::string get_buffer_label(const I2CIntegral& integral,
                              const std::string& prefix);
 
+/// Generates integral index label.
+/// @param integral The base two center integral.
+/// @return The string with index label.
+std::string get_index_label(const I2CIntegral& integral);
+
 /// Generates primitive compute function name.
 /// @param integral The base two center integral.
 /// @return The primitive compute function name.

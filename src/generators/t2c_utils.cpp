@@ -390,6 +390,34 @@ get_buffer_label(const I2CIntegral& integral,
 }
 
 std::string
+get_index_label(const I2CIntegral& integral)
+{
+    std::string label = "id_";
+    
+    if (integral.integrand().name() == "1") label += "ovl_";
+    
+    if (integral.integrand().name() == "T") label += "kin_";
+
+    if (integral.integrand().name() == "r") label += "dip_";
+
+    if (integral.integrand().name() == "p") label += "linmom_";
+
+    if (integral.integrand().name() == "A1")
+    {
+        label += "el_field_A" + std::to_string(integral.integrand().shape().order()) + "_" + std::to_string(integral.order()) + "_";
+    }
+
+    if (integral.integrand().name() == "A")
+    {
+        label += "npot_" + std::to_string(integral.order()) + "_";
+    }
+    
+    label += fstr::lowercase(integral.label());
+
+    return label;
+}
+
+std::string
 prim_compute_func_name(const I2CIntegral& integral)
 {
     std::string geom_label;

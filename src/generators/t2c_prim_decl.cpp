@@ -60,13 +60,17 @@ T2CPrimDeclDriver::_get_buffers_str(const I2CIntegral& integral) const
     
     auto label = t2c::get_buffer_label(integral, "prim");
     
-    vstr.push_back(name + "CSimdArray<double>& " + label + "," );
+    vstr.push_back(name + "CSimdArray<double>& prim_buffer, " );
+    
+    label = t2c::get_index_label(integral);
+    
+    vstr.push_back(spacer + "const int " + label + "," );
     
     for (const auto& tint : t2c::get_integrals(integral))
     {
-        auto label = t2c::get_buffer_label(tint, "prim");
+        label = t2c::get_index_label(tint);
         
-        vstr.push_back(spacer + "const CSimdArray<double>& " + label + "," );
+        vstr.push_back(spacer + "const int " + label + "," );
     }
     
     return vstr;

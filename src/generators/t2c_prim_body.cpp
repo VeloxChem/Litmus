@@ -36,9 +36,7 @@ T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "{"});
     
-    lines.push_back({1, 0, 2, "const auto ndims = " +
-                              t2c::get_buffer_label(integral, "prim") +
-                              ".number_of_columns();"});
+    lines.push_back({1, 0, 2, "const auto ndims = prim_buffer.number_of_columns();"});
     
     const auto components = integral.components<T1CPair, T1CPair>();
     
@@ -103,9 +101,7 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const std::vector<R2CDist>& rec_dists,
     
     for (const auto& tint : t2c::get_integrals(integral))
     {
-        auto label = t2c::get_buffer_label(tint, "prim");
-        
-        vstr.push_back("/// Set up components of auxiliary buffer : " + label);
+        vstr.push_back("/// Set up components of auxiliary buffer : " + tint.label());
 
         const auto tlabel = _get_tensor_label(tint);
         
@@ -113,12 +109,12 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const std::vector<R2CDist>& rec_dists,
         
         for (const auto& tcomp : tint.components<T1CPair, T1CPair>())
         {
-            //if (_find_integral(rec_dists, tcomp))
-            //{
-                const auto line = "auto " + _get_component_label(tcomp) + " = " + label;
+            if (_find_integral(rec_dists, tcomp))
+            {
+                const auto line = "auto " + _get_component_label(tcomp) + " = prim_buffer";
                 
-                vstr.push_back(line + "[" + std::to_string(index) + "];");
-            //}
+                vstr.push_back(line + "[" + t2c::get_index_label(tint) + " + " + std::to_string(index) + "];");
+            }
 
             index++;
         }
@@ -153,19 +149,19 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const I2CIntegral&        integral,
     
     if ((rec_range[1] - rec_range[0]) == static_cast<int>(components.size()))
     {
-        vstr.push_back("/// Set up components of targeted buffer : " + label);
+        vstr.push_back("/// Set up components of targeted buffer : " + integral.label());
     }
     else
     {
         vstr.push_back("/// Set up " + std::to_string(rec_range[0]) + "-" + std::to_string(rec_range[1]) +
-                       " components of targeted buffer : " + label);
+                       " components of targeted buffer : " + integral.label());
     }
     
     for (int i = rec_range[0]; i < rec_range[1]; i++)
     {
-        const auto line = "auto " + _get_component_label(components[i]) + " = " + label;
+        const auto line = "auto " + _get_component_label(components[i]) + " = prim_buffer";
         
-        vstr.push_back(line + "[" + std::to_string(i) + "];");
+        vstr.push_back(line + "[" + t2c::get_index_label(integral) + " + " + std::to_string(i) + "];");
     }
     
     return vstr;

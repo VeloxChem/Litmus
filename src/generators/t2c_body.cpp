@@ -69,9 +69,9 @@ T2CFuncBodyDriver::write_func_body(      std::ofstream&         fstream,
     
     _add_geom_call_tree(lines, integrals, integral, rec_form);
     
-    _add_sum_loop_end(lines, integral, rec_form, diagonal);
+    _add_sum_loop_end(lines, integrals, integral, rec_form, diagonal);
     
-    _add_ket_loop_end(lines, integral, rec_form, diagonal);
+    _add_ket_loop_end(lines, integrals, integral, rec_form, diagonal);
     
     _add_loop_end(lines, integral, rec_form, diagonal);
     
@@ -138,8 +138,6 @@ T2CFuncBodyDriver::_get_gtos_def(const bool diagonal) const
         vstr.push_back("const auto ket_gto_norms = ket_gto_block.normalization_factors();");
        
         vstr.push_back("const auto ket_gto_indices = ket_gto_block.orbital_indices();");
-        
-        //vstr.push_back("const auto ket_ncgtos = ket_gto_block.number_of_basis_functions();");
 
         vstr.push_back("const auto ket_npgtos = ket_gto_block.number_of_primitives();");
     }
@@ -207,37 +205,12 @@ T2CFuncBodyDriver::_get_ket_variables_def(const bool diagonal) const
     return vstr;
 }
 
-// MR: Need to change this for new integral cases
 std::vector<std::string>
 T2CFuncBodyDriver::_get_coordinates_def(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    const auto integrand = integral.integrand();
-
-    if (integrand.name() == "r")
-    {
-        vstr.push_back("// allocate aligned coordinates of P center");
-
-        vstr.push_back("CSimdArray<double> p_x(1, ket_pdim);");
-
-        vstr.push_back("CSimdArray<double> p_y(1, ket_pdim);");
-
-        vstr.push_back("CSimdArray<double> p_z(1, ket_pdim);");
-    }
-
-    if (integrand.name() == "A")
-    {
-        vstr.push_back("// allocate aligned coordinates of P center");
-
-        vstr.push_back("CSimdArray<double> p_x(1, ket_pdim);");
-
-        vstr.push_back("CSimdArray<double> p_y(1, ket_pdim);");
-
-        vstr.push_back("CSimdArray<double> p_z(1, ket_pdim);");
-    }
-
-    if (integrand.name() == "A1")
+    if (_need_center_p(integral))
     {
         vstr.push_back("// allocate aligned coordinates of P center");
 
@@ -248,6 +221,7 @@ T2CFuncBodyDriver::_get_coordinates_def(const I2CIntegral& integral) const
         vstr.push_back("CSimdArray<double> p_z(1, ket_pdim);");
     }
     
+
     vstr.push_back("// allocate aligned distances R(AB) = A - B");
 
     vstr.push_back("CSimdArray<double> ab_x(1, ket_pdim);");
@@ -278,29 +252,7 @@ T2CFuncBodyDriver::_get_coordinates_def(const I2CIntegral& integral) const
         vstr.push_back("CSimdArray<double> pa_z(1, ket_pdim);");
     }
 
-    if (integrand.name() == "r")
-    {
-        vstr.push_back("// allocate aligned distances R(PC) = P - C");
-
-        vstr.push_back("CSimdArray<double> pc_x(1, ket_pdim);");
-
-        vstr.push_back("CSimdArray<double> pc_y(1, ket_pdim);");
-
-        vstr.push_back("CSimdArray<double> pc_z(1, ket_pdim);");
-    }
-    
-    if (integrand.name() == "A")
-    {
-        vstr.push_back("// allocate aligned distances R(PC) = P - C");
-
-        vstr.push_back("CSimdArray<double> pc_x(1, ket_pdim);");
-
-        vstr.push_back("CSimdArray<double> pc_y(1, ket_pdim);");
-
-        vstr.push_back("CSimdArray<double> pc_z(1, ket_pdim);");
-    }
-
-    if (integrand.name() == "A1")
+    if (_need_distances_pc(integral))
     {
         vstr.push_back("// allocate aligned distances R(PC) = P - C");
 
@@ -322,48 +274,39 @@ T2CFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
     
     vstr.push_back("// allocate aligned primitive integrals");
     
+    size_t icomps = 0;
+    
     for (const auto& tint : integrals)
     {
-        std::string label = "CSimdArray<double> ";
-        
-        label += t2c::get_buffer_label(tint, "prim");
-        
-        // const auto angpair = std::array<int, 2>({tint[0], tint[1]});
-        
-        // const auto tcomps = t2c::number_of_cartesian_components(angpair);
-        
-        const auto tcomps = tint.components<T1CPair, T1CPair>().size();
-        
-        label += "(" + std::to_string(tcomps) + ", ket_pdim);";
-        
-        vstr.push_back(label);
+        icomps += tint.components<T1CPair, T1CPair>().size();
     }
     
-    vstr.push_back("// allocate aligned contracted integrals");
-    
-    const auto angpair = std::array<int, 2>({integral[0], integral[1]});
-    
-    // auto icomps = t2c::number_of_cartesian_components(angpair);
-    
-    auto icomps = integral.components<T1CPair, T1CPair>().size(); 
-    
-    std::string label = "CSimdArray<double> ";
-    
-    label += t2c::get_buffer_label(integral, "cart");
-    
-    label += "(" + std::to_string(icomps) + ", ket_dim);";
+    auto label = "CSimdArray<double> pbuffer(" + std::to_string(icomps) + ", ket_pdim);";
     
     vstr.push_back(label);
     
-    if ((integral[0] > 1) || (integral[1] > 1))
+    vstr.push_back("// allocate aligned contracted integrals");
+    
+    icomps = integral.components<T1CPair, T1CPair>().size();
+    
+    label = "CSimdArray<double> cbuffer(" + std::to_string(icomps) + ", ket_dim);";
+    
+    vstr.push_back(label);
+    
+    if ((integral[0] + integral[1]) > 0)
     {
+        const auto angpair = std::array<int, 2>({integral[0], integral[1]});
+        
         icomps = t2c::number_of_spherical_components(angpair);
         
-        std::string label = "CSimdArray<double> ";
+        icomps *= integral.integrand().components().size();
         
-        label += t2c::get_buffer_label(integral, "spher");
+        if (const auto prefixes = integral.prefixes(); !prefixes.empty())
+        {
+            icomps *= make_components<OperatorComponent>(prefixes).size();
+        }
         
-        label += "(" + std::to_string(icomps) + ", ket_dim);";
+        label = "CSimdArray<double> sbuffer(" + std::to_string(icomps) + ", ket_dim);";
         
         vstr.push_back(label);
     }
@@ -376,37 +319,19 @@ T2CFuncBodyDriver::_get_boys_function_def(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    if (integral.integrand().name() == "A")
+    if (_need_boys_func(integral))
     {
-         std::to_string(integral.order());
+        auto order = integral[0] + integral[1] + integral.integrand().shape().order();
         
         vstr.push_back("// setup Boys function data");
         
-        vstr.push_back("const CBoysFunc<" + std::to_string(integral[0] + integral[1]) + "> bf_table;");
+        vstr.push_back("const CBoysFunc<" + std::to_string(order) + "> bf_table;");
         
         vstr.push_back("CSimdArray<double> bf_args(1, ket_pdim);");
 
-        vstr.push_back("CSimdArray<double> bf_values(" + std::to_string(integral[0] + integral[1] + 1) + ", ket_pdim);");
+        vstr.push_back("CSimdArray<double> bf_values(" + std::to_string(order + 1) + ", ket_pdim);");
     }
-
-    if (integral.integrand().name() == "A1")
-    {
-         std::to_string(integral.order());
-
-        vstr.push_back("// setup Boys function data");
-
-        auto st1 = std::stoi(std::to_string(integral[0]));
-        auto st2 = std::stoi(std::to_string(integral[1]));
-        auto st3 = std::stoi(std::to_string(integral.integrand().shape().order()));
-
-        vstr.push_back("const CBoysFunc<" + std::to_string( st1 + st2 + st3) + "> bf_table;");
-
-        vstr.push_back("CSimdArray<double> bf_args(1, ket_pdim);");
-
-
-        vstr.push_back("CSimdArray<double> bf_values(" + std::to_string( st1 + st2 + st3 + 1) + ", ket_pdim);");
-    }
-   
+    
     return vstr;
 }
 
@@ -462,17 +387,13 @@ T2CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
     
     label = "t2cfunc::transform<"  + std::to_string(integral[0]);
         
-    label += ", " + std::to_string(integral[1]) + ">(";
-        
-    label += t2c::get_buffer_label(integral, "spher") + ", ";
-        
-    label += t2c::get_buffer_label(integral, "cart") + ");";
+    label += ", " + std::to_string(integral[1]) + ">(sbuffer, cbuffer);";
         
     lines.push_back({2, 0, 2, label});
     
     // TODO: Fix matrices labels...
 
-    label = "distributor->distribute(" + t2c::get_buffer_label(integral, "spher") + ", ";
+    label = "distributor->distribute(sbuffer, ";
     
     if (diagonal)
     {
@@ -489,6 +410,7 @@ T2CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
     {
         label += std::to_string(integral[1]) + ", ";
     }
+    
     if (diagonal)
     {
         label += "i, gto_range);";
@@ -532,15 +454,14 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
         lines.push_back({3, 0, 2, "const auto a_norm = bra_gto_norms[j * bra_ncgtos + i];"});
     }
 
-    if (((integral.integrand().name() == "A") || (integral.integrand().name() == "r")) || (integral.integrand().name() == "A1"))
+    if (_need_center_p(integral))
     {
         lines.push_back({3, 0, 2, "t2cfunc::comp_coordinates_p(p_x[0], p_y[0], p_z[0], a_x, a_y, a_z, b_x[0], b_y[0], b_z[0], a_exp, b_exps[0], ket_pdim);"});
     }
 
-    // MR: This situation alt to prev clause for fine optimization
     if (integral[0] > 0)
     {
-        if ((integral.integrand().name() == "A") || (integral.integrand().name() == "r") || (integral.integrand().name() == "A1"))
+        if (_need_center_p(integral))
         {
             lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], p_x[0], p_y[0], p_z[0], a_x, a_y, a_z, ket_pdim);"});
         }
@@ -548,12 +469,11 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
         {
             lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
         }
-        
     }
 
     if (integral[1] > 0)
     {
-        if ((integral.integrand().name() == "A") || (integral.integrand().name() == "r") || (integral.integrand().name() == "A1"))
+        if (_need_center_p(integral))
         {
             lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], p_x[0], p_y[0], p_z[0], b_x[0], b_y[0], b_z[0], ket_pdim);"});
         }
@@ -564,33 +484,7 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
         
     }
 
-//    if (integral[0] > 0)
-//    {
-//        if (integral.integrand().name() == "A1")
-//        {
-//            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], p_x[0], p_y[0], p_z[0], a_x, a_y, a_z, ket_pdim);"});
-//        }
-//        else
-//        {
-//            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
-//        }
-//
-//    }
-
-//    if (integral[1] > 0)
-//    {
-//        if (integral.integrand().name() == "A1")
-//        {
-//            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], p_x[0], p_y[0], p_z[0], b_x[0], b_y[0], b_z[0], ket_pdim);"});
-//        }
-//        else
-//        {
-//            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
-//        }
-//
-//    }
-
-    if (integral.integrand().name() == "r")
+    if (_need_distances_pc(integral))
     {
         lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pc(pc_x[0], pc_y[0], pc_z[0], p_x[0], p_y[0], p_z[0], coord_x, coord_y, coord_z, ket_pdim);"});
     }
@@ -598,17 +492,16 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
 
 void
 T2CFuncBodyDriver::_add_ket_loop_end(      VCodeLines&            lines,
+                                     const SI2CIntegrals&         integrals,
                                      const I2CIntegral&           integral,
                                      const std::pair<bool, bool>& rec_form,
                                      const bool                   diagonal) const
 {
     if (!rec_form.first)
     {
-        std::string label = "t2cfunc::reduce(";
+        std::string label = "t2cfunc::reduce(cbuffer, pbuffer, ";
         
-        label += t2c::get_buffer_label(integral, "cart") + ", ";
-        
-        label += t2c::get_buffer_label(integral, "prim") + ", ";
+        label += std::to_string(_get_position(integral, integrals)) + ", ";
         
         if (diagonal)
         {
@@ -632,29 +525,19 @@ T2CFuncBodyDriver::_add_sum_loop_start(      VCodeLines&            lines,
 {
     if (rec_form.first)
     {
-        if (integral.integrand().name() == "A")
+        lines.push_back({3, 0, 1, "for (size_t k = 0; k < charges.size(); k++)"});
+            
+        lines.push_back({3, 0, 1, "{"});
+       
+        if (_need_distances_pc(integral))
         {
-            lines.push_back({3, 0, 1, "for (size_t k = 0; k < charges.size(); k++)"});
-            
-            lines.push_back({3, 0, 1, "{"});
-            
             lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pc(pc_x[0], pc_y[0], pc_z[0], p_x[0], p_y[0], p_z[0], coords_x[k], coords_y[k], coords_z[k], ket_pdim);"});
-            
-            lines.push_back({4, 0, 2, "t2cfunc::comp_boys_args(bf_args, pc_x[0], pc_y[0], pc_z[0], a_exp, b_exps[0]);"});
-            
-            lines.push_back({4, 0, 2, "bf_table.compute(bf_values, bf_args);"});
         }
-
-        if (integral.integrand().name() == "A1")
+        
+        if (_need_boys_func(integral))
         {
-            lines.push_back({3, 0, 1, "for (size_t k = 0; k < charges.size(); k++)"});
-
-            lines.push_back({3, 0, 1, "{"});
-
-            lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pc(pc_x[0], pc_y[0], pc_z[0], p_x[0], p_y[0], p_z[0], coords_x[k], coords_y[k], coords_z[k], ket_pdim);"});
-
             lines.push_back({4, 0, 2, "t2cfunc::comp_boys_args(bf_args, pc_x[0], pc_y[0], pc_z[0], a_exp, b_exps[0]);"});
-
+            
             lines.push_back({4, 0, 2, "bf_table.compute(bf_values, bf_args);"});
         }
     }
@@ -662,62 +545,34 @@ T2CFuncBodyDriver::_add_sum_loop_start(      VCodeLines&            lines,
 
 void
 T2CFuncBodyDriver::_add_sum_loop_end(      VCodeLines&            lines,
+                                     const SI2CIntegrals&         integrals,
                                      const I2CIntegral&           integral,
                                      const std::pair<bool, bool>& rec_form,
                                      const bool                   diagonal) const
 {
     if (rec_form.first)
     {
-        if (integral.integrand().name() == "A")
+        std::string label = "t2cfunc::reduce(cbuffer, pbuffer, ";
+        
+        label += std::to_string(_get_position(integral, integrals)) + ", ";
+        
+        if ((integral.integrand().name() == "A") || (integral.integrand().name() == "AG"))
         {
-            std::string label = "t2cfunc::reduce(";
-            
-            label += t2c::get_buffer_label(integral, "cart") + ", ";
-            
-            label += t2c::get_buffer_label(integral, "prim") + ", ";
-            
             label += "charges[k], ";
-            
-            if (diagonal)
-            {
-                label += "ket_dim, npgtos);";
-            }
-            else
-            {
-                label += "ket_dim, ket_npgtos);";
-            }
-            
-            lines.push_back({4, 0, 1, label});
-            
-            lines.push_back({3, 0, 1, "}"});
         }
-    }
-
-    if (rec_form.first)
-    {
-        if (integral.integrand().name() == "A1")
+        
+        if (diagonal)
         {
-            std::string label = "t2cfunc::reduce(";
-
-            label += t2c::get_buffer_label(integral, "cart") + ", ";
-
-            label += t2c::get_buffer_label(integral, "prim") + ", ";
-
-            label += "charges[k], ";
-
-            if (diagonal)
-            {
-                label += "ket_dim, npgtos);";
-            }
-            else
-            {
-                label += "ket_dim, ket_npgtos);";
-            }
-
-            lines.push_back({4, 0, 1, label});
-
-            lines.push_back({3, 0, 1, "}"});
+            label += "ket_dim, npgtos);";
         }
+        else
+        {
+            label += "ket_dim, ket_npgtos);";
+        }
+        
+        lines.push_back({4, 0, 1, label});
+        
+        lines.push_back({3, 0, 1, "}"});
     }
 }
 
@@ -737,7 +592,7 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
         {
             if ((tint.integrand().name() == "1") && (!in_sum_loop))
             {
-                lines.push_back({3, 0, 2, "ovlrec::comp_prim_overlap_ss(prim_buffer_ovl_ss, ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], a_norm, b_norms[0]);"});
+                lines.push_back({3, 0, 2, "ovlrec::comp_prim_overlap_ss(pbuffer, 0, ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], a_norm, b_norms[0]);"});
             }
             
             if ((tint.integrand().name() == "T") && (!in_sum_loop))
@@ -814,10 +669,9 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
         {
             const auto name = t2c::prim_compute_func_name(tint);
             
-            auto label = t2c::namespace_label(tint) + "::" + name + "(";
+            auto label = t2c::namespace_label(tint) + "::" + name + "(pbuffer, ";
             
-            label += _get_arguments(tint);
-            
+            label += _get_arguments(tint, integrals);
             
             if (tint[0] > 0)
             {
@@ -961,7 +815,6 @@ T2CFuncBodyDriver::_add_geom_call_tree(      VCodeLines&            lines,
     }
 }
 
-// May need to change this for new integral situations
 std::string
 T2CFuncBodyDriver::_get_arguments(const I2CIntegral& integral) const
 {
@@ -973,4 +826,74 @@ T2CFuncBodyDriver::_get_arguments(const I2CIntegral& integral) const
     }
     
     return label;
+}
+
+std::string
+T2CFuncBodyDriver::_get_arguments(const I2CIntegral&   integral,
+                                  const SI2CIntegrals& integrals) const
+{
+    auto label = std::to_string(_get_position(integral, integrals)) + ", ";
+    
+    for (const auto& tint : t2c::get_integrals(integral))
+    {
+        label += std::to_string(_get_position(tint, integrals)) + ", ";
+    }
+    
+    return label;
+}
+
+size_t
+T2CFuncBodyDriver::_get_position(const I2CIntegral&   integral,
+                                 const SI2CIntegrals& integrals) const
+{
+    size_t pos = 0;
+    
+    for (const auto& tint : integrals)
+    {
+        if (tint == integral) return pos;
+        
+        pos += tint.components<T1CPair, T1CPair>().size();
+    }
+    
+    return 0;
+}
+
+bool
+T2CFuncBodyDriver::_need_center_p(const I2CIntegral& integral) const
+{
+    const auto integrand = integral.integrand();
+    
+    if (integrand.name() == "r") return true;
+    
+    if (integrand.name() == "A") return true;
+    
+    if (integrand.name() == "AG") return true;
+    
+    return false;
+}
+
+bool
+T2CFuncBodyDriver::_need_distances_pc(const I2CIntegral& integral) const
+{
+    const auto integrand = integral.integrand();
+    
+    if (integrand.name() == "r") return true;
+    
+    if (integrand.name() == "A") return true;
+    
+    if (integrand.name() == "AG") return true;
+    
+    return false;
+}
+
+bool
+T2CFuncBodyDriver::_need_boys_func(const I2CIntegral& integral) const
+{
+    const auto integrand = integral.integrand();
+        
+    if (integrand.name() == "A") return true;
+    
+    if (integrand.name() == "AG") return true;
+    
+    return false;
 }
