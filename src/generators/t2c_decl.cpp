@@ -37,11 +37,6 @@ T2CDeclDriver::write_func_decl(      std::ofstream&         fstream,
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_special_variables_str(integral, rec_form))
-    {
-        lines.push_back({0, 0, 1, label});
-    }
-    
     for (const auto& label : _get_gto_blocks_str(integral, rec_form, diagonal))
     {
         lines.push_back({0, 0, 1, label});

@@ -28,6 +28,13 @@
 // Two-center compute function body generators for CPU.
 class T2CFuncBodyDriver
 {
+    /// Generates vector of strings with external data definitions in compute function.
+    /// @param integral The base two center integral.
+    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+    /// @return The vector of strings with external data definitions in compute function.
+    std::vector<std::string> _get_external_data_def(const I2CIntegral&           integral,
+                                                    const std::pair<bool, bool>& rec_form) const;
+    
     /// Generates vector of strings with GTOs definitions in compute function.
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @return The vector of strings with GTOS definitions in compute function.
@@ -75,10 +82,12 @@ class T2CFuncBodyDriver
     /// Adds ket loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param integral The base two center integral.
+    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
     /// @param diagonal The flag to indicate diagonal or full form of compute function.
-    void _add_ket_loop_start(      VCodeLines&  lines,
-                             const I2CIntegral& integral,
-                             const bool         diagonal) const;
+    void _add_ket_loop_start(      VCodeLines&            lines,
+                             const I2CIntegral&           integral,
+                             const std::pair<bool, bool>& rec_form,
+                             const bool                   diagonal) const;
     
     /// Adds ket loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.

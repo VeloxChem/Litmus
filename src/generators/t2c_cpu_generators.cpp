@@ -87,7 +87,7 @@ T2CCPUGenerator::_is_available(const std::string& label) const
 {
     if (fstr::lowercase(label) == "overlap") return true;
 
-    if (fstr::lowercase(label) == "dipole moment") return true;
+    if (fstr::lowercase(label) == "dipole momentum") return true;
     
     if (fstr::lowercase(label) == "kinetic energy") return true;
     
@@ -142,9 +142,8 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
 
     // dipole moment integrals
 
-    if (fstr::lowercase(label) == "dipole moment")
+    if (fstr::lowercase(label) == "dipole momentum")
     {
-    /// Operator takes one or two arguments; first name, then optionally rank of tensor associated with operator
         return I2CIntegral(bra, ket, Operator("r", Tensor(1)), 0, prefixes);
     }
 
@@ -202,7 +201,7 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral,
         }
     }
 
-    // Dipole moment integrals
+    // Dipole momentum integrals
 
     if (integral.integrand() == Operator("r", Tensor(1)))
     {

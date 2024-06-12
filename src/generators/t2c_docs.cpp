@@ -35,22 +35,10 @@ T2CDocuDriver::write_doc_str(      std::ofstream&         fstream,
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_special_variables_str(integral, rec_form))
-    {
-        lines.push_back({0, 0, 1, label});
-    }
-    
-    // TODO: Add special variables here
-    
     for (const auto& label : _get_gto_blocks_str(integral, diagonal))
     {
         lines.push_back({0, 0, 1, label});
     }
-    
-//    for (const auto& label : _get_distributor_variables_str(integral, diagonal))
-//    {
-//        lines.push_back({0, 0, 1, label});
-//    }
     
     for (const auto& label : _get_indices_str(diagonal))
     {
@@ -129,7 +117,6 @@ T2CDocuDriver::_get_special_variables_str(const I2CIntegral& integral,
         }
     }
 
-    // MR: Need to add these comments too for proper documentation
     if (integrand.name() == "r")
     {
         vstr.push_back("/// - Parameter coord_x: the vector of Cartesian X coordinate of external origin.");

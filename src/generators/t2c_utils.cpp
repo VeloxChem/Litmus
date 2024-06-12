@@ -93,17 +93,17 @@ integral_label(const I2CIntegral& integral)
         
         if (iorder == 1)
         {
-            return "Dipole";
+            return "ElectricDipoleMomentum";
         }
         
         if (iorder == 2)
         {
-            return "Quadrupole";
+            return "ElectricQuadrupoleMomentum";
         }
         
         if (iorder == 3)
         {
-            return "Octupole";
+            return "ElectricOctupoleMomentum";
         }
     }
     
@@ -149,7 +149,7 @@ integral_split_label(const I2CIntegral& integral)
 
     if (integrand.name() == "r")
     {
-        return "Dipole";
+        return "Electric_Dipole_Momentum";
     }
 
     if (integrand.name() == "p")
