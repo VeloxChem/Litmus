@@ -118,7 +118,7 @@ T2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const
     
     if ((integral[0] + integral[1]) > 0)
     {
-        if (integral.integrand().name() == "A")
+        if ((integral.integrand().name() == "A") || (integral.integrand().name() == "AG"))
         {
             vstr.push_back("/// - Parameter pc_x: the vector of Cartesian X distances R(PC) = P - C.");
                            
@@ -134,13 +134,23 @@ T2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const
         {
             vstr.push_back("/// - Parameter bf_values: the vector of Boys function values.");
         }
-        else
+       
+        if ((integral.integrand().name() == "1") || (integral.integrand().name() == "T"))
         {
             vstr.push_back("/// - Parameter ab_x: the vector of Cartesian X distances R(AB) = A - B.");
                            
             vstr.push_back("/// - Parameter ab_y: the vector of Cartesian Y distances R(AB) = A - B.");
                                           
             vstr.push_back("/// - Parameter ab_z: the vector of Cartesian Z distances R(AB) = A - B.");
+        }
+        
+        if (integral.integrand().name() == "AG")
+        {
+            vstr.push_back("/// - Parameter pc_x: the vector of Cartesian X distances R(PC) = P - C.");
+                           
+            vstr.push_back("/// - Parameter pc_y: the vector of Cartesian Y distances R(PC) = P - C.");
+                                          
+            vstr.push_back("/// - Parameter pc_z: the vector of Cartesian Z distances R(PC) = P - C.");
         }
     }
    

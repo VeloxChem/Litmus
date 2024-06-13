@@ -28,20 +28,17 @@ T2CElectricFieldDriver::T2CElectricFieldDriver()
 bool
 T2CElectricFieldDriver::is_electric_field(const R2CTerm& rterm) const
 {
-    /// Is this not geometrically differentiated?
     if (!(rterm.prefixes()).empty())
     {
         return false;
     }
 
-    /// Is this not an electric field integral?
-    if (const auto integrand = rterm.integrand(); integrand.name() != "A1")
+    if (const auto integrand = rterm.integrand(); integrand.name() != "AG")
     {
         return false;
     }
     else
     {
-        // Is this not a scalar?
         if (integrand.shape() != TensorComponent(0, 0, 0))
         {
             return true;

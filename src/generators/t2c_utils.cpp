@@ -51,13 +51,11 @@ integral_label(const I2CIntegral& integral)
         if (nterms >= 2) korder = std::to_string(prefixes[1].shape().order());
     }
     
-    // std::string suffix = "Geom" + border + iorder  + korder;
-    
-    std::string suffix = "Geom" + border + korder;
+    std::string suffix = "Geom" + border + iorder  + korder;
     
     if (integrand.name() == "AG")
     {
-        return "NuclearPotentialGeom" + suffix;
+        return (prefixes.empty()) ? "NuclearPotentialGeom0" + iorder + "0" : "NuclearPotential" + suffix;
     }
     
     if (integrand.name() == "A")
@@ -132,7 +130,7 @@ integral_split_label(const I2CIntegral& integral)
 {
     const auto integrand = integral.integrand();
     
-    if (integrand.name() == "A")
+    if ((integrand.name() == "A") || (integrand.name() == "AG"))
     {
         return "Nuclear_Potential";
     }
@@ -173,12 +171,7 @@ namespace_label(const I2CIntegral& integral)
     
     const auto iorder = std::to_string(integrand.shape().order());
     
-    if (integrand.name() == "AG")
-    {
-        return "npotg0" + iorder + "0rec";
-    }
-    
-    if (integrand.name() == "A")
+    if ((integrand.name() == "A") || (integrand.name() == "AG"))
     {
         return "npotrec";
     }
@@ -243,11 +236,6 @@ integrand_label(const Operator& integrand)
     }
 
     if ((iname == "p") && (iorder != "1"))
-    {
-        return iname + "^" + iorder;
-    }
-
-    if ((iname == "A1") && (iorder != "1"))
     {
         return iname + "^" + iorder;
     }
@@ -319,13 +307,20 @@ compute_func_name(const I2CIntegral&           integral,
     
     auto tint_prefixes = integral.prefixes();
     
-    if (!tint_prefixes.empty())
+    if ((!tint_prefixes.empty()) || (integral.integrand().name() == "AG"))
     {
         geom_label += "_geom";
         
-        for (const auto& tint_prefix : tint_prefixes)
+        if (integral.integrand().name() == "AG")
         {
-            geom_label += std::to_string(tint_prefix.shape().order());
+            geom_label += "0" + std::to_string(integral.integrand().shape().order()) + "0";
+        }
+        else
+        {
+            for (const auto& tint_prefix : tint_prefixes)
+            {
+                geom_label += std::to_string(tint_prefix.shape().order());
+            }
         }
     }
         
@@ -357,7 +352,7 @@ get_buffer_label(const I2CIntegral& integral,
     if (integral.integrand().name() == "T") label += "kin_";
 
     if (integral.integrand().name() == "r") label += "dip_";
-
+    
     if (integral.integrand().name() == "p") label += "linmom_";
 
     if (integral.integrand().name() == "A1")
@@ -402,9 +397,9 @@ get_index_label(const I2CIntegral& integral)
 
     if (integral.integrand().name() == "p") label += "linmom_";
 
-    if (integral.integrand().name() == "A1")
+    if (integral.integrand().name() == "AG")
     {
-        label += "el_field_A" + std::to_string(integral.integrand().shape().order()) + "_" + std::to_string(integral.order()) + "_";
+        label += "npot_geom0" + std::to_string(integral.integrand().shape().order()) + "0_" + std::to_string(integral.order()) + "_";
     }
 
     if (integral.integrand().name() == "A")
@@ -424,13 +419,20 @@ prim_compute_func_name(const I2CIntegral& integral)
     
     auto tint_prefixes = integral.prefixes();
     
-    if (!tint_prefixes.empty())
+    if ((!tint_prefixes.empty()) || (integral.integrand().name() == "AG"))
     {
         geom_label += "_geom";
         
-        for (const auto& tint_prefix : tint_prefixes)
+        if (integral.integrand().name() == "AG")
         {
-            geom_label += std::to_string(tint_prefix.shape().order());
+            geom_label += "0" + std::to_string(integral.integrand().shape().order()) + "0";
+        }
+        else
+        {
+            for (const auto& tint_prefix : tint_prefixes)
+            {
+                geom_label += std::to_string(tint_prefix.shape().order());
+            }
         }
     }
     
@@ -560,7 +562,7 @@ get_integrals(const I2CIntegral& integral)
         }
     }
 
-    if (integral.integrand().name() == "A1")
+    if (integral.integrand().name() == "AG")
     {
         V2IElectricFieldDriver el_field_drv;
 

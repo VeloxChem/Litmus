@@ -130,6 +130,70 @@ T2CFuncBodyDriver::_get_external_data_def(const I2CIntegral&           integral,
         vstr.push_back("const double coord_z = distributor->coordinates_z()[0];");
     }
     
+    if ((integral.integrand().name() == "AG"))
+    {
+        const auto iorder = integral.integrand().shape().order();
+        
+        if (rec_form.first)
+        {
+            if (iorder == 1)
+            {
+                vstr.push_back("// intialize external dipoles data");
+                
+                vstr.push_back("const auto dipoles = distributor->data();");
+            }
+            
+            if (iorder == 2)
+            {
+                vstr.push_back("// intialize external quadrupoles data");
+                
+                vstr.push_back("const auto quadrupoles = distributor->data();");
+            }
+            
+            if (iorder == 3)
+            {
+                vstr.push_back("// intialize external octupoles data");
+                
+                vstr.push_back("const auto quadrupoles = distributor->data();");
+            }
+           
+            vstr.push_back("const auto coords_x = distributor->coordinates_x();");
+            
+            vstr.push_back("const auto coords_y = distributor->coordinates_y();");
+            
+            vstr.push_back("const auto coords_z = distributor->coordinates_z();");
+        }
+        else
+        {
+            if (iorder == 1)
+            {
+                vstr.push_back("// intialize external dipole data");
+                
+                vstr.push_back("const auto dipole = distributor->data();");
+            }
+            
+            if (iorder == 2)
+            {
+                vstr.push_back("// intialize external quadrupole data");
+                
+                vstr.push_back("const auto quadrupole = distributor->data();");
+            }
+            
+            if (iorder == 3)
+            {
+                vstr.push_back("// intialize external octupole data");
+                
+                vstr.push_back("const auto quadrupole = distributor->data();");
+            }
+            
+            vstr.push_back("const double coord_x = distributor->coordinates_x()[0];");
+            
+            vstr.push_back("const double coord_y = distributor->coordinates_y()[0];");
+            
+            vstr.push_back("const double coord_z = distributor->coordinates_z()[0];");
+        }
+    }
+    
     return vstr;
 }
 
@@ -590,8 +654,18 @@ T2CFuncBodyDriver::_add_sum_loop_start(      VCodeLines&            lines,
 {
     if (rec_form.first)
     {
-        lines.push_back({3, 0, 1, "for (size_t k = 0; k < charges.size(); k++)"});
+        if (integral.integrand().name() == "A")
+        {
+            lines.push_back({3, 0, 1, "for (size_t k = 0; k < charges.size(); k++)"});
+        }
+        
+        if (integral.integrand().name() == "AG")
+        {
+            lines.push_back({3, 0, 2, "const auto ncenters = coords_x.size();"});
             
+            lines.push_back({3, 0, 1, "for (size_t k = 0; k < ncenters; k++)"});
+        }
+       
         lines.push_back({3, 0, 1, "{"});
        
         if (_need_distances_pc(integral))
@@ -621,9 +695,18 @@ T2CFuncBodyDriver::_add_sum_loop_end(      VCodeLines&            lines,
         
         label += std::to_string(_get_position(integral, integrals)) + ", ";
         
-        if ((integral.integrand().name() == "A") || (integral.integrand().name() == "AG"))
+        if (integral.integrand().name() == "A")
         {
             label += "charges[k], ";
+        }
+        
+        if (integral.integrand().name() == "AG")
+        {
+            const auto iorder = integral.integrand().shape().order();
+            
+            if (iorder == 1) label += "dipoles, 3, k, ";
+            
+            if (iorder == 2) label += "quadrupoles, 3, k, ";
         }
         
         if (diagonal)
@@ -682,29 +765,6 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
             {
                 lines.push_back({3, 0, 2, "linmomrec::comp_prim_dipole_ss(prim_buffer_dip_ss, prim_buffer_ovl_ss);"});
             }
-
-            if ((tint.integrand().name() == "A1"))
-            {
-
-            //  then also pc coords
-                if (rec_form.first && in_sum_loop)
-                {
-
-                    const auto label = std::to_string(tint.order());
-                    const auto adiff = std::to_string(tint.integrand().shape().order());
-                    const auto atot = std::stoi(label) + std::stoi(adiff);
-
-                    auto bf_str =  "bf_values[" + std::to_string(atot) + "], ";
-
-                    for (int bind = 1; bind < std::stoi(adiff); bind++)
-                    {
-                        int atot_extra = atot - bind;
-                        bf_str = bf_str + "bf_values[" + std::to_string(atot_extra) + "], ";
-                    }
-
-                    lines.push_back({spacer, 0, 2, "elfield" + adiff + "rec::comp_prim_electric_field_ss(prim_buffer_elfield_A" + adiff + "_" + label + "_ss, prim_buffer_ovl_ss, " + bf_str + "pc_x[0], pc_y[0], pc_z[0], a_exp, b_exps[0]);"});
-                }
-            }
             
             if ((tint.integrand().name() == "A"))
             {
@@ -715,6 +775,42 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
                     const auto label = std::to_string(_get_position(tint, integrals)) + ", " + std::to_string(_get_position(sint, integrals));
                     
                     lines.push_back({spacer, 0, 2, "npotrec::comp_prim_nuclear_potential_ss(pbuffer, " + label + ", bf_values[" + std::to_string(tint.order()) + "], a_exp, b_exps[0]);"});
+                }
+            }
+            
+            if ((tint.integrand().name() == "AG"))
+            {
+                const auto iorder = tint.integrand().shape().order();
+                
+                if (rec_form.first && in_sum_loop)
+                {
+                    if (iorder == 1)
+                    {
+                        auto xint = tint.replace(Operator("A"));
+                        
+                        auto label = std::to_string(_get_position(tint, integrals)) + ", ";
+                        
+                        xint.set_order(tint.order() + 1);
+                        
+                        label += std::to_string(_get_position(xint, integrals));
+                        
+                        lines.push_back({spacer, 0, 2, "npotrec::comp_prim_nuclear_potential_geom010_ss(pbuffer, " + label + ", pc_x[0], pc_y[0], pc_z[0], a_exp, b_exps[0]);"});
+                    }
+                    
+                    if (iorder == 2)
+                    {
+                        auto xint = tint.replace(Operator("A"));
+                        
+                        auto label = std::to_string(_get_position(tint, integrals)) + ", ";
+                        
+                        label += std::to_string(_get_position(xint, integrals)) + ", ";
+                        
+                        xint.set_order(tint.order() + 2);
+                        
+                        label += std::to_string(_get_position(xint, integrals));
+                        
+                        lines.push_back({spacer, 0, 2, "npotrec::comp_prim_nuclear_potential_geom020_ss(pbuffer, " + label + ", pc_x[0], pc_y[0], pc_z[0], a_exp, b_exps[0]);"});
+                    }
                 }
             }
             
@@ -745,7 +841,7 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
             
             if (tint[0] > 0)
             {
-                if ((tint[0] == 1) && (tint[1] == 0) && (tint.integrand().name() != "T") && (tint.integrand().name() != "A") && (tint.integrand().name() != "A1"))
+                if ((tint[0] == 1) && (tint[1] == 0) && (tint.integrand().name() != "T") && (tint.integrand().name() != "A") && (tint.integrand().name() != "AG"))
                 {
                     label += "pa_x[0], pa_y[0], pa_z[0]";
                 }
@@ -757,7 +853,7 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
             
             if ((tint[1] > 0) && (tint[0] == 0))
             {
-                if ((tint[1] == 1) && (tint[0] == 0) && (tint.integrand().name() != "T") && (tint.integrand().name() != "A") && (tint.integrand().name() != "A1"))
+                if ((tint[1] == 1) && (tint[0] == 0) && (tint.integrand().name() != "T") && (tint.integrand().name() != "A") && (tint.integrand().name() != "AG"))
                 {
                     label += "pb_x[0], pb_y[0], pb_z[0]";
                 }
@@ -780,8 +876,7 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
                 }
             }
 
-            // Magnus code
-            if (tint.integrand().name() == "A1")
+            if (tint.integrand().name() == "AG")
             {
                 if ((tint[0] + tint[1]) > 1)
                 {

@@ -46,8 +46,8 @@ public:
 
     /// Applies vertical recursion to auxilary nuclear potential integral.
     /// @param integral The  overlap integral.
-    /// @return The integral.
-    I2CIntegral aux_vrr(const I2CIntegral& integral) const;
+    /// @return The set of integral.
+    SI2CIntegrals aux_vrr(const I2CIntegral& integral) const;
 
     /// Applies vertical recursion to bra side of nuclear potential integral.
     /// @param integral The  overlap integral.

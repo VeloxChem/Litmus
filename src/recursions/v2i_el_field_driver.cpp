@@ -26,7 +26,7 @@ V2IElectricFieldDriver::is_electric_field(const I2CIntegral& integral) const
         return false;
     }
 
-    if (integral.integrand().name() != "A1")
+    if (integral.integrand().name() != "AG")
     {
         return false;
     }
@@ -156,21 +156,47 @@ V2IElectricFieldDriver::ket_vrr(const I2CIntegral& integral) const
     return tints;
 }
 
-I2CIntegral
+SI2CIntegrals
 V2IElectricFieldDriver::aux_vrr(const I2CIntegral& integral) const
 {
+    SI2CIntegrals tints;
+    
     if ((integral[0] + integral[1]) == 0)
     {
-        auto xint = integral.replace(Operator("1"));
+        const auto iorder = integral.order();
+        
+        if (integral.integrand().shape() == Tensor(1))
+        {
+            auto xint = integral.replace(Operator("A"));
+            
+            xint.set_order(iorder + 1);
+            
+            tints.insert(xint);
+        }
+        
+        if (integral.integrand().shape() == Tensor(2))
+        {
+            auto xint = integral.replace(Operator("A"));
+            
+            xint.set_order(iorder + 1);
+            
+            tints.insert(xint);
+            
+            xint.set_order(iorder + 2);
+            
+            tints.insert(xint);
+        }
+        
+        // TODO: Add higher orders here
+        
+        auto sint = integral.replace(Operator("1"));
 
-        xint.set_order(0);
+        sint.set_order(0);
 
-        return xint;
+        tints.insert(sint);
     }
-    else
-    {
-        return integral;
-    }
+    
+    return tints;
 }
 
 SI2CIntegrals
@@ -281,15 +307,19 @@ V2IElectricFieldDriver::apply_recursion(const SI2CIntegrals& integrals) const
                     for (const auto& ctint : ctints)
                     {
                         tints.insert(ctint);
-
-                        tints.insert(aux_vrr(ctint));
+                        
+                        const auto xints = aux_vrr(ctint);
+                        
+                        tints.insert(xints.cbegin(), xints.cend());
                     }
                 }
                 else
                 {
                     tints.insert(bintegral);
-
-                    tints.insert(aux_vrr(bintegral));
+                    
+                    const auto xints = aux_vrr(bintegral);
+                    
+                    tints.insert(xints.cbegin(), xints.cend());
                 }
             }
             else

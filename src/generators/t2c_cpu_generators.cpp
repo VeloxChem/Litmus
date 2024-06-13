@@ -94,8 +94,6 @@ T2CCPUGenerator::_is_available(const std::string& label) const
     if (fstr::lowercase(label) == "nuclear potential") return true;
 
     if (fstr::lowercase(label) == "linear momentum") return true;
-
-    if (fstr::lowercase(label) == "electric field") return true;
         
     return false;
 }
@@ -154,18 +152,25 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
         return I2CIntegral(bra, ket, Operator("p", Tensor(1)), 0, prefixes);
     }
 
-    // nuclear potential integrals
+    // nuclear potential integrals and it's operator derivatives
     
     if (fstr::lowercase(label) == "nuclear potential")
     {
-        return I2CIntegral(bra, ket, Operator("A"), 0, prefixes);
-    }
-
-    // electric field integrals
-
-    if (fstr::lowercase(label) == "electric field")
-    {
-        return I2CIntegral(bra, ket, Operator("A1", Tensor(geom_drvs[1])), 0, prefixes);
+        if (geom_drvs[1] == 0)
+        {
+            return I2CIntegral(bra, ket, Operator("A"), 0, prefixes);
+        }
+        else
+        {
+            if ((geom_drvs[0] + geom_drvs[2]) > 0)
+            {
+                return I2CIntegral(bra, ket, Operator("AG", Tensor(geom_drvs[1])), 0, prefixes);
+            }
+            else
+            {
+                return I2CIntegral(bra, ket, Operator("AG", Tensor(geom_drvs[1])));
+            }
+        }
     }
     
     return I2CIntegral();
@@ -173,8 +178,8 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
 
 // MR: Changes here for new integral cases
 SI2CIntegrals
-T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral,
-                               const std::array<int, 3>& geom_drvs) const
+T2CCPUGenerator::_generate_integral_group(const I2CIntegral&        integral,
+                                          const std::array<int, 3>& geom_drvs) const
 {
     SI2CIntegrals tints;
 
@@ -259,7 +264,7 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral,
 
         V2IOverlapDriver ovl_drv;
 
-            tints = ovl_drv.create_recursion(tints);
+        tints = ovl_drv.create_recursion(tints);
     }
     
     // Nuclear potential integrals
@@ -279,15 +284,20 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral& integral,
         }
     }
 
-
-    if (integral.integrand() == Operator("A1", Tensor(geom_drvs[1])))
+    if (integral.integrand() == Operator("AG", integral.integrand().shape()))
     {
-
         V2IElectricFieldDriver el_field_drv;
 
         if (integral.is_simple())
         {
             tints = el_field_drv.create_recursion({integral,});
+            
+            std::cout << "** DEBUG: Electric Field Integrals " << integral.label() << " : " << integral.integrand().name() << " **" << std::endl;
+            
+           for (const auto& tint : tints)
+           {
+               std::cout << tint.label() << " : " << tint.integrand().name() << " : "<< tint.order() << " Shape: " << tint.integrand().shape().order() << std::endl;
+           }
         }
         else
         {
@@ -397,12 +407,23 @@ T2CCPUGenerator::_write_hpp_includes(      std::ofstream&         fstream,
     
     lines.push_back({0, 0, 1, "#include \"SimdArray.hpp\""});
     
+    SI2CIntegrals rints;
+    
     for (const auto& tint : integrals)
     {
-        lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(tint) + ".hpp\""});
+        auto rint = tint;
+        
+        rint.set_order(0);
+        
+        rints.insert(rint);
     }
     
-    if ((integral.integrand().name() == "A") || (integral.integrand().name() == "A1"))
+    for (const auto& rint : rints)
+    {
+        lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(rint) + ".hpp\""});
+    }
+    
+    if ((integral.integrand().name() == "A") || (integral.integrand().name() == "AG"))
     {
         lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
     }
@@ -484,12 +505,23 @@ T2CCPUGenerator::_write_cpp_includes(      std::ofstream&         fstream,
     
     lines.push_back({0, 0, 1, "#include \"SimdArray.hpp\""});
     
+    SI2CIntegrals rints;
+    
     for (const auto& tint : integrals)
     {
-        lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(tint) + ".hpp\""});
+        auto rint = tint;
+        
+        rint.set_order(0);
+        
+        rints.insert(rint);
     }
     
-    if (integral.integrand().name() == "A" || integral.integrand().name() == "A1")
+    for (const auto& rint : rints)
+    {
+        lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(rint) + ".hpp\""});
+    }
+    
+    if (integral.integrand().name() == "A" || integral.integrand().name() == "AG")
     {
         lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
     }
