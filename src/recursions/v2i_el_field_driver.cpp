@@ -188,12 +188,6 @@ V2IElectricFieldDriver::aux_vrr(const I2CIntegral& integral) const
         }
         
         // TODO: Add higher orders here
-        
-        auto sint = integral.replace(Operator("1"));
-
-        sint.set_order(0);
-
-        tints.insert(sint);
     }
     
     return tints;

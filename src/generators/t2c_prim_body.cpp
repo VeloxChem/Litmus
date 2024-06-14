@@ -183,7 +183,7 @@ T2CPrimFuncBodyDriver::_get_tensor_label(const I2CIntegral& integral) const
 
     if (integral.integrand().name() == "p") label = "tp";
 
-    if (integral.integrand().name() == "A1") label = "ta1";
+    if (integral.integrand().name() == "AG") label = "ta" + std::to_string(integral.integrand().shape().order());
 
     return label;
 }
@@ -204,7 +204,7 @@ T2CPrimFuncBodyDriver::_get_tensor_label(const T2CIntegral& integral) const
 
     if (integral.integrand().name() == "p") label = "tp";
 
-    if (integral.integrand().name() == "A1") label = "ta1";
+    if (integral.integrand().name() == "AG") label = "ta" + std::to_string(integral.integrand().shape().order());
 
     return label;
 }
@@ -369,8 +369,6 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
                 return geom_drv.apply_bra_ket_vrr(integral, 0);
             }
         }
-
-
     }
 
 
@@ -441,7 +439,7 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
         }
     }
 
-    if (integral.integrand().name() == "A1")
+    if (integral.integrand().name() == "AG")
     {
         T2CElectricFieldDriver el_field_drv;
 
@@ -533,7 +531,7 @@ T2CPrimFuncBodyDriver::_get_component_label(const T2CIntegral& integral) const
         label += "_" + std::to_string(integral.order());
     }
 
-    if (integral.integrand().name() == "A1")
+    if (integral.integrand().name() == "AG")
     {
         label += "_" + std::to_string(integral.order());
     }

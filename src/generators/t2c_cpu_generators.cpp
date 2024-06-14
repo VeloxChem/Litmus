@@ -271,7 +271,6 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral&        integral,
     
     if (integral.integrand() == Operator("A"))
     {
-
         V2INuclearPotentialDriver npot_drv;
         
         if (integral.is_simple())
@@ -291,17 +290,21 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral&        integral,
         if (integral.is_simple())
         {
             tints = el_field_drv.create_recursion({integral,});
-            
-            std::cout << "** DEBUG: Electric Field Integrals " << integral.label() << " : " << integral.integrand().name() << " **" << std::endl;
-            
-           for (const auto& tint : tints)
-           {
-               std::cout << tint.label() << " : " << tint.integrand().name() << " : "<< tint.order() << " Shape: " << tint.integrand().shape().order() << std::endl;
-           }
         }
         else
         {
             tints = el_field_drv.create_recursion(tints);
+        }
+        
+        V2INuclearPotentialDriver npot_drv;
+        
+        tints = npot_drv.create_recursion(tints);
+        
+        std::cout << "** DEBUG: Electric Field Integrals " << integral.label() << " : " << integral.integrand().name() << " **" << std::endl;
+        
+        for (const auto& tint : tints)
+        {
+           std::cout << tint.label() << " : " << tint.integrand().name() << " : "<< tint.order() << " Shape: " << tint.integrand().shape().order() << std::endl;
         }
     }
     

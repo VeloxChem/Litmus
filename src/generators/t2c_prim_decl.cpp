@@ -98,7 +98,7 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
             (integral[1] == 0)                   &&
             (integral.integrand().name() != "T") &&
             (integral.integrand().name() != "A") &&
-            (integral.integrand().name() != "A1") &&
+            (integral.integrand().name() != "AG") &&
             (integral.integrand().name() != "r"))
         {
             vstr.push_back(spacer + "const double* pa_z) -> void" + tsymbol);
@@ -119,7 +119,7 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
             (integral[1] == 1)                   &&
             (integral.integrand().name() != "T") &&
             (integral.integrand().name() != "A") &&
-            (integral.integrand().name() != "A1") &&
+            (integral.integrand().name() != "AG") &&
             (integral.integrand().name() != "r"))
         {
             vstr.push_back(spacer + "const double* pb_z) -> void" + tsymbol);
@@ -130,7 +130,7 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
         }
     }
     
-    if (((integral.integrand().name() == "A") || (integral.integrand().name() == "A1")) && ((integral[0] + integral[1]) != 0))
+    if (((integral.integrand().name() == "A") || (integral.integrand().name() == "AG")) && ((integral[0] + integral[1]) != 0))
     {
         vstr.push_back(spacer + "const double* pc_x,");
         
@@ -148,7 +148,7 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
     
     if ((integral[0] + integral[1]) == 0)
     {
-        if (((integral.integrand().name() == "A") || (integral.integrand().name() == "A1")))
+        if (integral.integrand().name() == "A")
         {
             const auto label = std::to_string(integral.order());
             const auto adiff = std::to_string(integral.integrand().shape().order());
@@ -161,10 +161,9 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
                 int atot_extra = atot - bind;
                 vstr.push_back(spacer + "const double* bf_values_" + std::to_string(atot_extra) +  ", ");
             }
-
-
         }
-        else
+        
+        if ((integral.integrand().name() != "A") && (integral.integrand().name() != "AG"))
         {
             vstr.push_back(spacer + "const double* ab_x,");
             
@@ -173,10 +172,12 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
             vstr.push_back(spacer + "const double* ab_z,");
         }
 
-        if (integral.integrand().name() == "A1")
+        if (integral.integrand().name() == "AG")
         {
             vstr.push_back(spacer + "const double* pc_x,");
+            
             vstr.push_back(spacer + "const double* pc_y,");
+            
             vstr.push_back(spacer + "const double* pc_z,");
         }
     }
