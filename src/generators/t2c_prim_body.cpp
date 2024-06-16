@@ -228,7 +228,7 @@ T2CPrimFuncBodyDriver::_add_recursion_loop(      VCodeLines&         lines,
     
     lines.push_back({1, 0, 1, "#pragma omp simd aligned(" + var_str + " : 64)"});
     
-    lines.push_back({1, 0, 1, "for (size_t i = 0; i < ndims; i++)"});
+    lines.push_back({1, 0, 1, "for (int i = 0; i < ndims; i++)"});
     
     lines.push_back({1, 0, 1, "{"});
     

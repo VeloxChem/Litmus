@@ -656,15 +656,15 @@ T2CFuncBodyDriver::_add_sum_loop_start(      VCodeLines&            lines,
     {
         if (integral.integrand().name() == "A")
         {
-            lines.push_back({3, 0, 1, "for (size_t k = 0; k < charges.size(); k++)"});
+            lines.push_back({3, 0, 2, "const auto ncenters = static_cast<int>(charges.size());"});
         }
         
         if (integral.integrand().name() == "AG")
         {
-            lines.push_back({3, 0, 2, "const auto ncenters = coords_x.size();"});
-            
-            lines.push_back({3, 0, 1, "for (size_t k = 0; k < ncenters; k++)"});
+            lines.push_back({3, 0, 2, "const auto ncenters = static_cast<int>(coords_x.size());"});
         }
+        
+        lines.push_back({3, 0, 1, "for (int k = 0; k < ncenters; k++)"});
        
         lines.push_back({3, 0, 1, "{"});
        
