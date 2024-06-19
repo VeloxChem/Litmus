@@ -144,6 +144,10 @@ std::string prim_compute_func_name(const I2CIntegral& integral);
 /// @param integral The base two center integral.
 SI2CIntegrals get_integrals(const I2CIntegral& integral);
 
+/// Gets arguments list for complete geometrical recursion function call.
+/// @param integral The base two center integral.
+SI2CIntegrals get_geom_integrals(const I2CIntegral& integral);
+
 } // t2c namespace
 
 #endif /* t2c_utils_hpp */

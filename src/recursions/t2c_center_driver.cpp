@@ -29,7 +29,7 @@ bool
 T2CCenterDriver::is_auxilary(const R2CTerm& rterm,
                              const int      index) const
 {
-    if (const auto nprefixes = rterm.prefixes().size(); index >= nprefixes)
+    if (rterm.prefixes()[index].shape().order() == 0)
     {
         return true;
     }
@@ -46,7 +46,7 @@ T2CCenterDriver::bra_ket_vrr(const R2CTerm& rterm,
 {
     if (is_auxilary(rterm, index)) return std::nullopt;
     
-    if (const auto tval = rterm.shift_prefix(axis, -1, index, true))
+    if (const auto tval = rterm.shift_prefix(axis, -1, index, false))
     {
         R2CDist t2crt(rterm);
         

@@ -27,6 +27,7 @@
 #include "v2i_linmom_driver.hpp"
 #include "v2i_el_field_driver.hpp"
 #include "v2i_center_driver.hpp"
+#include "t2c_center_driver.hpp"
 
 namespace t2c { // t2c namespace
 
@@ -582,6 +583,28 @@ get_integrals(const I2CIntegral& integral)
     }
 
 
+    return tints;
+}
+
+SI2CIntegrals
+get_geom_integrals(const I2CIntegral& integral)
+{
+    R2Group rgroup;
+        
+    T2CCenterDriver t2c_geom_drv;
+        
+    rgroup = t2c_geom_drv.create_recursion(integral.components<T1CPair, T1CPair>());
+    
+    SI2CIntegrals tints;
+    
+    for (size_t i = 0; i < rgroup.expansions(); i++)
+    {
+        for (size_t j = 0; j < rgroup[i].terms(); j++)
+        {
+            tints.insert(I2CIntegral(rgroup[i][j].integral().base()));
+        }
+    }
+    
     return tints;
 }
 
