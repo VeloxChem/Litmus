@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     // 4c: "electron repulsion"
     const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "nuclear potential"});
 
-    const int max_ang_mom = 1;
+    const int max_ang_mom = 4;
 
     // To add new integral
     // (Be careful about scalar vs non-scalar integrals (see dipole for example of non-scalar)
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 
     if (run_type.first == "t2c_cpu")
     {
-        const std::array<int, 3> geom_drvs = {0, 1, 0};
+        const std::array<int, 3> geom_drvs = {0, 2, 0};
         
         const auto rec_form = std::pair<bool, bool>({true, false});
 
