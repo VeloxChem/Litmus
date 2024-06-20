@@ -44,34 +44,42 @@ class T2CGeomDerivCPUGenerator
     /// Writes header file for recursion.
     /// @param geom_integrals The set of unique integrals for geometrical recursion.
     /// @param integral The base two center integral.
-//    void _write_cpp_header(const SI4CIntegrals& geom_integrals,
-//                           const I4CIntegral&   integral) const;
+    /// @param geom_drvs The geometrical derivative of bra and  ket sides.
+    void _write_cpp_header(const SI2CIntegrals&      geom_integrals,
+                           const I2CIntegral&        integral,
+                           const std::array<int, 3>& geom_drvs) const;
     
     /// Writes definitions of define for header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
+    /// @param geom_drvs The geometrical derivative of bra and  ket sides.
     /// @param start The flag to indicate position of define (start or end).
-//    void _write_hpp_defines(      std::ofstream& fstream,
-//                            const I4CIntegral&   integral,
-//                            const bool           start) const;
+    void _write_hpp_defines(      std::ofstream&      fstream,
+                            const I2CIntegral&        integral,
+                            const std::array<int, 3>& geom_drvs,
+                            const bool                start) const;
     
     /// Writes definitions of includes for header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
-//    void _write_hpp_includes(      std::ofstream& fstream,
-//                             const I4CIntegral&   integral) const;
+    /// @param geom_drvs The geometrical derivative of bra and  ket sides.
+    void _write_hpp_includes(      std::ofstream& fstream,
+                             const I2CIntegral&   integral,
+                             const std::array<int, 3>& geom_drvs) const;
     
     /// Writes namespace definition to file stream.
     /// @param fstream the file stream.
     /// @param start The flag to indicate position of namespace definition (start or end).
-//    void _write_namespace(      std::ofstream& fstream,
-//                          const bool           start) const;
+    void _write_namespace(      std::ofstream& fstream,
+                          const bool           start) const;
     
     /// Writes C++ code file for primtive recursion.
     /// @param geom_integrals The set of unique integrals for geometrical recursion.
     /// @param integral The base four center integral.
-//    void _write_cpp_file(const SI4CIntegrals& geom_integrals,
-//                         const I4CIntegral&   integral) const;
+    /// @param geom_drvs The geometrical derivative of bra and  ket sides.
+    void _write_cpp_file(const SI2CIntegrals&      geom_integrals,
+                         const I2CIntegral&        integral,
+                         const std::array<int, 3>& geom_drvs) const;
     
     /// Writes definitions of includes for primitive header file.
     /// @param fstream the file stream.

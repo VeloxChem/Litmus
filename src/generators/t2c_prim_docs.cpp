@@ -75,17 +75,15 @@ T2CPrimDocuDriver::_get_buffers_str(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    auto label = t2c::get_buffer_label(integral, "prim");
-    
     vstr.push_back("/// - Parameter prim_buffer : the primitive integrals buffer.");
     
-    label = t2c::get_index_label(integral);
+    auto label = t2c::get_index_label(integral);
     
     vstr.push_back("/// - Parameter " + label + ": the index of integral in primitive integrals buffer.");
     
     for (const auto& tint : t2c::get_integrals(integral))
     {
-        auto label = t2c::get_index_label(tint);
+        label = t2c::get_index_label(tint);
         
         vstr.push_back("/// - Parameter " + label + ": the index of integral in primitive integrals buffer.");
     }

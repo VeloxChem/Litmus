@@ -14,52 +14,56 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef t4c_geom_docs_hpp
-#define t4c_geom_docs_hpp
+#ifndef t2c_geom_docs_hpp
+#define t2c_geom_docs_hpp
 
 #include <string>
 #include <vector>
 #include <fstream>
 
-#include "t4c_defs.hpp"
+#include "t2c_defs.hpp"
 
-// Four-center documentation generator for CPU.
-class T4CGeomDocuDriver
+// Two-center documentation generator for CPU.
+class T2CGeomDocuDriver
 {
     /// Generates compute string.
     /// @param integral The base two center integral.
+    /// @param geom_drvs The geometrical derivative of bra and  ket sides.
     /// @return The compute string.
-    std::string _get_compute_str(const I4CIntegral& integral) const;
+    std::string _get_compute_str(const I2CIntegral&        integral,
+                                 const std::array<int, 3>& geom_drvs) const;
     
     /// Generates vector of buffer strings.
     /// @param geom_integrals The set of unique integrals for geometrical recursion.
     /// @param integral The base two center integral.
     /// @return The vector of buffer strings.
-    std::vector<std::string> _get_buffers_str(const SI4CIntegrals& geom_integrals,
-                                              const I4CIntegral& integral) const;
+    std::vector<std::string> _get_buffers_str(const SI2CIntegrals& geom_integrals,
+                                              const I2CIntegral& integral) const;
     
     /// Generates vector of coordinates strings.
     /// @param integral The base two center integral.
     /// @return The vector of coordinates strings.
-    std::vector<std::string> _get_coordinates_str(const I4CIntegral& integral) const;
+    std::vector<std::string> _get_coordinates_str(const I2CIntegral& integral) const;
     
     /// Generates vector of recursion variables strings.
     /// @param integral The base two center integral.
     /// @return The vector of recursion variables strings.
-    std::vector<std::string> _get_recursion_variables_str(const I4CIntegral& integral) const;
+    std::vector<std::string> _get_recursion_variables_str(const I2CIntegral& integral) const;
     
 public:
     /// Creates a primtive four-center documentation generator.
-    T4CGeomDocuDriver() = default;
+    T2CGeomDocuDriver() = default;
     
     /// Writes documentation string for primtive compute function.
     /// @param fstream the file stream.
     /// @param geom_integrals The set of unique integrals for geometrical recursion.
     /// @param integral The base four center integral.
-    void write_doc_str(      std::ofstream& fstream,
-                       const SI4CIntegrals& geom_integrals,
-                       const I4CIntegral&   integral) const;
-    
+    /// @param geom_drvs The geometrical derivative of bra and  ket sides.
+    void write_doc_str(      std::ofstream&      fstream,
+                       const SI2CIntegrals&      geom_integrals,
+                       const I2CIntegral&        integral,
+                       const std::array<int, 3>& geom_drvs) const;
 };
 
-#endif /* t4c_geom_docs_hpp */
+
+#endif /* t2c_geom_docs_hpp */

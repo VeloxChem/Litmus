@@ -217,6 +217,12 @@ namespace_label(const I2CIntegral& integral)
     return std::string();
 }
 
+std::string
+geom_namespace_label()
+{
+    return std::string("t2cgeom");
+}
+
 // MR: Need to amend this for any new integral labels
 // This one is the name of the operator when used in caption/documentation
 std::string
@@ -333,12 +339,32 @@ compute_func_name(const I2CIntegral&           integral,
 std::string
 prim_file_name(const I2CIntegral& integral)
 {
- if (integral.integrand().name() == "A1")
+    if (integral.integrand().name() == "A1")
     {
         return t2c::integral_label(integral) + "_A" + std::to_string(integral.integrand().shape().order()) + "_" + "PrimRec" + integral.label();
     }
 
     return t2c::integral_label(integral) + "PrimRec" + integral.label();
+}
+
+std::string
+geom_file_name(const I2CIntegral& integral,
+               const std::array<int, 3>& geom_drvs)
+{
+    std::string label = "GeometricalDerivatives";
+    
+    // label += "For" + integral.label();
+    
+    if (geom_drvs[2] == 0)
+    {
+        label += std::to_string(geom_drvs[0]) + "X0For" + Tensor(integral[0]).label() + "Y";
+    }
+    else
+    {
+        label += std::to_string(geom_drvs[0]) + "X" + std::to_string(geom_drvs[2]) + "For" + integral.label();
+    }
+     
+    return label;
 }
 
 // May need to amend this for new integral cases
@@ -388,6 +414,26 @@ get_buffer_label(const I2CIntegral& integral,
 std::string
 get_index_label(const I2CIntegral& integral)
 {
+    const auto prefixes = integral.prefixes();
+    
+    std::string geom_label;
+    
+    if (prefixes.size() == 1)
+    {
+        geom_label = "geom" + std::to_string(prefixes[0].shape().order());
+        
+        geom_label += std::to_string(integral.integrand().shape().order()) + "0";
+    }
+    
+    if (prefixes.size() == 2)
+    {
+        geom_label = "geom" + std::to_string(prefixes[0].shape().order());
+        
+        geom_label += std::to_string(integral.integrand().shape().order());
+        
+        geom_label += std::to_string(prefixes[1].shape().order());
+    }
+    
     std::string label = "id_";
     
     if (integral.integrand().name() == "1") label += "ovl_";
@@ -397,6 +443,8 @@ get_index_label(const I2CIntegral& integral)
     if (integral.integrand().name() == "r") label += "dip_";
 
     if (integral.integrand().name() == "p") label += "linmom_";
+    
+    if (integral.integrand().name() == "R") label += "op_";
 
     if (integral.integrand().name() == "AG")
     {
@@ -407,6 +455,8 @@ get_index_label(const I2CIntegral& integral)
     {
         label += "npot_" + std::to_string(integral.order()) + "_";
     }
+    
+    label += geom_label + "_";
     
     label += fstr::lowercase(integral.label());
 

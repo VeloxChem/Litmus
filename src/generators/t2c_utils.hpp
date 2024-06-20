@@ -43,6 +43,10 @@ std::string integral_split_label(const I2CIntegral& integral);
 /// @return The recursion namespace label of standart integral.
 std::string namespace_label(const I2CIntegral& integral);
 
+/// Gets geometrical derrivatives namespace label of standart integral.
+/// @return The recursion namespace label of standart integral.
+std::string geom_namespace_label();
+
 /// Gets label of standart integrand.
 /// @param integrand the integrand operator.
 /// @return The label of standart integrand.
@@ -71,6 +75,13 @@ std::string compute_func_name(const I2CIntegral&           integral,
 /// @param integral The base two center integral.
 /// @return The primitive file name.
 std::string prim_file_name(const I2CIntegral& integral);
+
+/// Generates primitive file name.
+/// @param integral The base two center integral.
+/// @param geom_drvs The geometrical derivative of bra and  ket sides.
+/// @return The primitive file name.
+std::string geom_file_name(const I2CIntegral& integral,
+                           const std::array<int, 3>& geom_drvs);
 
 /// Gets number of Cartesian components in canonical tensor.
 /// @param order the order of canonical tensor.
