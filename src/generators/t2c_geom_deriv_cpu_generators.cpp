@@ -23,6 +23,8 @@
 
 #include "t2c_utils.hpp"
 #include "t2c_geom_docs.hpp"
+#include "t2c_geom_decl.hpp"
+#include "t2c_geom_body.hpp"
 
 void
 T2CGeomDerivCPUGenerator::generate(const int                 max_ang_mom,
@@ -111,11 +113,11 @@ T2CGeomDerivCPUGenerator::_write_cpp_header(const SI2CIntegrals&      geom_integ
 
     T2CGeomDocuDriver docs_drv;
 
-    //T2CGeomDeclDriver decl_drv;
+    T2CGeomDeclDriver decl_drv;
 
     docs_drv.write_doc_str(fstream, geom_integrals, integral, geom_drvs);
 
-    //decl_drv.write_func_decl(fstream, geom_integrals, integral, geom_drvs, true);
+    decl_drv.write_func_decl(fstream, geom_integrals, integral, geom_drvs, true);
 
     fstream << std::endl;
 
@@ -194,21 +196,33 @@ T2CGeomDerivCPUGenerator::_write_cpp_file(const SI2CIntegrals&      geom_integra
         
     fstream.open(fname.c_str(), std::ios_base::trunc);
         
-//    _write_cpp_includes(fstream, integral);
-//
-//    _write_namespace(fstream, true);
-//
-//    T4CGeomDeclDriver decl_drv;
-//
-//    decl_drv.write_func_decl(fstream, geom_integrals, integral, false);
-//
-//    T4CGeomFuncBodyDriver func_drv;
-//
-//    func_drv.write_func_body(fstream, geom_integrals, integral);
-//
-//    fstream << std::endl;
-//
-//    _write_namespace(fstream, false);
+    _write_cpp_includes(fstream, integral, geom_drvs);
+    
+    _write_namespace(fstream, true);
+    
+    T2CGeomDeclDriver decl_drv;
+
+    decl_drv.write_func_decl(fstream, geom_integrals, integral, geom_drvs, false);
+
+    T2CGeomFuncBodyDriver func_drv;
+
+    func_drv.write_func_body(fstream, geom_integrals, integral);
+
+    fstream << std::endl;
+
+    _write_namespace(fstream, false);
         
     fstream.close();
+}
+
+void
+T2CGeomDerivCPUGenerator::_write_cpp_includes(      std::ofstream&      fstream,
+                                              const I2CIntegral&        integral,
+                                              const std::array<int, 3>& geom_drvs) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + t2c::geom_file_name(integral, geom_drvs) +  ".hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
 }

@@ -14,46 +14,52 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef t4c_geom_decl_hpp
-#define t4c_geom_decl_hpp
+#ifndef t2c_geom_decl_hpp
+#define t2c_geom_decl_hpp
 
 #include <string>
 #include <vector>
 #include <fstream>
 #include <utility>
 
-#include "t4c_defs.hpp"
+#include "t2c_defs.hpp"
 
-// Four-center geometrical derivatives functions declaration generator for CPU.
-class T4CGeomDeclDriver
+// Two-center geometrical derivatives functions declaration generator for CPU.
+class T2CGeomDeclDriver
 {
     /// Generates vector of buffer strings.
     /// @param geom_integrals The set of unique integrals for geometrical recursion.
     /// @param integral The base two center integral.
+    /// @param geom_drvs The geometrical derivative of bra and  ket sides.
     /// @return The vector of buffer strings.
-    std::vector<std::string> _get_buffers_str(const SI4CIntegrals& geom_integrals,
-                                              const I4CIntegral&   integral) const;
+    std::vector<std::string> _get_buffers_str(const SI2CIntegrals&      geom_integrals,
+                                              const I2CIntegral&        integral,
+                                              const std::array<int, 3>& geom_drvs) const;
     
     /// Generates vector of recursion variables strings.
     /// @param integral The base two center integral.
+    /// @param geom_drvs The geometrical derivative of bra and  ket sides.
     /// @param terminus The flag to add termination symbol.
     /// @return The vector of recursion variables strings.
-    std::vector<std::string> _get_recursion_variables_str(const I4CIntegral& integral,
-                                                          const bool         terminus) const;
+    std::vector<std::string> _get_recursion_variables_str(const I2CIntegral&        integral,
+                                                          const std::array<int, 3>& geom_drvs,
+                                                          const bool                terminus) const;
     
 public:
     /// Creates a four-center geometrical derivatives functions declaration generator.
-    T4CGeomDeclDriver() = default;
+    T2CGeomDeclDriver() = default;
     
     /// Writes declaration for primitive compute function.
     /// @param fstream the file stream.
     /// @param geom_integrals The set of unique integrals for geometrical recursion.
     /// @param integral The base two center integral.
+    /// @param geom_drvs The geometrical derivative of bra and  ket sides.
     /// @param terminus The flag to add termination symbol.
-    void write_func_decl(      std::ofstream& fstream,
-                         const SI4CIntegrals& geom_integrals,
-                         const I4CIntegral&   integral,
-                         const bool           terminus) const;
+    void write_func_decl(      std::ofstream&      fstream,
+                         const SI2CIntegrals&      geom_integrals,
+                         const I2CIntegral&        integral,
+                         const std::array<int, 3>& geom_drvs,
+                         const bool                terminus) const;
 };
 
-#endif /* t4c_geom_decl_hpp */
+#endif /* t2c_geom_decl_hpp */

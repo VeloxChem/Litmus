@@ -337,6 +337,25 @@ compute_func_name(const I2CIntegral&           integral,
 }
 
 std::string
+geom_compute_func_name(const I2CIntegral&        integral,
+                       const std::array<int, 3>& geom_drvs)
+{
+    std::string label = "comp_geom_deriv_";
+    
+    if (geom_drvs[2] == 0)
+    {
+        label += std::to_string(geom_drvs[0]) + "x0_" + Tensor(integral[0]).label() + "y";
+    }
+    else
+    {
+        label += std::to_string(geom_drvs[0]) + "x" + std::to_string(geom_drvs[2]) + "_" + integral.label();
+    }
+     
+    return fstr::lowercase(label);
+}
+
+
+std::string
 prim_file_name(const I2CIntegral& integral)
 {
     if (integral.integrand().name() == "A1")
@@ -352,8 +371,6 @@ geom_file_name(const I2CIntegral& integral,
                const std::array<int, 3>& geom_drvs)
 {
     std::string label = "GeometricalDerivatives";
-    
-    // label += "For" + integral.label();
     
     if (geom_drvs[2] == 0)
     {
@@ -456,7 +473,7 @@ get_index_label(const I2CIntegral& integral)
         label += "npot_" + std::to_string(integral.order()) + "_";
     }
     
-    label += geom_label + "_";
+    if (!geom_label.empty()) label += geom_label + "_";
     
     label += fstr::lowercase(integral.label());
 

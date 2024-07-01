@@ -71,6 +71,13 @@ std::vector<std::string> integrand_labels(const I2CIntegral& integral,
 std::string compute_func_name(const I2CIntegral&           integral,
                               const std::pair<bool, bool>& rec_form);
 
+/// Generates compute function  name.
+/// @param integral The base two center integral.
+/// @param geom_drvs The geometrical derivative of bra and  ket sides.
+/// @return The geometrical derivative compute function name.
+std::string geom_compute_func_name(const I2CIntegral&        integral,
+                                   const std::array<int, 3>& geom_drvs);
+
 /// Generates primitive file name.
 /// @param integral The base two center integral.
 /// @return The primitive file name.
