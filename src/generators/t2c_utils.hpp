@@ -67,9 +67,11 @@ std::vector<std::string> integrand_labels(const I2CIntegral& integral,
 /// Generates compute function  name.
 /// @param integral The base two center integral.
 /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+/// @param use_rs The flag for use of range-separated Coulomb interactions.
 /// @return The compute function name.
 std::string compute_func_name(const I2CIntegral&           integral,
-                              const std::pair<bool, bool>& rec_form);
+                              const std::pair<bool, bool>& rec_form,
+                              const bool                   use_rs);
 
 /// Generates primitive file name.
 /// @param integral The base two center integral.
@@ -158,6 +160,11 @@ SI2CIntegrals get_integrals(const I2CIntegral& integral);
 /// Gets arguments list for complete geometrical recursion function call.
 /// @param integral The base two center integral.
 SI2CIntegrals get_geom_integrals(const I2CIntegral& integral);
+
+/// Gets effective order of integral along selected center.
+/// @param integral The base two center integral.
+int get_effective_order(const I2CIntegral& integral,
+                        const int          icenter);
 
 } // t2c namespace
 

@@ -23,7 +23,7 @@ void
 T2CDeclDriver::write_func_decl(      std::ofstream&         fstream,
                                const I2CIntegral&           integral,
                                const std::pair<bool, bool>& rec_form,
-                               const bool                   diagonal,
+                               const bool                   use_rs,
                                const bool                   terminus) const
 {
     auto lines = VCodeLines();
@@ -32,17 +32,17 @@ T2CDeclDriver::write_func_decl(      std::ofstream&         fstream,
     
     lines.push_back({0, 0, 1, "auto"});
     
-    for (const auto& label : _get_matrices_str(integral, rec_form))
+    for (const auto& label : _get_distributor_str(integral, rec_form, use_rs))
     {
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_gto_blocks_str(integral, rec_form, diagonal))
+    for (const auto& label : _get_gto_blocks_str(integral, rec_form, use_rs))
     {
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_indices_str(integral, rec_form, diagonal, terminus))
+    for (const auto& label : _get_indices_str(integral, rec_form, use_rs, terminus))
     {
         lines.push_back({0, 0, 1, label});
     }
@@ -51,62 +51,21 @@ T2CDeclDriver::write_func_decl(      std::ofstream&         fstream,
 }
 
 std::vector<std::string>
-T2CDeclDriver::_get_matrices_str(const I2CIntegral&           integral,
-                                 const std::pair<bool, bool>& rec_form) const
+T2CDeclDriver::_get_distributor_str(const I2CIntegral&           integral,
+                                    const std::pair<bool, bool>& rec_form,
+                                    const bool                   use_rs) const
 {
     std::vector<std::string> vstr;
     
-    auto name = t2c::compute_func_name(integral, rec_form) + "(";
+    auto name = t2c::compute_func_name(integral, rec_form, use_rs) + "(";
     
-    vstr.push_back(name + "T* distributor,");
+    vstr.push_back(name + "T& distributor,");
     
-    return vstr;
-}
-
-// MR: This is the only place in this file where one should expect to have to make changes for new integral cases
-std::vector<std::string>
-T2CDeclDriver::_get_special_variables_str(const I2CIntegral& integral,
-                                          const std::pair<bool, bool>& rec_form) const
-{
-    std::vector<std::string> vstr;
-    
-    const auto integrand = integral.integrand();
-    
-    auto name = t2c::compute_func_name(integral, rec_form) + "(";
-    
-    const auto spacer = std::string(name.size(), ' ');
-    
-    if ((integrand.name() == "A") || (integrand.name() == "A1"))
+    if (use_rs)
     {
-        if (rec_form.first)
-        {
-            vstr.push_back(spacer + "const std::vector<double>& charges,");
-            
-            vstr.push_back(spacer + "const std::vector<double>& coords_x,");
-            
-            vstr.push_back(spacer + "const std::vector<double>& coords_y,");
-            
-            vstr.push_back(spacer + "const std::vector<double>& coords_z,");
-        }
-        else
-        {
-            vstr.push_back(spacer + "const double charge,");
-            
-            vstr.push_back(spacer + "const double coord_x,");
-            
-            vstr.push_back(spacer + "const double coord_y,");
-            
-            vstr.push_back(spacer + "const double coord_z,");
-        }
-    }
-    // MR: Here is additional declaration of variables in fn declaration for dipole integrals
-    if (integrand.name() == "r")
-    {
-        vstr.push_back(spacer + "const double coord_x,");
-
-        vstr.push_back(spacer + "const double coord_y,");
-
-        vstr.push_back(spacer + "const double coord_z,");
+        const auto spacer = std::string(name.size(), ' ');
+        
+        vstr.push_back(spacer + "const std::vector<double>& omegas,");
     }
     
     return vstr;
@@ -115,50 +74,17 @@ T2CDeclDriver::_get_special_variables_str(const I2CIntegral& integral,
 std::vector<std::string>
 T2CDeclDriver::_get_gto_blocks_str(const I2CIntegral&           integral,
                                    const std::pair<bool, bool>& rec_form,
-                                   const bool                   diagonal) const
+                                   const bool                   use_rs) const
 {
     std::vector<std::string> vstr;
     
-    auto name = t2c::compute_func_name(integral, rec_form) + "(";
+    auto name = t2c::compute_func_name(integral, rec_form, use_rs) + "(";
     
     const auto spacer = std::string(name.size(), ' ');
     
-    if (diagonal)
-    {
-        vstr.push_back(spacer + "const CGtoBlock& gto_block,");
-    }
-    else
-    {
-        vstr.push_back(spacer + "const CGtoBlock& bra_gto_block,");
+    vstr.push_back(spacer + "const CGtoBlock& bra_gto_block,");
         
-        vstr.push_back(spacer + "const CGtoBlock& ket_gto_block,");
-    }
-    
-    return vstr;
-}
-
-std::vector<std::string>
-T2CDeclDriver::_get_distributor_variables_str(const I2CIntegral&           integral,
-                                              const std::pair<bool, bool>& rec_form,
-                                              const bool                   diagonal) const
-{
-    std::vector<std::string> vstr;
-    
-    auto name = t2c::compute_func_name(integral, rec_form) + "(";
-    
-    const auto spacer = std::string(name.size(), ' ');
- 
-    if (!diagonal)
-    {
-        if (integral[0] != integral[1])
-        {
-            vstr.push_back(spacer + "const bool ang_order,");
-        }
-        else
-        {
-            vstr.push_back(spacer + "const mat_t mat_type,");
-        }
-    }
+    vstr.push_back(spacer + "const CGtoBlock& ket_gto_block,");
     
     return vstr;
 }
@@ -166,27 +92,22 @@ T2CDeclDriver::_get_distributor_variables_str(const I2CIntegral&           integ
 std::vector<std::string>
 T2CDeclDriver::_get_indices_str(const I2CIntegral&           integral,
                                 const std::pair<bool, bool>& rec_form,
-                                const bool                   diagonal,
+                                const bool                   use_rs,
                                 const bool                   terminus) const
 {
     std::vector<std::string> vstr;
     
-    auto name = t2c::compute_func_name(integral, rec_form) + "(";
+    auto name = t2c::compute_func_name(integral, rec_form, use_rs) + "(";
     
     const auto spacer = std::string(name.size(), ' ');
     
     const auto tsymbol = (terminus) ? ";" : "";
     
-    if (diagonal)
-    {
-        vstr.push_back(spacer + "const std::array<int, 2>& gto_range) -> void" + tsymbol);
-    }
-    else
-    {
-        vstr.push_back(spacer + "const std::array<int, 2>& bra_range,");
+    vstr.push_back(spacer + "const std::pair<size_t, size_t>& bra_indices,");
         
-        vstr.push_back(spacer + "const std::array<int, 2>& ket_range) -> void" + tsymbol);
-    }
+    vstr.push_back(spacer + "const std::pair<size_t, size_t>& ket_indices," + tsymbol);
+    
+    vstr.push_back(spacer + "const bool bra_eq_ket) -> void" + tsymbol);
    
     return vstr;
 }

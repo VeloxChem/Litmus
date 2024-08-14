@@ -24,23 +24,23 @@ void
 T2CDocuDriver::write_doc_str(      std::ofstream&         fstream,
                              const I2CIntegral&           integral,
                              const std::pair<bool, bool>& rec_form,
-                             const bool                   diagonal) const
+                             const bool                   use_rs) const
 {
     auto lines = VCodeLines();
     
-    lines.push_back({0, 0, 1, _get_compute_str(integral, diagonal)});
+    lines.push_back({0, 0, 1, _get_compute_str(integral, use_rs)});
     
-    for (const auto& label : _get_matrices_str(integral, rec_form))
+    for (const auto& label : _get_distributor_str(use_rs))
     {
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_gto_blocks_str(integral, diagonal))
+    for (const auto& label : _get_gto_blocks_str(integral))
     {
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_indices_str(diagonal))
+    for (const auto& label : _get_indices_str())
     {
         lines.push_back({0, 0, 1, label});
     }
@@ -50,7 +50,7 @@ T2CDocuDriver::write_doc_str(      std::ofstream&         fstream,
 
 std::string
 T2CDocuDriver::_get_compute_str(const I2CIntegral& integral,
-                                const bool         diagonal) const
+                                const bool         use_rs) const
 {
     const auto bra = Tensor(integral[0]);
         
@@ -60,132 +60,63 @@ T2CDocuDriver::_get_compute_str(const I2CIntegral& integral,
     
     const auto integrand = integral.integrand();
     
-    auto label = "/// Computes (" + bra_prefix + bra.label() + "|";
+    auto label = "/// @brief Computes (" + bra_prefix + bra.label() + "|";
     
     if (integral.integrand().name() != "1")
     {
-        label += t2c::integrand_label(integral.integrand()) + "|";
+        if (use_rs)
+        {
+            label += "Erf(" + t2c::integrand_label(integral.integrand()) + ")|";
+        }
+        else
+        {
+            label += t2c::integrand_label(integral.integrand()) + "|";
+        }
     }
     
-    label += ket_prefix + ket.label() + ")  integrals for ";
-        
-    label += (diagonal) ? "GTOs block." : "pair of GTOs blocks.";
+    label += ket_prefix + ket.label() + ")  integrals for pair of basis functions blocks.";
     
     return label;
 }
 
 std::vector<std::string>
-T2CDocuDriver::_get_matrices_str(const I2CIntegral&           integral,
-                                 const std::pair<bool, bool>& rec_form) const
+T2CDocuDriver::_get_distributor_str(const bool use_rs) const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("/// - Parameter distributor: the pointer to integrals distributor.");
+    vstr.push_back("/// @param distributor The integrals distributor.");
+    
+    if (use_rs)
+    {
+        vstr.push_back("/// @param omegas The vector of range-separation factors.");
+    }
 
     return vstr;
 }
 
 std::vector<std::string>
-T2CDocuDriver::_get_special_variables_str(const I2CIntegral& integral,
-                                          const std::pair<bool, bool>& rec_form) const
+T2CDocuDriver::_get_gto_blocks_str(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    const auto integrand = integral.integrand();
-    
-    if ((integrand.name() == "A") || (integrand.name() == "A1"))
-    {
-        if (rec_form.first)
-        {
-            vstr.push_back("/// - Parameter charges: the vector of external charges.");
-            
-            vstr.push_back("/// - Parameter coords_x: the vector of Cartesian X coordinates of external charges.");
-            
-            vstr.push_back("/// - Parameter coords_y: the vector of Cartesian Y coordinates of external charges.");
-            
-            vstr.push_back("/// - Parameter coords_z: the vector of Cartesian Z coordinates of external charges.");
-        }
-        else
-        {
-            vstr.push_back("/// - Parameter charge: the external charge.");
-            
-            vstr.push_back("/// - Parameter coord_x: the Cartesian X coordinate of external charge.");
-            
-            vstr.push_back("/// - Parameter coord_y: the Cartesian Y coordinate of external charge.");
-            
-            vstr.push_back("/// - Parameter coord_z: the Cartesian Z coordinate of external charge.");
-        }
-    }
-
-    if (integrand.name() == "r")
-    {
-        vstr.push_back("/// - Parameter coord_x: the vector of Cartesian X coordinate of external origin.");
+    vstr.push_back("/// @param bra_gto_block The basis functions block on bra side.");
         
-        vstr.push_back("/// - Parameter coord_y: the vector of Cartesian Y coordinate of external origin.");
-        
-        vstr.push_back("/// - Parameter coord_z: the vector of Cartesian Z coordinate of external origin.");
-    }
+    vstr.push_back("/// @param ket_gto_block The basis functions block on ket side.");
     
     return vstr;
 }
 
 std::vector<std::string>
-T2CDocuDriver::_get_gto_blocks_str(const I2CIntegral& integral,
-                                   const bool         diagonal) const
+T2CDocuDriver::_get_indices_str() const
 {
     std::vector<std::string> vstr;
     
-    if (diagonal)
-    {
-       vstr.push_back("/// - Parameter gto_block: the GTOs block.");
-    }
-    else
-    {
-        vstr.push_back("/// - Parameter bra_gto_block: the GTOs block on bra side.");
+    vstr.push_back("/// @param bra_indices The range [bra_first, bra_last) of basis functions on bra side.");
         
-        vstr.push_back("/// - Parameter ket_gto_block: the GTOs block on ket side.");
-    }
-        
-    return vstr;
-}
-
-std::vector<std::string>
-T2CDocuDriver::_get_distributor_variables_str(const I2CIntegral& integral,
-                                              const bool         diagonal) const
-{
-    std::vector<std::string> vstr;
+    vstr.push_back("/// @param ket_indices The range [ket_first, ket_last) of basis functions on ket side.");
     
-    if (!diagonal)
-    {
-        if (integral[0] != integral[1])
-        {
-            vstr.push_back("/// - Parameter ang_order: the flag for matching angular order between matrix and pair of GTOs blocks.");
-        }
-        else
-        {
-            vstr.push_back("/// - Parameter mat_type: the matrix type.");
-        }
-    }
+    vstr.push_back("/// @param bra_eq_ket True if basis functions blocks on bra and ket are the same, False otherwise."); 
     
-    return vstr;
-}
-
-std::vector<std::string>
-T2CDocuDriver::_get_indices_str(const bool diagonal) const
-{
-    std::vector<std::string> vstr;
-    
-    if (diagonal)
-    {
-        vstr.push_back("/// - Parameter gto_range: the range [gto_first, gto_last) of GTOs on bra and ket sides.");
-    }
-    else
-    {
-        vstr.push_back("/// - Parameter bra_range: the range [bra_first, bra_last) of GTOs on bra side.");
-        
-        vstr.push_back("/// - Parameter ket_range: the range [ket_first, ket_last) of GTOs on ket side.");
-    }
-
     return vstr;
 }
 

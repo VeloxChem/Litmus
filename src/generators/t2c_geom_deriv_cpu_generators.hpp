@@ -84,8 +84,10 @@ class T2CGeomDerivCPUGenerator
     /// Writes definitions of includes for primitive header file.
     /// @param fstream the file stream.
     /// @param integral The base four center integral.
-//    void _write_cpp_includes(      std::ofstream& fstream,
-//                             const I4CIntegral&  integral) const;
+    /// @param geom_drvs The geometrical derivative of bra and  ket sides.
+    void _write_cpp_includes(      std::ofstream& fstream,
+                             const I2CIntegral&  integral,
+                             const std::array<int, 3>& geom_drvs) const;
     
 public:
     /// Creates a geometrical derivatives of two-center integrals CPU code generator.

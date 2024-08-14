@@ -14,30 +14,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef t2c_prim_decl_hpp
-#define t2c_prim_decl_hpp
-
-#include <string>
-#include <vector>
-#include <fstream>
-#include <utility>
+#ifndef t2c_geom_decl_hpp
+#define t2c_geom_decl_hpp
 
 #include "t2c_defs.hpp"
 
-// Two-center primitive functions declaration generator for CPU.
-class T2CPrimDeclDriver
+// Two-center geometrical derivatives functions declaration generator for CPU.
+class T2CGeomDeclDriver
 {
     /// Generates vector of buffer strings.
+    /// @param geom_integrals The set of unique integrals for geometrical recursion.
     /// @param integral The base two center integral.
     /// @return The vector of buffer strings.
-    std::vector<std::string> _get_buffers_str(const I2CIntegral& integral) const;
-    
-    /// Generates vector of coordinates strings.
-    /// @param integral The base two center integral.
-    /// @param terminus The flag to add termination symbol.
-    /// @return The vector of coordinates strings.
-    std::vector<std::string> _get_coordinates_str(const I2CIntegral& integral,
-                                                  const bool         terminus) const;
+    std::vector<std::string> _get_buffers_str(const SI2CIntegrals&      geom_integrals,
+                                              const I2CIntegral& integral) const;
     
     /// Generates vector of recursion variables strings.
     /// @param integral The base two center integral.
@@ -46,26 +36,20 @@ class T2CPrimDeclDriver
     std::vector<std::string> _get_recursion_variables_str(const I2CIntegral& integral,
                                                           const bool         terminus) const;
     
-    /// Checks if GTOs exponents are needed for recursion implementation.
-    /// @param integral The base two center integral component.
-    /// @return True if GTOs exponents are needed, false otherwise.
-    bool _need_exponents(const I2CIntegral& integral) const;
-    
-    /// Checks if distances of (P-C) are required for integration.
-    /// @param integral The base two center integral.
-    bool _need_distances_pc(const I2CIntegral& integral) const; 
-    
 public:
-    /// Creates a two-center primitive functions declaration generator.
-    T2CPrimDeclDriver() = default;
+    /// Creates a two-center geometrical derivatives functions declaration generator.
+    T2CGeomDeclDriver() = default;
     
-    /// Writes declaration for primitive compute function.
+    /// Writes declaration for geometrical derivatives compute function.
     /// @param fstream the file stream.
+    /// @param geom_integrals The set of unique integrals for geometrical recursion.
     /// @param integral The base two center integral.
     /// @param terminus The flag to add termination symbol.
     void write_func_decl(      std::ofstream& fstream,
+                         const SI2CIntegrals& geom_integrals,
                          const I2CIntegral&   integral,
                          const bool           terminus) const;
 };
 
-#endif /* t2c_prim_decl_hpp */
+
+#endif /* t2c_geom_decl_hpp */

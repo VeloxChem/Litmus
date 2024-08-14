@@ -21,10 +21,12 @@
 
 void
 T2CFuncBodyDriver::write_func_body(      std::ofstream&         fstream,
-                                   const SI2CIntegrals&         integrals,
+                                   const SI2CIntegrals&         geom_integrals,
+                                   const SI2CIntegrals&         vrr_integrals,
                                    const I2CIntegral&           integral,
+                                   const std::array<int, 3>& geom_drvs, 
                                    const std::pair<bool, bool>& rec_form,
-                                   const bool                   diagonal) const
+                                   const bool                   use_rs) const
 {
     auto lines = VCodeLines();
     
@@ -35,22 +37,17 @@ T2CFuncBodyDriver::write_func_body(      std::ofstream&         fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_gtos_def(diagonal))
+    for (const auto& label : _get_gtos_def())
     {
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_ket_variables_def(diagonal))
+    for (const auto& label : _get_ket_variables_def(integral))
     {
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_coordinates_def(integral))
-    {
-        lines.push_back({1, 0, 2, label});
-    }
-    
-    for (const auto& label : _get_buffers_def(integrals, integral))
+    for (const auto& label : _get_buffers_def(vrr_integrals, integral, geom_drvs))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -60,25 +57,25 @@ T2CFuncBodyDriver::write_func_body(      std::ofstream&         fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    _add_loop_start(lines, integral, diagonal);
+    _add_loop_start(lines, integral);
     
-    _add_ket_loop_start(lines, integral, rec_form, diagonal);
+    _add_ket_loop_start(lines, integral, rec_form);
     
-    _add_auxilary_integrals(lines, integrals, rec_form, false);
+    _add_auxilary_integrals(lines, vrr_integrals, integral, rec_form, false);
     
-    _add_sum_loop_start(lines, integral, rec_form); 
+    _add_sum_loop_start(lines, integral, rec_form, use_rs); 
     
-    _add_auxilary_integrals(lines, integrals, rec_form, true);
+    _add_auxilary_integrals(lines, vrr_integrals, integral, rec_form, true);
     
-    _add_call_tree(lines, integrals, rec_form);
+    _add_call_tree(lines, vrr_integrals, integral, rec_form);
     
-    _add_geom_call_tree(lines, integrals, integral, rec_form);
+    _add_geom_call_tree(lines, geom_integrals, vrr_integrals, integral, geom_drvs, rec_form);
     
-    _add_sum_loop_end(lines, integrals, integral, rec_form, diagonal);
+    _add_sum_loop_end(lines, vrr_integrals, integral, rec_form);
     
-    _add_ket_loop_end(lines, integrals, integral, rec_form, diagonal);
+    _add_ket_loop_end(lines, vrr_integrals, integral, rec_form);
     
-    _add_loop_end(lines, integral, rec_form, diagonal);
+    _add_loop_end(lines, integral, rec_form);
     
     lines.push_back({0, 0, 1, "}"});
     
@@ -91,301 +88,161 @@ T2CFuncBodyDriver::_get_external_data_def(const I2CIntegral&           integral,
 {
     std::vector<std::string> vstr;
     
-    if ((integral.integrand().name() == "A"))
+    if (_need_external_coords(integral))
     {
+        vstr.push_back("// intialize external coordinate(s)");
+        
         if (rec_form.first)
         {
-            vstr.push_back("// intialize external charges data");
-            
-            vstr.push_back("const auto charges = distributor->data();");
-            
-            vstr.push_back("const auto coords_x = distributor->coordinates_x();");
-            
-            vstr.push_back("const auto coords_y = distributor->coordinates_y();");
-            
-            vstr.push_back("const auto coords_z = distributor->coordinates_z();");
+            vstr.push_back("const auto coords = distributor.coordinates();");
         }
         else
         {
-            vstr.push_back("// intialize external charge data");
-            
-            vstr.push_back("const double charge = distributor->data()[0];");
-            
-            vstr.push_back("const double coord_x = distributor->coordinates_x()[0];");
-            
-            vstr.push_back("const double coord_y = distributor->coordinates_y()[0];");
-            
-            vstr.push_back("const double coord_z = distributor->coordinates_z()[0];");
+            vstr.push_back("const auto r_c = distributor.coordinates()[0];");
         }
     }
     
-    if ((integral.integrand().name() == "r"))
+    if ((integral.integrand().name() == "A"))
     {
-        vstr.push_back("// intialize origin data");
-            
-        vstr.push_back("const double coord_x = distributor->coordinates_x()[0];");
-            
-        vstr.push_back("const double coord_y = distributor->coordinates_y()[0];");
-            
-        vstr.push_back("const double coord_z = distributor->coordinates_z()[0];");
+        vstr.push_back("// intialize external charge(s)");
+        
+        if (rec_form.first)
+        {
+            vstr.push_back("const auto charges = distributor.data();");
+        }
+        else
+        {
+            vstr.push_back("const auto charge = distributor.data()[0];");
+        }
     }
     
     if ((integral.integrand().name() == "AG"))
     {
         const auto iorder = integral.integrand().shape().order();
-        
+
         if (rec_form.first)
         {
             if (iorder == 1)
             {
                 vstr.push_back("// intialize external dipoles data");
-                
-                vstr.push_back("const auto dipoles = distributor->data();");
+
+                vstr.push_back("const auto dipoles = distributor.data();");
             }
-            
+
             if (iorder == 2)
             {
                 vstr.push_back("// intialize external quadrupoles data");
-                
-                vstr.push_back("const auto quadrupoles = distributor->data();");
+
+                vstr.push_back("const auto quadrupoles = distributor.data();");
             }
-            
-            if (iorder == 3)
-            {
-                vstr.push_back("// intialize external octupoles data");
-                
-                vstr.push_back("const auto quadrupoles = distributor->data();");
-            }
-           
-            vstr.push_back("const auto coords_x = distributor->coordinates_x();");
-            
-            vstr.push_back("const auto coords_y = distributor->coordinates_y();");
-            
-            vstr.push_back("const auto coords_z = distributor->coordinates_z();");
-        }
+//
+//            if (iorder == 3)
+//            {
+//                vstr.push_back("// intialize external octupoles data");
+//
+//                vstr.push_back("const auto quadrupoles = distributor->data();");
+//            }
+//
+//            vstr.push_back("const auto coords_x = distributor->coordinates_x();");
+//
+//            vstr.push_back("const auto coords_y = distributor->coordinates_y();");
+//
+//            vstr.push_back("const auto coords_z = distributor->coordinates_z();");
+       }
         else
         {
-            if (iorder == 1)
-            {
-                vstr.push_back("// intialize external dipole data");
-                
-                vstr.push_back("const auto dipole = distributor->data();");
-            }
-            
-            if (iorder == 2)
-            {
-                vstr.push_back("// intialize external quadrupole data");
-                
-                vstr.push_back("const auto quadrupole = distributor->data();");
-            }
-            
-            if (iorder == 3)
-            {
-                vstr.push_back("// intialize external octupole data");
-                
-                vstr.push_back("const auto quadrupole = distributor->data();");
-            }
-            
-            vstr.push_back("const double coord_x = distributor->coordinates_x()[0];");
-            
-            vstr.push_back("const double coord_y = distributor->coordinates_y()[0];");
-            
-            vstr.push_back("const double coord_z = distributor->coordinates_z()[0];");
+//            if (iorder == 1)
+//            {
+//                vstr.push_back("// intialize external dipole data");
+//
+//                vstr.push_back("const auto dipole = distributor->data();");
+//            }
+//
+//            if (iorder == 2)
+//            {
+//                vstr.push_back("// intialize external quadrupole data");
+//
+//                vstr.push_back("const auto quadrupole = distributor->data();");
+//            }
+//
+//            if (iorder == 3)
+//            {
+//                vstr.push_back("// intialize external octupole data");
+//
+//                vstr.push_back("const auto quadrupole = distributor->data();");
+//            }
+//
+//            vstr.push_back("const double coord_x = distributor->coordinates_x()[0];");
+//
+//            vstr.push_back("const double coord_y = distributor->coordinates_y()[0];");
+//
+//            vstr.push_back("const double coord_z = distributor->coordinates_z()[0];");
         }
-    }
+   }
     
     return vstr;
 }
 
 std::vector<std::string>
-T2CFuncBodyDriver::_get_gtos_def(const bool diagonal) const
+T2CFuncBodyDriver::_get_gtos_def() const
 {
     std::vector<std::string> vstr;
     
-    if (diagonal)
-    {
-        vstr.push_back("// intialize GTOs data");
-
-        vstr.push_back("const auto gto_coords_x = gto_block.coordinates_x();");
-
-        vstr.push_back("const auto gto_coords_y = gto_block.coordinates_y();");
-
-        vstr.push_back("const auto gto_coords_z = gto_block.coordinates_z();");
-
-        vstr.push_back("const auto gto_exps = gto_block.exponents();");
-
-        vstr.push_back("const auto gto_norms = gto_block.normalization_factors();");
-
-        vstr.push_back("const auto gto_indices = gto_block.orbital_indices();");
-
-        vstr.push_back("const auto ncgtos = gto_block.number_of_basis_functions();");
-
-        vstr.push_back("const auto npgtos = gto_block.number_of_primitives();");
-    }
-    else
-    {
-        vstr.push_back("// intialize GTOs data on bra side");
+    vstr.push_back("// intialize GTOs data on bra side");
         
-        vstr.push_back("const auto bra_gto_coords_x = bra_gto_block.coordinates_x();");
+    vstr.push_back("const auto bra_gto_coords = bra_gto_block.coordinates();");
         
-        vstr.push_back("const auto bra_gto_coords_y = bra_gto_block.coordinates_y();");
+    vstr.push_back("const auto bra_gto_exps = bra_gto_block.exponents();");
         
-        vstr.push_back("const auto bra_gto_coords_z = bra_gto_block.coordinates_z();");
-        
-        vstr.push_back("const auto bra_gto_exps = bra_gto_block.exponents();");
-        
-        vstr.push_back("const auto bra_gto_norms = bra_gto_block.normalization_factors();");
+    vstr.push_back("const auto bra_gto_norms = bra_gto_block.normalization_factors();");
        
-        vstr.push_back("const auto bra_gto_indices = bra_gto_block.orbital_indices();");
+    vstr.push_back("const auto bra_gto_indices = bra_gto_block.orbital_indices();");
         
-        vstr.push_back("const auto bra_ncgtos = bra_gto_block.number_of_basis_functions();");
+    vstr.push_back("const auto bra_ncgtos = bra_gto_block.number_of_basis_functions();");
 
-        vstr.push_back("const auto bra_npgtos = bra_gto_block.number_of_primitives();");
+    vstr.push_back("const auto bra_npgtos = bra_gto_block.number_of_primitives();");
         
-        vstr.push_back("// intialize GTOs data on ket side");
+    vstr.push_back("// intialize GTOs data on ket side");
         
-        vstr.push_back("const auto ket_gto_coords_x = ket_gto_block.coordinates_x();");
+    vstr.push_back("const auto ket_gto_coords = ket_gto_block.coordinates();");
         
-        vstr.push_back("const auto ket_gto_coords_y = ket_gto_block.coordinates_y();");
+    vstr.push_back("const auto ket_gto_exps = ket_gto_block.exponents();");
         
-        vstr.push_back("const auto ket_gto_coords_z = ket_gto_block.coordinates_z();");
-        
-        vstr.push_back("const auto ket_gto_exps = ket_gto_block.exponents();");
-        
-        vstr.push_back("const auto ket_gto_norms = ket_gto_block.normalization_factors();");
+    vstr.push_back("const auto ket_gto_norms = ket_gto_block.normalization_factors();");
        
-        vstr.push_back("const auto ket_gto_indices = ket_gto_block.orbital_indices();");
+    vstr.push_back("const auto ket_gto_indices = ket_gto_block.orbital_indices();");
 
-        vstr.push_back("const auto ket_npgtos = ket_gto_block.number_of_primitives();");
-    }
+    vstr.push_back("const auto ket_npgtos = ket_gto_block.number_of_primitives();");
     
     return vstr;
 }
 
 std::vector<std::string>
-T2CFuncBodyDriver::_get_ket_variables_def(const bool diagonal) const
+T2CFuncBodyDriver::_get_ket_variables_def(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
     vstr.push_back("// allocate aligned 2D arrays for ket side");
     
-    if (diagonal)
-    {
-        vstr.push_back("const auto ket_dim = gto_range[1] - gto_range[0];");
-        
-        vstr.push_back("const auto ket_pdim = ket_dim * npgtos;");
-    }
-    else
-    {
-        vstr.push_back("const auto ket_dim = ket_range[1] - ket_range[0];");
-        
-        vstr.push_back("const auto ket_pdim = ket_dim * ket_npgtos;");
-    }
+    size_t nelems = 8;
     
-    vstr.push_back("CSimdArray<double> b_x(1, ket_pdim);");
-
-    vstr.push_back("CSimdArray<double> b_y(1, ket_pdim);");
-
-    vstr.push_back("CSimdArray<double> b_z(1, ket_pdim);");
-
-    vstr.push_back("CSimdArray<double> b_exps(1, ket_pdim);");
-
-    vstr.push_back("CSimdArray<double> b_norms(1, ket_pdim);");
-
-    vstr.push_back(" // load GTOs data for ket side");
-
-    if (diagonal)
-    {
-        vstr.push_back("b_x.replicate(gto_coords_x, gto_range, npgtos);");
-
-        vstr.push_back("b_y.replicate(gto_coords_y, gto_range, npgtos);");
-
-        vstr.push_back("b_z.replicate(gto_coords_z, gto_range, npgtos);");
-
-        vstr.push_back("b_exps.load(gto_exps, gto_range, npgtos);");
-
-        vstr.push_back("b_norms.load(gto_norms, gto_range, npgtos);");
-    }
-    else
-    {
-        vstr.push_back("b_x.replicate(ket_gto_coords_x, ket_range, ket_npgtos);");
-
-        vstr.push_back("b_y.replicate(ket_gto_coords_y, ket_range, ket_npgtos);");
-
-        vstr.push_back("b_z.replicate(ket_gto_coords_z, ket_range, ket_npgtos);");
-
-        vstr.push_back("b_exps.load(ket_gto_exps, ket_range, ket_npgtos);");
-
-        vstr.push_back("b_norms.load(ket_gto_norms, ket_range, ket_npgtos);");
-    }
+    if (_need_center_p(integral)) nelems += 3;
     
-    return vstr;
-}
-
-std::vector<std::string>
-T2CFuncBodyDriver::_get_coordinates_def(const I2CIntegral& integral) const
-{
-    std::vector<std::string> vstr;
+    if (t2c::get_effective_order(integral, 0) > 0) nelems += 3;
     
-    if (_need_center_p(integral))
-    {
-        vstr.push_back("// allocate aligned coordinates of P center");
-
-        vstr.push_back("CSimdArray<double> p_x(1, ket_pdim);");
-
-        vstr.push_back("CSimdArray<double> p_y(1, ket_pdim);");
-
-        vstr.push_back("CSimdArray<double> p_z(1, ket_pdim);");
-    }
+    if (t2c::get_effective_order(integral, 1) > 0) nelems += 3;
     
-
-    vstr.push_back("// allocate aligned distances R(AB) = A - B");
-
-    vstr.push_back("CSimdArray<double> ab_x(1, ket_pdim);");
-
-    vstr.push_back("CSimdArray<double> ab_y(1, ket_pdim);");
-
-    vstr.push_back("CSimdArray<double> ab_z(1, ket_pdim);");
+    if (_need_distances_pc(integral)) nelems += 3;
     
-    if (integral[1] > 0)
-    {
-        vstr.push_back("// allocate aligned distances R(PB) = P - B");
-        
-        vstr.push_back("CSimdArray<double> pb_x(1, ket_pdim);");
-        
-        vstr.push_back("CSimdArray<double> pb_y(1, ket_pdim);");
-        
-        vstr.push_back("CSimdArray<double> pb_z(1, ket_pdim);");
-    }
-    
-    if (integral[0] > 0)
-    {
-        vstr.push_back("// allocate aligned distances R(PA) = P - A");
-        
-        vstr.push_back("CSimdArray<double> pa_x(1, ket_pdim);");
-        
-        vstr.push_back("CSimdArray<double> pa_y(1, ket_pdim);");
-        
-        vstr.push_back("CSimdArray<double> pa_z(1, ket_pdim);");
-    }
+    vstr.push_back("CSimdArray<double> factors(" + std::to_string(nelems) +  ", ket_npgtos);");
 
-    if (_need_distances_pc(integral))
-    {
-        vstr.push_back("// allocate aligned distances R(PC) = P - C");
-
-        vstr.push_back("CSimdArray<double> pc_x(1, ket_pdim);");
-
-        vstr.push_back("CSimdArray<double> pc_y(1, ket_pdim);");
-
-        vstr.push_back("CSimdArray<double> pc_z(1, ket_pdim);");
-    }
-    
     return vstr;
 }
 
 std::vector<std::string>
 T2CFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
-                                    const I2CIntegral&   integral) const
+                                    const I2CIntegral&   integral,
+                                    const std::array<int, 3>& geom_drvs) const
 {
     std::vector<std::string> vstr;
     
@@ -398,7 +255,12 @@ T2CFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
         icomps += tint.components<T1CPair, T1CPair>().size();
     }
     
-    auto label = "CSimdArray<double> pbuffer(" + std::to_string(icomps) + ", ket_pdim);";
+    if (_need_geom_drvs(geom_drvs))
+    {
+        icomps += integral.components<T1CPair, T1CPair>().size();
+    }
+    
+    auto label = "CSimdArray<double> pbuffer(" + std::to_string(icomps) + ", ket_npgtos);";
     
     vstr.push_back(label);
     
@@ -406,7 +268,7 @@ T2CFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
     
     icomps = integral.components<T1CPair, T1CPair>().size();
     
-    label = "CSimdArray<double> cbuffer(" + std::to_string(icomps) + ", ket_dim);";
+    label = "CSimdArray<double> cbuffer(" + std::to_string(icomps) + ", 1);";
     
     vstr.push_back(label);
     
@@ -423,7 +285,7 @@ T2CFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
             icomps *= make_components<OperatorComponent>(prefixes).size();
         }
         
-        label = "CSimdArray<double> sbuffer(" + std::to_string(icomps) + ", ket_dim);";
+        label = "CSimdArray<double> sbuffer(" + std::to_string(icomps) + ", 1);";
         
         vstr.push_back(label);
     }
@@ -440,13 +302,19 @@ T2CFuncBodyDriver::_get_boys_function_def(const I2CIntegral& integral) const
     {
         auto order = integral[0] + integral[1] + integral.integrand().shape().order();
         
+        if (auto prefixes = integral.prefixes(); !prefixes.empty())
+        {
+            for (const auto& prefix : prefixes)
+            {
+                order += prefix.shape().order();
+            }
+        }
+        
         vstr.push_back("// setup Boys function data");
         
         vstr.push_back("const CBoysFunc<" + std::to_string(order) + "> bf_table;");
-        
-        vstr.push_back("CSimdArray<double> bf_args(1, ket_pdim);");
 
-        vstr.push_back("CSimdArray<double> bf_values(" + std::to_string(order + 1) + ", ket_pdim);");
+        vstr.push_back("CSimdArray<double> bf_data(" + std::to_string(order + 2) + ", ket_npgtos);");
     }
     
     return vstr;
@@ -454,54 +322,66 @@ T2CFuncBodyDriver::_get_boys_function_def(const I2CIntegral& integral) const
 
 void
 T2CFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
-                                   const I2CIntegral& integral,
-                                   const bool         diagonal) const
+                                   const I2CIntegral& integral) const
 {
-    lines.push_back({1, 0, 2, "// loop over contracted GTOs on bra side"});
-   
-    if (diagonal)
-    {
-        lines.push_back({1, 0, 1, "for (auto i = gto_range[0]; i < gto_range[1]; i++)"});
-    }
-    else
-    {
-        lines.push_back({1, 0, 1, "for (auto i = bra_range[0]; i < bra_range[1]; i++)"});
-    }
-    
+    lines.push_back({1, 0, 2, "// set up ket partitioning"});
+
+    lines.push_back({1, 0, 2, "const auto ket_dim = ket_indices.second - ket_indices.first;"});
+
+    lines.push_back({1, 0, 2, "const auto ket_blocks = batch::number_of_batches(ket_dim, simd::width<double>());"});
+
+    lines.push_back({1, 0, 1, "for (size_t i = 0; i < ket_blocks; i++)"});
+                    
     lines.push_back({1, 0, 1, "{"});
     
-    lines.push_back({2, 0, 2, "cbuffer.zero();"});
+    lines.push_back({2, 0, 2, "auto ket_range = batch::batch_range(i, ket_dim, simd::width<double>(), ket_indices.first);"});
 
+    lines.push_back({2, 0, 2, "factors.load(ket_gto_exps, ket_range, 0, ket_npgtos);"});
+
+    lines.push_back({2, 0, 2, "factors.load(ket_gto_norms, ket_range, 1, ket_npgtos);"});
+
+    lines.push_back({2, 0, 2, "factors.replicate_points(ket_gto_coords, ket_range, 2, ket_npgtos);"});
+    
+    lines.push_back({2, 0, 2, "// set up active SIMD width"});
+    
+    lines.push_back({2, 0, 2, "const auto ket_width = ket_range.second - ket_range.first;"});
+    
     if ((integral[0] + integral[1]) > 0)
     {
-        lines.push_back({2, 0, 2, "sbuffer.zero();"});
+        lines.push_back({2, 0, 2, "sbuffer.set_active_width(ket_width);"});
     }
-
-    if (diagonal && (integral[0] == integral[1]))
+    
+    lines.push_back({2, 0, 2, "cbuffer.set_active_width(ket_width);"});
+    
+    lines.push_back({2, 0, 2, "pbuffer.set_active_width(ket_width);"});
+    
+    if (_need_boys_func(integral))
     {
-        lines.push_back({2, 0, 2, "const auto a_x = gto_coords_x[i];"});
-
-        lines.push_back({2, 0, 2, "const auto a_y = gto_coords_y[i];"});
-
-        lines.push_back({2, 0, 2, "const auto a_z = gto_coords_z[i];"});
+        lines.push_back({2, 0, 2, "bf_data.set_active_width(ket_width);"});
     }
-    else
+
+    lines.push_back({2, 0, 2, "// loop over contracted basis functions on bra side"});
+    
+    lines.push_back({2, 0, 1, "for (auto j = bra_indices.first; j < bra_indices.second; j++)"});
+    
+    lines.push_back({2, 0, 1, "{"});
+        
+    lines.push_back({3, 0, 2, "cbuffer.zero();"});
+    
+    if ((integral[0] + integral[1]) > 0)
     {
-        lines.push_back({2, 0, 2, "const auto a_x = bra_gto_coords_x[i];"});
-
-        lines.push_back({2, 0, 2, "const auto a_y = bra_gto_coords_y[i];"});
-
-        lines.push_back({2, 0, 2, "const auto a_z = bra_gto_coords_z[i];"});
+        lines.push_back({3, 0, 2, "sbuffer.zero();"});
     }
 
-    lines.push_back({2, 0, 2, "t2cfunc::comp_distances_ab(ab_x[0], ab_y[0], ab_z[0], a_x, a_y, a_z, b_x[0], b_y[0], b_z[0], ket_pdim);"});
+    lines.push_back({3, 0, 2, "const auto r_a = bra_gto_coords[j];"});
+
+    lines.push_back({3, 0, 2, "t2cfunc::comp_distances_ab(factors, 5, 2, r_a);"});
 }
 
 void
 T2CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
                                  const I2CIntegral& integral,
-                                 const std::pair<bool, bool>& rec_form,
-                                 const bool         diagonal) const
+                                 const std::pair<bool, bool>& rec_form) const
 {
     std::string label;
     
@@ -511,111 +391,84 @@ T2CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
             
         label += ", " + std::to_string(integral[1]) + ">(sbuffer, cbuffer);";
             
-        lines.push_back({2, 0, 2, label});
+        lines.push_back({3, 0, 2, label});
     }
     
     if ((integral[0] + integral[1]) > 0)
     {
-        label = "distributor->distribute(sbuffer, ";
+        label = "distributor.distribute(sbuffer, ";
     }
     else
     {
-        label = "distributor->distribute(cbuffer, ";
+        label = "distributor.distribute(cbuffer, ";
     }
     
-    if (diagonal)
-    {
-        label += "gto_indices, ";
-    }
-    else
-    {
-        label += "bra_gto_indices, ket_gto_indices, ";
-    }
+    label += "bra_gto_indices, ket_gto_indices, ";
             
     label += std::to_string(integral[0]) + ", ";
             
-    if (!diagonal)
-    {
-        label += std::to_string(integral[1]) + ", ";
-    }
+    label += std::to_string(integral[1]) + ", ";
     
-    if (diagonal)
-    {
-        label += "i, gto_range);";
-    }
-    else
-    {
-        label += "i, ket_range);";
-    }
+    label += "j, ket_range, bra_eq_ket);";
     
-    lines.push_back({2, 0, 1, label});
+    lines.push_back({3, 0, 1, label});
    
+    lines.push_back({2, 0, 1, "}"});
+    
     lines.push_back({1, 0, 1, "}"});
 }
 
 void
 T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&            lines,
                                        const I2CIntegral&           integral,
-                                       const std::pair<bool, bool>& rec_form,
-                                       const bool                   diagonal) const
+                                       const std::pair<bool, bool>& rec_form) const
 {
-    if (diagonal)
-    {
-        lines.push_back({2, 0, 1, "for (int j = 0; j < npgtos; j++)"});
-    }
-    else
-    {
-        lines.push_back({2, 0, 1, "for (int j = 0; j < bra_npgtos; j++)"});
-    }
+    lines.push_back({3, 0, 1, "for (size_t k = 0; k < bra_npgtos; k++)"});
     
-    lines.push_back({2, 0, 1, "{"});
+    lines.push_back({3, 0, 1, "{"});
     
-    if (diagonal && (integral[0] == integral[1]))
-    {
-        lines.push_back({3, 0, 2, "const auto a_exp = gto_exps[j * ncgtos + i];"});
-            
-        lines.push_back({3, 0, 2, "const auto a_norm = gto_norms[j * ncgtos + i];"});
-    }
-    else
-    {
-        lines.push_back({3, 0, 2, "const auto a_exp = bra_gto_exps[j * bra_ncgtos + i];"});
-            
-        lines.push_back({3, 0, 2, "const auto a_norm = bra_gto_norms[j * bra_ncgtos + i];"});
-    }
+    lines.push_back({4, 0, 2, "const auto a_exp = bra_gto_exps[k * bra_ncgtos + j];"});
+
+    lines.push_back({4, 0, 2, "const auto a_norm = bra_gto_norms[k * bra_ncgtos + j];"});
 
     if (_need_center_p(integral))
     {
-        lines.push_back({3, 0, 2, "t2cfunc::comp_coordinates_p(p_x[0], p_y[0], p_z[0], a_x, a_y, a_z, b_x[0], b_y[0], b_z[0], a_exp, b_exps[0], ket_pdim);"});
+        lines.push_back({4, 0, 2, "t2cfunc::comp_coordinates_p(factors, 8, 2, r_a, a_exp);"});
     }
 
-    if (integral[0] > 0)
+    if (t2c::get_effective_order(integral, 0) > 0)
     {
-        if (_need_center_p(integral))
-        {
-            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], p_x[0], p_y[0], p_z[0], a_x, a_y, a_z, ket_pdim);"});
-        }
-        else
-        {
-            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pa(pa_x[0], pa_y[0], pa_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
-        }
-    }
-
-    if (integral[1] > 0)
-    {
-        if (_need_center_p(integral))
-        {
-            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], p_x[0], p_y[0], p_z[0], b_x[0], b_y[0], b_z[0], ket_pdim);"});
-        }
-        else
-        {
-            lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pb(pb_x[0], pb_y[0], pb_z[0], ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], ket_pdim);"});
-        }
+        const auto label = std::to_string(_get_index_pa(integral));
         
+        if (_need_center_p(integral))
+        {
+            lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pa_from_p(factors, " + label + " , 8, r_a);"});
+        }
+        else
+        {
+            lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pa(factors, " + label +  ", 5, a_exp);"});
+        }
+    }
+
+    if (t2c::get_effective_order(integral, 1) > 0)
+    {
+        const auto label = std::to_string(_get_index_pb(integral));
+        
+        if (_need_center_p(integral))
+        {
+            lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pb_from_p(factors, " +  label + " , 8, 2);"});
+        }
+        else
+        {
+            lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pb(factors, " +  label + ", 5, a_exp);"});
+        }
     }
 
     if (_need_distances_pc(integral) && !rec_form.first)
     {
-        lines.push_back({3, 0, 2, "t2cfunc::comp_distances_pc(pc_x[0], pc_y[0], pc_z[0], p_x[0], p_y[0], p_z[0], coord_x, coord_y, coord_z, ket_pdim);"});
+        const auto label = std::to_string(_get_index_pc(integral));
+        
+        lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pc(factors, " +  label + ", 8, r_c);"});
     }
 }
 
@@ -623,61 +476,73 @@ void
 T2CFuncBodyDriver::_add_ket_loop_end(      VCodeLines&            lines,
                                      const SI2CIntegrals&         integrals,
                                      const I2CIntegral&           integral,
-                                     const std::pair<bool, bool>& rec_form,
-                                     const bool                   diagonal) const
+                                     const std::pair<bool, bool>& rec_form) const
 {
     if (!rec_form.first)
     {
         std::string label = "t2cfunc::reduce(cbuffer, pbuffer, ";
         
-        label += std::to_string(_get_position(integral, integrals)) + ", ";
-        
-        if (diagonal)
+        if (integral.is_simple())
         {
-            label += "ket_dim, npgtos);";
+            label += std::to_string(_get_position(integral, integrals)) + ", ";
         }
         else
         {
-            label += "ket_dim, ket_npgtos);";
+            size_t icomps = 0;
+            
+            for (const auto& tint : integrals)
+            {
+                icomps += tint.components<T1CPair, T1CPair>().size();
+            }
+            
+            label += std::to_string(icomps)  + ", ";
         }
         
-        lines.push_back({3, 0, 1, label});
+        label += "ket_width, ket_npgtos);";
+        
+        lines.push_back({4, 0, 1, label});
     }
     
-    lines.push_back({2, 0, 2, "}"});
+    lines.push_back({3, 0, 2, "}"});
 }
 
 void
 T2CFuncBodyDriver::_add_sum_loop_start(      VCodeLines&            lines,
                                        const I2CIntegral&           integral,
-                                       const std::pair<bool, bool>& rec_form) const
+                                       const std::pair<bool, bool>& rec_form,
+                                       const bool                   use_rs) const
 {
     if (rec_form.first)
     {
-        if (integral.integrand().name() == "A")
-        {
-            lines.push_back({3, 0, 2, "const auto ncenters = static_cast<int>(charges.size());"});
-        }
-        
-        if (integral.integrand().name() == "AG")
-        {
-            lines.push_back({3, 0, 2, "const auto ncenters = static_cast<int>(coords_x.size());"});
-        }
-        
-        lines.push_back({3, 0, 1, "for (int k = 0; k < ncenters; k++)"});
+        lines.push_back({4, 0, 1, "for (size_t l = 0; l < coords.size(); l++)"});
        
-        lines.push_back({3, 0, 1, "{"});
+        lines.push_back({4, 0, 1, "{"});
        
         if (_need_distances_pc(integral))
         {
-            lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pc(pc_x[0], pc_y[0], pc_z[0], p_x[0], p_y[0], p_z[0], coords_x[k], coords_y[k], coords_z[k], ket_pdim);"});
+            const auto label = std::to_string(_get_index_pc(integral));
+        
+            lines.push_back({5, 0, 2, "t2cfunc::comp_distances_pc(factors, " + label + ", 8, coords[l]);"});
         }
         
         if (_need_boys_func(integral))
         {
-            lines.push_back({4, 0, 2, "t2cfunc::comp_boys_args(bf_args, pc_x[0], pc_y[0], pc_z[0], a_exp, b_exps[0]);"});
+            auto order = integral[0] + integral[1] + integral.integrand().shape().order();
             
-            lines.push_back({4, 0, 2, "bf_table.compute(bf_values, bf_args);"});
+            const auto label = std::to_string(_get_index_pc(integral));
+            
+            if (use_rs)
+            {
+                lines.push_back({5, 0, 2, "t2cfunc::comp_boys_args(bf_data, " + std::to_string(order + 1) + ", factors, " + label + ", a_exp, omegas[l]);"});
+                
+                lines.push_back({5, 0, 2, "bf_table.compute(bf_data, 0, " + std::to_string(order + 1) + ", factors, a_exp, omegas[l]);"});
+            }
+            else
+            {
+                lines.push_back({5, 0, 2, "t2cfunc::comp_boys_args(bf_data, " + std::to_string(order + 1) + ", factors, " + label + ", a_exp);"});
+                
+                lines.push_back({5, 0, 2, "bf_table.compute(bf_data, 0, " + std::to_string(order + 1) + ");"});
+            }
         }
     }
 }
@@ -686,51 +551,62 @@ void
 T2CFuncBodyDriver::_add_sum_loop_end(      VCodeLines&            lines,
                                      const SI2CIntegrals&         integrals,
                                      const I2CIntegral&           integral,
-                                     const std::pair<bool, bool>& rec_form,
-                                     const bool                   diagonal) const
+                                     const std::pair<bool, bool>& rec_form) const
 {
     if (rec_form.first)
     {
         std::string label = "t2cfunc::reduce(cbuffer, pbuffer, ";
         
-        label += std::to_string(_get_position(integral, integrals)) + ", ";
+        if (integral.is_simple())
+        {
+            label += std::to_string(_get_position(integral, integrals)) + ", ";
+        }
+        else
+        {
+            size_t icomps = 0;
+            
+            for (const auto& tint : integrals)
+            {
+                icomps += tint.components<T1CPair, T1CPair>().size();
+            }
+            
+            label += std::to_string(icomps)  + ", ";
+        }
         
         if (integral.integrand().name() == "A")
         {
-            label += "charges[k], ";
+            label += "charges[l], ";
         }
         
         if (integral.integrand().name() == "AG")
         {
             const auto iorder = integral.integrand().shape().order();
             
-            if (iorder == 1) label += "dipoles, 3, k, ";
+            if (iorder == 1) label += "dipoles, 3, l, ";
             
-            if (iorder == 2) label += "quadrupoles, 3, k, ";
+            if (iorder == 2) label += "quadrupoles, 6, l, ";
+            
+            if (iorder == 3) label += "octupoles, 10, l, ";
+            
+            if (iorder == 4) label += "hexadecapoles, 15, l, ";
         }
         
-        if (diagonal)
-        {
-            label += "ket_dim, npgtos);";
-        }
-        else
-        {
-            label += "ket_dim, ket_npgtos);";
-        }
+        label += "ket_width, ket_npgtos);";
+    
+        lines.push_back({5, 0, 1, label});
         
-        lines.push_back({4, 0, 1, label});
-        
-        lines.push_back({3, 0, 1, "}"});
+        lines.push_back({4, 0, 1, "}"});
     }
 }
 
 void
 T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
                                            const SI2CIntegrals&         integrals,
+                                           const I2CIntegral&           integral,
                                            const std::pair<bool, bool>& rec_form,
                                            const bool                   in_sum_loop) const
 {
-    const auto spacer = (rec_form.first) ? 4 : 3;
+    const auto spacer = (rec_form.first) ? 5 : 4;
     
     for (const auto& tint : integrals)
     {
@@ -740,7 +616,7 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
         {
             if ((tint.integrand().name() == "1") && (!in_sum_loop))
             {
-                lines.push_back({3, 0, 2, "ovlrec::comp_prim_overlap_ss(pbuffer, " + std::to_string(_get_position(tint, integrals)) + ", ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0], a_norm, b_norms[0]);"});
+                lines.push_back({4, 0, 2, "ovlrec::comp_prim_overlap_ss(pbuffer, " + std::to_string(_get_position(tint, integrals)) + ", factors, a_exp, a_norm);"});
             }
             
             if ((tint.integrand().name() == "T") && (!in_sum_loop))
@@ -749,7 +625,7 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
                 
                 const auto label = std::to_string(_get_position(tint, integrals)) + ", " + std::to_string(_get_position(sint, integrals));
                 
-                lines.push_back({3, 0, 2, "kinrec::comp_prim_kinetic_energy_ss(pbuffer, " + label + ", ab_x[0], ab_y[0], ab_z[0], a_exp, b_exps[0]);"});
+                lines.push_back({4, 0, 2, "kinrec::comp_prim_kinetic_energy_ss(pbuffer, " + label + ", factors, a_exp);"});
             }
 
             if ((tint.integrand().name() == "r") && (!in_sum_loop))
@@ -758,7 +634,7 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
                 
                 const auto label = std::to_string(_get_position(tint, integrals)) + ", " + std::to_string(_get_position(sint, integrals));
                 
-                lines.push_back({3, 0, 2, "diprec::comp_prim_dipole_ss(pbuffer, " + label + ", pc_x[0], pc_y[0], pc_z[0]);"});
+                lines.push_back({4, 0, 2, "diprec::comp_prim_electric_dipole_momentum_ss(pbuffer, " + label + ", factors, " +  std::to_string(_get_index_pc(integral)) + ");"});
             }
 
             if ((tint.integrand().name() == "p") && (!in_sum_loop))
@@ -774,7 +650,7 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
                 {
                     const auto label = std::to_string(_get_position(tint, integrals)) + ", " + std::to_string(_get_position(sint, integrals));
                     
-                    lines.push_back({spacer, 0, 2, "npotrec::comp_prim_nuclear_potential_ss(pbuffer, " + label + ", bf_values[" + std::to_string(tint.order()) + "], a_exp, b_exps[0]);"});
+                    lines.push_back({spacer, 0, 2, "npotrec::comp_prim_nuclear_potential_ss(pbuffer, " + label + ", bf_data, " + std::to_string(tint.order()) + ", factors, a_exp);"});
                 }
             }
             
@@ -794,7 +670,7 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
                         
                         label += std::to_string(_get_position(xint, integrals));
                         
-                        lines.push_back({spacer, 0, 2, "npotrec::comp_prim_nuclear_potential_geom010_ss(pbuffer, " + label + ", pc_x[0], pc_y[0], pc_z[0], a_exp, b_exps[0]);"});
+                        lines.push_back({spacer, 0, 2, "npotrec::comp_prim_nuclear_potential_geom_010_ss(pbuffer, " + label + ", factors, " +  std::to_string(_get_index_pc(integral)) + ", a_exp);"});
                     }
                     
                     if (iorder == 2)
@@ -803,13 +679,15 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
                         
                         auto label = std::to_string(_get_position(tint, integrals)) + ", ";
                         
+                        xint.set_order(tint.order() + 1);
+                        
                         label += std::to_string(_get_position(xint, integrals)) + ", ";
                         
                         xint.set_order(tint.order() + 2);
                         
                         label += std::to_string(_get_position(xint, integrals));
                         
-                        lines.push_back({spacer, 0, 2, "npotrec::comp_prim_nuclear_potential_geom020_ss(pbuffer, " + label + ", pc_x[0], pc_y[0], pc_z[0], a_exp, b_exps[0]);"});
+                        lines.push_back({spacer, 0, 2, "npotrec::comp_prim_nuclear_potential_geom_020_ss(pbuffer, " + label + ", factors, " +  std::to_string(_get_index_pc(integral)) + ", a_exp);"});
                     }
                 }
             }
@@ -821,11 +699,12 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
 
 // May need to change this for new integral situations
 void
-T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
-                                  const SI2CIntegrals& integrals,
+T2CFuncBodyDriver::_add_call_tree(      VCodeLines&            lines,
+                                  const SI2CIntegrals&         integrals,
+                                  const I2CIntegral&           integral,
                                   const std::pair<bool, bool>& rec_form) const
 {
-    const int spacer = (rec_form.first) ? 4 : 3;
+    const int spacer = (rec_form.first) ? 5 : 4;
     
     for (const auto& tint : integrals)
     {
@@ -839,65 +718,34 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
             
             label += _get_arguments(tint, integrals);
             
+            label += "factors, "; 
+            
             if (tint[0] > 0)
             {
-                if ((tint[0] == 1) && (tint[1] == 0) && (tint.integrand().name() != "T") && (tint.integrand().name() != "A") && (tint.integrand().name() != "AG"))
-                {
-                    label += "pa_x[0], pa_y[0], pa_z[0]";
-                }
-                else
-                {
-                    label += "pa_x[0], pa_y[0], pa_z[0], ";
-                }
+                label += std::to_string(_get_index_pa(integral)) + ", ";
             }
             
             if ((tint[1] > 0) && (tint[0] == 0))
             {
-                if ((tint[1] == 1) && (tint[0] == 0) && (tint.integrand().name() != "T") && (tint.integrand().name() != "A") && (tint.integrand().name() != "AG"))
-                {
-                    label += "pb_x[0], pb_y[0], pb_z[0]";
-                }
-                else
-                {
-                    label += "pb_x[0], pb_y[0], pb_z[0], ";
-                }
+                label += std::to_string(_get_index_pb(integral)) + ", ";
             }
             
-            if (tint.integrand().name() == "A")
+            if (_need_distances_pc_in_call_tree(tint))
             {
-                if ((tint[0] + tint[1]) > 1)
-                {
-                    label += "pc_x[0], pc_y[0], pc_z[0], ";
-                }
+                label += std::to_string(_get_index_pc(integral)) + ", ";
+            }
+           
+            if (_need_exponents(tint))
+            {
+                label += "a_exp";
+            }
+            else
+            {
+                label.pop_back();
                 
-                if ((tint[0] + tint[1]) == 1)
-                {
-                    label += "pc_x[0], pc_y[0], pc_z[0]";
-                }
+                label.pop_back();
             }
 
-            if (tint.integrand().name() == "AG")
-            {
-                if ((tint[0] + tint[1]) > 1)
-                {
-                    label += "pc_x[0], pc_y[0], pc_z[0], ";
-                }
-
-                if ((tint[0] + tint[1]) == 1)
-                {
-                    label += "pc_x[0], pc_y[0], pc_z[0]";
-                }
-            }
-
-            if (((tint[0] + tint[1]) > 1) || (tint.integrand().name() == "T"))
-            {
-                label += "a_exp, b_exps[0]";
-            }
-           else if (((tint[0] + tint[1]) > 0) && (tint.integrand().name() == "r"))
-            {
-                label += ", a_exp, b_exps[0]";
-            }
-            
             label += ");";
             
             lines.push_back({spacer, 0, 2, label});
@@ -907,76 +755,48 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&  lines,
 
 void
 T2CFuncBodyDriver::_add_geom_call_tree(      VCodeLines&            lines,
-                                       const SI2CIntegrals&         integrals,
+                                       const SI2CIntegrals&         geom_integrals,
+                                       const SI2CIntegrals&         vrr_integrals,
                                        const I2CIntegral&           integral,
+                                       const std::array<int, 3>&    geom_drvs,
                                        const std::pair<bool, bool>& rec_form) const
 {
-
-    if (integral.prefixes().size() > 0)
+    if (_need_geom_drvs(geom_drvs))
     {
-        const int spacer = (rec_form.first) ? 4 : 3;
-
-        auto geom_order = 0;
-
-        if (integral.prefixes().size() == 1)
+        const int spacer = (rec_form.first) ? 5 : 4;
+        
+        const auto tint = integral.replace(Operator("R")); 
+        
+        const auto name = t2c::prim_compute_func_name(tint);
+        
+        auto label = "t2cgeom::" + name + "(pbuffer, ";
+        
+        size_t icomps = 0;
+        
+        for (const auto& tint : vrr_integrals)
         {
-
-            if (integral.prefixes()[0].shape().order() == 0)
-            {
-                geom_order = geom_order + integral.prefixes()[1].shape().order();
-            }
-            else
-            {
-                geom_order = integral.prefixes()[0].shape().order();
-            }
+            icomps += tint.components<T1CPair, T1CPair>().size();
         }
-
-        if (integral.prefixes().size() == 2)
+        
+        label += std::to_string(icomps)  + ", ";
+        
+        for (auto cint : geom_integrals)
         {
-           geom_order = integral.prefixes()[0].shape().order() + integral.prefixes()[1].shape().order();
+            label += std::to_string(_get_position(cint, vrr_integrals)) + ", ";
         }
-
-        for (int i = 1; i <= geom_order; i++)
+        
+        label += std::to_string(integral.integrand().shape().components().size()) + ", ";
+        
+        if (geom_drvs[2] == 0)
         {
-            for (const auto& tint : integrals)
-            {
-                if (tint.prefixes().size() > 0)
-                {
-                    auto tint_geom_order = 0;
-
-                    if (tint.prefixes().size() == 1)
-                    {
-
-                        if (tint.prefixes()[0].shape().order() == 0)
-                        {
-                            tint_geom_order = tint_geom_order + tint.prefixes()[1].shape().order();
-                        }
-                        else
-                        {
-                            tint_geom_order = tint.prefixes()[0].shape().order();
-                        }
-                    }
-
-                    if (tint.prefixes().size() == 2)
-                    {
-                       tint_geom_order = tint.prefixes()[0].shape().order() + tint.prefixes()[1].shape().order();
-                    }
-
-                    if (tint_geom_order == i)
-                    {
-                        const auto name = t2c::prim_compute_func_name(tint);
-                            
-                        auto label = t2c::namespace_label(tint) + "::" + name + "(";
-                            
-                        label += _get_arguments(tint);
-                        
-                        label += "a_exp, b_exps[0]);";
-                    
-                        lines.push_back({spacer, 0, 2, label});
-                    }
-                }
-            }
+            label += std::to_string(Tensor(integral[1]).components().size()) + ", ";
         }
+        
+        if (geom_drvs[2] > 0) label += "factors, ";
+        
+        label += "a_exp);";
+        
+        lines.push_back({spacer, 0, 2, label});
     }
 }
 
@@ -1052,6 +872,70 @@ T2CFuncBodyDriver::_need_distances_pc(const I2CIntegral& integral) const
 }
 
 bool
+T2CFuncBodyDriver::_need_distances_pc_in_call_tree(const I2CIntegral& integral) const
+{
+    const auto integrand = integral.integrand();
+    
+    if (((integrand.name() == "r") && ((integral[0] + integral[1]) == 0))) return true;
+    
+    if (integrand.name() == "A") return true;
+    
+    if (integrand.name() == "AG") return true;
+    
+    return false;
+}
+
+bool
+T2CFuncBodyDriver::_need_distances_pa(const I2CIntegral& integral) const
+{
+    if (integral.is_simple())
+    {
+        return integral[0] > 0;
+    }
+    else
+    {
+        return (integral[0] + (integral.prefixes())[0].shape().order()) > 0;
+    }
+}
+
+bool
+T2CFuncBodyDriver::_need_distances_pb(const I2CIntegral& integral) const
+{
+    if (integral.is_simple())
+    {
+        return integral[1] > 0;
+    }
+    else
+    {
+        if (auto prefixes = integral.prefixes(); prefixes.size() == 2)
+        {
+            return (integral[1] + prefixes[1].shape().order()) > 0;
+        }
+        else
+        {
+            return integral[1] > 0;
+        }
+    }
+}
+
+bool
+T2CFuncBodyDriver::_need_exponents(const I2CIntegral& integral) const
+{
+    if (integral.integrand().name() == "T") return true;
+    
+    if ((integral.integrand().name() == "r") && ((integral[0] + integral[1]) > 0)) return true; 
+    
+    int order = 0;
+    
+    for (const auto& prefix : integral.prefixes())
+    {
+        order += prefix.shape().order();
+    }
+    
+    return (order + integral[0] + integral[1]) > 1;
+}
+
+bool
 T2CFuncBodyDriver::_need_boys_func(const I2CIntegral& integral) const
 {
     const auto integrand = integral.integrand();
@@ -1061,4 +945,70 @@ T2CFuncBodyDriver::_need_boys_func(const I2CIntegral& integral) const
     if (integrand.name() == "AG") return true;
     
     return false;
+}
+
+bool
+T2CFuncBodyDriver::_need_external_coords(const I2CIntegral& integral) const
+{
+    const auto integrand = integral.integrand();
+    
+    if (integrand.name() == "A") return true;
+    
+    if (integrand.name() == "AG") return true;
+    
+    if (integrand.name() == "r") return true;
+    
+    return false;
+}
+
+bool
+T2CFuncBodyDriver::_need_geom_drvs(const std::array<int, 3>& geom_drvs) const
+{
+    return (geom_drvs[0] + geom_drvs[2]) > 0;
+}
+
+int
+T2CFuncBodyDriver::_get_index_pa(const I2CIntegral& integral) const
+{
+    if (_need_center_p(integral))
+    {
+        return 11;
+    }
+    else
+    {
+        return 8;
+    }
+}
+
+int
+T2CFuncBodyDriver::_get_index_pb(const I2CIntegral& integral) const
+{
+    if (_need_distances_pa(integral))
+    {
+       return _get_index_pa(integral) + 3;
+    }
+    else
+    {
+        return _get_index_pa(integral);
+    }
+}
+
+int
+T2CFuncBodyDriver::_get_index_pc(const I2CIntegral& integral) const
+{
+    if (_need_distances_pb(integral))
+    {
+       return _get_index_pb(integral) + 3;
+    }
+    else
+    {
+        if (_need_distances_pa(integral))
+        {
+            return _get_index_pa(integral) + 3;
+        }
+        else
+        {
+            return 11;
+        }
+    }
 }

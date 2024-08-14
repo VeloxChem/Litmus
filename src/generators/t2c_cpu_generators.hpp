@@ -51,27 +51,33 @@ class T2CCPUGenerator
     /// Gets file name of file with recursion functions for two center integral.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+    /// @param use_rs The flag for use of range-separated Coulomb interactions.
     /// @return The file name.
     std::string _file_name(const I2CIntegral&           integral,
-                           const std::pair<bool, bool>& rec_form) const;
+                           const std::pair<bool, bool>& rec_form,
+                           const bool                   use_rs) const;
     
     /// Writes header file for recursion.
     /// @param integrals The set of unique integrals.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+    /// @param use_rs The flag for use of range-separated Coulomb interactions.
     void _write_cpp_header(const SI2CIntegrals&         integrals,
                            const I2CIntegral&           integral,
-                           const std::pair<bool, bool>& rec_form) const;
+                           const std::pair<bool, bool>& rec_form,
+                           const bool                   use_rs) const;
     
     /// Writes definitions of define for header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+    /// @param use_rs The flag for use of range-separated Coulomb interactions.
     /// @param is_prim_rec The flag to indicate primitive recurion.
     /// @param start The flag to indicate position of define (start or end).
     void _write_hpp_defines(      std::ofstream&         fstream,
                             const I2CIntegral&           integral,
                             const std::pair<bool, bool>& rec_form,
+                            const bool                   use_rs,
                             const bool                   is_prim_rec,
                             const bool                   start) const;
     
@@ -80,10 +86,12 @@ class T2CCPUGenerator
     /// @param integrals The set of unique integrals.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+    /// @param use_rs The flag for use of range-separated Coulomb interactions.
     void _write_hpp_includes(      std::ofstream&         fstream,
                              const SI2CIntegrals&         integrals,
                              const I2CIntegral&           integral,
-                             const std::pair<bool, bool>& rec_form) const;
+                             const std::pair<bool, bool>& rec_form,
+                             const bool                   use_rs) const;
     
     /// Writes namespace definition to file stream.
     /// @param fstream the file stream.
@@ -92,24 +100,6 @@ class T2CCPUGenerator
     void _write_namespace(      std::ofstream& fstream,
                           const I2CIntegral&   integral,
                           const bool           start) const;
-    
-    /// Writes C++ code file for recursion.
-    /// @param integrals The set of unique integrals.
-    /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    void _write_cpp_file(const SI2CIntegrals&         integrals,
-                         const I2CIntegral&           integral,
-                         const std::pair<bool, bool>& rec_form) const;
-    
-    /// Writes definitions of includes for C++ code file.
-    /// @param fstream the file stream.
-    /// @param integrals The set of integrals.
-    /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    void _write_cpp_includes(      std::ofstream&         fstream,
-                             const SI2CIntegrals&         integrals,
-                             const I2CIntegral&           integral,
-                             const std::pair<bool, bool>& rec_form) const;
     
     /// Writes primitive header file for recursion.
     /// @param integral The base two center integral.
@@ -142,12 +132,12 @@ public:
     /// @param max_ang_mom The maximum angular momentum of A and B centers.
     /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    /// MR: First index: Summation or not (more than one term in the operator associated with the integrals (if any))
-    /// Second index: False: Return as matrix(ces); true: Return as scalars ("Contracted"/"distributed")
+    /// @param use_rs The flag for use of range-separated Coulomb interactions.
     void generate(const std::string&           label,
                   const int                    max_ang_mom,
                   const std::array<int, 3>&    geom_drvs,
-                  const std::pair<bool, bool>& rec_form) const;
+                  const std::pair<bool, bool>& rec_form,
+                  const bool                   use_rs) const;
 };
 
 #endif /* t2c_cpu_generators_hpp */

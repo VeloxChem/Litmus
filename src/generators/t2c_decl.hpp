@@ -30,44 +30,30 @@ class T2CDeclDriver
     /// Generates vector of matrix strings.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
+    /// @param use_rs The flag for use of range-separated Coulomb interactions.
     /// @return The vector of matrix strings.
-    std::vector<std::string> _get_matrices_str(const I2CIntegral&           integral,
-                                               const std::pair<bool, bool>& rec_form) const;
-    
-    /// Generates vector of special variables strings.
-    /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    /// @return The vector of special variables strings.
-    std::vector<std::string> _get_special_variables_str(const I2CIntegral& integral,
-                                                        const std::pair<bool, bool>& rec_form) const;
-    
+    std::vector<std::string> _get_distributor_str(const I2CIntegral&           integral,
+                                                  const std::pair<bool, bool>& rec_form,
+                                                  const bool                   use_rs) const;
+        
     /// Generates vector of GTOs block strings.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    /// @param use_rs The flag for use of range-separated Coulomb interactions.
     /// @return The vector of GTOs block strings,
     std::vector<std::string> _get_gto_blocks_str(const I2CIntegral&           integral,
                                                  const std::pair<bool, bool>& rec_form,
-                                                 const bool                   diagonal) const;
-    
-    /// Generates vector of distributor variables strings.
-    /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
-    /// @return The vector of distributor variables strings
-    std::vector<std::string> _get_distributor_variables_str(const I2CIntegral&           integral,
-                                                            const std::pair<bool, bool>& rec_form,
-                                                            const bool                   diagonal) const;
-    
+                                                 const bool                   use_rs) const;
+        
     /// Generates vector of indices strings.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    /// @param use_rs The flag for use of range-separated Coulomb interactions.
     /// @param terminus The flag to add termination symbol.
     /// @return The vector of indices strings.
     std::vector<std::string> _get_indices_str(const I2CIntegral&           integral,
                                               const std::pair<bool, bool>& rec_form,
-                                              const bool                   diagonal,
+                                              const bool                   use_rs,
                                               const bool                   terminus) const;
 
 public:
@@ -78,12 +64,12 @@ public:
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    /// @param use_rs The flag for use of range-separated Coulomb interactions.
     /// @param terminus The flag to add termination symbol.
     void write_func_decl(      std::ofstream&         fstream,
                          const I2CIntegral&           integral,
                          const std::pair<bool, bool>& rec_form,
-                         const bool                   diagonal,
+                         const bool                   use_rs,
                          const bool                   terminus) const;
 };
 

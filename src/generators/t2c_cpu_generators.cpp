@@ -42,7 +42,8 @@ void
 T2CCPUGenerator::generate(const std::string&           label,
                           const int                    max_ang_mom,
                           const std::array<int, 3>&    geom_drvs,
-                          const std::pair<bool, bool>& rec_form) const
+                          const std::pair<bool, bool>& rec_form,
+                          const bool                   use_rs) const
 {
     if (_is_available(label))
     {
@@ -50,9 +51,9 @@ T2CCPUGenerator::generate(const std::string&           label,
         {
             #pragma omp single nowait
             {
-                for (int i = 0; i <= max_ang_mom; i++)
+                for (int i = 5; i <= max_ang_mom; i++)
                 {
-                    for (int j = 0; j <= max_ang_mom; j++)
+                    for (int j = 5; j <= max_ang_mom; j++)
                     {
                         #pragma omp task firstprivate(i,j)
                         {
@@ -60,11 +61,14 @@ T2CCPUGenerator::generate(const std::string&           label,
 
                             const auto integrals = _generate_integral_group(integral, geom_drvs);
 
-                            _write_cpp_header(integrals, integral, rec_form);
+                           // _write_cpp_header(integrals, integral, rec_form, use_rs);
                             
-                            _write_prim_cpp_header(integral, rec_form);
-                                
-                            _write_prim_cpp_file(integral);
+                            if (((i + j) > 0) && (!use_rs))
+                            {
+                                _write_prim_cpp_header(integral, rec_form);
+                                    
+                                _write_prim_cpp_file(integral);
+                            }
                         }
                     }
                 }
@@ -98,7 +102,6 @@ T2CCPUGenerator::_is_available(const std::string& label) const
     return false;
 }
 
-// MR: Needs changes for new cases
 I2CIntegral
 T2CCPUGenerator::_get_integral(const std::string&        label,
                                const std::array<int, 2>& ang_moms,
@@ -110,46 +113,32 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
     
     const auto ket = I1CPair("GB", ang_moms[1]);
     
-    // prefixes of integral bra, ket order
-    
-    VOperators prefixes;
-    
-    if (geom_drvs[0] > 0)
-    {
-        prefixes.push_back(Operator("d/dR", Tensor(geom_drvs[0])));
-    }
-
-    if (geom_drvs[2] > 0)
-    {
-        prefixes.push_back(Operator("d/dR", Tensor(geom_drvs[2])));
-    }
-    
     // overlap integrals
     
     if (fstr::lowercase(label) == "overlap")
     {
-        return I2CIntegral(bra, ket, Operator("1"), 0, prefixes);
+        return I2CIntegral(bra, ket, Operator("1"), 0, {});
     }
     
     // kinetic energy integrals
     
     if (fstr::lowercase(label) == "kinetic energy")
     {
-        return I2CIntegral(bra, ket, Operator("T"), 0, prefixes);
+        return I2CIntegral(bra, ket, Operator("T"), 0, {});
     }
 
     // dipole moment integrals
 
     if (fstr::lowercase(label) == "dipole momentum")
     {
-        return I2CIntegral(bra, ket, Operator("r", Tensor(1)), 0, prefixes);
+        return I2CIntegral(bra, ket, Operator("r", Tensor(1)), 0, {});
     }
 
     // linear momentum integrals
 
     if (fstr::lowercase(label) == "linear momentum")
     {
-        return I2CIntegral(bra, ket, Operator("p", Tensor(1)), 0, prefixes);
+        return I2CIntegral(bra, ket, Operator("p", Tensor(1)), 0, {});
     }
 
     // nuclear potential integrals and it's operator derivatives
@@ -158,38 +147,23 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
     {
         if (geom_drvs[1] == 0)
         {
-            return I2CIntegral(bra, ket, Operator("A"), 0, prefixes);
+            return I2CIntegral(bra, ket, Operator("A"), 0, {});
         }
         else
         {
-            if ((geom_drvs[0] + geom_drvs[2]) > 0)
-            {
-                return I2CIntegral(bra, ket, Operator("AG", Tensor(geom_drvs[1])), 0, prefixes);
-            }
-            else
-            {
-                return I2CIntegral(bra, ket, Operator("AG", Tensor(geom_drvs[1])));
-            }
+            return I2CIntegral(bra, ket, Operator("AG", Tensor(geom_drvs[1])), 0, {});
         }
     }
     
     return I2CIntegral();
 }
 
-// MR: Changes here for new integral cases
 SI2CIntegrals
 T2CCPUGenerator::_generate_integral_group(const I2CIntegral&        integral,
                                           const std::array<int, 3>& geom_drvs) const
 {
     SI2CIntegrals tints;
 
-    if (!integral.is_simple())
-    {
-        V2ICenterDriver geom_drv;
-        
-        tints = geom_drv.apply_recursion({integral,});
-    }
-    
     // Overlap integrals
     
     if (integral.integrand() == Operator("1"))
@@ -300,12 +274,12 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral&        integral,
         
         tints = npot_drv.create_recursion(tints);
         
-        std::cout << "** DEBUG: Electric Field Integrals " << integral.label() << " : " << integral.integrand().name() << " **" << std::endl;
-        
-        for (const auto& tint : tints)
-        {
-           std::cout << tint.label() << " : " << tint.integrand().name() << " : "<< tint.order() << " Shape: " << tint.integrand().shape().order() << std::endl;
-        }
+//        std::cout << "** DEBUG: Electric Field Integrals " << integral.label() << " : " << integral.integrand().name() << " **" << std::endl;
+//        
+//        for (const auto& tint : tints)
+//        {
+//           std::cout << tint.label() << " : " << tint.integrand().name() << " : "<< tint.order() << " Shape: " << tint.integrand().shape().order() << std::endl;
+//        }
     }
     
     return tints;
@@ -313,9 +287,12 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral&        integral,
 
 std::string
 T2CCPUGenerator::_file_name(const I2CIntegral&           integral,
-                            const std::pair<bool, bool>& rec_form) const
+                            const std::pair<bool, bool>& rec_form,
+                            const bool                   use_rs) const
 {
-    std::string label = "Rec" + integral.label();
+    std::string label = (use_rs) ? "ErfRec" : "Rec";
+    
+    label += integral.label();
     
     if (rec_form.first) label = "Sum" + label;
     
@@ -327,17 +304,18 @@ T2CCPUGenerator::_file_name(const I2CIntegral&           integral,
 void
 T2CCPUGenerator::_write_cpp_header(const SI2CIntegrals&         integrals,
                                    const I2CIntegral&           integral,
-                                   const std::pair<bool, bool>& rec_form) const
+                                   const std::pair<bool, bool>& rec_form,
+                                   const bool                   use_rs) const
 {
-    auto fname = _file_name(integral, rec_form) + ".hpp";
+    auto fname = _file_name(integral, rec_form, use_rs) + ".hpp";
         
     std::ofstream fstream;
                
     fstream.open(fname.c_str(), std::ios_base::trunc);
     
-    _write_hpp_defines(fstream, integral, rec_form, false, true);
+    _write_hpp_defines(fstream, integral, rec_form, use_rs, false, true);
     
-    _write_hpp_includes(fstream, integrals, integral, rec_form);
+    _write_hpp_includes(fstream, integrals, integral, rec_form, use_rs);
     
     _write_namespace(fstream, integral, true);
     
@@ -347,26 +325,19 @@ T2CCPUGenerator::_write_cpp_header(const SI2CIntegrals&         integrals,
     
     T2CFuncBodyDriver func_drv;
 
-    if ((integral[0] == integral[1]) && integral.is_simple())
-    {
-        docs_drv.write_doc_str(fstream, integral, rec_form, true);
-        
-        decl_drv.write_func_decl(fstream, integral, rec_form, true, false);
-        
-        func_drv.write_func_body(fstream, integrals, integral, rec_form, true);
-        
-        fstream << std::endl;
-    }
-
-    docs_drv.write_doc_str(fstream, integral, rec_form, false);
+    docs_drv.write_doc_str(fstream, integral, rec_form, use_rs);
     
-    decl_drv.write_func_decl(fstream, integral, rec_form, false, false);
+    decl_drv.write_func_decl(fstream, integral, rec_form, use_rs, false);
     
-    func_drv.write_func_body(fstream, integrals, integral, rec_form, false);
+    auto geom_drvs = std::array<int, 3>{0, 0, 0};
+    
+    func_drv.write_func_body(fstream, {}, integrals, integral, geom_drvs, rec_form, use_rs);
+    
+    fstream << std::endl;
 
     _write_namespace(fstream, integral, false);
         
-    _write_hpp_defines(fstream, integral, rec_form, false, false);
+    _write_hpp_defines(fstream, integral, rec_form, use_rs, false, false);
     
     fstream.close();
 }
@@ -375,10 +346,11 @@ void
 T2CCPUGenerator::_write_hpp_defines(      std::ofstream&         fstream,
                                     const I2CIntegral&           integral,
                                     const std::pair<bool, bool>& rec_form,
+                                    const bool                   use_rs, 
                                     const bool                   is_prim_rec, 
                                     const bool                   start) const
 {
-    auto fname = (is_prim_rec) ? t2c::prim_file_name(integral) : _file_name(integral, rec_form) + "_hpp";
+    auto fname = (is_prim_rec) ? t2c::prim_file_name(integral) : _file_name(integral, rec_form, use_rs) + "_hpp";
     
     auto lines = VCodeLines();
  
@@ -400,11 +372,21 @@ void
 T2CCPUGenerator::_write_hpp_includes(      std::ofstream&         fstream,
                                      const SI2CIntegrals&         integrals,
                                      const I2CIntegral&           integral,
-                                     const std::pair<bool, bool>& rec_form) const
+                                     const std::pair<bool, bool>& rec_form,
+                                     const bool                   use_rs) const
 {
     auto lines = VCodeLines();
     
-    lines.push_back({0, 0, 2, "#include <array>"});
+    lines.push_back({0, 0, 1, "#include <cstddef>"});
+    
+    lines.push_back({0, 0, 1, "#include <array>"});
+    
+    if (use_rs)
+    {
+        lines.push_back({0, 0, 1, "#include <vector>"});
+    }
+    
+    lines.push_back({0, 0, 2, "#include <utility>"});
     
     lines.push_back({0, 0, 1, "#include \"GtoBlock.hpp\""});
     
@@ -431,7 +413,11 @@ T2CCPUGenerator::_write_hpp_includes(      std::ofstream&         fstream,
         lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
     }
     
-    lines.push_back({0, 0, 2, "#include \"T2CUtils.hpp\""});
+    lines.push_back({0, 0, 1, "#include \"T2CUtils.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"T2CTransform.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"BatchFunc.hpp\""});
     
     ost::write_code_lines(fstream, lines);
 }
@@ -458,85 +444,6 @@ T2CCPUGenerator::_write_namespace(      std::ofstream& fstream,
 }
 
 void
-T2CCPUGenerator::_write_cpp_file(const SI2CIntegrals&         integrals,
-                                 const I2CIntegral&           integral,
-                                 const std::pair<bool, bool>& rec_form) const
-{
-    auto fname = _file_name(integral, rec_form) + ".cpp";
-        
-    std::ofstream fstream;
-        
-    fstream.open(fname.c_str(), std::ios_base::trunc);
-        
-    _write_cpp_includes(fstream, integrals, integral, rec_form);
-
-    _write_namespace(fstream, integral, true);
-
-    T2CDeclDriver decl_drv;
-
-    T2CFuncBodyDriver func_drv;
-
-    if ((integral[0] == integral[1]) && (integral.is_simple()))
-    {
-        decl_drv.write_func_decl(fstream, integral, rec_form, true, false);
-
-        func_drv.write_func_body(fstream, integrals, integral, rec_form, true);
-        
-        fstream << std::endl; 
-    }
-
-    decl_drv.write_func_decl(fstream, integral, rec_form, false, false);
-
-    func_drv.write_func_body(fstream, integrals, integral, rec_form, false);
-
-    fstream << std::endl;
-    
-    _write_namespace(fstream, integral, false);
-        
-    fstream.close();
-}
-
-void
-T2CCPUGenerator::_write_cpp_includes(      std::ofstream&         fstream,
-                                     const SI2CIntegrals&         integrals,
-                                     const I2CIntegral&           integral,
-                                     const std::pair<bool, bool>& rec_form) const
-{
-    auto lines = VCodeLines();
-    
-    lines.push_back({0, 0, 2, "#include \"" + _file_name(integral, rec_form) +  ".hpp\""});
-    
-    lines.push_back({0, 0, 1, "#include \"SimdArray.hpp\""});
-    
-    SI2CIntegrals rints;
-    
-    for (const auto& tint : integrals)
-    {
-        auto rint = tint;
-        
-        rint.set_order(0);
-        
-        rints.insert(rint);
-    }
-    
-    for (const auto& rint : rints)
-    {
-        lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(rint) + ".hpp\""});
-    }
-    
-    if (integral.integrand().name() == "A" || integral.integrand().name() == "AG")
-    {
-        lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
-    }
-
-    lines.push_back({0, 0, 1, "#include \"T2CDistributor.hpp\""});
-    
-    lines.push_back({0, 0, 2, "#include \"T2CUtils.hpp\""});
-    
-    ost::write_code_lines(fstream, lines);
-}
-
-void
 T2CCPUGenerator::_write_prim_cpp_header(const I2CIntegral&           integral,
                                         const std::pair<bool, bool>& rec_form) const
 {
@@ -546,7 +453,7 @@ T2CCPUGenerator::_write_prim_cpp_header(const I2CIntegral&           integral,
                
     fstream.open(fname.c_str(), std::ios_base::trunc);
     
-    _write_hpp_defines(fstream, integral, rec_form, true, true);
+    _write_hpp_defines(fstream, integral, rec_form, false, true, true);
     
     _write_prim_hpp_includes(fstream, integral);
     
@@ -562,7 +469,7 @@ T2CCPUGenerator::_write_prim_cpp_header(const I2CIntegral&           integral,
     
     _write_namespace(fstream, integral, false);
     
-    _write_hpp_defines(fstream, integral, rec_form, true, false);
+    _write_hpp_defines(fstream, integral, rec_form, false, true, false);
     
     fstream.close();
 }

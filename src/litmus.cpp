@@ -21,6 +21,7 @@
 #include <array>
 
 #include "t2c_cpu_generators.hpp"
+#include "t2c_geom_cpu_generators.hpp"
 #include "t2c_geom_deriv_cpu_generators.hpp"
 #include "t4c_cpu_generators.hpp"
 #include "t4c_diag_cpu_generators.hpp"
@@ -32,47 +33,36 @@ int main(int argc, char **argv)
 {
     // run configuration
 
-    // "Which kind of integral? # of centers", "which type of integral" (which operator is associated with it?)
-    // 2c: "overlap" "kinetic energy" "nuclear potential" "dipole moment" "linear momentum"
-    // 4c: "electron repulsion"
-    const auto run_type = std::pair<std::string, std::string>({"t2c_geom_cpu", "None"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "nuclear potential"});
 
-    const int max_ang_mom = 1;
+    const int max_ang_mom = 4;
 
-    // To add new integral
-    // (Be careful about scalar vs non-scalar integrals (see dipole for example of non-scalar)
-    // 1. Add to is_available in t2(4)c_cpu_generators
-    // 2. In get_integral (t2(4)c_cpu_generators), add appropriate entry (need operator name, rank of tensor representing operator rank if not scalar)
-    // 3. In /recursions, make a driver file to house the new recursion that is needed and fill it with the appropriate recursion code
-    // 4. Fill that file according to the example with comments for dipole integrals
-        // In some cases may need to get fixed-axis operation (see linmom_driver vs dip_driver)
-        // NB: In header file, may need to make changes like initalize to default (see difference like linmom_driver vs dip_driver)
-        // In some cases (e.g. linmom, there is no choice of axes and one does not need a "trial recursion" setup from which to choose
-    // 5. Make a v2(4)i driver file and fill it according to the example for dipole
-    // 6. In t2(4)c_utils, register any new operator "name cases" (various places in this file)
-    // 7. In t2(4)c_body, register any new operator "name cases" (up to three (two?) places in this file, marked) including variable declarations
-    // 8. In t2(4)c_cpu_generators, register any new operator "name cases", (marked)
-    // 9. In t2(4)c_prim_body, make any (marked) changes (remember includes)
-    // 10. (see dipole for example) Add the primitive case to the "bottom" prim_ss autogen file (there will be blanks to fill in and you need to match this and the autogen func call that will call it)
-    // 11. Modify the function declaration for the non-primitive calls in t2(4)c_decl (and (cosmetic) in t2(4)c_docs
-    
     // set up start timer
     
     auto stime = std::chrono::high_resolution_clock::now();
     
     // case: two-center integrals
 
-    // Three-center also needed for RI generation; otherwise we get what we need for now with 2, 4
-
     if (run_type.first == "t2c_cpu")
     {
-        const std::array<int, 3> geom_drvs = {0, 2, 0};
+        const std::array<int, 3> geom_drvs = {2, 0, 0};
         
         const auto rec_form = std::pair<bool, bool>({true, false});
-
-        const auto t2c_drv = T2CCPUGenerator();
         
-        t2c_drv.generate(run_type.second, max_ang_mom, geom_drvs, rec_form);
+        const auto use_rs = false;
+        
+        if ((geom_drvs[0] + geom_drvs[2]) == 0)
+        {
+            const auto t2c_drv = T2CCPUGenerator();
+            
+            t2c_drv.generate(run_type.second, max_ang_mom, geom_drvs, rec_form, use_rs);
+        }
+        else
+        {
+            const auto t2c_drv = T2CGeomCPUGenerator();
+            
+            t2c_drv.generate(run_type.second, max_ang_mom, geom_drvs, rec_form, use_rs);
+        }
     }
     
     // case: four-center integrals
@@ -80,7 +70,7 @@ int main(int argc, char **argv)
     if (run_type.first == "t4c_cpu")
     {
     // a, b, operator, c, d
-        std::array<int, 5> geom_drvs = {0, 0, 0, 0, 0};
+        std::array<int, 5> geom_drvs = {1, 0, 0, 1, 0};
         
         if (geom_drvs == std::array<int, 5>({0, 0, 0, 0, 0}))
         {
@@ -98,7 +88,7 @@ int main(int argc, char **argv)
     
     if (run_type.first == "t4c_geom_cpu")
     {
-        std::array<int, 4> geom_drvs = {1, 0, 0, 0};
+        std::array<int, 4> geom_drvs = {1, 0, 1, 0};
         
         const auto t4c_geom_drv = T4CGeomDerivCPUGenerator();
             

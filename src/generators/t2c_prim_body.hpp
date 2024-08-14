@@ -29,6 +29,11 @@
 // Two-center compute function body generators for CPU.
 class T2CPrimFuncBodyDriver
 {
+    /// Generates vector of factor strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of factor strings.
+    std::vector<std::string> _get_factors_str(const I2CIntegral& integral) const;
+    
     /// Generates vector of buffer strings.
     /// @param rec_dists The vector of recursion distributions.
     /// @param integral The base two center integral.
@@ -106,6 +111,26 @@ class T2CPrimFuncBodyDriver
     /// @param integral The base two center integral component.
     /// @return The string with integral component label.
     std::string _get_component_label(const T2CIntegral& integral) const;
+    
+    /// Checks if R(PA) distances are needed for recursion implementation.
+    /// @param integral The base two center integral component.
+    /// @return True if R(PA) distances are needed, false otherwise.
+    bool _need_distances_pa(const I2CIntegral& integral) const;
+    
+    /// Checks if R(PB) distances are needed for recursion implementation.
+    /// @param integral The base two center integral component.
+    /// @return True if R(PB) distances are needed, false otherwise.
+    bool _need_distances_pb(const I2CIntegral& integral) const;
+    
+    /// Checks if R(PC) distances are needed for recursion implementation.
+    /// @param integral The base two center integral component.
+    /// @return True if R(PC) distances are needed, false otherwise.
+    bool _need_distances_pc(const I2CIntegral& integral) const;
+    
+    /// Checks if GTOs exponents are needed for recursion implementation.
+    /// @param integral The base two center integral component.
+    /// @return True if GTOs exponents are needed, false otherwise.
+    bool _need_exponents(const I2CIntegral& integral) const;
 
 public:
     /// Creates a two-center compute function body generator.

@@ -29,7 +29,7 @@ T2CGeomDocuDriver::write_doc_str(      std::ofstream&      fstream,
     
     lines.push_back({0, 0, 1, _get_compute_str(integral, geom_drvs)});
     
-    for (const auto& label : _get_buffers_str(geom_integrals, integral))
+    for (const auto& label : _get_buffers_str(geom_integrals, integral, geom_drvs))
     {
         lines.push_back({0, 0, 1, label});
     }
@@ -50,7 +50,7 @@ T2CGeomDocuDriver::_get_compute_str(const I2CIntegral&        integral,
         
     const auto ket = Tensor(integral[2]);
     
-    std::string label = "/// Computes ";
+    std::string label = "/// @brief Computes ";
 
     const auto pref_labels = t2c::prefixes_label(integral);
 
@@ -76,24 +76,32 @@ T2CGeomDocuDriver::_get_compute_str(const I2CIntegral&        integral,
 }
 
 std::vector<std::string>
-T2CGeomDocuDriver::_get_buffers_str(const SI2CIntegrals& geom_integrals,
-                                    const I2CIntegral&   integral) const
+T2CGeomDocuDriver::_get_buffers_str(const SI2CIntegrals&      geom_integrals,
+                                    const I2CIntegral&        integral,
+                                    const std::array<int, 3>& geom_drvs) const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("/// - Parameter prim_buffer : the primitive integrals buffer.");
+    vstr.push_back("/// @param pbuffer The primitive integrals buffer.");
     
     auto label = t2c::get_index_label(integral);
     
-    vstr.push_back("/// - Parameter " + label + ": the index of integral in primitive integrals buffer.");
+    vstr.push_back("/// @param " + label + " The index of integral in primitive integrals buffer.");
     
-    for (const auto& tint : t2c::get_integrals(integral))
+    for (const auto& tint : geom_integrals)
     {
         label = t2c::get_index_label(tint);
         
-        vstr.push_back("/// - Parameter " + label + ": the index of integral in primitive integrals buffer.");
+        vstr.push_back("/// @param " + label + " The index of integral in primitive integrals buffer.");
     }
-
+    
+    vstr.push_back("/// @param op_comps The number of operator components.");
+    
+    if (geom_drvs[2] == 0)
+    {
+        vstr.push_back("/// @param ket_comps The number of ket components.");
+    }
+    
     return vstr;
 }
 
@@ -102,17 +110,16 @@ T2CGeomDocuDriver::_get_recursion_variables_str(const I2CIntegral& integral) con
 {
     std::vector<std::string> vstr;
     
-    if (const auto prefixes = integral.prefixes(); !prefixes.empty())
+    const auto prefixes = integral.prefixes();
+   
+    if (prefixes[1].shape().order() > 0)
     {
-        if (prefixes[0].shape().order() > 0)
-        {
-            vstr.push_back("/// - Parameter a_exp: the exponent on center A.");
-        }
+        vstr.push_back("/// @param factors The primitive factors buffer.");
+    }
         
-        if (prefixes[2].shape().order() > 0)
-        {
-            vstr.push_back("/// - Parameter b_exps: the vector of exponents on center B.");
-        }
+    if (prefixes[0].shape().order() > 0)
+    {
+        vstr.push_back("/// @param a_exp The exponent on center A.");
     }
     
     return vstr;

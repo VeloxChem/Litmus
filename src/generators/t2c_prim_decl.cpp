@@ -60,17 +60,17 @@ T2CPrimDeclDriver::_get_buffers_str(const I2CIntegral& integral) const
     
     auto label = t2c::get_buffer_label(integral, "prim");
     
-    vstr.push_back(name + "CSimdArray<double>& prim_buffer, " );
+    vstr.push_back(name + "CSimdArray<double>& pbuffer, " );
     
     label = t2c::get_index_label(integral);
     
-    vstr.push_back(spacer + "const int " + label + "," );
+    vstr.push_back(spacer + "const size_t " + label + "," );
     
     for (const auto& tint : t2c::get_integrals(integral))
     {
         label = t2c::get_index_label(tint);
         
-        vstr.push_back(spacer + "const int " + label + "," );
+        vstr.push_back(spacer + "const size_t " + label + "," );
     }
     
     return vstr;
@@ -82,106 +82,38 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
 {
     std::vector<std::string> vstr;
     
-    const auto tsymbol = (terminus) ? ";" : "";
-    
     auto name = t2c::prim_compute_func_name(integral) + "(";
     
     const auto spacer = std::string(name.size(), ' ');
+    
+    vstr.push_back(spacer + "const CSimdArray<double>& factors,");
    
     if (integral[0] > 0)
     {
-        vstr.push_back(spacer + "const double* pa_x,");
-        
-        vstr.push_back(spacer + "const double* pa_y,");
-      
-        if ((integral[0] == 1)                   &&
-            (integral[1] == 0)                   &&
-            (integral.integrand().name() != "T") &&
-            (integral.integrand().name() != "A") &&
-            (integral.integrand().name() != "AG") &&
-            (integral.integrand().name() != "r"))
-        {
-            vstr.push_back(spacer + "const double* pa_z) -> void" + tsymbol);
-        }
-        else
-        {
-            vstr.push_back(spacer + "const double* pa_z,");
-        }
+        vstr.push_back(spacer + "const size_t idx_rpa,");
     }
    
     if ((integral[0] == 0) && (integral[1] > 0))
     {
-        vstr.push_back(spacer + "const double* pb_x,");
-        
-        vstr.push_back(spacer + "const double* pb_y,");
-      
-        if ((integral[0] == 0)                   &&
-            (integral[1] == 1)                   &&
-            (integral.integrand().name() != "T") &&
-            (integral.integrand().name() != "A") &&
-            (integral.integrand().name() != "AG") &&
-            (integral.integrand().name() != "r"))
-        {
-            vstr.push_back(spacer + "const double* pb_z) -> void" + tsymbol);
-        }
-        else
-        {
-            vstr.push_back(spacer + "const double* pb_z,");
-        }
+        vstr.push_back(spacer + "const size_t idx_rpb,");
     }
     
-    if (((integral.integrand().name() == "A") || (integral.integrand().name() == "AG")) && ((integral[0] + integral[1]) != 0))
+    if (_need_distances_pc(integral))
     {
-        vstr.push_back(spacer + "const double* pc_x,");
+        vstr.push_back(spacer + "const size_t idx_rpc,");
+    }
         
-        vstr.push_back(spacer + "const double* pc_y,");
+    if (!_need_exponents(integral))
+    {
+        const auto idx = vstr.size() - 1;
         
-        if ((integral[0] + integral[1]) > 1)
-        {
-            vstr.push_back(spacer + "const double* pc_z,");
-        }
-        else
-        {
-            vstr.push_back(spacer + "const double* pc_z) -> void" + tsymbol);
-        }
+        vstr[idx].pop_back();
+        
+        const auto tsymbol = (terminus) ? ";" : "";
+        
+        vstr[idx] += std::string(") -> void") + std::string(tsymbol);
     }
     
-    if ((integral[0] + integral[1]) == 0)
-    {
-        if (integral.integrand().name() == "A")
-        {
-            const auto label = std::to_string(integral.order());
-            const auto adiff = std::to_string(integral.integrand().shape().order());
-            const auto atot = std::stoi(label) + std::stoi(adiff);
-
-            vstr.push_back(spacer + "const double* bf_values_" + std::to_string(atot) +  ", ");
-
-            for (int bind = 1; bind < std::stoi(adiff); bind++)
-            {
-                int atot_extra = atot - bind;
-                vstr.push_back(spacer + "const double* bf_values_" + std::to_string(atot_extra) +  ", ");
-            }
-        }
-        
-        if ((integral.integrand().name() != "A") && (integral.integrand().name() != "AG"))
-        {
-            vstr.push_back(spacer + "const double* ab_x,");
-            
-            vstr.push_back(spacer + "const double* ab_y,");
-        
-            vstr.push_back(spacer + "const double* ab_z,");
-        }
-
-        if (integral.integrand().name() == "AG")
-        {
-            vstr.push_back(spacer + "const double* pc_x,");
-            
-            vstr.push_back(spacer + "const double* pc_y,");
-            
-            vstr.push_back(spacer + "const double* pc_z,");
-        }
-    }
-   
     return vstr;
 }
 
@@ -199,46 +131,40 @@ T2CPrimDeclDriver::_get_recursion_variables_str(const I2CIntegral& integral,
     
     if (!integral.is_simple())
     {
-        vstr.push_back(spacer + "const double a_exp,");
-        
-        vstr.push_back(spacer + "const double* b_exps) -> void" + tsymbol);
-        
+        vstr.push_back(spacer + "const double a_exp) -> void" + tsymbol);
     }
     else
     {
         if (((integral[0] + integral[1]) != 1) || (integral.integrand().name() == "T"))
         {
-            vstr.push_back(spacer + "const double a_exp,");
-            
-            if (((integral[0] + integral[1]) == 0) && (integral.integrand().name() == "1"))
-            {
-                vstr.push_back(spacer + "const double* b_exps,");
-            }
-            else
-            {
-                vstr.push_back(spacer + "const double* b_exps) -> void" + tsymbol);
-            }
+            vstr.push_back(spacer + "const double a_exp) -> void" + tsymbol);
         }
-
 
         if ( ((integral[0] + integral[1]) == 1)  && (integral.integrand().name() == "r"))
         {
-            vstr.push_back(spacer + "const double a_exp,");
-
-            vstr.push_back(spacer + "const double* b_exps) -> void" + tsymbol);
-        }
-       
-        if ((integral[0] + integral[1]) == 0)
-        {
-            if (integral.integrand().name() == "1")
-            {
-                vstr.push_back(spacer + "const double a_norm,");
-                
-                vstr.push_back(spacer + "const double* b_norms) -> void" + tsymbol);
-            }
+            vstr.push_back(spacer + "const double a_exp) -> void" + tsymbol);
         }
     }
     
-
     return vstr;
+}
+
+bool
+T2CPrimDeclDriver::_need_exponents(const I2CIntegral& integral) const
+{
+    if (integral.integrand().name() == "T") return true;
+    
+    if (integral.integrand().name() == "r") return true;
+    
+    return (integral[0] + integral[1]) > 1;
+}
+
+bool
+T2CPrimDeclDriver::_need_distances_pc(const I2CIntegral& integral) const
+{
+    if (integral.integrand().name() == "A") return true;
+    
+    if (integral.integrand().name() == "AG") return true;
+    
+    return false;
 }

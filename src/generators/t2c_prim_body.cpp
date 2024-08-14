@@ -36,7 +36,12 @@ T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "{"});
     
-    lines.push_back({1, 0, 2, "const auto ndims = prim_buffer.number_of_columns();"});
+    lines.push_back({1, 0, 2, "const auto nelems = pbuffer.number_of_active_elements();"});
+    
+    for (const auto& label : _get_factors_str(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
     
     const auto components = integral.components<T1CPair, T1CPair>();
     
@@ -94,6 +99,54 @@ T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
 }
 
 std::vector<std::string>
+T2CPrimFuncBodyDriver::_get_factors_str(const I2CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    if (_need_exponents(integral))
+    {
+        vstr.push_back("// Set up exponents");
+
+        vstr.push_back("auto b_exps = factors.data(0);");
+    }
+    
+    if (_need_distances_pa(integral))
+    {
+        vstr.push_back("// Set up R(PA) distances");
+
+        vstr.push_back("auto pa_x = factors.data(idx_rpa);");
+
+        vstr.push_back("auto pa_y = factors.data(idx_rpa + 1);");
+
+        vstr.push_back("auto pa_z = factors.data(idx_rpa + 2);");
+    }
+    
+    if (_need_distances_pb(integral))
+    {
+        vstr.push_back("// Set up R(PB) distances");
+
+        vstr.push_back("auto pb_x = factors.data(idx_rpb);");
+
+        vstr.push_back("auto pb_y = factors.data(idx_rpb + 1);");
+
+        vstr.push_back("auto pb_z = factors.data(idx_rpb + 2);");
+    }
+    
+    if (_need_distances_pc(integral))
+    {
+        vstr.push_back("// Set up R(PC) distances");
+
+        vstr.push_back("auto pc_x = factors.data(idx_rpc);");
+
+        vstr.push_back("auto pc_y = factors.data(idx_rpc + 1);");
+
+        vstr.push_back("auto pc_z = factors.data(idx_rpc + 2);");
+    }
+    
+    return vstr;
+}
+
+std::vector<std::string>
 T2CPrimFuncBodyDriver::_get_buffers_str(const std::vector<R2CDist>& rec_dists,
                                         const I2CIntegral&          integral) const
 {
@@ -101,7 +154,7 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const std::vector<R2CDist>& rec_dists,
     
     for (const auto& tint : t2c::get_integrals(integral))
     {
-        vstr.push_back("/// Set up components of auxiliary buffer : " + tint.label());
+        vstr.push_back("// Set up components of auxiliary buffer : " + tint.label());
 
         const auto tlabel = _get_tensor_label(tint);
         
@@ -111,9 +164,16 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const std::vector<R2CDist>& rec_dists,
         {
             if (_find_integral(rec_dists, tcomp))
             {
-                const auto line = "auto " + _get_component_label(tcomp) + " = prim_buffer";
+                const auto line = "auto " + _get_component_label(tcomp) + " = pbuffer.data(";
                 
-                vstr.push_back(line + "[" + t2c::get_index_label(tint) + " + " + std::to_string(index) + "];");
+                if (index > 0)
+                {
+                    vstr.push_back(line + t2c::get_index_label(tint) + " + " + std::to_string(index) + ");");
+                }
+                else
+                {
+                    vstr.push_back(line + t2c::get_index_label(tint) + ");");
+                }
             }
 
             index++;
@@ -149,19 +209,26 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const I2CIntegral&        integral,
     
     if ((rec_range[1] - rec_range[0]) == static_cast<int>(components.size()))
     {
-        vstr.push_back("/// Set up components of targeted buffer : " + integral.label());
+        vstr.push_back("// Set up components of targeted buffer : " + integral.label());
     }
     else
     {
-        vstr.push_back("/// Set up " + std::to_string(rec_range[0]) + "-" + std::to_string(rec_range[1]) +
+        vstr.push_back("// Set up " + std::to_string(rec_range[0]) + "-" + std::to_string(rec_range[1]) +
                        " components of targeted buffer : " + integral.label());
     }
     
     for (int i = rec_range[0]; i < rec_range[1]; i++)
     {
-        const auto line = "auto " + _get_component_label(components[i]) + " = prim_buffer";
+        const auto line = "auto " + _get_component_label(components[i]) + " = pbuffer.data(";
         
-        vstr.push_back(line + "[" + t2c::get_index_label(integral) + " + " + std::to_string(i) + "];");
+        if (i > 0)
+        {
+            vstr.push_back(line + t2c::get_index_label(integral) + " + " + std::to_string(i) + ");");
+        }
+        else
+        {
+            vstr.push_back(line + t2c::get_index_label(integral) + ");");
+        }
     }
     
     return vstr;
@@ -228,7 +295,7 @@ T2CPrimFuncBodyDriver::_add_recursion_loop(      VCodeLines&         lines,
     
     lines.push_back({1, 0, 1, "#pragma omp simd aligned(" + var_str + " : 64)"});
     
-    lines.push_back({1, 0, 1, "for (int i = 0; i < ndims; i++)"});
+    lines.push_back({1, 0, 1, "for (size_t i = 0; i < nelems; i++)"});
     
     lines.push_back({1, 0, 1, "{"});
     
@@ -282,7 +349,7 @@ T2CPrimFuncBodyDriver::_get_pragma_str(const I2CIntegral&          integral,
         label += tlabel + ", ";
     }
     
-    if ((integral[0] + integral[1]) > 1) label += "b_exps";
+    if (_need_exponents(integral)) label += "b_exps";
     
     if (label[label.size() - 2] == ',') label.erase(label.end() - 2);
     
@@ -344,7 +411,6 @@ T2CPrimFuncBodyDriver::_get_factor_lines(                VCodeLines& lines,
     }
 }
 
-// MR: Change for new integral cases
 R2CDist
 T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
 {
@@ -477,7 +543,6 @@ T2CPrimFuncBodyDriver::_get_code_line(const R2CDist& rec_distribution) const
     return line + ";";
 }
 
-// MR: Change for new integral cases unlikely but not impossible
 std::string
 T2CPrimFuncBodyDriver::_get_rterm_code(const R2CTerm& rec_term,
                                        const bool     is_first) const
@@ -537,3 +602,37 @@ T2CPrimFuncBodyDriver::_get_component_label(const T2CIntegral& integral) const
     }
     return label;
 }
+
+bool
+T2CPrimFuncBodyDriver::_need_distances_pa(const I2CIntegral& integral) const
+{
+    return integral[0] > 0;
+}
+
+bool
+T2CPrimFuncBodyDriver::_need_distances_pb(const I2CIntegral& integral) const
+{
+    return (integral[0] == 0) && (integral[1] > 0);
+}
+
+bool
+T2CPrimFuncBodyDriver::_need_distances_pc(const I2CIntegral& integral) const
+{    
+    if (integral.integrand().name() == "A") return true;
+    
+    if (integral.integrand().name() == "AG") return true;
+    
+    return false;
+}
+
+bool
+T2CPrimFuncBodyDriver::_need_exponents(const I2CIntegral& integral) const
+{
+    if (integral.integrand().name() == "T") return true;
+    
+    if (integral.integrand().name() == "r") return true;
+    
+    return (integral[0] + integral[1]) > 1;
+}
+
+

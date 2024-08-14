@@ -46,6 +46,15 @@ class T2CPrimDocuDriver
     /// @return The vector of recursion variables strings.
     std::vector<std::string> _get_recursion_variables_str(const I2CIntegral& integral) const;
     
+    /// Checks if distances of (P-C) are required for integration.
+    /// @param integral The base two center integral.
+    bool _need_distances_pc(const I2CIntegral& integral) const;
+    
+    /// Checks if GTOs exponents are needed for recursion implementation.
+    /// @param integral The base two center integral component.
+    /// @return True if GTOs exponents are needed, false otherwise.
+    bool _need_exponents(const I2CIntegral& integral) const;
+    
 public:
     /// Creates a primtive two-center documentation generator.
     T2CPrimDocuDriver() = default;

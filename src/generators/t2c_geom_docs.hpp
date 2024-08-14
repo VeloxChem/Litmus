@@ -36,14 +36,11 @@ class T2CGeomDocuDriver
     /// Generates vector of buffer strings.
     /// @param geom_integrals The set of unique integrals for geometrical recursion.
     /// @param integral The base two center integral.
+    /// @param geom_drvs The geometrical derivative of bra and  ket sides.
     /// @return The vector of buffer strings.
-    std::vector<std::string> _get_buffers_str(const SI2CIntegrals& geom_integrals,
-                                              const I2CIntegral& integral) const;
-    
-    /// Generates vector of coordinates strings.
-    /// @param integral The base two center integral.
-    /// @return The vector of coordinates strings.
-    std::vector<std::string> _get_coordinates_str(const I2CIntegral& integral) const;
+    std::vector<std::string> _get_buffers_str(const SI2CIntegrals&      geom_integrals,
+                                              const I2CIntegral&        integral,
+                                              const std::array<int, 3>& geom_drvs) const;
     
     /// Generates vector of recursion variables strings.
     /// @param integral The base two center integral.

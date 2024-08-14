@@ -92,17 +92,17 @@ integral_label(const I2CIntegral& integral)
         
         if (iorder == 1)
         {
-            return "ElectricDipoleMomentum";
+            return (prefixes.empty()) ? "ElectricDipoleMomentum" : "ElectricDipoleMomentum" + suffix;
         }
         
         if (iorder == 2)
         {
-            return "ElectricQuadrupoleMomentum";
+            return "ElectricQuadrupoleMomentum" + suffix;
         }
         
         if (iorder == 3)
         {
-            return "ElectricOctupoleMomentum";
+            return "ElectricOctupoleMomentum" + suffix;
         }
     }
     
@@ -156,9 +156,9 @@ integral_split_label(const I2CIntegral& integral)
         return "Linear_Momentum";
     }
 
-    if (integrand.name() == "A1")
+    if (integrand.name() == "R")
     {
-        return "Electric_Field";
+        return "op";
     }
 
     return std::string();
@@ -264,16 +264,22 @@ prefixes_label(const I2CIntegral& integral)
     {
         if (nterms >= 1)
         {
-            const auto border = std::to_string(prefixes[0].shape().order());
-            
-            bra_geom = "d^(" + border + ")/dA^(" + border + ")";
+            if (auto order = prefixes[0].shape().order(); order > 0)
+            {
+                const auto border = std::to_string(order);
+                
+                bra_geom = "d^(" + border + ")/dA^(" + border + ")";
+            }
         }
         
         if (nterms >= 2)
         {
-            const auto korder = std::to_string(prefixes[1].shape().order());
-            
-            ket_geom = "d^(" + korder + ")/dB^(" + korder + ")";
+            if (auto order = prefixes[1].shape().order(); order > 0)
+            {
+                const auto korder = std::to_string(order);
+                
+                ket_geom = "d^(" + korder + ")/dB^(" + korder + ")";
+            }
         }
     }
     
@@ -306,9 +312,14 @@ integrand_labels(const I2CIntegral& integral,
 
 std::string
 compute_func_name(const I2CIntegral&           integral,
-                  const std::pair<bool, bool>& rec_form)
+                  const std::pair<bool, bool>& rec_form,
+                  const bool                   use_rs)
 {
-    std::string prefix = (rec_form.first) ? "comp_sum_" : "comp_";
+    std::string prefix = "comp_";
+    
+    if (rec_form.first) prefix += "sum_";
+    
+    if (use_rs) prefix += "erf_";
     
     std::string geom_label;
     
@@ -316,11 +327,22 @@ compute_func_name(const I2CIntegral&           integral,
     
     if ((!tint_prefixes.empty()) || (integral.integrand().name() == "AG"))
     {
-        geom_label += "_geom";
+        geom_label += "_geom_";
         
         if (integral.integrand().name() == "AG")
         {
-            geom_label += "0" + std::to_string(integral.integrand().shape().order()) + "0";
+            if (tint_prefixes.empty())
+            {
+                geom_label += "0" + std::to_string(integral.integrand().shape().order()) + "0";
+            }
+            else
+            {
+                geom_label += std::to_string(tint_prefixes[0].shape().order());
+                
+                geom_label += std::to_string(integral.integrand().shape().order());
+                
+                geom_label += std::to_string(tint_prefixes[2].shape().order());
+            }
         }
         else
         {
@@ -420,21 +442,21 @@ get_index_label(const I2CIntegral& integral)
     
     if (prefixes.size() == 1)
     {
-        geom_label = "geom" + std::to_string(prefixes[0].shape().order());
+        geom_label = "geom_" + std::to_string(prefixes[0].shape().order());
         
         geom_label += std::to_string(integral.integrand().shape().order()) + "0";
     }
     
     if (prefixes.size() == 2)
     {
-        geom_label = "geom" + std::to_string(prefixes[0].shape().order());
+        geom_label = "geom_" + std::to_string(prefixes[0].shape().order());
         
         geom_label += std::to_string(integral.integrand().shape().order());
         
         geom_label += std::to_string(prefixes[1].shape().order());
     }
     
-    std::string label = "id_";
+    std::string label = "idx_";
     
     if (integral.integrand().name() == "1") label += "ovl_";
     
@@ -448,7 +470,7 @@ get_index_label(const I2CIntegral& integral)
 
     if (integral.integrand().name() == "AG")
     {
-        label += "npot_geom0" + std::to_string(integral.integrand().shape().order()) + "0_" + std::to_string(integral.order()) + "_";
+        label += "npot_geom_0" + std::to_string(integral.integrand().shape().order()) + "0_" + std::to_string(integral.order()) + "_";
     }
 
     if (integral.integrand().name() == "A")
@@ -456,7 +478,7 @@ get_index_label(const I2CIntegral& integral)
         label += "npot_" + std::to_string(integral.order()) + "_";
     }
     
-    label += geom_label + "_";
+    if (!geom_label.empty()) label += geom_label + "_";
     
     label += fstr::lowercase(integral.label());
 
@@ -472,7 +494,7 @@ prim_compute_func_name(const I2CIntegral& integral)
     
     if ((!tint_prefixes.empty()) || (integral.integrand().name() == "AG"))
     {
-        geom_label += "_geom";
+        geom_label += "_geom_";
         
         if (integral.integrand().name() == "AG")
         {
@@ -488,6 +510,11 @@ prim_compute_func_name(const I2CIntegral& integral)
     }
     
     auto label =  "comp_prim_" + t2c::integral_split_label(integral) +  geom_label + "_" + integral.label();
+    
+    if (tint_prefixes.size() == 2)
+    {
+        if (tint_prefixes[1].shape().order() == 0) label[label.size() - 1] = 'x';
+    }
     
     return fstr::lowercase(label);
 }
@@ -656,6 +683,38 @@ get_geom_integrals(const I2CIntegral& integral)
     }
     
     return tints;
+}
+
+int get_effective_order(const I2CIntegral& integral,
+                        const int          icenter)
+{
+    if (integral.is_simple())
+    {
+        return integral[icenter];
+    }
+    else
+    {
+        const auto prefixes = integral.prefixes();
+        
+        if (icenter == 0)
+        {
+            return integral[0] + prefixes[0].shape().order();
+        }
+        
+        if (icenter == 1)
+        {
+            if (prefixes.size() == 2)
+            {
+                return integral[1] + prefixes[1].shape().order();;
+            }
+            else
+            {
+                return integral[1];
+            }
+        }
+        
+        return integral[icenter];
+    }
 }
 
 } // t2c namespace

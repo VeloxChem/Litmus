@@ -28,42 +28,24 @@ class T2CDocuDriver
 {
     /// Generates compute string.
     /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    /// @param use_rs The flag for use of range-separated Coulomb interactions.
     /// @return The compute string.
     std::string _get_compute_str(const I2CIntegral& integral,
-                                 const bool         diagonal) const;
+                                 const bool         use_rs) const;
     
-    /// Generates vector of matrix strings.
-    /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    /// @return The vector of matrix strings.
-    std::vector<std::string> _get_matrices_str(const I2CIntegral& integral,
-                                               const std::pair<bool, bool>& rec_form) const;
-    
-    /// Generates vector of special variables strings.
-    /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    /// @return The vector of special variables strings.
-    std::vector<std::string> _get_special_variables_str(const I2CIntegral& integral,
-                                                        const std::pair<bool, bool>& rec_form) const;
-    
+    /// Generates vector of distributor strings.
+    /// @param use_rs The flag for use of range-separated Coulomb interactions.
+    /// @return The vector of distributor strings.
+    std::vector<std::string> _get_distributor_str(const bool use_rs) const;
+        
     /// Generates vector of GTOs block strings.
     /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @return The vector of GTOs block strings,
-    std::vector<std::string> _get_gto_blocks_str(const I2CIntegral& integral,
-                                                 const bool         diagonal) const;
-    /// Generates vector of distributor variables strings.
-    /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
-    /// @return The vector of distributor variables strings
-    std::vector<std::string> _get_distributor_variables_str(const I2CIntegral& integral,
-                                                            const bool         diagonal) const;
+    std::vector<std::string> _get_gto_blocks_str(const I2CIntegral& integral) const;
     
     /// Generates vector of indices strings.
-    /// /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @return The vector of indices strings.
-    std::vector<std::string> _get_indices_str(const bool diagonal) const;
+    std::vector<std::string> _get_indices_str() const;
     
 public:
     /// Creates a two-center documentation generator.
@@ -73,11 +55,11 @@ public:
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
     /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    /// @param use_rs The flag for use of range-separated Coulomb interactions.
     void write_doc_str(      std::ofstream&         fstream,
                        const I2CIntegral&           integral,
                        const std::pair<bool, bool>& rec_form,
-                       const bool                   diagonal) const;
+                       const bool                   use_rs) const;
     
 };
 
