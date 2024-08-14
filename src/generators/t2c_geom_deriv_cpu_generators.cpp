@@ -117,7 +117,7 @@ T2CGeomDerivCPUGenerator::_write_cpp_header(const SI2CIntegrals&      geom_integ
 
     docs_drv.write_doc_str(fstream, geom_integrals, integral, geom_drvs);
 
-    decl_drv.write_func_decl(fstream, geom_integrals, integral, true);
+    decl_drv.write_func_decl(fstream, geom_integrals, integral, geom_drvs, true);
 
     fstream << std::endl;
 
@@ -197,16 +197,16 @@ T2CGeomDerivCPUGenerator::_write_cpp_file(const SI2CIntegrals&      geom_integra
     fstream.open(fname.c_str(), std::ios_base::trunc);
         
     _write_cpp_includes(fstream, integral, geom_drvs);
-
+    
     _write_namespace(fstream, true);
-
+    
     T2CGeomDeclDriver decl_drv;
 
-    decl_drv.write_func_decl(fstream, geom_integrals, integral, false);
+    decl_drv.write_func_decl(fstream, geom_integrals, integral, geom_drvs, false);
 
     T2CGeomFuncBodyDriver func_drv;
 
-    func_drv.write_func_body(fstream, integral);
+    func_drv.write_func_body(fstream, geom_integrals, integral);
 
     fstream << std::endl;
 
@@ -216,8 +216,9 @@ T2CGeomDerivCPUGenerator::_write_cpp_file(const SI2CIntegrals&      geom_integra
 }
 
 void
-T2CGeomDerivCPUGenerator::_write_cpp_includes(      std::ofstream& fstream,
-                                              const I2CIntegral&   integral,
+
+T2CGeomDerivCPUGenerator::_write_cpp_includes(      std::ofstream&      fstream,
+                                              const I2CIntegral&        integral,
                                               const std::array<int, 3>& geom_drvs) const
 {
     auto lines = VCodeLines();

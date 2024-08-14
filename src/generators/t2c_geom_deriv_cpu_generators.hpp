@@ -85,8 +85,8 @@ class T2CGeomDerivCPUGenerator
     /// @param fstream the file stream.
     /// @param integral The base four center integral.
     /// @param geom_drvs The geometrical derivative of bra and  ket sides.
-    void _write_cpp_includes(      std::ofstream& fstream,
-                             const I2CIntegral&  integral,
+    void _write_cpp_includes(      std::ofstream&      fstream,
+                             const I2CIntegral&        integral,
                              const std::array<int, 3>& geom_drvs) const;
     
 public:

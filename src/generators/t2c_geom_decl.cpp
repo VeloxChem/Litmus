@@ -20,21 +20,22 @@
 #include "t2c_utils.hpp"
 
 void
-T2CGeomDeclDriver::write_func_decl(      std::ofstream& fstream,
-                                   const SI2CIntegrals& geom_integrals,
-                                   const I2CIntegral&   integral,
-                                   const bool           terminus) const
+T2CGeomDeclDriver::write_func_decl(      std::ofstream&      fstream,
+                                   const SI2CIntegrals&      geom_integrals,
+                                   const I2CIntegral&        integral,
+                                   const std::array<int, 3>& geom_drvs,
+                                   const bool                terminus) const
 {
     auto lines = VCodeLines();
     
     lines.push_back({0, 0, 1, "auto"});
     
-    for (const auto& label : _get_buffers_str(geom_integrals, integral))
+    for (const auto& label : _get_buffers_str(geom_integrals, integral, geom_drvs))
     {
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_recursion_variables_str(integral, terminus))
+    for (const auto& label : _get_recursion_variables_str(integral, geom_drvs, terminus))
     {
         lines.push_back({0, 0, 1, label});
     }
@@ -43,63 +44,67 @@ T2CGeomDeclDriver::write_func_decl(      std::ofstream& fstream,
 }
 
 std::vector<std::string>
-T2CGeomDeclDriver::_get_buffers_str(const SI2CIntegrals& geom_integrals,
-                                    const I2CIntegral&   integral) const
+T2CGeomDeclDriver::_get_buffers_str(const SI2CIntegrals&      geom_integrals,
+                                    const I2CIntegral&        integral,
+                                    const std::array<int, 3>& geom_drvs) const
 {
     std::vector<std::string> vstr;
     
-    auto name = t2c::prim_compute_func_name(integral) + "(";
+    auto name = t2c::geom_compute_func_name(integral, geom_drvs) + "(";
     
     const auto spacer = std::string(name.size(), ' ');
-    
-    vstr.push_back(name + "CSimdArray<double>& pbuffer," );
+
+    vstr.push_back(name + "CSimdArray<double>& prim_buffer," );
     
     auto label = t2c::get_index_label(integral);
-    
-    vstr.push_back(spacer + "const size_t " + label + "," );
+
+    vstr.push_back(spacer + "const int " + label + "," );
     
     for (const auto& tint : geom_integrals)
     {
         label = t2c::get_index_label(tint);
-        
-        vstr.push_back(spacer + "const size_t " + label + "," );
-    }
-    
-    vstr.push_back(spacer + "const size_t op_comps," );
-    
-    if (const auto prefixes = integral.prefixes(); !prefixes.empty())
-    {
-        if (prefixes[1].shape().order() == 0)
-        {
-            vstr.push_back(spacer + "const size_t ket_comps," );
-        }
+
+        vstr.push_back(spacer + "const int " + label + "," );
     }
     
     return vstr;
 }
 
 std::vector<std::string>
-T2CGeomDeclDriver::_get_recursion_variables_str(const I2CIntegral& integral,
-                                                const bool         terminus) const
+T2CGeomDeclDriver::_get_recursion_variables_str(const I2CIntegral&        integral,
+                                                const std::array<int, 3>& geom_drvs,
+                                                const bool                terminus) const
 {
     std::vector<std::string> vstr;
     
     const auto tsymbol = (terminus) ? ";" : "";
     
-    auto name = t2c::prim_compute_func_name(integral) + "(";
+    auto name = t2c::geom_compute_func_name(integral, geom_drvs) + "(";
     
     const auto spacer = std::string(name.size(), ' ');
     
-    const auto prefixes = integral.prefixes();
-    
-    if (prefixes[0].shape().order() > 0)
+    if (const auto prefixes = integral.prefixes(); !prefixes.empty())
     {
-        if (prefixes[1].shape().order() > 0)
+        if (prefixes[0].shape().order() > 0)
         {
-            vstr.push_back(spacer + "const CSimdArray<double>& factors,");
+            vstr.push_back(spacer + "const double a_exp,");
         }
         
-        vstr.push_back(spacer + "const double a_exp) -> void" + tsymbol);
+        if (prefixes[1].shape().order() > 0)
+        {
+            vstr.push_back(spacer + "const double* b_exps,");
+        }
+        
+        if (geom_drvs[2] == 0)
+        {
+            vstr.push_back(spacer + "const int op_comps, ");
+            
+            vstr.push_back(spacer + "const int ket_comps) -> void" + tsymbol);
+        }
+        else
+        {
+            vstr.push_back(spacer + "const int op_comps) -> void" + tsymbol);
+        }
     }
     
     return vstr;

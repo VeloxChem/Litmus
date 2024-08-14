@@ -25,6 +25,8 @@ T2CGeomDocuDriver::write_doc_str(      std::ofstream&      fstream,
                                  const I2CIntegral&        integral,
                                  const std::array<int, 3>& geom_drvs) const
 {
+    auto prefixes = integral.prefixes();
+    
     auto lines = VCodeLines();
     
     lines.push_back({0, 0, 1, _get_compute_str(integral, geom_drvs)});
@@ -121,6 +123,10 @@ T2CGeomDocuDriver::_get_recursion_variables_str(const I2CIntegral& integral) con
     {
         vstr.push_back("/// @param a_exp The exponent on center A.");
     }
+    
+    vstr.push_back("/// - Parameter op_comps: the number of operator components.");
+    
+    vstr.push_back("/// - Parameter ket_comps: the number of ket components.");
     
     return vstr;
 }
