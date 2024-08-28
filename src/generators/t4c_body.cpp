@@ -65,14 +65,14 @@ T4CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-//    for (const auto& label : _get_boys_function_def(integral))
-//    {
-//        lines.push_back({1, 0, 2, label});
-//    }
-//    
-//    _add_loop_start(lines, bra_integrals, ket_integrals, integral);
-//    
-//    _add_ket_loop_start(lines, integral);
+    for (const auto& label : _get_boys_function_def(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    _add_loop_start(lines, bra_integrals, ket_integrals, integral);
+    
+    _add_ket_loop_start(lines, integral);
 //
 //    _add_auxilary_integrals(lines, vrr_integrals);
 //
@@ -88,7 +88,7 @@ T4CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
 //    
 //    _add_bra_trafo_call_tree(lines, integral);
 //    
-//    _add_loop_end(lines, integral);
+    _add_loop_end(lines, integral);
     
     lines.push_back({0, 0, 1, "}"});
     
@@ -304,9 +304,9 @@ T4CFuncBodyDriver::_get_ket_variables_def(const I4CIntegral& integral) const
     
     vstr.push_back("// allocate aligned 2D arrays for ket side");
   
-    // c_exps, d_exps, cd_ovls, cd_norms, c_coords, d_coords, q_coords, pq_coords
+    // c_exps, d_exps, cd_ovls, cd_norms, c_coords, d_coords, q_coords, pq_coords, f_ss
     
-    size_t nelems = 16;
+    size_t nelems = 17;
     
     if (_need_center_w(integral)) nelems += 3;
     
@@ -320,7 +320,7 @@ T4CFuncBodyDriver::_get_ket_variables_def(const I4CIntegral& integral) const
   
     if (_need_hrr_for_ket(integral))
     {
-        vstr.push_back("CSimdArray<double> cfactors(3, 1);");
+        vstr.push_back("CSimdArray<double> cfactors(9, 1);");
     }
     
     return vstr;
@@ -1149,10 +1149,12 @@ T4CFuncBodyDriver::_get_boys_function_def(const I4CIntegral& integral) const
     vstr.push_back("// setup Boys fuction data");
         
     vstr.push_back("const CBoysFunc<" + std::to_string(order) + "> bf_table;");
-        
-    vstr.push_back("CSimdArray<double> bf_args(1, ket_pdim);");
 
-    vstr.push_back("CSimdArray<double> bf_values(" + std::to_string(order + 1) + ", ket_pdim);");
+    vstr.push_back("if constexpr (N == 1) CSimdArray<double> bf_data(" + std::to_string(order + 2) + ", ket_npgtos);");
+    
+    vstr.push_back("if constexpr (N == 2) CSimdArray<double> bf_data(" + std::to_string(order + 2) + ", ket_npgtos);");
+    
+    vstr.push_back("if constexpr (N == 3) CSimdArray<double> bf_data(" + std::to_string(2 * (order + 2)) + ", ket_npgtos);");
    
     return vstr;
 }
@@ -1201,58 +1203,91 @@ void
 T4CFuncBodyDriver::_add_loop_start(      VCodeLines&    lines,
                                    const SI4CIntegrals& bra_integrals,
                                    const SI4CIntegrals& ket_integrals,
-                                   const I4CIntegral&   integral,
-                                   const bool           diagonal) const
+                                   const I4CIntegral&   integral) const
 {
-    lines.push_back({1, 0, 2, "// loop over contracted GTOs on bra side"});
-        
-    lines.push_back({1, 0, 1, "for (auto i = bra_indices[0]; i < bra_indices[1]; i++)"});
-    
+    lines.push_back({1, 0, 2, "// set up ket partitioning"});
+
+    lines.push_back({1, 0, 2, "const auto ket_dim = ket_indices.second - ket_indices.first;"});
+
+    lines.push_back({1, 0, 2, "const auto ket_blocks = batch::number_of_batches(ket_dim, simd::width<double>());"});
+
+    lines.push_back({1, 0, 1, "for (size_t i = 0; i < ket_blocks; i++)"});
+                    
     lines.push_back({1, 0, 1, "{"});
     
-    lines.push_back({2, 0, 2, "// zero integral buffers"});
+    lines.push_back({2, 0, 2, "auto ket_range = batch::batch_range(i, ket_dim, simd::width<double>(), ket_indices.first);"});
+
+    lines.push_back({2, 0, 2, "pfactors.load(c_vec_exps, ket_range, 0, ket_npgtos);"});
     
-    for (const auto& tint : _get_cart_buffer_integrals(bra_integrals, ket_integrals))
+    lines.push_back({2, 0, 2, "pfactors.load(d_vec_exps, ket_range, 1, ket_npgtos);"});
+ 
+    lines.push_back({2, 0, 2, "pfactors.load(cd_vec_ovls, ket_range, 2, ket_npgtos);"});
+    
+    lines.push_back({2, 0, 2, "pfactors.load(cd_vec_norms, ket_range, 3, ket_npgtos);"});
+    
+    lines.push_back({2, 0, 2, "pfactors.replicate_points(c_coords, ket_range, 4, ket_npgtos);"});
+    
+    lines.push_back({2, 0, 2, "pfactors.replicate_points(d_coords, ket_range, 7, ket_npgtos);"});
+    
+    if (_need_hrr_for_ket(integral))
     {
-        std::string label = t4c::get_buffer_label(tint, "cart")  + ".zero();";
-            
-        lines.push_back({2, 0, 2, label});
+        lines.push_back({2, 0, 2, "cfactors.replicate_points(c_coords, ket_range, 0, 1);"});
+        
+        lines.push_back({2, 0, 2, "cfactors.replicate_points(d_coords, ket_range, 3, 1);"});
+    }
+   
+    lines.push_back({2, 0, 2, "// set up active SIMD width"});
+    
+    lines.push_back({2, 0, 2, "const auto ket_width = ket_range.second - ket_range.first;"});
+    
+    lines.push_back({2, 0, 2, "pbuffer.set_active_width(ket_width);"});
+    
+    lines.push_back({2, 0, 2, "cbuffer.set_active_width(ket_width);"});
+    
+    if (_need_hrr_for_ket(integral))
+    {
+        lines.push_back({2, 0, 2, "ckbuffer.set_active_width(ket_width);"});
     }
     
-    for (const auto& tint : _get_half_spher_buffers_integrals(bra_integrals, ket_integrals, integral))
+    lines.push_back({2, 0, 2, "skbuffer.set_active_width(ket_width);"});
+    
+    lines.push_back({2, 0, 2, "sbuffer.set_active_width(ket_width);"});
+    
+    lines.push_back({2, 0, 2, "bf_data.set_active_width(ket_width);"});
+      
+    lines.push_back({2, 0, 2, "// loop over basis function pairs on bra side"});
+
+    lines.push_back({2, 0, 1, "for (auto j = bra_indices.first; j < bra_indices.second; j++)"});
+
+    lines.push_back({2, 0, 1, "{"});
+    
+    lines.push_back({3, 0, 2, "// zero integral buffers"});
+    
+    lines.push_back({3, 0, 2, "cbuffer.zero();"});
+    
+    if (_need_hrr_for_ket(integral))
     {
-        std::string label = t4c::get_buffer_label(tint, "ket_spher")  + ".zero();";
-            
-        lines.push_back({2, 0, 2, label});
+        lines.push_back({3, 0, 2, "ckbuffer.zero();"});
     }
     
-    std::string label = t4c::get_buffer_label(integral, "spher")  + ".zero();";
-        
-    lines.push_back({2, 0, 2, label});
+    lines.push_back({3, 0, 2, "skbuffer.zero();"});
     
-    lines.push_back({2, 0, 2, "// set up coordinates on bra side"});
+    lines.push_back({3, 0, 2, "sbuffer.zero();"});
 
-    lines.push_back({2, 0, 2, "const auto a_x = a_coords_x[i];"});
+    lines.push_back({3, 0, 2, "// set up coordinates on bra side"});
 
-    lines.push_back({2, 0, 2, "const auto a_y = a_coords_y[i];"});
-
-    lines.push_back({2, 0, 2, "const auto a_z = a_coords_z[i];"});
+    lines.push_back({3, 0, 2, "const auto r_a = a_coords[j];"});
     
-    lines.push_back({2, 0, 2, "const auto b_x = b_coords_x[i];"});
-
-    lines.push_back({2, 0, 2, "const auto b_y = b_coords_y[i];"});
-
-    lines.push_back({2, 0, 2, "const auto b_z = b_coords_z[i];"});
+    lines.push_back({3, 0, 2, "const auto r_b = b_coords[j];"});
     
-    if (integral[0] > 0)
+    lines.push_back({3, 0, 2, "const auto a_xyz = r_a.coordinates();"});
+    
+    lines.push_back({3, 0, 2, "const auto b_xyz = r_b.coordinates();"});
+
+    if (_need_hrr_for_bra(integral))
     {
-        lines.push_back({2, 0, 2, "// set up distances on bra side"});
+        lines.push_back({3, 0, 2, "const auto r_ab = TPoint<double>({a_xyz[0] - b_xyz[0], a_xyz[1] - b_xyz[1], a_xyz[2] - b_xyz[2]});"});
         
-        lines.push_back({2, 0, 2, "const auto ab_x = a_x - b_x;"});
-
-        lines.push_back({2, 0, 2, "const auto ab_y = a_y - b_y;"});
-
-        lines.push_back({2, 0, 2, "const auto ab_z = a_z - b_z;"});
     }
 }
 
@@ -1381,29 +1416,28 @@ T4CFuncBodyDriver::_add_full_loop_start(      VCodeLines&    lines,
 
 void
 T4CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
-                                 const I4CIntegral& integral,
-                                 const bool         diagonal) const
+                                 const I4CIntegral& integral) const
 {
-    std::string label = "t4cfunc::store_values(buffer, " + t4c::get_buffer_label(integral, "spher") + ", ";
-    
-    auto angpair = std::array<int, 2>({integral[2], integral[3]});
-                    
-    auto tcomps = t2c::number_of_spherical_components(angpair);
-                    
-    angpair = std::array<int, 2>({integral[0], integral[1]});
-                    
-    tcomps *= t2c::number_of_spherical_components(angpair);
-    
-    if (tcomps == 1)
-    {
-        label += "i - bra_indices[0]);";
-    }
-    else
-    {
-        label += std::to_string(tcomps) + " * (i - bra_indices[0]));";
-    }
-    
-    lines.push_back({2, 0, 1, label});
+//    std::string label = "t4cfunc::store_values(buffer, " + t4c::get_buffer_label(integral, "spher") + ", ";
+//    
+//    auto angpair = std::array<int, 2>({integral[2], integral[3]});
+//                    
+//    auto tcomps = t2c::number_of_spherical_components(angpair);
+//                    
+//    angpair = std::array<int, 2>({integral[0], integral[1]});
+//                    
+//    tcomps *= t2c::number_of_spherical_components(angpair);
+//    
+//    if (tcomps == 1)
+//    {
+//        label += "i - bra_indices[0]);";
+//    }
+//    else
+//    {
+//        label += std::to_string(tcomps) + " * (i - bra_indices[0]));";
+//    }
+//    
+//    lines.push_back({2, 0, 1, label});
 
 //    label = "distributor->distribute(";
 //
@@ -1432,32 +1466,24 @@ T4CFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
 //    label += "i, ket_indices);";
 //
 //    lines.push_back({2, 0, 1, label});
+    
+    lines.push_back({2, 0, 1, "}"});
    
     lines.push_back({1, 0, 2, "}"});
     
     lines.push_back({1, 0, 1, "#pragma omp critical"});
     
-    label = "distributor->distribute(buffer, ";
+    std::string label = "distributor.distribute(buffer, ";
         
-    if (diagonal)
-    {
-        label += "a_indices, b_indices, ";
-    }
-    else
-    {
-        label += "a_indices, b_indices, c_indices, d_indices, ";
-    }
+    label += "a_indices, b_indices, c_indices, d_indices, ";
             
     label += std::to_string(integral[0]) + ", ";
             
     label += std::to_string(integral[1]) + ", ";
     
-    if (!diagonal)
-    {
-        label += std::to_string(integral[2]) + ", ";
+    label += std::to_string(integral[2]) + ", ";
                 
-        label += std::to_string(integral[3]) + ", ";
-    }
+    label += std::to_string(integral[3]) + ", ";
             
     label += "bra_indices, ket_indices);";
             
@@ -1520,84 +1546,107 @@ T4CFuncBodyDriver::_add_full_loop_end(      VCodeLines&  lines,
 
 void
 T4CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
-                                       const I4CIntegral& integral,
-                                       const bool         diagonal) const
+                                       const I4CIntegral& integral) const
 {
-    if (diagonal)
-    {
-        lines.push_back({2, 0, 1, "for (int j = 0; j < npgtos; j++)"});
-    }
-    else
-    {
-        lines.push_back({2, 0, 1, "for (int j = 0; j < bra_npgtos; j++)"});
-    }
+    lines.push_back({3, 0, 1, "for (int k = 0; k < bra_npgtos; k++)"});
+   
+    lines.push_back({3, 0, 1, "{"});
     
-    lines.push_back({2, 0, 1, "{"});
-    
-    if (diagonal && (integral[0] == integral[2]) && (integral[1] == integral[3]))
-    {
-        lines.push_back({3, 0, 2, "const auto a_exp = a_vec_exps[j * ncgtos + i];"});
+    lines.push_back({4, 0, 2, "const auto a_exp = a_vec_exps[k * bra_ncgtos + j];"});
         
-        lines.push_back({3, 0, 2, "const auto b_exp = b_vec_exps[j * ncgtos + i];"});
+    lines.push_back({4, 0, 2, "const auto b_exp = b_vec_exps[k * bra_ncgtos + j];"});
             
-        lines.push_back({3, 0, 2, "const auto ab_norm = ab_vec_norms[j * ncgtos + i];"});
+    lines.push_back({4, 0, 2, "const auto ab_norm = ab_vec_norms[k * bra_ncgtos + j];"});
         
-        lines.push_back({3, 0, 2, "const auto ab_ovl = ab_vec_ovls[j * ncgtos + i];"});
-    }
-    else
-    {
-        lines.push_back({3, 0, 2, "const auto a_exp = a_vec_exps[j * bra_ncgtos + i];"});
-        
-        lines.push_back({3, 0, 2, "const auto b_exp = b_vec_exps[j * bra_ncgtos + i];"});
-            
-        lines.push_back({3, 0, 2, "const auto ab_norm = ab_vec_norms[j * bra_ncgtos + i];"});
-        
-        lines.push_back({3, 0, 2, "const auto ab_ovl = ab_vec_ovls[j * bra_ncgtos + i];"});
-    }
+    lines.push_back({4, 0, 2, "const auto ab_ovl = ab_vec_ovls[k * bra_ncgtos + j];"});
     
-    lines.push_back({3, 0, 2, "const auto p_x = (a_x * a_exp + b_x * b_exp) / (a_exp + b_exp);"});
+    lines.push_back({4, 0, 2, "const auto p_x = (a_xyz[0] * a_exp + b_xyz[0] * b_exp) / (a_exp + b_exp);"});
     
-    lines.push_back({3, 0, 2, "const auto p_y = (a_y * a_exp + b_y * b_exp) / (a_exp + b_exp);"});
+    lines.push_back({4, 0, 2, "const auto p_y = (a_xyz[1] * a_exp + b_xyz[1] * b_exp) / (a_exp + b_exp);"});
     
-    lines.push_back({3, 0, 2, "const auto p_z = (a_z * a_exp + b_z * b_exp) / (a_exp + b_exp);"});
+    lines.push_back({4, 0, 2, "const auto p_z = (a_xyz[2] * a_exp + b_xyz[2] * b_exp) / (a_exp + b_exp);"});
+    
+    lines.push_back({4, 0, 2, "const auto r_p = TPoint<double>({p_x, p_y, p_z});"});
     
     if ((integral[0] + integral[1]) > 0)
     {
-        lines.push_back({3, 0, 2, "const auto pb_x = p_x - b_x;"});
+        lines.push_back({4, 0, 2, "const auto pb_x = p_x - b_xyz[0];"});
         
-        lines.push_back({3, 0, 2, "const auto pb_y = p_y - b_y;"});
+        lines.push_back({4, 0, 2, "const auto pb_y = p_y - b_xyz[1];"});
         
-        lines.push_back({3, 0, 2, "const auto pb_z = p_z - b_z;"});
-    }
-    
-    lines.push_back({3, 0, 2, "t4cfunc::comp_coordinates_q(q_x[0], q_y[0], q_z[0], c_x[0], c_y[0], c_z[0], d_x[0], d_y[0], d_z[0], c_exps[0], d_exps[0], ket_pdim);"});
-    
-    if ((integral[0] + integral[1] + integral[2] + integral[3]) > 0)
-    {
-        lines.push_back({3, 0, 2, "t4cfunc::comp_coordinates_w(w_x[0], w_y[0], w_z[0], p_x, p_y, p_z, q_x[0], q_y[0], q_z[0], a_exp, b_exp, c_exps[0], d_exps[0], ket_pdim);"});
-    }
-    
-    lines.push_back({3, 0, 2, "t4cfunc::comp_distances_pq(pq_x[0], pq_y[0], pq_z[0], p_x, p_y, p_z, q_x[0], q_y[0], q_z[0], ket_pdim);"});
-    
-    if ((integral[2] + integral[3]) > 0)
-    {
-        lines.push_back({3, 0, 2, "t4cfunc::comp_distances_wq(wq_x[0], wq_y[0], wq_z[0], w_x[0], w_y[0], w_z[0], q_x[0], q_y[0], q_z[0], ket_pdim);"});
+        lines.push_back({4, 0, 2, "const auto pb_z = p_z - b_xyz[2];"});
         
-        lines.push_back({3, 0, 2, "t4cfunc::comp_distances_qd(qd_x[0], qd_y[0], qd_z[0], q_x[0], q_y[0], q_z[0], d_x[0], d_y[0], d_z[0], ket_pdim);"});
+        lines.push_back({4, 0, 2, "const auto r_pb = TPoint<double>({pb_x, pb_y, pb_z});"});
     }
     
-    if ((integral[0] + integral[1]) > 0)
+    lines.push_back({4, 0, 2, "t4cfunc::comp_coordinates_q(pfactors, 10, 4, 7);"});
+    
+    lines.push_back({4, 0, 2, "t4cfunc::comp_distances_pq(pfactors, 13, 10, r_p);"});
+    
+    if (_need_center_w(integral))
     {
-        lines.push_back({3, 0, 2, "t4cfunc::comp_distances_wp(wp_x[0], wp_y[0], wp_z[0], w_x[0], w_y[0], w_z[0], p_x, p_y, p_z, ket_pdim);"});
+        auto label_w = std::to_string(_get_index_w(integral));
+        
+        lines.push_back({4, 0, 2, "t4cfunc::comp_coordinates_w(pfactors, " + label_w + ", 10, r_p, a_exp, b_exp);"});
     }
     
-    lines.push_back({3, 0, 2, "t4cfunc::comp_boys_args(bf_args, pq_x[0], pq_y[0], pq_z[0], a_exp, b_exp, c_exps[0], d_exps[0]);"});
+    if (_need_distances_qd(integral))
+    {
+        auto label_qd = std::to_string(_get_index_qd(integral));
+        
+        lines.push_back({4, 0, 2, "t4cfunc::comp_distances_qd(pfactors, " + label_qd + ", 10, 7);"});
+    }
     
-    lines.push_back({3, 0, 2, "bf_table.compute(bf_values, bf_args);"});
+    if (_need_distances_wq(integral))
+    {
+        auto label_w = std::to_string(_get_index_w(integral));
+        
+        auto label_wq = std::to_string(_get_index_wq(integral));
+        
+        lines.push_back({4, 0, 2, "t4cfunc::comp_distances_wq(pfactors, " + label_wq + ", " + label_w + ", 10);"});
+    }
+     
+    if (_need_distances_wp(integral))
+    {
+        auto label_w = std::to_string(_get_index_w(integral));
+        
+        auto label_wp = std::to_string(_get_index_wp(integral));
+        
+        lines.push_back({4, 0, 2, "t4cfunc::comp_distances_wp(pfactors, " + label_wp + ", " + label_w + ", r_p);"});
+    }
     
-    lines.push_back({3, 0, 2, "t4cfunc::comp_ovl_factors(fss_abcd, ab_ovl, cd_ovls[0], ab_norm, cd_norms[0], a_exp, b_exp, c_exps[0], d_exps[0]);"});
+    auto border = integral[0] + integral[1] + integral[2] + integral[3] + 1;
+    
+    lines.push_back({4, 0, 2, "if constexpr (N == 1) t4cfunc::comp_boys_args(bf_data, " + std::to_string(border) + ", pfactors, 13, a_exp, b_exp);"});
+    
+    lines.push_back({4, 0, 2, "if constexpr (N == 2) t4cfunc::comp_boys_args(bf_data, " + std::to_string(border) + ", pfactors, 13, a_exp, b_exp, omega);"});
+    
+    lines.push_back({4, 0, 1, "if constexpr (N == 3)"});
+    
+    lines.push_back({4, 0, 1, "{"});
+    
+    lines.push_back({5, 0, 2, "t4cfunc::comp_boys_args(bf_data, " + std::to_string(border) + ", pfactors, 13, a_exp, b_exp);"});
+    
+    lines.push_back({5, 0, 1, "t4cfunc::comp_boys_args(bf_data, " + std::to_string(2 * border + 1) + ", pfactors, 13, a_exp, b_exp, omega);"});
+    
+    lines.push_back({4, 0, 2, "}"});
+    
+    lines.push_back({4, 0, 2, "if constexpr (N == 1) bf_table.compute(bf_data, 0, " + std::to_string(border) + ");"});
+    
+    lines.push_back({4, 0, 2, "if constexpr (N == 2) bf_table.compute(bf_data, 0, " + std::to_string(border) + ", pfactors, a_exp, b_exp, omega);"});
+    
+    lines.push_back({4, 0, 1, "if constexpr (N == 3)"});
+    
+    lines.push_back({4, 0, 1, "{"});
+    
+    lines.push_back({5, 0, 2, "bf_table.compute(bf_data, 0, " + std::to_string(border) + ");"});
+    
+    lines.push_back({5, 0, 1, "bf_table.compute(bf_data, " + std::to_string(border + 1) + ", " +  std::to_string(2 * border + 1) + ", pfactors, a_exp, b_exp, omega);"});
+        
+    lines.push_back({4, 0, 2, "}"});
+    
+    lines.push_back({4, 0, 2, "t4cfunc::comp_ovl_factors(pfactors, 16, ab_ovl, ab_norm, a_exp, b_exp);"});
 }
-
 
 void
 T4CFuncBodyDriver::_add_diag_ket_loop_start(      VCodeLines&  lines,
@@ -2295,4 +2344,40 @@ bool
 T4CFuncBodyDriver::_need_hrr_for_bra(const I4CIntegral& integral) const
 {
     return integral[0] > 0;
+}
+
+size_t
+T4CFuncBodyDriver::_get_index_w(const I4CIntegral& integral) const
+{
+    return 17;
+}
+
+size_t
+T4CFuncBodyDriver::_get_index_qd(const I4CIntegral& integral) const
+{
+    auto index = _get_index_w(integral);
+    
+    if (_need_center_w(integral)) index += 3;
+    
+    return index; 
+}
+
+size_t
+T4CFuncBodyDriver::_get_index_wq(const I4CIntegral& integral) const
+{
+    auto index = _get_index_qd(integral);
+    
+    if (_need_distances_qd(integral)) index += 3;
+    
+    return index;
+}
+
+size_t
+T4CFuncBodyDriver::_get_index_wp(const I4CIntegral& integral) const
+{
+    auto index = _get_index_wq(integral);
+    
+    if (_need_distances_wq(integral)) index += 3;
+    
+    return index;
 }

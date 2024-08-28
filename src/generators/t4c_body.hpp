@@ -195,12 +195,10 @@ class T4CFuncBodyDriver
     /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
     /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
     /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_loop_start(      VCodeLines&  lines,
                          const SI4CIntegrals& bra_integrals,
                          const SI4CIntegrals& ket_integrals,
-                         const I4CIntegral& integral,
-                         const bool         diagonal) const;
+                         const I4CIntegral& integral) const;
     
     /// Adds loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
@@ -223,10 +221,8 @@ class T4CFuncBodyDriver
     /// Adds loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_loop_end(      VCodeLines&  lines,
-                       const I4CIntegral& integral,
-                       const bool         diagonal) const;
+                       const I4CIntegral& integral) const;
     
     /// Adds loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
@@ -243,10 +239,8 @@ class T4CFuncBodyDriver
     /// Adds ket loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_ket_loop_start(      VCodeLines&  lines,
-                             const I4CIntegral& integral,
-                             const bool         diagonal) const;
+                             const I4CIntegral& integral) const;
     
     /// Adds ket loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
@@ -393,6 +387,22 @@ class T4CFuncBodyDriver
     /// Checks if horizontal recursion on bra side is required for integration.
     /// @param integral The base four center integral.
     bool _need_hrr_for_bra(const I4CIntegral& integral) const;
+    
+    /// Gets index of Cartesian center W in factors buffer.
+    /// @param integral The base four center integral.
+    size_t _get_index_w(const I4CIntegral& integral) const;
+    
+    /// Gets index of distances of (Q-D)  in factors buffer.
+    /// @param integral The base four center integral.
+    size_t _get_index_qd(const I4CIntegral& integral) const;
+    
+    /// Gets index of distances of (W-Q)  in factors buffer.
+    /// @param integral The base four center integral.
+    size_t _get_index_wq(const I4CIntegral& integral) const;
+    
+    /// Gets index of distances of (W-P)  in factors buffer.
+    /// @param integral The base four center integral.
+    size_t _get_index_wp(const I4CIntegral& integral) const;
 
 public:
     /// Creates a four-center compute function body generator.
