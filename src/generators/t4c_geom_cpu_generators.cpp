@@ -184,9 +184,9 @@ T4CGeomCPUGenerator::_write_cpp_header(const SI4CIntegrals& geom_integrals,
     
     T4CFuncBodyDriver func_drv;
 
-    docs_drv.write_doc_str(fstream, integral, false);
+    docs_drv.write_doc_str(fstream, integral);
     
-    decl_drv.write_func_decl(fstream, integral, false, false);
+    decl_drv.write_func_decl(fstream, integral, false);
     
     func_drv.write_geom_func_body(fstream, geom_integrals, vrr_integrals, integral);
     

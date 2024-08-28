@@ -29,14 +29,13 @@
 class T4CFuncBodyDriver
 {
     /// Generates vector of strings with GTOs definitions in compute function.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @return The vector of strings with GTOS definitions in compute function.
-    std::vector<std::string> _get_gto_pairs_def(const bool diagonal) const;
+    std::vector<std::string> _get_gto_pairs_def() const;
     
     /// Generates vector of ket factors in compute function.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
+    /// @param integral The base four center integral.
     /// @return The vector of ket factors in compute function.
-    std::vector<std::string> _get_ket_variables_def(const bool diagonal) const;
+    std::vector<std::string> _get_ket_variables_def(const I4CIntegral& integral) const;
     
     /// Generates vector of ket factors in compute function.
     /// @return The vector of ket factors in compute function.
@@ -371,6 +370,30 @@ class T4CFuncBodyDriver
     void _add_full_trafo(      VCodeLines&  lines,
                          const I4CIntegral& integral) const;
     
+    /// Checks if coordinates of center W are required for integration.
+    /// @param integral The base four center integral.
+    bool _need_center_w(const I4CIntegral& integral) const;
+    
+    /// Checks if distances of (Q-D) are required for integration.
+    /// @param integral The base four center integral.
+    bool _need_distances_qd(const I4CIntegral& integral) const;
+    
+    /// Checks if distances of (W-Q) are required for integration.
+    /// @param integral The base four center integral.
+    bool _need_distances_wq(const I4CIntegral& integral) const;
+    
+    /// Checks if distances of (W-P) are required for integration.
+    /// @param integral The base four center integral.
+    bool _need_distances_wp(const I4CIntegral& integral) const;
+    
+    /// Checks if horizontal recursion on ket side is required for integration.
+    /// @param integral The base four center integral.
+    bool _need_hrr_for_ket(const I4CIntegral& integral) const;
+    
+    /// Checks if horizontal recursion on bra side is required for integration.
+    /// @param integral The base four center integral.
+    bool _need_hrr_for_bra(const I4CIntegral& integral) const;
+
 public:
     /// Creates a four-center compute function body generator.
     T4CFuncBodyDriver() = default;
@@ -381,13 +404,11 @@ public:
     /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
     /// @param vrr_integrals The set of unique integrals for vertical recursion.
     /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void write_func_body(      std::ofstream& fstream,
                          const SI4CIntegrals& bra_integrals,
                          const SI4CIntegrals& ket_integrals,
                          const SI4CIntegrals& vrr_integrals,
-                         const I4CIntegral&   integral,
-                         const bool           diagonal) const;
+                         const I4CIntegral&   integral) const;
     
     /// Writes body of compute function.
     /// @param fstream the file stream.

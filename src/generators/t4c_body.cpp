@@ -24,28 +24,22 @@ T4CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
                                    const SI4CIntegrals& bra_integrals,
                                    const SI4CIntegrals& ket_integrals,
                                    const SI4CIntegrals& vrr_integrals,
-                                   const I4CIntegral&   integral,
-                                   const bool           diagonal) const
+                                   const I4CIntegral&   integral) const
 {
     auto lines = VCodeLines();
     
     lines.push_back({0, 0, 1, "{"});
     
-    for (const auto& label : _get_gto_pairs_def(diagonal))
+    for (const auto& label : _get_gto_pairs_def())
     {
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_ket_variables_def(diagonal))
+    for (const auto& label : _get_ket_variables_def(integral))
     {
         lines.push_back({1, 0, 2, label});
     }
-    
-    for (const auto& label : _get_coordinates_def(integral))
-    {
-        lines.push_back({1, 0, 2, label});
-    }
-    
+
     for (const auto& label : _get_prim_buffers_def(vrr_integrals, integral))
     {
         lines.push_back({1, 0, 2, label});
@@ -71,30 +65,30 @@ T4CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_boys_function_def(integral))
-    {
-        lines.push_back({1, 0, 2, label});
-    }
-    
-    _add_loop_start(lines, bra_integrals, ket_integrals, integral, diagonal);
-    
-    _add_ket_loop_start(lines, integral, diagonal);
-
-    _add_auxilary_integrals(lines, vrr_integrals);
-
-    _add_vrr_call_tree(lines, vrr_integrals);
-
-    _add_ket_loop_end(lines, bra_integrals, ket_integrals, integral, diagonal);
-    
-    _add_ket_hrr_call_tree(lines, ket_integrals);
-    
-    _add_ket_trafo_call_tree(lines, bra_integrals, ket_integrals, integral);
-    
-    _add_bra_hrr_call_tree(lines, bra_integrals);
-    
-    _add_bra_trafo_call_tree(lines, integral);
-    
-    _add_loop_end(lines, integral, diagonal);
+//    for (const auto& label : _get_boys_function_def(integral))
+//    {
+//        lines.push_back({1, 0, 2, label});
+//    }
+//    
+//    _add_loop_start(lines, bra_integrals, ket_integrals, integral);
+//    
+//    _add_ket_loop_start(lines, integral);
+//
+//    _add_auxilary_integrals(lines, vrr_integrals);
+//
+//    _add_vrr_call_tree(lines, vrr_integrals);
+//
+//    _add_ket_loop_end(lines, bra_integrals, ket_integrals, integral);
+//    
+//    _add_ket_hrr_call_tree(lines, ket_integrals);
+//    
+//    _add_ket_trafo_call_tree(lines, bra_integrals, ket_integrals, integral);
+//    
+//    _add_bra_hrr_call_tree(lines, bra_integrals);
+//    
+//    _add_bra_trafo_call_tree(lines, integral);
+//    
+//    _add_loop_end(lines, integral);
     
     lines.push_back({0, 0, 1, "}"});
     
@@ -112,7 +106,7 @@ T4CFuncBodyDriver::write_diag_func_body(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "{"});
     
-    for (const auto& label : _get_gto_pairs_def(true))
+    for (const auto& label : _get_gto_pairs_def())
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -197,12 +191,12 @@ T4CFuncBodyDriver::write_geom_func_body(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "{"});
     
-    for (const auto& label : _get_gto_pairs_def(false))
+    for (const auto& label : _get_gto_pairs_def())
     {
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_ket_variables_def(false))
+    for (const auto& label : _get_ket_variables_def(integral))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -254,195 +248,79 @@ T4CFuncBodyDriver::write_geom_func_body(      std::ofstream& fstream,
 }
 
 std::vector<std::string>
-T4CFuncBodyDriver::_get_gto_pairs_def(const bool diagonal) const
+T4CFuncBodyDriver::_get_gto_pairs_def() const
 {
     std::vector<std::string> vstr;
     
-    if (diagonal)
-    {
-        vstr.push_back("// intialize GTOs pair data");
+    vstr.push_back("// intialize GTOs pair data on bra side");
 
-        vstr.push_back("const auto a_coords_x = gto_pair_block.bra_coordinates_x();");
+    vstr.push_back("const auto a_coords = bra_gto_pair_block.bra_coordinates();");
+       
+    vstr.push_back("const auto b_coords = bra_gto_pair_block.ket_coordinates();");
+    
+    vstr.push_back("const auto a_vec_exps = bra_gto_pair_block.bra_exponents();");
         
-        vstr.push_back("const auto a_coords_y = gto_pair_block.bra_coordinates_y();");
+    vstr.push_back("const auto b_vec_exps = bra_gto_pair_block.ket_exponents();");
         
-        vstr.push_back("const auto a_coords_z = gto_pair_block.bra_coordinates_z();");
+    vstr.push_back("const auto ab_vec_norms = bra_gto_pair_block.normalization_factors();");
         
-        vstr.push_back("const auto b_coords_x = gto_pair_block.ket_coordinates_x();");
+    vstr.push_back("const auto ab_vec_ovls = bra_gto_pair_block.overlap_factors();");
         
-        vstr.push_back("const auto b_coords_y = gto_pair_block.ket_coordinates_y();");
+    vstr.push_back("const auto a_indices = bra_gto_pair_block.bra_orbital_indices();");
         
-        vstr.push_back("const auto b_coords_z = gto_pair_block.ket_coordinates_z();");
+    vstr.push_back("const auto b_indices = bra_gto_pair_block.ket_orbital_indices();");
+      
+    vstr.push_back("const auto bra_ncgtos = bra_gto_pair_block.number_of_contracted_pairs();");
         
-        vstr.push_back("const auto a_vec_exps = gto_pair_block.bra_exponents();");
+    vstr.push_back("const auto bra_npgtos = bra_gto_pair_block.number_of_primitive_pairs();");
         
-        vstr.push_back("const auto b_vec_exps = gto_pair_block.ket_exponents();");
+    vstr.push_back("// intialize GTOs data on ket side");
         
-        vstr.push_back("const auto ab_vec_norms = gto_pair_block.normalization_factors();");
+    vstr.push_back("const auto c_coords = ket_gto_pair_block.bra_coordinates();");
+      
+    vstr.push_back("const auto d_coords = ket_gto_pair_block.ket_coordinates();");
         
-        vstr.push_back("const auto ab_vec_ovls = gto_pair_block.overlap_factors();");
+    vstr.push_back("const auto c_vec_exps = ket_gto_pair_block.bra_exponents();");
         
-        vstr.push_back("const auto a_indices = gto_pair_block.bra_orbital_indices();");
+    vstr.push_back("const auto d_vec_exps = ket_gto_pair_block.ket_exponents();");
         
-        vstr.push_back("const auto b_indices = gto_pair_block.ket_orbital_indices();");
+    vstr.push_back("const auto cd_vec_norms = ket_gto_pair_block.normalization_factors();");
         
-        vstr.push_back("const auto ncgtos = gto_pair_block.number_of_contracted_pairs();");
+    vstr.push_back("const auto cd_vec_ovls = ket_gto_pair_block.overlap_factors();");
         
-        vstr.push_back("const auto npgtos = gto_pair_block.number_of_primitive_pairs();");
-    }
-    else
-    {
-        vstr.push_back("// intialize GTOs pair data on bra side");
-
-        vstr.push_back("const auto a_coords_x = bra_gto_pair_block.bra_coordinates_x();");
+    vstr.push_back("const auto c_indices = ket_gto_pair_block.bra_orbital_indices();");
         
-        vstr.push_back("const auto a_coords_y = bra_gto_pair_block.bra_coordinates_y();");
+    vstr.push_back("const auto d_indices = ket_gto_pair_block.ket_orbital_indices();");
         
-        vstr.push_back("const auto a_coords_z = bra_gto_pair_block.bra_coordinates_z();");
-        
-        vstr.push_back("const auto b_coords_x = bra_gto_pair_block.ket_coordinates_x();");
-        
-        vstr.push_back("const auto b_coords_y = bra_gto_pair_block.ket_coordinates_y();");
-        
-        vstr.push_back("const auto b_coords_z = bra_gto_pair_block.ket_coordinates_z();");
-        
-        vstr.push_back("const auto a_vec_exps = bra_gto_pair_block.bra_exponents();");
-        
-        vstr.push_back("const auto b_vec_exps = bra_gto_pair_block.ket_exponents();");
-        
-        vstr.push_back("const auto ab_vec_norms = bra_gto_pair_block.normalization_factors();");
-        
-        vstr.push_back("const auto ab_vec_ovls = bra_gto_pair_block.overlap_factors();");
-        
-        vstr.push_back("const auto a_indices = bra_gto_pair_block.bra_orbital_indices();");
-        
-        vstr.push_back("const auto b_indices = bra_gto_pair_block.ket_orbital_indices();");
-        
-        //vstr.push_back("const auto bra_ang_mom = bra_gto_pair_block.angular_momentums();");
-        
-        vstr.push_back("const auto bra_ncgtos = bra_gto_pair_block.number_of_contracted_pairs();");
-        
-        vstr.push_back("const auto bra_npgtos = bra_gto_pair_block.number_of_primitive_pairs();");
-        
-        vstr.push_back("// intialize GTOs data on ket side");
-        
-        vstr.push_back("const auto c_coords_x = ket_gto_pair_block.bra_coordinates_x();");
-        
-        vstr.push_back("const auto c_coords_y = ket_gto_pair_block.bra_coordinates_y();");
-        
-        vstr.push_back("const auto c_coords_z = ket_gto_pair_block.bra_coordinates_z();");
-        
-        vstr.push_back("const auto d_coords_x = ket_gto_pair_block.ket_coordinates_x();");
-        
-        vstr.push_back("const auto d_coords_y = ket_gto_pair_block.ket_coordinates_y();");
-        
-        vstr.push_back("const auto d_coords_z = ket_gto_pair_block.ket_coordinates_z();");
-        
-        vstr.push_back("const auto c_vec_exps = ket_gto_pair_block.bra_exponents();");
-        
-        vstr.push_back("const auto d_vec_exps = ket_gto_pair_block.ket_exponents();");
-        
-        vstr.push_back("const auto cd_vec_norms = ket_gto_pair_block.normalization_factors();");
-        
-        vstr.push_back("const auto cd_vec_ovls = ket_gto_pair_block.overlap_factors();");
-        
-        vstr.push_back("const auto c_indices = ket_gto_pair_block.bra_orbital_indices();");
-        
-        vstr.push_back("const auto d_indices = ket_gto_pair_block.ket_orbital_indices();");
-        
-        vstr.push_back("const auto ket_npgtos = ket_gto_pair_block.number_of_primitive_pairs();");
-    }
+    vstr.push_back("const auto ket_npgtos = ket_gto_pair_block.number_of_primitive_pairs();");
     
     return vstr;
 }
 
 std::vector<std::string>
-T4CFuncBodyDriver::_get_ket_variables_def(const bool diagonal) const
+T4CFuncBodyDriver::_get_ket_variables_def(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("// set up dimensions of bra and ket ranges");
-    
-    vstr.push_back("const auto bra_dim = bra_indices[1] - bra_indices[0];");
-    
-    vstr.push_back("const auto ket_dim = ket_indices[1] - ket_indices[0];");
-    
     vstr.push_back("// allocate aligned 2D arrays for ket side");
+  
+    // c_exps, d_exps, cd_ovls, cd_norms, c_coords, d_coords, q_coords, pq_coords
     
-    if (diagonal)
+    size_t nelems = 16;
+    
+    if (_need_center_w(integral)) nelems += 3;
+    
+    if (_need_distances_qd(integral)) nelems += 3;
+    
+    if (_need_distances_wq(integral)) nelems += 3;
+    
+    if (_need_distances_wp(integral)) nelems += 3;
+        
+    vstr.push_back("CSimdArray<double> pfactors(" + std::to_string(nelems) +  ", ket_npgtos);");
+  
+    if (_need_hrr_for_ket(integral))
     {
-        vstr.push_back("const auto ket_pdim = ket_dim * npgtos;");
-    }
-    else
-    {
-        vstr.push_back("const auto ket_pdim = ket_dim * ket_npgtos;");
-    }
-    
-    vstr.push_back("CSimdArray<double> c_x(1, ket_pdim);");
-
-    vstr.push_back("CSimdArray<double> c_y(1, ket_pdim);");
-
-    vstr.push_back("CSimdArray<double> c_z(1, ket_pdim);");
-    
-    vstr.push_back("CSimdArray<double> d_x(1, ket_pdim);");
-
-    vstr.push_back("CSimdArray<double> d_y(1, ket_pdim);");
-
-    vstr.push_back("CSimdArray<double> d_z(1, ket_pdim);");
-
-    vstr.push_back("CSimdArray<double> c_exps(1, ket_pdim);");
-    
-    vstr.push_back("CSimdArray<double> d_exps(1, ket_pdim);");
-
-    vstr.push_back("CSimdArray<double> cd_norms(1, ket_pdim);");
-    
-    vstr.push_back("CSimdArray<double> cd_ovls(1, ket_pdim);");
-
-    vstr.push_back(" // load GTOs data for ket side");
-
-    if (diagonal)
-    {
-        vstr.push_back("c_x.replicate(a_coords_x, ket_indices, npgtos);");
-
-        vstr.push_back("c_y.replicate(a_coords_y, ket_indices, npgtos);");
-
-        vstr.push_back("c_z.replicate(a_coords_z, ket_indices, npgtos);");
-        
-        vstr.push_back("d_x.replicate(b_coords_x, ket_indices, npgtos);");
-
-        vstr.push_back("d_y.replicate(b_coords_y, ket_indices, npgtos);");
-
-        vstr.push_back("d_z.replicate(b_coords_z, ket_indices, npgtos);");
-
-        vstr.push_back("c_exps.load(a_vec_exps, ket_indices, npgtos);");
-        
-        vstr.push_back("d_exps.load(b_vec_exps, ket_indices, npgtos);");
-
-        vstr.push_back("cd_norms.load(ab_vec_norms, ket_indices, npgtos);");
-        
-        vstr.push_back("cd_ovls.load(ab_vec_ovls, ket_indices, npgtos);");
-    }
-    else
-    {
-        vstr.push_back("c_x.replicate(c_coords_x, ket_indices, ket_npgtos);");
-
-        vstr.push_back("c_y.replicate(c_coords_y, ket_indices, ket_npgtos);");
-
-        vstr.push_back("c_z.replicate(c_coords_z, ket_indices, ket_npgtos);");
-        
-        vstr.push_back("d_x.replicate(d_coords_x, ket_indices, ket_npgtos);");
-
-        vstr.push_back("d_y.replicate(d_coords_y, ket_indices, ket_npgtos);");
-
-        vstr.push_back("d_z.replicate(d_coords_z, ket_indices, ket_npgtos);");
-
-        vstr.push_back("c_exps.load(c_vec_exps, ket_indices, ket_npgtos);");
-        
-        vstr.push_back("d_exps.load(d_vec_exps, ket_indices, ket_npgtos);");
-
-        vstr.push_back("cd_norms.load(cd_vec_norms, ket_indices, ket_npgtos);");
-        
-        vstr.push_back("cd_ovls.load(cd_vec_ovls, ket_indices, ket_npgtos);");
+        vstr.push_back("CSimdArray<double> cfactors(3, 1);");
     }
     
     return vstr;
@@ -817,23 +695,35 @@ T4CFuncBodyDriver::_get_prim_buffers_def(const SI4CIntegrals& integrals,
     
     vstr.push_back("// allocate aligned primitive integrals");
     
+    int tcomps = 0;
+    
     for (const auto& tint : integrals)
     {
         if ((tint[0] + tint[2]) == 0)
         {
-            std::string label = "CSimdArray<double> ";
-            
-            label += t4c::get_buffer_label(tint, "prim");
-            
             const auto angpair = std::array<int, 2>({tint[1], tint[3]});
             
-            const auto tcomps = t2c::number_of_cartesian_components(angpair);
-            
-            label += "(" + std::to_string(tcomps) + ", ket_pdim);";
-            
-            vstr.push_back(label);
+            tcomps += t2c::number_of_cartesian_components(angpair);
         }
     }
+    
+    std::string label = "if constexpr (N == 1) CSimdArray<double> pbuffer";
+    
+    label += "(" + std::to_string(tcomps) + ", ket_npgtos);";
+    
+    vstr.push_back(label);
+    
+    label = "if constexpr (N == 2) CSimdArray<double> pbuffer";
+    
+    label += "(" + std::to_string(tcomps) + ", ket_npgtos);";
+    
+    vstr.push_back(label);
+    
+    label = "if constexpr (N == 3) CSimdArray<double> pbuffer";
+    
+    label += "(" + std::to_string(2 * tcomps) + ", ket_npgtos);";
+    
+    vstr.push_back(label);
     
     return vstr;
 }
@@ -907,23 +797,35 @@ T4CFuncBodyDriver::_get_cart_buffers_def(const SI4CIntegrals& bra_integrals,
     
     vstr.push_back("// allocate aligned Cartesian integrals");
     
+    int tcomps = 0;
+    
     for (const auto& tint : _get_cart_buffer_integrals(bra_integrals, ket_integrals))
     {
         if ((tint[0] + tint[2]) == 0)
         {
-            std::string label = "CSimdArray<double> ";
-            
-            label += t4c::get_buffer_label(tint, "cart");
-            
             const auto angpair = std::array<int, 2>({tint[1], tint[3]});
             
-            const auto tcomps = t2c::number_of_cartesian_components(angpair);
-            
-            label += "(" + std::to_string(tcomps) + ", ket_dim);";
-            
-            vstr.push_back(label);
+            tcomps += t2c::number_of_cartesian_components(angpair);
         }
     }
+    
+    std::string label = "if constexpr (N == 1) CSimdArray<double> cbuffer";
+    
+    label += "(" + std::to_string(tcomps) + ", 1);";
+    
+    vstr.push_back(label);
+    
+    label = "if constexpr (N == 2) CSimdArray<double> cbuffer";
+    
+    label += "(" + std::to_string(tcomps) + ", 1);";
+    
+    vstr.push_back(label);
+    
+    label = "if constexpr (N == 3) CSimdArray<double> cbuffer";
+    
+    label += "(" + std::to_string(2 * tcomps) + ", 1);";
+    
+    vstr.push_back(label);
     
     return vstr;
 }
@@ -987,29 +889,39 @@ T4CFuncBodyDriver::_get_contr_buffers_def(const SI4CIntegrals& bra_integrals,
 {
     std::vector<std::string> vstr;
     
+    int tcomps = 0;
+    
     for (const auto& tint : ket_integrals)
     {
         if ((tint[0] == 0) && (tint[2] > 0))
         {
-            std::string label = "CSimdArray<double> ";
-            
-            label += t4c::get_buffer_label(tint, "contr");
-            
             const auto angpair = std::array<int, 2>({tint[2], tint[3]});
             
-            auto tcomps = t2c::number_of_cartesian_components(angpair);
-            
-            tcomps *= t2c::number_of_cartesian_components(tint[1]);
-            
-            label += "(" + std::to_string(tcomps) + ", ket_dim);";
-            
-            vstr.push_back(label);
+            tcomps += t2c::number_of_cartesian_components(angpair) * t2c::number_of_cartesian_components(tint[1]);
         }
     }
     
-    if (!vstr.empty())
+    if (tcomps > 0)
     {
         vstr.insert(vstr.begin(), "// allocate aligned contracted integrals");
+        
+        std::string label = "if constexpr (N == 1) CSimdArray<double> ";
+        
+        label += "ckbuffer(" + std::to_string(tcomps) + ", 1);";
+        
+        vstr.push_back(label);
+        
+        label = "if constexpr (N == 2) CSimdArray<double> ";
+        
+        label += "ckbuffer(" + std::to_string(tcomps) + ", 1);";
+        
+        vstr.push_back(label);
+        
+        label = "if constexpr (N == 3) CSimdArray<double> ";
+        
+        label += "ckbuffer(" + std::to_string(2 * tcomps) + ", 1);";
+        
+        vstr.push_back(label);
     }
     
     return vstr;
@@ -1059,24 +971,38 @@ T4CFuncBodyDriver::_get_half_spher_buffers_def(const SI4CIntegrals& bra_integral
     
     vstr.push_back("// allocate aligned half transformed integrals");
     
+    int tcomps = 0;
+    
     for (const auto& tint : _get_half_spher_buffers_integrals(bra_integrals, ket_integrals, integral))
     {
-        std::string label = "CSimdArray<double> ";
-                
-        label += t4c::get_buffer_label(tint, "ket_spher");
-                
         auto angpair = std::array<int, 2>({tint[2], tint[3]});
                 
-        auto tcomps = t2c::number_of_spherical_components(angpair);
+        auto icomps = t2c::number_of_spherical_components(angpair);
             
         angpair = std::array<int, 2>({tint[0], tint[1]});
                 
-        tcomps *= t2c::number_of_cartesian_components(angpair);
-                
-        label += "(" + std::to_string(tcomps) + ", ket_dim);";
-                
-        vstr.push_back(label);
+        icomps *= t2c::number_of_cartesian_components(angpair);
+        
+        tcomps += icomps;
     }
+    
+    std::string label = "if constexpr (N == 1) CSimdArray<double> ";
+            
+    label += "skbuffer(" + std::to_string(tcomps) + ", 1);";
+            
+    vstr.push_back(label);
+    
+    label = "if constexpr (N == 2) CSimdArray<double> ";
+            
+    label += "skbuffer(" + std::to_string(tcomps) + ", 1);";
+            
+    vstr.push_back(label);
+    
+    label = "if constexpr (N == 3) CSimdArray<double> ";
+            
+    label += "skbuffer(" + std::to_string(2 * tcomps) + ", 1);";
+            
+    vstr.push_back(label);
         
     return vstr;
 }
@@ -1118,10 +1044,6 @@ T4CFuncBodyDriver::_get_spher_buffers_def(const I4CIntegral& integral) const
     std::vector<std::string> vstr;
     
     vstr.push_back("// allocate aligned spherical integrals");
-     
-    std::string label = "CSimdArray<double> ";
-                    
-    label += t4c::get_buffer_label(integral, "spher");
                     
     auto angpair = std::array<int, 2>({integral[2], integral[3]});
                     
@@ -1130,22 +1052,23 @@ T4CFuncBodyDriver::_get_spher_buffers_def(const I4CIntegral& integral) const
     angpair = std::array<int, 2>({integral[0], integral[1]});
                     
     tcomps *= t2c::number_of_spherical_components(angpair);
+    
+    std::string label = "if constexpr (N == 1) CSimdArray<double> ";
                     
-    label += "(" + std::to_string(tcomps) + ", ket_dim);";
+    label += "sbuffer(" + std::to_string(tcomps) + ", 1);";
                     
     vstr.push_back(label);
     
-    vstr.push_back("// allocate accumulation buffer for integrals");
+    label = "if constexpr (N == 2) CSimdArray<double> ";
+                    
+    label += "sbuffer(" + std::to_string(tcomps) + ", 1);";
+                    
+    vstr.push_back(label);
     
-    if (tcomps == 1)
-    {
-        label = "CSimdArray<double> buffer(bra_dim, ket_dim);";
-    }
-    else
-    {
-        label = "CSimdArray<double> buffer(bra_dim * " + std::to_string(tcomps) + ", ket_dim);";
-    }
-    
+    label = "if constexpr (N == 3) CSimdArray<double> ";
+                    
+    label += "sbuffer(" + std::to_string(2 * tcomps) + ", 1);";
+                    
     vstr.push_back(label);
    
     return vstr;
@@ -2336,4 +2259,40 @@ T4CFuncBodyDriver::_add_full_trafo(      VCodeLines&  lines,
     label += t4c::get_buffer_label(integral, "cart_spher") + ");";
         
     lines.push_back({2, 0, 2, label});
+}
+
+bool 
+T4CFuncBodyDriver::_need_center_w(const I4CIntegral& integral) const
+{
+    return (integral[0] + integral[1] + integral[2] + integral[3]) > 0; 
+}
+
+bool 
+T4CFuncBodyDriver::_need_distances_qd(const I4CIntegral& integral) const
+{
+    return (integral[2] + integral[3]) > 0;
+}
+
+bool
+T4CFuncBodyDriver::_need_distances_wq(const I4CIntegral& integral) const
+{
+    return (integral[2] + integral[3]) > 0;
+}
+
+bool
+T4CFuncBodyDriver::_need_distances_wp(const I4CIntegral& integral) const
+{
+    return (integral[0] + integral[1]) > 0;
+}
+
+bool 
+T4CFuncBodyDriver::_need_hrr_for_ket(const I4CIntegral& integral) const
+{
+    return integral[2] > 0;
+}
+
+bool 
+T4CFuncBodyDriver::_need_hrr_for_bra(const I4CIntegral& integral) const
+{
+    return integral[0] > 0;
 }

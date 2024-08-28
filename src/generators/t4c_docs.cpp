@@ -23,19 +23,18 @@
 
 void
 T4CDocuDriver::write_doc_str(      std::ofstream& fstream,
-                             const I4CIntegral&   integral,
-                             const bool           diagonal) const
+                             const I4CIntegral&   integral) const
 {
     auto lines = VCodeLines();
     
-    lines.push_back({0, 0, 1, _get_compute_str(integral, diagonal)});
+    lines.push_back({0, 0, 1, _get_compute_str(integral)});
     
     for (const auto& label : _get_matrices_str(integral))
     {
         lines.push_back({0, 0, 1, label});
     }
 
-    for (const auto& label : _get_gto_pair_blocks_str(integral, diagonal))
+    for (const auto& label : _get_gto_pair_blocks_str(integral))
     {
         lines.push_back({0, 0, 1, label});
     }
@@ -76,8 +75,7 @@ T4CDocuDriver::write_diag_doc_str(      std::ofstream& fstream,
 
 
 std::string
-T4CDocuDriver::_get_compute_str(const I4CIntegral& integral,
-                                const bool         diagonal) const
+T4CDocuDriver::_get_compute_str(const I4CIntegral& integral) const
 {
     const auto bra_one = Tensor(integral[0]);
     
@@ -89,13 +87,13 @@ T4CDocuDriver::_get_compute_str(const I4CIntegral& integral,
     
     const auto integrand = integral.integrand();
     
-    auto label = "/// Computes (" + bra_one.label() + bra_two.label();
+    auto label = "/// @brief Computes (" + bra_one.label() + bra_two.label();
     
     label +=  "|" + t4c::integrand_label(integral.integrand()) + "|";
    
     label += ket_one.label() + ket_two.label() + ")  integrals for ";
         
-    label += (diagonal) ? "GTOs pair block." : "two GTOs pair blocks.";
+    label += "two basis function pairs blocks.";
     
     return label;
 }
@@ -105,28 +103,20 @@ T4CDocuDriver::_get_matrices_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("/// - Parameter distributor: the pointer to Fock matrix/matrices distributor.");
+    vstr.push_back("/// @param distributor The pointer to Fock matrix/matrices distributor.");
              
     return vstr;
 }
 
 std::vector<std::string>
-T4CDocuDriver::_get_gto_pair_blocks_str(const I4CIntegral& integral,
-                                        const bool         diagonal) const
+T4CDocuDriver::_get_gto_pair_blocks_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    if (diagonal)
-    {
-       vstr.push_back("/// - Parameter gto_pair_block: the GTOs pair block.");
-    }
-    else
-    {
-        vstr.push_back("/// - Parameter bra_gto_pair_block: the GTOs pair block on bra side.");
+    vstr.push_back("/// @param bra_gto_pair_block The GTOs pair block on bra side.");
         
-        vstr.push_back("/// - Parameter ket_gto_pair_block: the GTOs pair block on ket side.");
-    }
-        
+    vstr.push_back("/// @param ket_gto_pair_block The GTOs pair block on ket side.");
+  
     return vstr;
 }
 
@@ -135,9 +125,11 @@ T4CDocuDriver::_get_indices_str() const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("/// - Parameter bra_indices: the range [bra_first, bra_last) of GTOs on bra side.");
+    vstr.push_back("/// @param bra_indices The range [bra_first, bra_last) of basis function pairs on bra side.");
+        
+    vstr.push_back("/// @param ket_indices The range [ket_first, ket_last) of basis function pairs on ket side.");
     
-    vstr.push_back("/// - Parameter ket_indices: the range [ket_first, ket_last) of GTOs on ket side.");
+    vstr.push_back("/// @param bra_eq_ket True if basis function pairs blocks on bra and ket are the same, False otherwise.");
     
     return vstr;
 }

@@ -51,9 +51,9 @@ T2CCPUGenerator::generate(const std::string&           label,
         {
             #pragma omp single nowait
             {
-                for (int i = 5; i <= max_ang_mom; i++)
+                for (int i = 0; i <= max_ang_mom; i++)
                 {
-                    for (int j = 5; j <= max_ang_mom; j++)
+                    for (int j = 0; j <= max_ang_mom; j++)
                     {
                         #pragma omp task firstprivate(i,j)
                         {
@@ -61,7 +61,7 @@ T2CCPUGenerator::generate(const std::string&           label,
 
                             const auto integrals = _generate_integral_group(integral, geom_drvs);
 
-                           // _write_cpp_header(integrals, integral, rec_form, use_rs);
+                             _write_cpp_header(integrals, integral, rec_form, use_rs);
                             
                             if (((i + j) > 0) && (!use_rs))
                             {

@@ -248,22 +248,11 @@ T4CCPUGenerator::_write_cpp_header(const SI4CIntegrals& bra_integrals,
     
     T4CFuncBodyDriver func_drv;
 
-    if ((integral[0] == integral[2]) && (integral[1] == integral[3]))
-    {
-        docs_drv.write_doc_str(fstream, integral, true);
-        
-        decl_drv.write_func_decl(fstream, integral, true, false);
-        
-        func_drv.write_func_body(fstream, bra_integrals, ket_integrals, vrr_integrals, integral, true);
-
-        fstream << std::endl;
-    }
-
-    docs_drv.write_doc_str(fstream, integral, false);
+    docs_drv.write_doc_str(fstream, integral);
     
-    decl_drv.write_func_decl(fstream, integral, false, false);
+    decl_drv.write_func_decl(fstream, integral, false);
     
-    func_drv.write_func_body(fstream, bra_integrals, ket_integrals, vrr_integrals, integral, false);
+    func_drv.write_func_body(fstream, bra_integrals, ket_integrals, vrr_integrals, integral);
     
     fstream << std::endl;
 
@@ -306,7 +295,11 @@ T4CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
 {
     auto lines = VCodeLines();
     
-    lines.push_back({0, 0, 2, "#include <array>"});
+    lines.push_back({0, 0, 1, "#include <array>"});
+    
+    lines.push_back({0, 0, 1, "#include <cstddef>"});
+    
+    lines.push_back({0, 0, 2, "#include <utility>"});
     
     std::set<std::string> labels;
     
@@ -397,16 +390,16 @@ T4CCPUGenerator::_write_cpp_file(const SI4CIntegrals& bra_integrals,
 
     if ((integral[0] == integral[2]) && (integral[1] == integral[3]))
     {
-        decl_drv.write_func_decl(fstream, integral, true, false);
+        decl_drv.write_func_decl(fstream, integral, false);
 
-        func_drv.write_func_body(fstream, bra_integrals, ket_integrals, vrr_integrals, integral, true);
+        func_drv.write_func_body(fstream, bra_integrals, ket_integrals, vrr_integrals, integral);
         
         fstream << std::endl;
     }
 
-    decl_drv.write_func_decl(fstream, integral, false, false);
+    decl_drv.write_func_decl(fstream, integral, false);
 
-    func_drv.write_func_body(fstream, bra_integrals, ket_integrals, vrr_integrals, integral, false);
+    func_drv.write_func_body(fstream, bra_integrals, ket_integrals, vrr_integrals, integral);
 
     fstream << std::endl;
     

@@ -34,18 +34,14 @@ class T4CDeclDriver
     
     /// Generates vector of GTOs block strings.
     /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @return The vector of GTOs block strings,
-    std::vector<std::string> _get_gto_pair_blocks_str(const I4CIntegral& integral,
-                                                      const bool         diagonal) const;
+    std::vector<std::string> _get_gto_pair_blocks_str(const I4CIntegral& integral) const;
         
     /// Generates vector of indices strings.
     /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @param terminus The flag to add termination symbol.
     /// @return The vector of indices strings.
     std::vector<std::string> _get_indices_str(const I4CIntegral& integral,
-                                              const bool         diagonal,
                                               const bool         terminus) const;
     
     /// Generates vector of matrix strings.
@@ -72,11 +68,9 @@ public:
     /// Writes declaration for compute function.
     /// @param fstream the file stream.
     /// @param integral The base four center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @param terminus The flag to add termination symbol.
     void write_func_decl(      std::ofstream& fstream,
                          const I4CIntegral&   integral,
-                         const bool           diagonal,
                          const bool           terminus) const;
     
     /// Writes declaration for compute function.

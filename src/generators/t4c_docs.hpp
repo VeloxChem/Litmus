@@ -28,10 +28,8 @@ class T4CDocuDriver
 {
     /// Generates compute string.
     /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @return The compute string.
-    std::string _get_compute_str(const I4CIntegral& integral,
-                                 const bool         diagonal) const;
+    std::string _get_compute_str(const I4CIntegral& integral) const;
     
     /// Generates vector of matrix strings.
     /// @param integral The base two center integral.
@@ -40,10 +38,8 @@ class T4CDocuDriver
     
     /// Generates vector of GTOs block strings.
     /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     /// @return The vector of GTOs block strings,
-    std::vector<std::string> _get_gto_pair_blocks_str(const I4CIntegral& integral,
-                                                      const bool         diagonal) const;
+    std::vector<std::string> _get_gto_pair_blocks_str(const I4CIntegral& integral) const;
   
     /// Generates vector of indices strings.
     /// @return The vector of indices strings.
@@ -75,10 +71,8 @@ public:
     /// Writes documentation string for compute function.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void write_doc_str(      std::ofstream& fstream,
-                       const I4CIntegral&   integral,
-                       const bool           diagonal) const;
+                       const I4CIntegral&   integral) const;
     
     /// Writes documentation string for compute function.
     /// @param fstream the file stream.

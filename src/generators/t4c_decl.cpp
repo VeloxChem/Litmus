@@ -22,26 +22,25 @@
 void
 T4CDeclDriver::write_func_decl(      std::ofstream& fstream,
                                const I4CIntegral&   integral,
-                               const bool           diagonal,
                                const bool           terminus) const
 {
     auto lines = VCodeLines();
     
-    lines.push_back({0, 0, 1, "template <class T>"});
+    lines.push_back({0, 0, 1, "template <class T, int N>"});
     
-    lines.push_back({0, 0, 1, "auto"});
+    lines.push_back({0, 0, 1, "inline auto"});
     
     for (const auto& label : _get_matrices_str(integral))
     {
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_gto_pair_blocks_str(integral, diagonal))
+    for (const auto& label : _get_gto_pair_blocks_str(integral))
     {
         lines.push_back({0, 0, 1, label});
     }
     
-    for (const auto& label : _get_indices_str(integral, diagonal, terminus))
+    for (const auto& label : _get_indices_str(integral, terminus))
     {
         lines.push_back({0, 0, 1, label});
     }
@@ -88,14 +87,13 @@ T4CDeclDriver::_get_matrices_str(const I4CIntegral& integral) const
     
     const auto spacer = std::string(name.size(), ' ');
     
-    vstr.push_back(name + "T* distributor,");
+    vstr.push_back(name + "T& distributor,");
     
     return vstr;
 }
 
 std::vector<std::string>
-T4CDeclDriver::_get_gto_pair_blocks_str(const I4CIntegral& integral,
-                                        const bool         diagonal) const
+T4CDeclDriver::_get_gto_pair_blocks_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
@@ -103,23 +101,15 @@ T4CDeclDriver::_get_gto_pair_blocks_str(const I4CIntegral& integral,
     
     const auto spacer = std::string(name.size(), ' ');
     
-    if (diagonal)
-    {
-        vstr.push_back(spacer + "const CGtoPairBlock& gto_pair_block,");
-    }
-    else
-    {
-        vstr.push_back(spacer + "const CGtoPairBlock& bra_gto_pair_block,");
+    vstr.push_back(spacer + "const CGtoPairBlock& bra_gto_pair_block,");
         
-        vstr.push_back(spacer + "const CGtoPairBlock& ket_gto_pair_block,");
-    }
+    vstr.push_back(spacer + "const CGtoPairBlock& ket_gto_pair_block,");
     
     return vstr;
 }
 
 std::vector<std::string>
 T4CDeclDriver::_get_indices_str(const I4CIntegral& integral,
-                                const bool         diagonal,
                                 const bool         terminus) const
 {
     std::vector<std::string> vstr;
@@ -128,11 +118,13 @@ T4CDeclDriver::_get_indices_str(const I4CIntegral& integral,
     
     const auto spacer = std::string(name.size(), ' ');
     
-    vstr.push_back(spacer + "const std::array<int, 2>& bra_indices,");
-    
     const auto tsymbol = (terminus) ? ";" : "";
     
-    vstr.push_back(spacer + "const std::array<int, 2>& ket_indices) -> void" + tsymbol);
+    vstr.push_back(spacer + "const std::pair<size_t, size_t>& bra_indices,");
+        
+    vstr.push_back(spacer + "const std::pair<size_t, size_t>& ket_indices," + tsymbol);
+    
+    vstr.push_back(spacer + "const bool bra_eq_ket) -> void" + tsymbol);
     
     return vstr;
 }
