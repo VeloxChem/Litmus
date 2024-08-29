@@ -256,15 +256,15 @@ class T4CFuncBodyDriver
     
     /// Adds ket loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
+    /// @param vrr_integrals The set of unique integrals for vertical recursion.
     /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
     /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
     /// @param integral The base two center integral.
-    /// @param diagonal The flag to indicate diagonal or full form of compute function.
     void _add_ket_loop_end(      VCodeLines&    lines,
+                           const SI4CIntegrals& vrr_integrals,
                            const SI4CIntegrals& bra_integrals,
                            const SI4CIntegrals& ket_integrals,
-                           const I4CIntegral&   integral,
-                           const bool           diagonal) const;
+                           const I4CIntegral&   integral) const;
     
     /// Adds ket loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
@@ -293,8 +293,10 @@ class T4CFuncBodyDriver
     /// Adds call tree for vertical recursion.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param integrals The set of inetrgals.
+    /// @param integral The base two center integral.
     void _add_vrr_call_tree(      VCodeLines&  lines,
-                            const SI4CIntegrals& integrals) const;
+                            const SI4CIntegrals& integrals,
+                            const I4CIntegral&   integral) const;
     
     /// Adds call tree for vertical recursion.
     /// @param lines The code lines container to which loop start definition are added.
@@ -303,8 +305,12 @@ class T4CFuncBodyDriver
                                  const SI4CIntegrals& integrals) const;
     
     /// Gets arguments list for primitive vertical recursion function call.
+    /// @param start The indexes starting position.
+    /// @param integrals The set of inetrgals.
     /// @param integral The base four center integral.
-    std::string _get_vrr_arguments(const I4CIntegral& integral) const;
+    std::string _get_vrr_arguments(const size_t start,
+                                   const SI4CIntegrals& integrals,
+                                   const I4CIntegral&   integral) const;
     
     /// Gets arguments list for primitive vertical recursion function call.
     /// @param integral The base four center integral.
@@ -326,9 +332,11 @@ class T4CFuncBodyDriver
     
     /// Adds call tree for ket horizontal recursion.
     /// @param lines The code lines container to which loop start definition are added.
-    /// @param integrals The set of inetrgals.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
     void _add_ket_hrr_call_tree(      VCodeLines&  lines,
-                                const SI4CIntegrals& integrals) const;
+                                const SI4CIntegrals& bra_integrals,
+                                const SI4CIntegrals& ket_integrals) const;
     
     /// Gets arguments list for ket horizontal recursion function call.
     /// @param integral The base four center integral.
@@ -405,6 +413,18 @@ class T4CFuncBodyDriver
     /// Gets index of distances of (W-P)  in factors buffer.
     /// @param integral The base four center integral.
     size_t _get_index_wp(const I4CIntegral& integral) const;
+    
+    /// Gets index of requested integral in set of integrals.
+    /// @param start The initial index.
+    /// @param integral The base four center integral.
+    /// @param integrals The set of inetrgals.
+    size_t _get_index(const size_t         start,
+                      const I4CIntegral&   integral,
+                      const SI4CIntegrals& integrals) const;
+    
+    /// Gets total number of components in set of integrals.
+    /// @param integrals The set of inetrgals.
+    size_t _get_all_components(const SI4CIntegrals& integrals) const;
 
 public:
     /// Creates a four-center compute function body generator.
