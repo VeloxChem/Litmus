@@ -285,8 +285,10 @@ class T4CFuncBodyDriver
     /// Adds auxilary integrals.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param integrals The set of inetrgals.
+    /// @param integral The base two center integral.
     void _add_auxilary_integrals(      VCodeLines&    lines,
-                                 const SI4CIntegrals& integrals) const;
+                                 const SI4CIntegrals& integrals,
+                                 const I4CIntegral&   integral) const;
         
     /// Adds call tree for vertical recursion.
     /// @param lines The code lines container to which loop start definition are added.

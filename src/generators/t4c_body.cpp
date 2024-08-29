@@ -73,8 +73,8 @@ T4CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     _add_loop_start(lines, bra_integrals, ket_integrals, integral);
     
     _add_ket_loop_start(lines, integral);
-//
-//    _add_auxilary_integrals(lines, vrr_integrals);
+
+    _add_auxilary_integrals(lines, vrr_integrals, integral);
 //
 //    _add_vrr_call_tree(lines, vrr_integrals);
 //
@@ -160,7 +160,7 @@ T4CFuncBodyDriver::write_diag_func_body(      std::ofstream& fstream,
     
     _add_diag_ket_loop_start(lines, integral);
 
-    _add_auxilary_integrals(lines, vrr_integrals);
+    _add_auxilary_integrals(lines, vrr_integrals, integral);
 
     _add_vrr_call_tree(lines, vrr_integrals);
 
@@ -230,7 +230,7 @@ T4CFuncBodyDriver::write_geom_func_body(      std::ofstream& fstream,
     
     _add_full_ket_loop_start(lines, integral);
 
-    _add_auxilary_integrals(lines, vrr_integrals);
+    _add_auxilary_integrals(lines, vrr_integrals, integral);
 
     _add_full_vrr_call_tree(lines, vrr_integrals);
     
@@ -1920,19 +1920,42 @@ T4CFuncBodyDriver::_add_full_ket_loop_end(      VCodeLines&  lines,
 
 void
 T4CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&    lines,
-                                           const SI4CIntegrals& integrals) const
+                                           const SI4CIntegrals& integrals,
+                                           const I4CIntegral&   integral) const
 {
+    size_t index = 0;
+    
     for (const auto& tint : integrals)
     {
         if ((tint[0] + tint[1] + tint[2] + tint[3]) == 0)
         {
             const auto label = std::to_string(tint.order());
                     
-            lines.push_back({3, 0, 2, "erirec::comp_prim_electron_repulsion_ssss(prim_buffer_" + label + "_ssss, fss_abcd[0], bf_values[" + label + "]);"});
+            lines.push_back({4, 0, 2, "erirec::comp_prim_electron_repulsion_ssss(buffer, " + std::to_string(index) + ", pfactors, 16, bf_data, " + label + ");"});
+        }
+        
+        index += tint.components<T2CPair, T2CPair>().size();
+    }
+    
+    const auto border = integral[0] + integral[1] + integral[2] + integral[3] + 2;
+    
+    lines.push_back({4, 0, 1, "if constexpr (N == 3)"});
+    
+    lines.push_back({4, 0, 1, "{"});
+    
+    for (const auto& tint : integrals)
+    {
+        if ((tint[0] + tint[1] + tint[2] + tint[3]) == 0)
+        {
+            const auto label = std::to_string(border + tint.order());
+                    
+            lines.push_back({5, 0, 2, "erirec::comp_prim_electron_repulsion_ssss(buffer, " + std::to_string(index) + ", pfactors, 16, bf_data, " + label + ");"});
             
-            // TODO: other integrals...
+            index += tint.components<T2CPair, T2CPair>().size();
         }
     }
+    
+    lines.push_back({4, 0, 2, "}"});
 }
 
 void
