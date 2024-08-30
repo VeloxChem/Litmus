@@ -63,6 +63,11 @@ class T4CFuncBodyDriver
     SI4CIntegrals _get_cart_buffer_integrals(const SI4CIntegrals& bra_integrals,
                                              const SI4CIntegrals& ket_integrals) const;
     
+    /// Generates vector of contracted  buffer integrals.
+    /// @param integrals The set of unique integrals.
+    /// @return The vector of contracted integrals in compute function.
+    SI4CIntegrals _get_contr_buffers_integrals(const SI4CIntegrals& integrals) const;
+    
     /// Generates vector of half spherical buffer integrals.
     /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
     /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
@@ -340,7 +345,11 @@ class T4CFuncBodyDriver
     
     /// Gets arguments list for ket horizontal recursion function call.
     /// @param integral The base four center integral.
-    std::string _get_ket_hrr_arguments(const I4CIntegral& integral) const;
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    std::string _get_ket_hrr_arguments(const I4CIntegral& integral,
+                                       const SI4CIntegrals& bra_integrals,
+                                       const SI4CIntegrals& ket_integrals) const;
     
     /// Adds call tree for ket side transformation.
     /// @param lines The code lines container to which loop start definition are added.

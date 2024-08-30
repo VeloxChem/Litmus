@@ -80,9 +80,9 @@ T4CFuncBodyDriver::write_func_body(      std::ofstream& fstream,
 
     _add_ket_loop_end(lines, vrr_integrals, bra_integrals, ket_integrals, integral);
 
-    _add_ket_hrr_call_tree(lines, ket_integrals);
-//    
-//    _add_ket_trafo_call_tree(lines, bra_integrals, ket_integrals, integral);
+    _add_ket_hrr_call_tree(lines, bra_integrals, ket_integrals);
+
+    _add_ket_trafo_call_tree(lines, bra_integrals, ket_integrals, integral);
 //    
 //    _add_bra_hrr_call_tree(lines, bra_integrals);
 //    
@@ -166,7 +166,7 @@ T4CFuncBodyDriver::write_diag_func_body(      std::ofstream& fstream,
 
     _add_diag_ket_loop_end(lines, bra_integrals, ket_integrals, integral);
     
-    _add_ket_hrr_call_tree(lines, ket_integrals);
+    _add_ket_hrr_call_tree(lines, bra_integrals, ket_integrals);
     
     _add_ket_trafo_call_tree(lines, bra_integrals, ket_integrals, integral);
     
@@ -653,6 +653,22 @@ T4CFuncBodyDriver::_get_cart_buffer_integrals(const SI4CIntegrals& bra_integrals
 }
 
 SI4CIntegrals
+T4CFuncBodyDriver::_get_contr_buffers_integrals(const SI4CIntegrals& integrals) const
+{
+    SI4CIntegrals tints;
+
+    for (const auto& tint : integrals)
+    {
+        if ((tint[0] == 0) && (tint[2] > 0))
+        {
+            tints.insert(tint);
+        }
+    }
+    
+    return tints;
+}
+
+SI4CIntegrals
 T4CFuncBodyDriver::_get_half_spher_buffers_integrals(const SI4CIntegrals& bra_integrals,
                                                      const SI4CIntegrals& ket_integrals,
                                                      const I4CIntegral&   integral) const
@@ -695,17 +711,7 @@ T4CFuncBodyDriver::_get_prim_buffers_def(const SI4CIntegrals& integrals,
     
     vstr.push_back("// allocate aligned primitive integrals");
     
-    int tcomps = 0;
-    
-    for (const auto& tint : integrals)
-    {
-        if ((tint[0] + tint[2]) == 0)
-        {
-            const auto angpair = std::array<int, 2>({tint[1], tint[3]});
-            
-            tcomps += t2c::number_of_cartesian_components(angpair);
-        }
-    }
+    auto tcomps = _get_all_components(integrals);
     
     std::string label = "if constexpr (N == 1) CSimdArray<double> pbuffer";
     
@@ -797,17 +803,7 @@ T4CFuncBodyDriver::_get_cart_buffers_def(const SI4CIntegrals& bra_integrals,
     
     vstr.push_back("// allocate aligned Cartesian integrals");
     
-    int tcomps = 0;
-    
-    for (const auto& tint : _get_cart_buffer_integrals(bra_integrals, ket_integrals))
-    {
-        if ((tint[0] + tint[2]) == 0)
-        {
-            const auto angpair = std::array<int, 2>({tint[1], tint[3]});
-            
-            tcomps += t2c::number_of_cartesian_components(angpair);
-        }
-    }
+    auto tcomps = _get_all_components(_get_cart_buffer_integrals(bra_integrals, ket_integrals));
     
     std::string label = "if constexpr (N == 1) CSimdArray<double> cbuffer";
     
@@ -889,17 +885,7 @@ T4CFuncBodyDriver::_get_contr_buffers_def(const SI4CIntegrals& bra_integrals,
 {
     std::vector<std::string> vstr;
     
-    int tcomps = 0;
-    
-    for (const auto& tint : ket_integrals)
-    {
-        if ((tint[0] == 0) && (tint[2] > 0))
-        {
-            const auto angpair = std::array<int, 2>({tint[2], tint[3]});
-            
-            tcomps += t2c::number_of_cartesian_components(angpair) * t2c::number_of_cartesian_components(tint[1]);
-        }
-    }
+    auto tcomps = _get_all_components(_get_contr_buffers_integrals(ket_integrals));
     
     if (tcomps > 0)
     {
@@ -2341,6 +2327,41 @@ T4CFuncBodyDriver::_add_ket_hrr_call_tree(      VCodeLines&  lines,
             tcomps += tint.components<T2CPair, T2CPair>().size();
         }
     }
+    
+    if (!ket_integrals.empty())
+    {
+        lines.push_back({3, 0, 1, "if constexpr (N == 3)"});
+        
+        lines.push_back({3, 0, 1, "{"});
+        
+        for (const auto& tint : ket_integrals)
+        {
+            if ((tint[0] == 0) && (tint[2] > 0))
+            {
+                const auto name = t4c::ket_hrr_compute_func_name(tint);
+                
+                auto label = t4c::namespace_label(tint) + "::" + name + "(ckbuffer, ";
+                
+                label += std::to_string(tcomps) + ", ";
+                
+                label += "cbuffer, ";
+                
+                label += _get_ket_hrr_arguments(tint, bra_integrals, ket_integrals);
+                
+                label += "cfactors, 6, ";
+                
+                label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]);
+                
+                label += ");";
+                
+                lines.push_back({4, 0, 2, label});
+                
+                tcomps += tint.components<T2CPair, T2CPair>().size();
+            }
+        }
+        
+        lines.push_back({3, 0, 2, "}"});
+    }
 }
 
 std::string
@@ -2348,18 +2369,40 @@ T4CFuncBodyDriver::_get_ket_hrr_arguments(const I4CIntegral& integral,
                                           const SI4CIntegrals& bra_integrals,
                                           const SI4CIntegrals& ket_integrals) const
 {
-    std::string label = t4c::get_buffer_label(integral, {"contr"}) + ", ";;
+    std::string label;
     
     for (const auto& tint : t4c::get_ket_hrr_integrals(integral))
     {
-        if (tint[2] == 0)
+        size_t tcomps = 0;
+        
+        for (const auto& cint : ket_integrals)
         {
-            label += t4c::get_buffer_label(tint, {"cart"}) + ", ";
+            if ((cint[0] + cint[2]) == 0)
+            {
+                if (tint == cint) label += std::to_string(tcomps) + ", ";
+                
+                tcomps += cint.components<T2CPair, T2CPair>().size();
+            }
         }
-        else
+        
+        for (const auto& cint : bra_integrals)
         {
-            label += t4c::get_buffer_label(tint, {"contr"}) + ", ";
+            if ((cint[0] + cint[2]) == 0)
+            {
+                if (tint == cint) label += std::to_string(tcomps) + ", ";
+                
+                tcomps += cint.components<T2CPair, T2CPair>().size();
+            }
         }
+        
+//        if (tint[2] == 0)
+//        {
+//            label += t4c::get_buffer_label(tint, {"cart"}) + ", ";
+//        }
+//        else
+//        {
+//            label += t4c::get_buffer_label(tint, {"contr"}) + ", ";
+//        }
        
     }
     
