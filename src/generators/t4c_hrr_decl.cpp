@@ -55,15 +55,19 @@ T4CHrrDeclDriver::_get_ket_buffers_str(const I4CIntegral& integral) const
     
     const auto spacer = std::string(name.size(), ' ');
     
-    auto label = t4c::get_hrr_buffer_label(integral, true);
+    auto label = t4c::get_hrr_index(integral, true);
     
-    vstr.push_back(name + "CSimdArray<double>& " + label + "," );
+    vstr.push_back(name + "CSimdArray<double>& cbuffer," );
+    
+    vstr.push_back(spacer + "const size_t " + label + "," );
+    
+    vstr.push_back(spacer + "CSimdArray<double>& pbuffer," );
     
     for (const auto& tint : t4c::get_ket_hrr_integrals(integral))
     {
-        auto label = t4c::get_hrr_buffer_label(tint, true);
+        auto label = t4c::get_hrr_index(tint, true);
         
-        vstr.push_back(spacer + "const CSimdArray<double>& " + label + "," );
+        vstr.push_back(spacer + "const size_t " + label + "," );
     }
     
     return vstr;
@@ -78,11 +82,9 @@ T4CHrrDeclDriver::_get_ket_coordinates_str(const I4CIntegral& integral) const
     
     const auto spacer = std::string(name.size(), ' ');
    
-    vstr.push_back(spacer + "const double* cd_x,");
+    vstr.push_back(spacer + "const CSimdArray<double>& factors,");
         
-    vstr.push_back(spacer + "const double* cd_y,");
-        
-    vstr.push_back(spacer + "const double* cd_z,");
+    vstr.push_back(spacer + "const size_t idx_cd,");
         
     return vstr;
 }
@@ -142,15 +144,17 @@ T4CHrrDeclDriver::_get_bra_buffers_str(const I4CIntegral& integral) const
     
     const auto spacer = std::string(name.size(), ' ');
     
-    auto label = t4c::get_hrr_buffer_label(integral, false);
+    vstr.push_back(name + "CSimdArray<double>& cbuffer," );
     
-    vstr.push_back(name + "CSimdArray<double>& " + label + "," );
+    auto label = t4c::get_hrr_index(integral, false);
+    
+    vstr.push_back(spacer + "const size_t " + label + "," );
     
     for (const auto& tint : t4c::get_bra_hrr_integrals(integral))
     {
-        auto label = t4c::get_hrr_buffer_label(tint, false);
+        label = t4c::get_hrr_index(tint, false);
         
-        vstr.push_back(spacer + "const CSimdArray<double>& " + label + "," );
+        vstr.push_back(spacer + "const size_t " + label + "," );
     }
     
     return vstr;
@@ -165,11 +169,7 @@ T4CHrrDeclDriver::_get_bra_coordinates_str(const I4CIntegral& integral) const
     
     const auto spacer = std::string(name.size(), ' ');
    
-    vstr.push_back(spacer + "const double ab_x,");
-        
-    vstr.push_back(spacer + "const double ab_y,");
-        
-    vstr.push_back(spacer + "const double ab_z,");
+    vstr.push_back(spacer + "const TPoint<double>& r_ab,");
         
     return vstr;
 }

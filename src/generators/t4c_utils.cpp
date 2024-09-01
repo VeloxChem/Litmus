@@ -449,4 +449,59 @@ prefixes_label(const I4CIntegral& integral)
     return label;
 }
 
+std::string
+get_index_label(const I4CIntegral& integral)
+{
+    const auto prefixes = integral.prefixes();
+    
+    std::string geom_label;
+    
+    if (!prefixes.empty())
+    {
+        geom_label = "geom_";
+        
+        for (const auto& prefix : prefixes)
+        {
+            geom_label += std::to_string(prefix.shape().order()) + "0";
+        }
+    }
+    
+    std::string label = "idx_";
+    
+    if (integral.integrand().name() == "1/|r-r'|")
+    {
+        label += "eri_" + std::to_string(integral.order()) + "_";
+    }
+    
+    label += fstr::lowercase(integral.label());
+
+    return label;
+}
+
+std::string
+get_hrr_index(const I4CIntegral& integral,
+                     const bool         use_ket)
+{
+    std::string label = "idx_";
+    
+    if (use_ket)
+    {
+        const auto ket_one = Tensor(integral[2]);
+        
+        const auto ket_two = Tensor(integral[3]);
+        
+        label += "xx" + ket_one.label() + ket_two.label();
+    }
+    else
+    {
+        const auto bra_one = Tensor(integral[0]);
+        
+        const auto bra_two = Tensor(integral[1]);
+        
+        label += bra_one.label() + bra_two.label() + "xx";
+    }
+    
+    return fstr::lowercase(label);
+}
+
 } // t4c namespace

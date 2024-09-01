@@ -74,15 +74,17 @@ T4CPrimDocuDriver::_get_buffers_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    auto label = t4c::get_buffer_label(integral, "prim");
+    vstr.push_back("/// @param pbuffer The primitive integrals buffer.");
     
-    vstr.push_back("/// - Parameter " + label + ": the primitive integrals buffer.");
+    auto label = t4c::get_index_label(integral);
     
+    vstr.push_back("/// @param " + label + " The index of integral in primitive integrals buffer.");
+        
     for (const auto& tint : t4c::get_vrr_integrals(integral))
     {
-        auto label = t4c::get_buffer_label(tint, "prim");
+        label = t4c::get_index_label(tint);
         
-        vstr.push_back("/// - Parameter " + label + ": the primitive integrals buffer.");
+        vstr.push_back("/// @param " + label + " The primitive integrals buffer.");
     }
 
     return vstr;
@@ -92,35 +94,21 @@ std::vector<std::string>
 T4CPrimDocuDriver::_get_coordinates_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
-   
+    
+    vstr.push_back("/// @param factors The primitive factors buffer.");
+    
     if (integral[1] > 0)
     {
-        vstr.push_back("/// - Parameter pb_x: the Cartesian X distances R(PB) = P - B.");
+        vstr.push_back("/// @param idx_wp The vector of distances R(WP) = W - P.");
                        
-        vstr.push_back("/// - Parameter pb_y: the Cartesian Y distances R(PB) = P - B.");
-                                      
-        vstr.push_back("/// - Parameter pb_z: the Cartesian Z distances R(PB) = P - B.");
-        
-        vstr.push_back("/// - Parameter wp_x: the vector of Cartesian X distances R(WP) = W - P.");
-                       
-        vstr.push_back("/// - Parameter wp_y: the vector of Cartesian Y distances R(WP) = W - P.");
-                                      
-        vstr.push_back("/// - Parameter wp_z: the vector of Cartesian Z distances R(WP) = W - P.");
+        vstr.push_back("/// @param r_pb The Cartesiandistances R(PB) = P - B.");
     }
     
     if ((integral[1] == 0) && (integral[3] > 0))
     {
-        vstr.push_back("/// - Parameter qd_x: the vector of Cartesian X distances R(QD) = Q - D.");
-                       
-        vstr.push_back("/// - Parameter qd_y: the vector of Cartesian Y distances R(QD) = Q - D.");
-                                      
-        vstr.push_back("/// - Parameter qd_z: the vector of Cartesian Z distances R(QD) = Q - D.");
+        vstr.push_back("/// @param idx_qd The vector of distances R(QD) = Q - D.");
         
-        vstr.push_back("/// - Parameter wq_x: the vector of Cartesian X distances R(WQ) = W - Q.");
-                       
-        vstr.push_back("/// - Parameter wq_y: the vector of Cartesian Y distances R(WQ) = W - Q.");
-                                      
-        vstr.push_back("/// - Parameter wq_z: the vector of Cartesian Z distances R(WQ) = W - Q.");
+        vstr.push_back("/// @param idx_wq The vector of distances R(WQ) = W - Q.");
     }
    
     return vstr;
@@ -147,20 +135,18 @@ T4CPrimDocuDriver::_get_recursion_variables_str(const I4CIntegral& integral) con
     
     if ((integral[1] + integral[3]) > 1)
     {
-        vstr.push_back("/// - Parameter a_exp: the exponent on center A.");
+        vstr.push_back("/// @param a_exp The exponent on center A.");
                        
-        vstr.push_back("/// - Parameter b_exp: the exponent on center B.");
-        
-        vstr.push_back("/// - Parameter c_exps: the vector of exponents on center C.");
-                       
-        vstr.push_back("/// - Parameter d_exps: the vector of exponents on center D.");
+        vstr.push_back("/// @param b_exp The exponent on center B.");
     }
    
     if ((integral[1] + integral[3]) == 0)
     {
-        vstr.push_back("/// - Parameter fovl_abcd: the vector of combined overlap factors.");
+        vstr.push_back("/// @param idx_ovl The index of combined overlap factors.");
         
-        vstr.push_back("/// - Parameter bf_values: the vector of Boys function values.");
+        vstr.push_back("/// @param bf_data The Boys function data.");
+        
+        vstr.push_back("/// @param idx_bvals The index of Boys function data.");
     }
     
     return vstr;

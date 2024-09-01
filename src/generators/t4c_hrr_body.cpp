@@ -32,13 +32,19 @@ T4CHrrFuncBodyDriver::write_ket_func_body(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "{"});
     
-    lines.push_back({1, 0, 2, "const auto ndims = " +
-                              t4c::get_hrr_buffer_label(integral, true) +
-                              ".number_of_columns();"});
+    lines.push_back({1, 0, 2, "const auto nelems = cbuffer.number_of_active_elements();"});
     
-    lines.push_back({1, 0, 2, "const auto acomps = tensor::number_of_cartesian_components(a_angmom);"});
+    lines.push_back({1, 0, 2, "const auto acomps = tensor::number_of_cartesian_components(std::array<int, 1>({a_angmom,});"});
     
-    lines.push_back({1, 0, 2, "const auto bcomps = tensor::number_of_cartesian_components(b_angmom);"});
+    lines.push_back({1, 0, 2, "const auto bcomps = tensor::number_of_cartesian_components(std::array<int, 1>({b_angmom,});"});
+    
+    lines.push_back({1, 0, 2, "// Set up R(CD) distances"});
+
+    lines.push_back({1, 0, 2, "auto cd_x = factors.data(idx_cd);"});
+
+    lines.push_back({1, 0, 2, "auto cd_y = factors.data(idx_cd + 1);"});
+
+    lines.push_back({1, 0, 2, "auto cd_z = factors.data(idx_cd + 2);"});
     
     lines.push_back({1, 0, 1, "for (int i = 0; i < acomps; i++)"});
     
@@ -101,13 +107,21 @@ T4CHrrFuncBodyDriver::write_bra_func_body(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "{"});
     
-    lines.push_back({1, 0, 2, "const auto ndims = " +
-                              t4c::get_hrr_buffer_label(integral, false) +
-                              ".number_of_columns();"});
+    lines.push_back({1, 0, 2, "const auto nelems = cbuffer.number_of_active_elements();"});
     
-    lines.push_back({1, 0, 2, "const auto ccomps = tensor::number_of_spherical_components(c_angmom);"});
+    lines.push_back({1, 0, 2, "const auto ccomps = tensor::number_of_spherical_components(std::array<int, 1>({c_angmom,});"});
     
-    lines.push_back({1, 0, 2, "const auto dcomps = tensor::number_of_spherical_components(d_angmom);"});
+    lines.push_back({1, 0, 2, "const auto dcomps = tensor::number_of_spherical_components(std::array<int, 1>({d_angmom,});"});
+    
+    lines.push_back({1, 0, 2, "// set up R(AB) distances"});
+
+    lines.push_back({1, 0, 2, "const auto xyz = r_ab.coordinates();"});
+
+    lines.push_back({1, 0, 2, "const auto ab_x = xyz[0];"});
+
+    lines.push_back({1, 0, 2, "const auto ab_y = xyz[1];"});
+
+    lines.push_back({1, 0, 2, "const auto ab_z = xyz[2];"});
     
     lines.push_back({1, 0, 1, "for (int i = 0; i < ccomps; i++)"});
     
@@ -171,9 +185,9 @@ T4CHrrFuncBodyDriver::_get_ket_buffers_str(const std::vector<R4CDist>& rec_dists
     
     for (const auto& tint : t4c::get_ket_hrr_integrals(integral))
     {
-        auto label = t4c::get_hrr_buffer_label(tint, true);
+        auto label = "pbuffer.data(";
         
-        vstr.push_back("/// Set up components of auxilary buffer : " + label);
+        vstr.push_back("/// Set up components of auxilary buffer : " + tint.label());
         
         vstr.push_back(_get_ket_offset_def(tint));
         
@@ -185,7 +199,7 @@ T4CHrrFuncBodyDriver::_get_ket_buffers_str(const std::vector<R4CDist>& rec_dists
             {
                 auto line = "auto " + _get_ket_component_label(tcomp) + " = " + label;
                 
-                line += "[" + _get_ket_offset_label(tint) + " + "  + std::to_string(index) + "];";
+                line +=  _get_ket_offset_label(tint) + " + "  + std::to_string(index) + ");";
                 
                 vstr.push_back(fstr::lowercase(line));
             }
@@ -204,7 +218,7 @@ T4CHrrFuncBodyDriver::_get_ket_buffers_str(const I4CIntegral&        integral,
 {
     std::vector<std::string> vstr;
     
-    auto label = t4c::get_hrr_buffer_label(integral, true);
+    auto label = "cbuffer.data(";
     
     vstr.push_back("/// Set up " + std::to_string(rec_range[0]) + "-" + std::to_string(rec_range[1]) +
                        " components of targeted buffer : " + label);
@@ -213,7 +227,7 @@ T4CHrrFuncBodyDriver::_get_ket_buffers_str(const I4CIntegral&        integral,
     {
         const auto line = "auto " + _get_ket_component_label(components[i]) + " = " + label;
         
-        vstr.push_back(line + "[" + _get_ket_offset_label(integral) + " + " + std::to_string(i) + "];");
+        vstr.push_back(line + _get_ket_offset_label(integral) + " + " + std::to_string(i) + ");");
     }
     
     return vstr;
@@ -227,9 +241,9 @@ T4CHrrFuncBodyDriver::_get_bra_buffers_str(const std::vector<R4CDist>& rec_dists
     
     for (const auto& tint : t4c::get_bra_hrr_integrals(integral))
     {
-        auto label = t4c::get_hrr_buffer_label(tint, false);
+        auto label = "cbuffer.data(";
         
-        vstr.push_back("/// Set up components of auxilary buffer : " + label);
+        vstr.push_back("/// Set up components of auxilary buffer : " + tint.label());
         
         vstr.push_back(_get_bra_offset_def(tint));
         
@@ -241,7 +255,7 @@ T4CHrrFuncBodyDriver::_get_bra_buffers_str(const std::vector<R4CDist>& rec_dists
             {
                 auto line = "auto " + _get_bra_component_label(tcomp) + " = " + label;
                 
-                line += "[" + _get_bra_offset_label(tint) + " + "  + std::to_string(index) + " * ccomps * dcomps];";
+                line += _get_bra_offset_label(tint) + " + "  + std::to_string(index) + " * ccomps * dcomps);";
                 
                 vstr.push_back(fstr::lowercase(line));
             }
@@ -330,7 +344,7 @@ T4CHrrFuncBodyDriver::_add_ket_recursion_loop(      VCodeLines&         lines,
     
     lines.push_back({3, 0, 1, "#pragma omp simd aligned(" + var_str + " : 64)"});
     
-    lines.push_back({3, 0, 1, "for (size_t k = 0; k < ndims; k++)"});
+    lines.push_back({3, 0, 1, "for (size_t k = 0; k < nelems; k++)"});
     
     lines.push_back({3, 0, 1, "{"});
     
@@ -484,7 +498,7 @@ T4CHrrFuncBodyDriver::_add_bra_recursion_loop(      VCodeLines&         lines,
     
     lines.push_back({3, 0, 1, "#pragma omp simd aligned(" + var_str + " : 64)"});
     
-    lines.push_back({3, 0, 1, "for (size_t k = 0; k < ndims; k++)"});
+    lines.push_back({3, 0, 1, "for (size_t k = 0; k < nelems; k++)"});
     
     lines.push_back({3, 0, 1, "{"});
     
@@ -639,7 +653,7 @@ T4CHrrFuncBodyDriver::_get_ket_offset_def(const I4CIntegral& integral) const
     
     auto label = "const auto " + _get_ket_offset_label(integral) + " = ";
     
-    label += "(i * bcomps + j) * " + tlabel + ";";
+    label += t4c::get_hrr_index(integral, true) + " + (i * bcomps + j) * " + tlabel + ";";
     
     return fstr::lowercase(label);
 }
@@ -671,7 +685,7 @@ T4CHrrFuncBodyDriver::_get_bra_offset_def(const I4CIntegral& integral) const
     
     auto label = "const auto " + _get_bra_offset_label(integral) + " = ";
     
-    label += "i * dcomps + j;";
+    label += t4c::get_hrr_index(integral, false) +  " + i * dcomps + j;";
     
     return fstr::lowercase(label);
 }

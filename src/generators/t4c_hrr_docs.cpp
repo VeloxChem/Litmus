@@ -96,15 +96,19 @@ T4CHrrDocuDriver::_get_ket_buffers_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    auto label = t4c::get_hrr_buffer_label(integral, true);
+    auto label = t4c::get_hrr_index(integral, true);
     
-    vstr.push_back("/// - Parameter " + label + ": the contracted integrals buffer.");
+    vstr.push_back("/// @param cbuffer The contracted integrals buffer.");
+    
+    vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
+    
+    vstr.push_back("/// @param pbuffer The Cartesian integrals buffer.");
     
     for (const auto& tint : t4c::get_ket_hrr_integrals(integral))
     {
-        auto label = t4c::get_hrr_buffer_label(tint, true);
+        label = t4c::get_hrr_index(tint, true);
         
-        vstr.push_back("/// - Parameter " + label + ": the contracted integrals buffer.");
+        vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
     }
 
     return vstr;
@@ -115,12 +119,10 @@ T4CHrrDocuDriver::_get_ket_coordinates_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
    
-    vstr.push_back("/// - Parameter cd_x: the vector of Cartesian X distances R(CD) = C - D.");
+    vstr.push_back("/// @param factors The factors buffer.");
                        
-    vstr.push_back("/// - Parameter cd_y: the vector of Cartesian Y distances R(CD) = C - D.");
-                                      
-    vstr.push_back("/// - Parameter cd_z: the vector of Cartesian Z distances R(CD) = C - D.");
-        
+    vstr.push_back("/// @param idx_cd The vector of distances R(CD) = C - D.");
+                                              
     return vstr;
 }
 
@@ -129,9 +131,9 @@ T4CHrrDocuDriver::_get_ket_recursion_variables_str(const I4CIntegral& integral) 
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("/// - Parameter a_angmom: the angular momentum on center A.");
+    vstr.push_back("/// @param a_angmom The angular momentum on center A.");
     
-    vstr.push_back("/// - Parameter b_angmom: the angular momentum on center B.");
+    vstr.push_back("/// @param b_angmom The angular momentum on center B.");
                        
     return vstr;
 }
@@ -157,15 +159,17 @@ T4CHrrDocuDriver::_get_bra_buffers_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    auto label = t4c::get_hrr_buffer_label(integral, false);
+    vstr.push_back("/// @param cbuffer The contracted integrals buffer.");
     
-    vstr.push_back("/// - Parameter " + label + ": the contracted integrals buffer.");
+    auto label = t4c::get_hrr_index(integral, false);
+    
+    vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
     
     for (const auto& tint : t4c::get_bra_hrr_integrals(integral))
     {
-        auto label = t4c::get_hrr_buffer_label(tint, false);
+        label = t4c::get_hrr_index(tint, false);
         
-        vstr.push_back("/// - Parameter " + label + ": the contracted integrals buffer.");
+        vstr.push_back("/// @param " + label + ": the contracted integrals buffer.");
     }
 
     return vstr;
@@ -176,12 +180,8 @@ T4CHrrDocuDriver::_get_bra_coordinates_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
    
-    vstr.push_back("/// - Parameter ab_x: the Cartesian X distance R(AB) = A - B.");
-    
-    vstr.push_back("/// - Parameter ab_y: the Cartesian Y distance R(AB) = A - B.");
-    
-    vstr.push_back("/// - Parameter ab_z: the Cartesian Z distance R(AB) = A - B.");
-        
+    vstr.push_back("/// @param r_ab The Cartesian distance R(AB) = A - B.");
+            
     return vstr;
 }
 
@@ -190,9 +190,9 @@ T4CHrrDocuDriver::_get_bra_recursion_variables_str(const I4CIntegral& integral) 
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("/// - Parameter c_angmom: the angular momentum on center C.");
+    vstr.push_back("/// @param c_angmom The angular momentum on center C.");
     
-    vstr.push_back("/// - Parameter d_angmom: the angular momentum on center D.");
+    vstr.push_back("/// @param d_angmom The angular momentum on center D.");
                        
     return vstr;
 }

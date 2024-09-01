@@ -55,15 +55,17 @@ T4CPrimDeclDriver::_get_buffers_str(const I4CIntegral& integral) const
     
     const auto spacer = std::string(name.size(), ' ');
     
-    auto label = t4c::get_buffer_label(integral, "prim");
+    vstr.push_back(name + "CSimdArray<double>& pbufer," );
     
-    vstr.push_back(name + "CSimdArray<double>& " + label + "," );
+    auto label = t4c::get_index_label(integral);
+    
+    vstr.push_back(spacer + "const size_t " + label + "," );
     
     for (const auto& tint : t4c::get_vrr_integrals(integral))
     {
-        auto label = t4c::get_buffer_label(tint, "prim");
+        label = t4c::get_index_label(tint);
         
-        vstr.push_back(spacer + "const CSimdArray<double>& " + label + "," );
+        vstr.push_back(spacer + "size_t " + label + "," );
     }
     
     return vstr;
@@ -80,48 +82,34 @@ T4CPrimDeclDriver::_get_coordinates_str(const I4CIntegral& integral,
     auto name = t4c::prim_compute_func_name(integral) + "(";
     
     const auto spacer = std::string(name.size(), ' ');
+    
+    vstr.push_back(spacer + "CSimdArray<double>& factors,");
    
     if (integral[1] > 0)
     {
-        vstr.push_back(spacer + "const double pb_x,");
+        vstr.push_back(spacer + "const size_t idx_wp,");
         
-        vstr.push_back(spacer + "const double pb_y,");
-        
-        vstr.push_back(spacer + "const double pb_z,");
-        
-        vstr.push_back(spacer + "const double* wp_x,");
-        
-        vstr.push_back(spacer + "const double* wp_y,");
-      
         if ((integral[1] == 1) && (integral[3] == 0))
         {
-            vstr.push_back(spacer + "const double* wp_z) -> void" + tsymbol);
+            vstr.push_back(spacer + "const TPoint<double>& r_pb) -> void" + tsymbol);
         }
         else
         {
-            vstr.push_back(spacer + "const double* wp_z,");
+            vstr.push_back(spacer + "const TPoint<double>& r_pb,");
         }
     }
    
     if ((integral[1] == 0) && (integral[3] > 0))
     {
-        vstr.push_back(spacer + "const double* qd_x,");
+        vstr.push_back(spacer + "const size_t idx_qd,");
         
-        vstr.push_back(spacer + "const double* qd_y,");
-        
-        vstr.push_back(spacer + "const double* qd_z,");
-        
-        vstr.push_back(spacer + "const double* wq_x,");
-        
-        vstr.push_back(spacer + "const double* wq_y,");
-      
         if ((integral[1] == 0) && (integral[3] == 1))
         {
-            vstr.push_back(spacer + "const double* wq_z) -> void" + tsymbol);
+            vstr.push_back(spacer + "const size_t idx_wq) -> void" + tsymbol);
         }
         else
         {
-            vstr.push_back(spacer + "const double* wq_z,");
+            vstr.push_back(spacer + "const size_t idx_wq,");
         }
     }
     
@@ -159,18 +147,16 @@ T4CPrimDeclDriver::_get_recursion_variables_str(const I4CIntegral& integral,
     {
         vstr.push_back(spacer + "const double a_exp,");
         
-        vstr.push_back(spacer + "const double b_exp,");
-        
-        vstr.push_back(spacer + "const double* c_exps,");
-        
-        vstr.push_back(spacer + "const double* d_exps) -> void" + tsymbol);
+        vstr.push_back(spacer + "const double b_exp) -> void" + tsymbol);
     }
    
     if ((integral[1] + integral[3]) == 0)
     {
-        vstr.push_back(spacer + "const double* fovl_abcd,");
+        vstr.push_back(spacer + "const size_t idx_ovl,");
         
-        vstr.push_back(spacer + "const double* bf_values) -> void" + tsymbol);
+        vstr.push_back(spacer + "const CSimdArray<double>& bf_data,");
+        
+        vstr.push_back(spacer + "const size_t idx_bvals) -> void" + tsymbol);
     }
     
     return vstr;

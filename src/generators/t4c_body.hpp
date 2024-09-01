@@ -344,10 +344,12 @@ class T4CFuncBodyDriver
                                 const SI4CIntegrals& ket_integrals) const;
     
     /// Gets arguments list for ket horizontal recursion function call.
+    /// @param start The starting index of arguments list. 
     /// @param integral The base four center integral.
     /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
     /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
-    std::string _get_ket_hrr_arguments(const I4CIntegral& integral,
+    std::string _get_ket_hrr_arguments(const size_t       start,
+                                       const I4CIntegral& integral,
                                        const SI4CIntegrals& bra_integrals,
                                        const SI4CIntegrals& ket_integrals) const;
     
@@ -363,19 +365,30 @@ class T4CFuncBodyDriver
     
     /// Adds call tree for bra horizontal recursion.
     /// @param lines The code lines container to which loop start definition are added.
-    /// @param integrals The set of inetrgals.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param integral The base two center integral.
     void _add_bra_hrr_call_tree(      VCodeLines&  lines,
-                                const SI4CIntegrals& integrals) const;
+                                const SI4CIntegrals& bra_integrals,
+                                const SI4CIntegrals& ket_integrals,
+                                const I4CIntegral&   integral) const;
     
     /// Gets arguments list for bra horizontal recursion function call.
     /// @param integral The base four center integral.
-    std::string _get_bra_hrr_arguments(const I4CIntegral& integral) const;
+    /// @param integrals The set of inetrgals.
+    std::string _get_bra_hrr_arguments(const size_t start,
+                                       const I4CIntegral& integral,
+                                       const SI4CIntegrals& integrals) const;
     
     /// Adds call tree for bra side transformation.
     /// @param lines The code lines container to which loop start definition are added.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
     /// @param integral The base two center integral.
     void _add_bra_trafo_call_tree(      VCodeLines&  lines,
-                                  const I4CIntegral& integral) const;
+                                  const SI4CIntegrals& bra_integrals,
+                                  const SI4CIntegrals& ket_integrals,
+                                  const I4CIntegral&   integral) const;
     
     /// Adds call for full transformation.
     /// @param lines The code lines container to which loop start definition are added.
@@ -431,9 +444,25 @@ class T4CFuncBodyDriver
                       const I4CIntegral&   integral,
                       const SI4CIntegrals& integrals) const;
     
+    /// Gets index of requested integral in set of half transformed integrals.
+    /// @param start The initial index.
+    /// @param integral The base four center integral.
+    /// @param integrals The set of inetrgals.
+    size_t _get_half_spher_index(const size_t         start,
+                                 const I4CIntegral&   integral,
+                                 const SI4CIntegrals& integrals) const;
+    
     /// Gets total number of components in set of integrals.
     /// @param integrals The set of inetrgals.
     size_t _get_all_components(const SI4CIntegrals& integrals) const;
+    
+    /// Gets total number of half transformed components in set of integrals.
+    /// @param integrals The set of inetrgals.
+    size_t _get_all_half_spher_components(const SI4CIntegrals& integrals) const;
+    
+    /// Gets total number of spherical components in set of integrals.
+    /// @param integral The base four center integral.
+    size_t _get_all_spher_components(const I4CIntegral& integral) const;
 
 public:
     /// Creates a four-center compute function body generator.

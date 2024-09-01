@@ -30,10 +30,57 @@ T4CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "{"});
     
-    lines.push_back({1, 0, 2, "const auto ndims = " +
-                              t4c::get_buffer_label(integral, "prim") +
-                              ".number_of_columns();"});
+    lines.push_back({1, 0, 2, "const auto nelems = pbuffer.number_of_active_elements();"});
     
+    if ((integral[1] + integral[3]) > 1)
+    {
+        lines.push_back({1, 0, 2, "// Set up exponents"});
+
+        lines.push_back({1, 0, 2, "auto c_exps = buffer.data(0);"});
+        
+        lines.push_back({1, 0, 2, "auto d_exps = buffer.data(1);"});
+    }
+    
+    if (integral[1] > 0)
+    {
+        lines.push_back({1, 0, 2, "// Set up R(WP) distances"});
+
+        lines.push_back({1, 0, 2, "auto wp_x = factors.data(idx_wp);"});
+
+        lines.push_back({1, 0, 2, "auto wp_y = factors.data(idx_wp + 1);"});
+
+        lines.push_back({1, 0, 2, "auto wp_z = factors.data(idx_wp + 2);"});
+        
+        lines.push_back({1, 0, 2, "// set up R(PB) distances"});
+
+        lines.push_back({1, 0, 2, "const auto xyz = r_pb.coordinates();"});
+
+        lines.push_back({1, 0, 2, "const auto pb_x = xyz[0];"});
+
+        lines.push_back({1, 0, 2, "const auto pb_y = xyz[1];"});
+
+        lines.push_back({1, 0, 2, "const auto pb_z = xyz[2];"});
+    }
+    
+    if ((integral[1] == 0) && (integral[3] > 0))
+    {
+        lines.push_back({1, 0, 2, "// Set up R(QD) distances"});
+
+        lines.push_back({1, 0, 2, "auto qd_x = factors.data(idx_qd);"});
+
+        lines.push_back({1, 0, 2, "auto qd_y = factors.data(idx_qd + 1);"});
+
+        lines.push_back({1, 0, 2, "auto qd_z = factors.data(idx_qd + 2);"});
+        
+        lines.push_back({1, 0, 2, "// Set up R(WQ) distances"});
+
+        lines.push_back({1, 0, 2, "auto wq_x = factors.data(idx_wq);"});
+
+        lines.push_back({1, 0, 2, "auto wq_y = factors.data(idx_wq + 1);"});
+
+        lines.push_back({1, 0, 2, "auto wq_z = factors.data(idx_wq + 2);"});
+    }
+   
     const auto components = integral.components<T2CPair, T2CPair>();
     
     std::vector<R4CDist> rec_dists;
@@ -93,9 +140,9 @@ T4CPrimFuncBodyDriver::_get_buffers_str(const std::vector<R4CDist>& rec_dists,
     
     for (const auto& tint : t4c::get_vrr_integrals(integral))
     {
-        auto label = t4c::get_buffer_label(tint, "prim");
+        auto label = "pbuffer.data(" + t4c::get_index_label(tint);
         
-        vstr.push_back("/// Set up components of auxilary buffer : " + label);
+        vstr.push_back("/// Set up components of auxilary buffer : " + tint.label());
         
         const auto tlabel = _get_tensor_label(tint);
         
@@ -107,7 +154,14 @@ T4CPrimFuncBodyDriver::_get_buffers_str(const std::vector<R4CDist>& rec_dists,
             {
                 const auto line = "auto " + _get_component_label(tcomp) + " = " + label;
                 
-                vstr.push_back(line + "[" + std::to_string(index) + "];");
+                if (index > 0)
+                {
+                    vstr.push_back(line + " + " + std::to_string(index) + ");");
+                }
+                else
+                {
+                    vstr.push_back(line + ");");
+                }
             }
             
             index++;
@@ -139,23 +193,30 @@ T4CPrimFuncBodyDriver::_get_buffers_str(const I4CIntegral&        integral,
 {
     std::vector<std::string> vstr;
     
-    auto label = t4c::get_buffer_label(integral, "prim");
-    
     if ((rec_range[1] - rec_range[0]) == static_cast<int>(components.size()))
     {
-        vstr.push_back("/// Set up components of targeted buffer : " + label);
+        vstr.push_back("/// Set up components of targeted buffer : " + integral.label());
     }
     else
     {
         vstr.push_back("/// Set up " + std::to_string(rec_range[0]) + "-" + std::to_string(rec_range[1]) +
-                       " components of targeted buffer : " + label);
+                       " components of targeted buffer : " + integral.label());
     }
+    
+    auto label = "pbuffer.data(" + t4c::get_index_label(integral);
     
     for (int i = rec_range[0]; i < rec_range[1]; i++)
     {
         const auto line = "auto " + _get_component_label(components[i]) + " = " + label;
         
-        vstr.push_back(line + "[" + std::to_string(i) + "];");
+        if (i > 0)
+        {
+            vstr.push_back(line + " + " + std::to_string(i) + ");");
+        }
+        else
+        {
+            vstr.push_back(line + ");");
+        }
     }
     
     return vstr;
@@ -200,7 +261,7 @@ T4CPrimFuncBodyDriver::_add_recursion_loop(      VCodeLines&         lines,
     
     lines.push_back({1, 0, 1, "#pragma omp simd aligned(" + var_str + " : 64)"});
     
-    lines.push_back({1, 0, 1, "for (size_t i = 0; i < ndims; i++)"});
+    lines.push_back({1, 0, 1, "for (size_t i = 0; i < nelems; i++)"});
     
     lines.push_back({1, 0, 1, "{"});
     

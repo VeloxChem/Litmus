@@ -66,41 +66,41 @@ T4CCPUGenerator::generate(const std::string& label,
             }
         }
         
-//        for (int i = 0; i <= 2 * max_ang_mom; i++)
-//        {
-//            for (int j = 0; j <= 2 * max_ang_mom; j++)
-//            {
-//                const auto integral = _get_integral(label, {0, i, 0, j});
-//                
-//                _write_prim_cpp_header(integral);
-//                
-//                _write_prim_cpp_file(integral);
-//            }
-//        }
-//        
-//        for (int i = 1; i <= max_ang_mom; i++)
-//        {
-//            for (int j = i; j <= (2 * max_ang_mom - i) ; j++)
-//            {
-//                const auto integral = _get_integral(label, {0, 0, i, j});
-//                
-//                _write_ket_hrr_cpp_header(integral);
-//                
-//                _write_ket_hrr_cpp_file(integral);
-//            }
-//        }
-//        
-//        for (int i = 1; i <= max_ang_mom; i++)
-//        {
-//            for (int j = i; j <= (2 * max_ang_mom - i) ; j++)
-//            {
-//                const auto integral = _get_integral(label, {i, j, 0, 0});
-//                
-//                _write_bra_hrr_cpp_header(integral);
-//                
-//                _write_bra_hrr_cpp_file(integral);
-//            }
-//        }
+        for (int i = 0; i <= 2 * max_ang_mom; i++)
+        {
+            for (int j = 0; j <= 2 * max_ang_mom; j++)
+            {
+                const auto integral = _get_integral(label, {0, i, 0, j});
+                
+                _write_prim_cpp_header(integral);
+                
+                _write_prim_cpp_file(integral);
+            }
+        }
+        
+        for (int i = 1; i <= max_ang_mom; i++)
+        {
+            for (int j = i; j <= (2 * max_ang_mom - i) ; j++)
+            {
+                const auto integral = _get_integral(label, {0, 0, i, j});
+                
+                _write_ket_hrr_cpp_header(integral);
+                
+                _write_ket_hrr_cpp_file(integral);
+            }
+        }
+        
+        for (int i = 1; i <= max_ang_mom; i++)
+        {
+            for (int j = i; j <= (2 * max_ang_mom - i) ; j++)
+            {
+                const auto integral = _get_integral(label, {i, j, 0, 0});
+                
+                _write_bra_hrr_cpp_header(integral);
+                
+                _write_bra_hrr_cpp_file(integral);
+            }
+        }
     }
     else
     {
@@ -520,6 +520,10 @@ T4CCPUGenerator::_write_prim_hpp_includes(      std::ofstream& fstream,
 {
     auto lines = VCodeLines();
     
+    lines.push_back({0, 0, 2, "#include <cstddef>"});
+    
+    lines.push_back({0, 0, 1, "#include \"Point.hpp\""});
+    
     lines.push_back({0, 0, 2, "#include \"SimdArray.hpp\""});
         
     ost::write_code_lines(fstream, lines);
@@ -622,6 +626,8 @@ T4CCPUGenerator::_write_ket_hrr_hpp_includes(      std::ofstream& fstream,
                                              const I4CIntegral&   integral) const
 {
     auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include <cstddef>"});
     
     lines.push_back({0, 0, 2, "#include \"SimdArray.hpp\""});
         
@@ -727,6 +733,10 @@ T4CCPUGenerator::_write_bra_hrr_hpp_includes(      std::ofstream& fstream,
                                              const I4CIntegral&   integral) const
 {
     auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include <cstddef>"});
+    
+    lines.push_back({0, 0, 1, "#include \"Point.hpp\""});
     
     lines.push_back({0, 0, 2, "#include \"SimdArray.hpp\""});
         

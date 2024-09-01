@@ -141,6 +141,18 @@ std::string bra_hrr_file_name(const I4CIntegral& integral);
 /// @return The geometrical derivative labels.
 std::string prefixes_label(const I4CIntegral& integral);
 
+/// Generates integral index label.
+/// @param integral The base two center integral.
+/// @return The string with index label.
+std::string get_index_label(const I4CIntegral& integral);
+
+/// Generates horizontal recursion integral buffer index.
+/// @param integral The base two center integral.
+/// @param use_ket The flag to use ket as primary label.
+/// @return The string with integral buffer index.
+std::string get_hrr_index(const I4CIntegral& integral,
+                          const bool         use_ket);
+
 } // t4c namespace
 
 #endif /* t4c_utils_hpp */
