@@ -26,7 +26,7 @@ T4CDeclDriver::write_func_decl(      std::ofstream& fstream,
 {
     auto lines = VCodeLines();
     
-    lines.push_back({0, 0, 1, "template <class T, int N>"});
+    lines.push_back({0, 0, 1, "template <class T>"});
     
     lines.push_back({0, 0, 1, "inline auto"});
     

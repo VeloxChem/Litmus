@@ -340,9 +340,9 @@ T4CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"T2CUtils.hpp\""});
     
-    lines.push_back({0, 0, 2, "#include \"GtoPairBlock.hpp\""});
-   
+    lines.push_back({0, 0, 1, "#include \"GtoPairBlock.hpp\""});
     
+    lines.push_back({0, 0, 2, "#include \"BatchFunc.hpp\""});
         
     ost::write_code_lines(fstream, lines);
 }

@@ -34,9 +34,9 @@ T4CHrrFuncBodyDriver::write_ket_func_body(      std::ofstream& fstream,
     
     lines.push_back({1, 0, 2, "const auto nelems = cbuffer.number_of_active_elements();"});
     
-    lines.push_back({1, 0, 2, "const auto acomps = tensor::number_of_cartesian_components(std::array<int, 1>({a_angmom,});"});
+    lines.push_back({1, 0, 2, "const auto acomps = tensor::number_of_cartesian_components(std::array<int, 1>{a_angmom,});"});
     
-    lines.push_back({1, 0, 2, "const auto bcomps = tensor::number_of_cartesian_components(std::array<int, 1>({b_angmom,});"});
+    lines.push_back({1, 0, 2, "const auto bcomps = tensor::number_of_cartesian_components(std::array<int, 1>{b_angmom,});"});
     
     lines.push_back({1, 0, 2, "// Set up R(CD) distances"});
 
@@ -109,9 +109,9 @@ T4CHrrFuncBodyDriver::write_bra_func_body(      std::ofstream& fstream,
     
     lines.push_back({1, 0, 2, "const auto nelems = cbuffer.number_of_active_elements();"});
     
-    lines.push_back({1, 0, 2, "const auto ccomps = tensor::number_of_spherical_components(std::array<int, 1>({c_angmom,});"});
+    lines.push_back({1, 0, 2, "const auto ccomps = tensor::number_of_spherical_components(std::array<int, 1>{c_angmom,});"});
     
-    lines.push_back({1, 0, 2, "const auto dcomps = tensor::number_of_spherical_components(std::array<int, 1>({d_angmom,});"});
+    lines.push_back({1, 0, 2, "const auto dcomps = tensor::number_of_spherical_components(std::array<int, 1>{d_angmom,});"});
     
     lines.push_back({1, 0, 2, "// set up R(AB) distances"});
 
@@ -274,7 +274,7 @@ T4CHrrFuncBodyDriver::_get_bra_buffers_str(const I4CIntegral&        integral,
 {
     std::vector<std::string> vstr;
     
-    auto label = t4c::get_hrr_buffer_label(integral, false);
+    auto label = "cbuffer.data(";
     
     vstr.push_back("/// Set up " + std::to_string(rec_range[0]) + "-" + std::to_string(rec_range[1]) +
                        " components of targeted buffer : " + label);
@@ -283,7 +283,7 @@ T4CHrrFuncBodyDriver::_get_bra_buffers_str(const I4CIntegral&        integral,
     {
         const auto line = "auto " + _get_bra_component_label(components[i]) + " = " + label;
         
-        vstr.push_back(line + "[" + _get_bra_offset_label(integral) + " + " + std::to_string(i) + " * ccomps * dcomps];");
+        vstr.push_back(line  + _get_bra_offset_label(integral) + " + " + std::to_string(i) + " * ccomps * dcomps);");
     }
     
     return vstr;

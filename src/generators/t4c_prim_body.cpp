@@ -36,9 +36,9 @@ T4CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     {
         lines.push_back({1, 0, 2, "// Set up exponents"});
 
-        lines.push_back({1, 0, 2, "auto c_exps = buffer.data(0);"});
+        lines.push_back({1, 0, 2, "auto c_exps = factors.data(0);"});
         
-        lines.push_back({1, 0, 2, "auto d_exps = buffer.data(1);"});
+        lines.push_back({1, 0, 2, "auto d_exps = factors.data(1);"});
     }
     
     if (integral[1] > 0)

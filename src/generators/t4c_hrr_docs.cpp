@@ -169,7 +169,7 @@ T4CHrrDocuDriver::_get_bra_buffers_str(const I4CIntegral& integral) const
     {
         label = t4c::get_hrr_index(tint, false);
         
-        vstr.push_back("/// @param " + label + ": the contracted integrals buffer.");
+        vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
     }
 
     return vstr;

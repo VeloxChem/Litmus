@@ -55,7 +55,7 @@ T4CPrimDeclDriver::_get_buffers_str(const I4CIntegral& integral) const
     
     const auto spacer = std::string(name.size(), ' ');
     
-    vstr.push_back(name + "CSimdArray<double>& pbufer," );
+    vstr.push_back(name + "CSimdArray<double>& pbuffer," );
     
     auto label = t4c::get_index_label(integral);
     
