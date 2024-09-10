@@ -1201,6 +1201,8 @@ T4CFuncBodyDriver::_add_loop_start(      VCodeLines&    lines,
         lines.push_back({2, 0, 2, "cfactors.replicate_points(c_coords, ket_range, 0, 1);"});
         
         lines.push_back({2, 0, 2, "cfactors.replicate_points(d_coords, ket_range, 3, 1);"});
+        
+        lines.push_back({2, 0, 2, "t4cfunc::comp_distances_cd(cfactors, 6, 0, 3);"});
     }
    
     lines.push_back({2, 0, 2, "// set up active SIMD width"});
@@ -1231,7 +1233,9 @@ T4CFuncBodyDriver::_add_loop_start(      VCodeLines&    lines,
     
     if ((integral[0] == integral[2]) && (integral[1] == integral[3]))
     {
-        lines.push_back({3, 0, 2, "if (bra_eq_ket && (j >= ket_range.second)) continue;"});
+       // lines.push_back({3, 0, 2, "if (bra_eq_ket && (j >= ket_range.second)) continue;"});
+        
+        lines.push_back({3, 0, 2, "if (bra_eq_ket && (ket_range.second <= j)) continue;"});
     }
     
     lines.push_back({3, 0, 2, "// zero integral buffers"});
@@ -1260,7 +1264,6 @@ T4CFuncBodyDriver::_add_loop_start(      VCodeLines&    lines,
     if (_need_hrr_for_bra(integral))
     {
         lines.push_back({3, 0, 2, "const auto r_ab = TPoint<double>({a_xyz[0] - b_xyz[0], a_xyz[1] - b_xyz[1], a_xyz[2] - b_xyz[2]});"});
-        
     }
 }
 
@@ -2244,7 +2247,10 @@ T4CFuncBodyDriver::_add_ket_hrr_call_tree(      VCodeLines&  lines,
             
             label += std::to_string(_get_index(0, tint, ckints)) + ", ";
             
-            label += "cbuffer, ";
+            if (tint[2] == 1)
+            {
+                label += "cbuffer, ";
+            }
             
             label += _get_ket_hrr_arguments(0, tint, bra_integrals, ket_integrals);
             
@@ -2315,11 +2321,23 @@ T4CFuncBodyDriver::_get_ket_hrr_arguments(const size_t       start,
 {
     std::string label;
     
-    const auto cints = _get_cart_buffer_integrals(bra_integrals, ket_integrals);
-    
-    for (const auto& tint : t4c::get_ket_hrr_integrals(integral))
+    if (integral[2] == 1)
     {
-        label += std::to_string(_get_index(start, tint, cints)) + ", ";
+        const auto cints = _get_cart_buffer_integrals(bra_integrals, ket_integrals);
+        
+        for (const auto& tint : t4c::get_ket_hrr_integrals(integral))
+        {
+            label += std::to_string(_get_index(start, tint, cints)) + ", ";
+        }
+    }
+    else
+    {
+        const auto ckints = _get_contr_buffers_integrals(ket_integrals);
+        
+        for (const auto& tint : t4c::get_ket_hrr_integrals(integral))
+        {
+            label += std::to_string(_get_index(start, tint, ckints)) + ", ";
+        }
     }
     
     return label;
@@ -2345,7 +2363,7 @@ T4CFuncBodyDriver::_add_ket_trafo_call_tree(      VCodeLines&  lines,
             {
                 std::string label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
                 
-                label += "(skbuffer, "  + std::to_string(_get_index(0, tint, skints)) + ", ";
+                label += "(skbuffer, "  + std::to_string(_get_half_spher_index(0, tint, skints)) + ", ";
                 
                 label += "ckbuffer, " + std::to_string(_get_index(0, tint, ckints))  + ", ";
                 
@@ -2596,8 +2614,11 @@ T4CFuncBodyDriver::_add_bra_trafo_call_tree(      VCodeLines&    lines,
     label += std::to_string(integral[2]) + ", " + std::to_string(integral[3]) + ");";
         
     lines.push_back({3, 0, 2, label});
-    
-    lines.push_back({3, 0, 2, "const bool diagonal = bra_eq_ket && (j >= ket_range.first) && (j < ket_range.second);"});
+   
+    if ((integral[0] == integral[2]) && (integral[1] == integral[3]))
+    {
+        lines.push_back({3, 0, 2, "const bool diagonal = bra_eq_ket && (j >= ket_range.first) && (j < ket_range.second);"});
+    }
     
     label = "distributor.distribute(sbuffer, 0, a_indices, b_indices, c_indices, d_indices, ";
     
@@ -2609,7 +2630,14 @@ T4CFuncBodyDriver::_add_bra_trafo_call_tree(      VCodeLines&    lines,
     
     label += std::to_string(integral[3]) + ", ";
     
-    label += "j, ket_range, diagonal);";
+    if ((integral[0] == integral[2]) && (integral[1] == integral[3]))
+    {
+        label += "j, ket_range, diagonal);";
+    }
+    else
+    {
+        label += "j, ket_range, bra_eq_ket);";
+    }
     
     lines.push_back({3, 0, 1, label});
     

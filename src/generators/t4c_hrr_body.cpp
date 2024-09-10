@@ -185,7 +185,7 @@ T4CHrrFuncBodyDriver::_get_ket_buffers_str(const std::vector<R4CDist>& rec_dists
     
     for (const auto& tint : t4c::get_ket_hrr_integrals(integral))
     {
-        auto label = "pbuffer.data(";
+        auto label = (integral[2] == 1) ? "pbuffer.data(" : "cbuffer.data(";
         
         vstr.push_back("/// Set up components of auxilary buffer : " + tint.label());
         

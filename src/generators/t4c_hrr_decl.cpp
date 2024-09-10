@@ -61,7 +61,10 @@ T4CHrrDeclDriver::_get_ket_buffers_str(const I4CIntegral& integral) const
     
     vstr.push_back(spacer + "const size_t " + label + "," );
     
-    vstr.push_back(spacer + "CSimdArray<double>& pbuffer," );
+    if (integral[2] == 1)
+    {
+        vstr.push_back(spacer + "CSimdArray<double>& pbuffer," );
+    }
     
     for (const auto& tint : t4c::get_ket_hrr_integrals(integral))
     {

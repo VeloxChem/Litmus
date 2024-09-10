@@ -102,8 +102,11 @@ T4CHrrDocuDriver::_get_ket_buffers_str(const I4CIntegral& integral) const
     
     vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
     
-    vstr.push_back("/// @param pbuffer The Cartesian integrals buffer.");
-    
+    if (integral[2] == 1)
+    {
+        vstr.push_back("/// @param pbuffer The Cartesian integrals buffer.");
+    }
+   
     for (const auto& tint : t4c::get_ket_hrr_integrals(integral))
     {
         label = t4c::get_hrr_index(tint, true);
