@@ -253,9 +253,11 @@ T4CDiagCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
 {
     auto lines = VCodeLines();
     
+    lines.push_back({0, 0, 1, "#include <cstddef>"});
+    
     lines.push_back({0, 0, 1, "#include <vector>"});
     
-    lines.push_back({0, 0, 2, "#include <array>"});
+    lines.push_back({0, 0, 2, "#include <utility>"});
     
     std::set<std::string> labels;
     
@@ -298,8 +300,6 @@ T4CDiagCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 2, "#include \"GtoPairBlock.hpp\""});
    
-    
-        
     ost::write_code_lines(fstream, lines);
 }
 

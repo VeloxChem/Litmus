@@ -143,7 +143,7 @@ T4CDocuDriver::_get_diag_compute_str(const I4CIntegral& integral) const
     
     const auto integrand = integral.integrand();
     
-    auto label = "/// Computes (" + bra_one.label() + bra_two.label();
+    auto label = "/// @brief Computes (" + bra_one.label() + bra_two.label();
     
     label +=  "|" + t4c::integrand_label(integral.integrand()) + "|";
    
@@ -159,7 +159,7 @@ T4CDocuDriver::_get_diag_matrices_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("/// - Parameter distributor: the pointer to screening data distributor.");
+    vstr.push_back("/// @param distributor The pointer to screening data distributor.");
              
     return vstr;
 }
@@ -169,7 +169,7 @@ T4CDocuDriver::_get_diag_gto_pair_blocks_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("/// - Parameter gto_pair_block: the GTOs pair block.");
+    vstr.push_back("/// @param gto_pair_block The GTOs pair block.");
         
     return vstr;
 }
@@ -179,7 +179,7 @@ T4CDocuDriver::_get_diag_indices_str() const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("/// - Parameter go_indices: the range [gto_first, gto_last) of GTOs on bra and ket sides.");
+    vstr.push_back("/// @param gto_indices The range [gto_first, gto_last) of GTOs on bra and ket sides.");
     
     return vstr;
 }

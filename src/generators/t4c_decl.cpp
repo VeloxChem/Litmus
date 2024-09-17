@@ -138,7 +138,7 @@ T4CDeclDriver::_get_diag_matrices_str(const I4CIntegral& integral) const
     
     const auto spacer = std::string(name.size(), ' ');
     
-    vstr.push_back(name + "T* distributor,");
+    vstr.push_back(name + "T& distributor,");
     
     return vstr;
 }
@@ -169,7 +169,7 @@ T4CDeclDriver::_get_diag_indices_str(const I4CIntegral& integral,
     
     const auto tsymbol = (terminus) ? ";" : "";
     
-    vstr.push_back(spacer + "const std::array<int, 2>& gto_indices) -> void" + tsymbol);
+    vstr.push_back(spacer + "const std::pair<size_t, size_t>& gto_indices) -> void" + tsymbol);
     
     return vstr;
 }
