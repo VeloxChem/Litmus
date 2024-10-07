@@ -48,11 +48,55 @@ class T4CGeomCPUGenerator
     SI4CIntegrals _generate_geom_integral_group(const I4CIntegral& integral) const;
     
     /// Generates set of integrals required for geometrical derivatives.
-    /// @param integral The base four center integral.
-    /// @param integrals The set of geometrical derivative integrals.
+    /// @param integrals The set of four center integrals.
     /// @return The set of integrals.
-     SI4CIntegrals _generate_vrr_integral_group(const I4CIntegral& integral,
-                                                const SI4CIntegrals& integrals) const;
+    SI4CIntegrals _generate_geom_base_integral_group(const SI4CIntegrals& integrals) const;
+    
+    /// Generates set of integrals required for geometrical derivatives.
+    /// @param integrals The set of four center integrals.
+    /// @return The set of integrals.
+    SI4CIntegrals _generate_geom_rec_integral_group(const SI4CIntegrals& integrals) const;
+    
+    /// Generates set of integrals required for horizontal Obara-Saika recursion on bra side.
+    /// @param integral The base four center integral.
+    /// @param integrals The set of four center integrals.
+    /// @return The set of integrals.
+    SI4CIntegrals _generate_bra_hrr_integral_group(const I4CIntegral&   integral,
+                                                   const SI4CIntegrals& integrals) const;
+    
+    /// Generates set of integrals required for horizontal Obara-Saika recursion on bra side.
+    /// @param integral The base four center integral.
+    /// @param integrals The set of four center integrals.
+    /// @return The set of integrals.
+    SI4CIntegrals _generate_bra_base_hrr_integral_group(const I4CIntegral&   integral,
+                                                        const SI4CIntegrals& integrals) const;
+    
+    /// Generates set of integrals required for horizontal Obara-Saika recursion on ket side.
+    /// @param integral The base four center integral.
+    /// @param integrals The set of four center integrals.
+    /// @return The set of integrals.
+    SI4CIntegrals _generate_ket_hrr_integral_group(const I4CIntegral&   integral,
+                                                   const SI4CIntegrals& integrals) const;
+    
+    /// Generates set of integrals required for horizontal Obara-Saika recursion on ket side.
+    /// @param integral The base four center integral.
+    /// @param integrals The set of four center integrals.
+    /// @return The set of integrals.
+    SI4CIntegrals _generate_ket_base_hrr_integral_group(const I4CIntegral&   integral,
+                                                        const SI4CIntegrals& integrals) const;
+    
+    /// Generates set of integrals required for geometrical derivatives.
+    /// @param integral The base four center integral.
+    /// @param bra_base_integrals The set of geometrical derivative integrals.
+    /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param ket_base_integrals The set of geometrical derivative integrals.
+    /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @return The set of integrals.
+     SI4CIntegrals _generate_vrr_integral_group(const I4CIntegral&   integral,
+                                                const SI4CIntegrals& bra_base_integrals,
+                                                const SI4CIntegrals& bra_rec_base_integrals,
+                                                const SI4CIntegrals& ket_base_integrals,
+                                                const SI4CIntegrals& ket_rec_base_integrals) const;
     
     /// Gets file name of file with recursion functions for two center integral.
     /// @param integral The base two center integral.
@@ -61,9 +105,17 @@ class T4CGeomCPUGenerator
     
     /// Writes header file for recursion.
     /// @param geom_integrals The set of unique integrals for geometrical recursion.
+    /// @param bra_base_integrals The set of geometrical derivative integrals.
+    /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param ket_base_integrals The set of geometrical derivative integrals.
+    /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
     /// @param vrr_integrals The set of unique integrals for vertical recursion.
     /// @param integral The base two center integral.
     void _write_cpp_header(const SI4CIntegrals& geom_integrals,
+                           const SI4CIntegrals& bra_base_integrals,
+                           const SI4CIntegrals& bra_rec_base_integrals,
+                           const SI4CIntegrals& ket_base_integrals,
+                           const SI4CIntegrals& ket_rec_base_integrals,
                            const SI4CIntegrals& vrr_integrals,
                            const I4CIntegral&   integral) const;
     
@@ -78,10 +130,18 @@ class T4CGeomCPUGenerator
     /// Writes definitions of includes for header file.
     /// @param fstream the file stream.
     /// @param geom_integrals The set of unique integrals for geometrical recursion.
+    /// @param bra_base_integrals The set of geometrical derivative integrals.
+    /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param ket_base_integrals The set of geometrical derivative integrals.
+    /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
     /// @param vrr_integrals The set of unique integrals for vertical recursion.
     /// @param integral The base two center integral.
     void _write_hpp_includes(      std::ofstream& fstream,
                              const SI4CIntegrals& geom_integrals,
+                             const SI4CIntegrals& bra_base_integrals,
+                             const SI4CIntegrals& bra_rec_base_integrals,
+                             const SI4CIntegrals& ket_base_integrals,
+                             const SI4CIntegrals& ket_rec_base_integrals,
                              const SI4CIntegrals& vrr_integrals,
                              const I4CIntegral&   integral) const;
     

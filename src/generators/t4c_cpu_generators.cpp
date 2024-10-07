@@ -48,19 +48,19 @@ T4CCPUGenerator::generate(const std::string& label,
                 {
                     for (int l = k; l <= max_ang_mom; l++)
                     {
-                        const auto integral = _get_integral(label, {i, j, k, l});
-                        
-                        const auto bra_integrals = _generate_bra_hrr_integral_group(integral);
-                        
-                        const auto ket_integrals = _generate_ket_hrr_integral_group(integral, bra_integrals);
-                        
-                        auto hrr_integrals = bra_integrals;
-                        
-                        hrr_integrals.insert(ket_integrals.begin(), ket_integrals.end());
-                        
-                        const auto vrr_integrals = _generate_vrr_integral_group(integral, hrr_integrals);
-                        
-                        _write_cpp_header(bra_integrals, ket_integrals, vrr_integrals, integral);
+//                        const auto integral = _get_integral(label, {i, j, k, l});
+//                        
+//                        const auto bra_integrals = _generate_bra_hrr_integral_group(integral);
+//                        
+//                        const auto ket_integrals = _generate_ket_hrr_integral_group(integral, bra_integrals);
+//                        
+//                        auto hrr_integrals = bra_integrals;
+//                        
+//                        hrr_integrals.insert(ket_integrals.begin(), ket_integrals.end());
+//                        
+//                        const auto vrr_integrals = _generate_vrr_integral_group(integral, hrr_integrals);
+//                        
+//                        _write_cpp_header(bra_integrals, ket_integrals, vrr_integrals, integral);
                     }
                 }
             }
@@ -70,11 +70,11 @@ T4CCPUGenerator::generate(const std::string& label,
         {
             for (int j = 0; j <= 2 * max_ang_mom; j++)
             {
-                const auto integral = _get_integral(label, {0, i, 0, j});
-                
-                _write_prim_cpp_header(integral);
-                
-                _write_prim_cpp_file(integral);
+//                const auto integral = _get_integral(label, {0, i, 0, j});
+//                
+//                _write_prim_cpp_header(integral);
+//                
+//                _write_prim_cpp_file(integral);
             }
         }
         
@@ -82,18 +82,20 @@ T4CCPUGenerator::generate(const std::string& label,
         {
             for (int j = i; j <= (2 * max_ang_mom - i) ; j++)
             {
-                const auto integral = _get_integral(label, {0, 0, i, j});
-                
-                _write_ket_hrr_cpp_header(integral);
-                
-                _write_ket_hrr_cpp_file(integral);
+//                const auto integral = _get_integral(label, {0, 0, i, j});
+//                
+//                _write_ket_hrr_cpp_header(integral);
+//                
+//                _write_ket_hrr_cpp_file(integral);
             }
         }
         
         for (int i = 1; i <= max_ang_mom; i++)
         {
-            for (int j = i; j <= (2 * max_ang_mom - i) ; j++)
+            for (int j = 0; j <= max_ang_mom; j++)
             {
+                if (j >= i) continue;
+                
                 const auto integral = _get_integral(label, {i, j, 0, 0});
                 
                 _write_bra_hrr_cpp_header(integral);

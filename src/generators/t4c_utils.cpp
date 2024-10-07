@@ -20,6 +20,7 @@
 
 #include "v4i_eri_driver.hpp"
 #include "t4c_center_driver.hpp"
+#include "v4i_geom10_eri_driver.hpp"
 
 namespace t4c { // t4c namespace
 
@@ -254,6 +255,22 @@ bra_hrr_compute_func_name(const I4CIntegral& integral)
     return fstr::lowercase(label);
 }
 
+std::string
+bra_geom_hrr_compute_func_name(const I4CIntegral& integral)
+{
+    const auto bra_one = Tensor(integral[0]);
+    
+    const auto bra_two = Tensor(integral[1]);
+    
+    auto geom_orders = integral.prefixes_order();
+    
+    auto label =  "comp_bra_geom" + std::to_string(geom_orders[0]) + std::to_string(geom_orders[1]);
+    
+    label += "_hrr_" + t4c::integral_split_label(integral) + "_" + bra_one.label() + bra_two.label() + "xx";
+    
+    return fstr::lowercase(label);
+}
+
 SI4CIntegrals
 get_vrr_integrals(const I4CIntegral& integral)
 {
@@ -346,6 +363,23 @@ get_bra_hrr_integrals(const I4CIntegral& integral)
 }
 
 SI4CIntegrals
+get_bra_geom_hrr_integrals(const I4CIntegral& integral)
+{
+    const auto geom_order = integral.prefixes_order();
+    
+    SI4CIntegrals tints;
+    
+    if (geom_order == std::vector<int>({1, 0, 0, 0}))
+    {
+        V4IGeom10ElectronRepulsionDriver geom_drv;
+        
+        tints = geom_drv.bra_hrr(integral);
+    }
+    
+    return tints;
+}
+
+SI4CIntegrals
 get_geom_integrals(const I4CIntegral& integral)
 {
     R4Group rgroup;
@@ -415,6 +449,16 @@ bra_hrr_file_name(const I4CIntegral& integral)
     
     const auto bra_two = Tensor(integral[1]);
     
+    return t4c::integral_label(integral) + "ContrRec" + bra_one.label() + bra_two.label() + "XX";
+}
+
+std::string
+bra_geom_hrr_file_name(const I4CIntegral& integral)
+{
+    const auto bra_one = Tensor(integral[0]);
+    
+    const auto bra_two = Tensor(integral[1]);
+        
     return t4c::integral_label(integral) + "ContrRec" + bra_one.label() + bra_two.label() + "XX";
 }
 

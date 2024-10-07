@@ -750,18 +750,6 @@ T4CFuncBodyDriver::_get_prim_buffers_def(const SI4CIntegrals& integrals,
     
     vstr.push_back(label);
     
-//    label = "if constexpr (N == 2) CSimdArray<double> pbuffer";
-//    
-//    label += "(" + std::to_string(tcomps) + ", ket_npgtos);";
-//    
-//    vstr.push_back(label);
-//    
-//    label = "if constexpr (N == 3) CSimdArray<double> pbuffer";
-//    
-//    label += "(" + std::to_string(2 * tcomps) + ", ket_npgtos);";
-//    
-//    vstr.push_back(label);
-    
     return vstr;
 }
 
@@ -830,18 +818,6 @@ T4CFuncBodyDriver::_get_cart_buffers_def(const SI4CIntegrals& bra_integrals,
     label += "(" + std::to_string(tcomps) + ", 1);";
     
     vstr.push_back(label);
-    
-//    label = "if constexpr (N == 2) CSimdArray<double> cbuffer";
-//    
-//    label += "(" + std::to_string(tcomps) + ", 1);";
-//    
-//    vstr.push_back(label);
-//    
-//    label = "if constexpr (N == 3) CSimdArray<double> cbuffer";
-//    
-//    label += "(" + std::to_string(2 * tcomps) + ", 1);";
-//    
-//    vstr.push_back(label);
     
     return vstr;
 }
@@ -916,18 +892,6 @@ T4CFuncBodyDriver::_get_contr_buffers_def(const SI4CIntegrals& bra_integrals,
         label += "ckbuffer(" + std::to_string(tcomps) + ", 1);";
         
         vstr.push_back(label);
-        
-//        label = "if constexpr (N == 2) CSimdArray<double> ";
-//        
-//        label += "ckbuffer(" + std::to_string(tcomps) + ", 1);";
-//        
-//        vstr.push_back(label);
-//        
-//        label = "if constexpr (N == 3) CSimdArray<double> ";
-//        
-//        label += "ckbuffer(" + std::to_string(2 * tcomps) + ", 1);";
-//        
-//        vstr.push_back(label);
     }
     
     return vstr;
@@ -984,18 +948,6 @@ T4CFuncBodyDriver::_get_half_spher_buffers_def(const SI4CIntegrals& bra_integral
     label += "skbuffer(" + std::to_string(tcomps) + ", 1);";
             
     vstr.push_back(label);
-    
-//    label = "if constexpr (N == 2) CSimdArray<double> ";
-//            
-//    label += "skbuffer(" + std::to_string(tcomps) + ", 1);";
-//            
-//    vstr.push_back(label);
-//    
-//    label = "if constexpr (N == 3) CSimdArray<double> ";
-//            
-//    label += "skbuffer(" + std::to_string(2 * tcomps) + ", 1);";
-//            
-//    vstr.push_back(label);
         
     return vstr;
 }
@@ -1045,18 +997,6 @@ T4CFuncBodyDriver::_get_spher_buffers_def(const I4CIntegral& integral) const
     label += "sbuffer(" + std::to_string(tcomps) + ", 1);";
                     
     vstr.push_back(label);
-    
-//    label = "if constexpr (N == 2) CSimdArray<double> ";
-//                    
-//    label += "sbuffer(" + std::to_string(tcomps) + ", 1);";
-//                    
-//    vstr.push_back(label);
-//    
-//    label = "if constexpr (N == 3) CSimdArray<double> ";
-//                    
-//    label += "sbuffer(" + std::to_string(2 * tcomps) + ", 1);";
-//                    
-//    vstr.push_back(label);
    
     return vstr;
 }
@@ -1883,7 +1823,6 @@ T4CFuncBodyDriver::_add_ket_loop_end(      VCodeLines&  lines,
     lines.push_back({3, 0, 2, "}"});
 }
 
-
 void
 T4CFuncBodyDriver::_add_diag_ket_loop_end(      VCodeLines&    lines,
                                           const SI4CIntegrals& vrr_integrals,
@@ -2174,7 +2113,6 @@ T4CFuncBodyDriver::_add_full_vrr_call_tree(      VCodeLines&  lines,
         }
     }
 }
-
 
 std::string
 T4CFuncBodyDriver::_get_vrr_arguments(const size_t start,

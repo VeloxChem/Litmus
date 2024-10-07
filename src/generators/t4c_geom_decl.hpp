@@ -41,17 +41,32 @@ class T4CGeomDeclDriver
     std::vector<std::string> _get_recursion_variables_str(const I4CIntegral& integral,
                                                           const bool         terminus) const;
     
+    /// Generates vector of matrix strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of matrix strings.
+    std::vector<std::string> _get_matrices_str(const I4CIntegral& integral) const;
+    
+    /// Generates vector of GTOs block strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of GTOs block strings,
+    std::vector<std::string> _get_gto_pair_blocks_str(const I4CIntegral& integral) const;
+        
+    /// Generates vector of indices strings.
+    /// @param integral The base two center integral.
+    /// @param terminus The flag to add termination symbol.
+    /// @return The vector of indices strings.
+    std::vector<std::string> _get_indices_str(const I4CIntegral& integral,
+                                              const bool         terminus) const;
+    
 public:
     /// Creates a four-center geometrical derivatives functions declaration generator.
     T4CGeomDeclDriver() = default;
     
     /// Writes declaration for primitive compute function.
     /// @param fstream the file stream.
-    /// @param geom_integrals The set of unique integrals for geometrical recursion.
     /// @param integral The base two center integral.
     /// @param terminus The flag to add termination symbol.
     void write_func_decl(      std::ofstream& fstream,
-                         const SI4CIntegrals& geom_integrals,
                          const I4CIntegral&   integral,
                          const bool           terminus) const;
 };

@@ -122,7 +122,7 @@ T4CDeclDriver::_get_indices_str(const I4CIntegral& integral,
     
     vstr.push_back(spacer + "const std::pair<size_t, size_t>& bra_indices,");
         
-    vstr.push_back(spacer + "const std::pair<size_t, size_t>& ket_indices," + tsymbol);
+    vstr.push_back(spacer + "const std::pair<size_t, size_t>& ket_indices,");
     
     vstr.push_back(spacer + "const bool bra_eq_ket) -> void" + tsymbol);
     

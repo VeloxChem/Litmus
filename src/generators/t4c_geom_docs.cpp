@@ -21,19 +21,23 @@
 
 void
 T4CGeomDocuDriver::write_doc_str(      std::ofstream& fstream,
-                                 const SI4CIntegrals& geom_integrals,
                                  const I4CIntegral&   integral) const
 {
     auto lines = VCodeLines();
     
     lines.push_back({0, 0, 1, _get_compute_str(integral)});
     
-    for (const auto& label : _get_buffers_str(geom_integrals, integral))
+    for (const auto& label : _get_matrices_str(integral))
     {
         lines.push_back({0, 0, 1, label});
     }
-    
-    for (const auto& label : _get_recursion_variables_str(integral))
+
+    for (const auto& label : _get_gto_pair_blocks_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+        
+    for (const auto& label : _get_indices_str())
     {
         lines.push_back({0, 0, 1, label});
     }
@@ -54,16 +58,51 @@ T4CGeomDocuDriver::_get_compute_str(const I4CIntegral& integral) const
     
     const auto integrand = integral.integrand();
     
-    std::string label = "/// Computes ";
+    std::string label = "/// @brief Computes ";
 
     label += t4c::prefixes_label(integral);
         
-    label += "[" + bra_one.label() + bra_two.label() + "|G|";
+    label += "(" + bra_one.label() + bra_two.label() + "|" + t4c::integrand_label(integral.integrand())  + "|";
    
-    label += ket_one.label() + ket_two.label() + "]  integrals for arbitrary scalar operator G.";
+    label += ket_one.label() + ket_two.label() + ")  integral derivatives.";
     
     return label;
 }
+
+std::vector<std::string>
+T4CGeomDocuDriver::_get_matrices_str(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("/// @param distributor The pointer to Fock matrix/matrices distributor.");
+             
+    return vstr;
+}
+
+std::vector<std::string>
+T4CGeomDocuDriver::_get_gto_pair_blocks_str(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("/// @param bra_gto_pair_block The GTOs pair block on bra side.");
+        
+    vstr.push_back("/// @param ket_gto_pair_block The GTOs pair block on ket side.");
+  
+    return vstr;
+}
+
+std::vector<std::string>
+T4CGeomDocuDriver::_get_indices_str() const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("/// @param bra_indices The range [bra_first, bra_last) of basis function pairs on bra side.");
+        
+    vstr.push_back("/// @param ket_indices The range [ket_first, ket_last) of basis function pairs on ket side.");
+    
+    return vstr;
+}
+
 
 std::vector<std::string>
 T4CGeomDocuDriver::_get_buffers_str(const SI4CIntegrals& geom_integrals,

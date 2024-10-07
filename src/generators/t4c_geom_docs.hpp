@@ -48,16 +48,28 @@ class T4CGeomDocuDriver
     /// @return The vector of recursion variables strings.
     std::vector<std::string> _get_recursion_variables_str(const I4CIntegral& integral) const;
     
+    /// Generates vector of matrix strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of matrix strings.
+    std::vector<std::string> _get_matrices_str(const I4CIntegral& integral) const;
+    
+    /// Generates vector of GTOs block strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of GTOs block strings,
+    std::vector<std::string> _get_gto_pair_blocks_str(const I4CIntegral& integral) const;
+  
+    /// Generates vector of indices strings.
+    /// @return The vector of indices strings.
+    std::vector<std::string> _get_indices_str() const;
+    
 public:
     /// Creates a primtive four-center documentation generator.
     T4CGeomDocuDriver() = default;
     
     /// Writes documentation string for primtive compute function.
     /// @param fstream the file stream.
-    /// @param geom_integrals The set of unique integrals for geometrical recursion.
     /// @param integral The base four center integral.
     void write_doc_str(      std::ofstream& fstream,
-                       const SI4CIntegrals& geom_integrals,
                        const I4CIntegral&   integral) const;
     
 };

@@ -155,6 +155,10 @@ public:
     /// @return The vector of prefix operators.
     VOperators prefixes() const;
     
+    /// Gets vector of prefix operator orders.
+    /// @return The vector of prefix operator orders.
+    std::vector<int> prefixes_order() const;
+    
     /// Creates a vector with integral components of this integral.
     /// @return The vector of integral components.
     template <class V, class W>
@@ -497,6 +501,20 @@ VOperators
 Integral<T, U>::prefixes() const
 {
     return _prefixes;
+}
+
+template <class T, class U>
+std::vector<int>
+Integral<T, U>::prefixes_order() const
+{
+    std::vector<int> orders;
+    
+    for (const auto& prefix : _prefixes)
+    {
+        orders.push_back(prefix.shape().order()); 
+    }
+    
+    return orders;
 }
 
 template <class T, class U>
