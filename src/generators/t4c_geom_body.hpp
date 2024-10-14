@@ -432,6 +432,10 @@ class T4CGeomFuncBodyDriver
     size_t _get_geom20_half_spher_2a_size(const SI4CIntegrals& bra_integrals,
                                           const SI4CIntegrals& ket_integrals,
                                           const I4CIntegral& integral) const;
+    
+    /// Gets half spherical integrals block size in buffer.
+    /// @param integral The base four center integral.
+    size_t _get_geom20_half_spher_size(const I4CIntegral& integral) const;
 
 public:
     /// Creates a two-center compute function body generator.

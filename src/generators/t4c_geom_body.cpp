@@ -704,13 +704,32 @@ T4CGeomFuncBodyDriver::_get_half_spher_buffers_def(const SI4CIntegrals& geom_int
     
     vstr.push_back("// allocate aligned half transformed integrals");
     
-    auto tcomps = _get_all_half_spher_components(_get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral));
+    const auto geom_orders = integral.prefixes_order();
     
-    tcomps += _get_all_half_spher_components(_get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral));
+    size_t tcomps = 0;
     
-    if (integral[0] > 0)
+    if (geom_orders == std::vector<int>({1, 0, 0, 0}))
     {
-        tcomps += _get_all_geom_half_spher_components(_get_geom_half_spher_buffers_integrals(geom_integrals, integral));
+        tcomps += _get_all_half_spher_components(_get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral));
+        
+        tcomps += _get_all_half_spher_components(_get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral));
+        
+        if (integral[0] > 0)
+        {
+            tcomps += _get_all_geom_half_spher_components(_get_geom_half_spher_buffers_integrals(geom_integrals, integral));
+        }
+    }
+    
+    if (geom_orders == std::vector<int>({2, 0, 0, 0}))
+    {
+        tcomps += _get_all_half_spher_components(_get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral));
+        
+        tcomps += _get_geom20_half_spher_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
+        
+        if (integral[0] == 0)
+        {
+            tcomps += _get_geom20_half_spher_size(integral);
+        }
     }
     
     std::string label = "CSimdArray<double> ";
@@ -1459,10 +1478,10 @@ T4CGeomFuncBodyDriver::_add_ket_trafo_call_tree(      VCodeLines&  lines,
         
         auto skints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
         
-        // scaled integrals (2 alpha)
-        
         if (integral[2] > 0)
         {
+            // scaled integrals (2 alpha)
+            
             for (const auto& tint : ket_rec_base_integrals)
             {
                 if ((tint[0] == 0) && (tint[1] == integral[1]) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
@@ -1478,6 +1497,8 @@ T4CGeomFuncBodyDriver::_add_ket_trafo_call_tree(      VCodeLines&  lines,
                     lines.push_back({spacer, 0, 2, label});
                 }
             }
+            
+            // scaled integrals (4 alpha)
             
             const auto ckstart = _get_geom20_contr_2a_size(ket_rec_base_integrals, integral);
             
@@ -1500,10 +1521,48 @@ T4CGeomFuncBodyDriver::_add_ket_trafo_call_tree(      VCodeLines&  lines,
             }
         }
         
-        
-        // scaled integrals (4 alpha)
-    
-        
+        if (integral[2] == 0)
+        {
+            // scaled integrals (2 alpha)
+            
+            for (const auto& tint : bra_rec_base_integrals)
+            {
+                if ((tint[0] == 0) && (tint[1] == integral[1]) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
+                {
+                    std::string label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
+                        
+                    label += "(skbuffer, "  +  std::to_string(_get_half_spher_index(0, tint, skints)) + ", ";
+                    
+                    label += "cbuffer, " + std::to_string(_get_index(0, tint, cints))  + ", ";
+                    
+                    label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
+                        
+                    lines.push_back({spacer, 0, 2, label});
+                }
+            }
+            
+            // scaled integrals (4 alpha)
+            
+            const auto cstart = _get_geom20_cart_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
+            
+            const auto skstart = _get_geom20_half_spher_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
+            
+            for (const auto& tint : bra_rec_base_integrals)
+            {
+                if ((tint[0] == 0) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
+                {
+                    std::string label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
+                        
+                    label += "(skbuffer, "  +  std::to_string(_get_half_spher_index(skstart, tint, skints)) + ", ";
+                    
+                    label += "cbuffer, " + std::to_string(_get_index(cstart, tint, cints))  + ", ";
+                    
+                    label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
+                        
+                    lines.push_back({spacer, 0, 2, label});
+                }
+            }
+        }
     }
 }
 
@@ -1516,51 +1575,87 @@ T4CGeomFuncBodyDriver::_add_bra_hrr_call_tree(      VCodeLines&  lines,
                                               const I4CIntegral&   integral,
                                               const size_t         spacer) const
 {
-    auto skints = _get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral);
+    const auto geom_orders = integral.prefixes_order();
     
-    for (const auto& tint : bra_base_integrals)
+    if (geom_orders == std::vector<int>({1, 0, 0, 0}))
     {
-        if (tint[0] > 0)
+        auto skints = _get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral);
+        
+        for (const auto& tint : bra_base_integrals)
         {
-            const auto name = t4c::bra_hrr_compute_func_name(tint);
-            
-            auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
-            
-            label += _get_bra_hrr_arguments(0, tint, skints);
-            
-            label += "r_ab, ";
-            
-            label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
-            
-            label += ");";
-            
-            lines.push_back({spacer, 0, 2, label});
+            if (tint[0] > 0)
+            {
+                const auto name = t4c::bra_hrr_compute_func_name(tint);
+                
+                auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+                
+                label += _get_bra_hrr_arguments(0, tint, skints);
+                
+                label += "r_ab, ";
+                
+                label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+                
+                label += ");";
+                
+                lines.push_back({spacer, 0, 2, label});
+            }
+        }
+        
+        const auto skcomps = _get_all_half_spher_components(skints);
+        
+        skints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
+        
+        for (const auto& tint : bra_rec_base_integrals)
+        {
+            if (tint[0] > 0)
+            {
+                const auto name = t4c::bra_hrr_compute_func_name(tint);
+                
+                auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+                
+                label += _get_bra_hrr_arguments(skcomps, tint, skints);
+                
+                label += "r_ab, ";
+                
+                label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+                
+                label += ");";
+                
+                lines.push_back({spacer, 0, 2, label});
+            }
         }
     }
     
-    const auto skcomps = _get_all_half_spher_components(skints);
-    
-    skints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
-    
-    for (const auto& tint : bra_rec_base_integrals)
+    if (geom_orders == std::vector<int>({2, 0, 0, 0}))
     {
-        if (tint[0] > 0)
+        auto skints = _get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral);
+        
+        
+        const auto skstart = _get_geom20_half_spher_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
+        
+        skints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
+        
+        for (const auto& tint : bra_rec_base_integrals)
         {
-            const auto name = t4c::bra_hrr_compute_func_name(tint);
-            
-            auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
-            
-            label += _get_bra_hrr_arguments(skcomps, tint, skints);
-            
-            label += "r_ab, ";
-            
-            label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
-            
-            label += ");";
-            
-            lines.push_back({spacer, 0, 2, label});
+            if (tint[0] > 0)
+            {
+                const auto name = t4c::bra_hrr_compute_func_name(tint);
+                
+                auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+                
+                label += _get_bra_hrr_arguments(skstart, tint, skints);
+                
+                label += "r_ab, ";
+                
+                label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+                
+                label += ");";
+                
+                lines.push_back({spacer, 0, 2, label});
+            }
         }
     }
+    
 }
 
 void
@@ -1573,50 +1668,85 @@ T4CGeomFuncBodyDriver::_add_bra_geom_hrr_call_tree(      VCodeLines&  lines,
                                                    const I4CIntegral&   integral,
                                                    const size_t         spacer) const
 {
-    auto bskints = _get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral);
+    const auto geom_orders = integral.prefixes_order();
     
-    auto btcomps = _get_all_half_spher_components(bskints);
-    
-    auto rskints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
-    
-    auto rtcomps = _get_all_half_spher_components(rskints);
-    
-    const auto gints = _get_geom_half_spher_buffers_integrals(geom_integrals, integral);
-    
-    for (const auto& tint : gints)
+    if (geom_orders == std::vector<int>({1, 0, 0, 0}))
     {
-        if ((tint[0] > 0) && (!tint.prefixes().empty()))
-        {
-            const auto name = t4c::bra_geom_hrr_compute_func_name(tint);
-            
-            auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+        auto bskints = _get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral);
         
-            label += std::to_string(_get_geom_half_spher_index(btcomps + rtcomps, tint, gints)) + ", ";
-            
-            for (const auto& cint : t4c::get_bra_geom_hrr_integrals(tint))
+        auto btcomps = _get_all_half_spher_components(bskints);
+        
+        auto rskints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
+        
+        auto rtcomps = _get_all_half_spher_components(rskints);
+        
+        const auto gints = _get_geom_half_spher_buffers_integrals(geom_integrals, integral);
+        
+        for (const auto& tint : gints)
+        {
+            if ((tint[0] > 0) && (!tint.prefixes().empty()))
             {
-                if (const auto gorders = cint.prefixes_order(); gorders.empty())
+                const auto name = t4c::bra_geom_hrr_compute_func_name(tint);
+                
+                auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+                
+                label += std::to_string(_get_geom_half_spher_index(btcomps + rtcomps, tint, gints)) + ", ";
+                
+                for (const auto& cint : t4c::get_bra_geom_hrr_integrals(tint))
                 {
-                    label += std::to_string(_get_geom_half_spher_index(0, cint, bskints)) + ", ";
-                }
-                else
-                {
-                    if (cint[0] == 0)
+                    if (const auto gorders = cint.prefixes_order(); gorders.empty())
                     {
-                        const auto rint = *cint.shift(1, 0);
-                        
-                        label += std::to_string(_get_geom_half_spher_index(btcomps, rint.base(), rskints)) + ", ";
+                        label += std::to_string(_get_geom_half_spher_index(0, cint, bskints)) + ", ";
                     }
                     else
                     {
-                        label += std::to_string(_get_geom_half_spher_index(btcomps + rtcomps, cint, gints)) + ", ";
+                        if (cint[0] == 0)
+                        {
+                            const auto rint = *cint.shift(1, 0);
+                            
+                            label += std::to_string(_get_geom_half_spher_index(btcomps, rint.base(), rskints)) + ", ";
+                        }
+                        else
+                        {
+                            label += std::to_string(_get_geom_half_spher_index(btcomps + rtcomps, cint, gints)) + ", ";
+                        }
                     }
                 }
+                
+                label += "r_ab, ";
+                
+                label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+                
+                label += ");";
+                
+                lines.push_back({spacer, 0, 2, label});
             }
+        }
+    }
+    
+    if (geom_orders == std::vector<int>({2, 0, 0, 0}))
+    {
+        auto rskints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
+        
+        auto rscomps = _get_all_half_spher_components(rskints);
+        
+        auto r2acomps = _get_geom20_half_spher_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
+        
+        if (integral[0] == 0)
+        {
+            auto name = t4c::bra_geom_hrr_compute_func_name(integral);
             
-            label += "r_ab, ";
+            auto label = t4c::namespace_label(integral) + "::" + name + "(skbuffer, ";
             
-            label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+            label += std::to_string(rscomps + r2acomps) + ", ";
+            
+            label += std::to_string(_get_half_spher_index(0, integral.base(), rskints)) + ", ";
+            
+            const auto rint = *integral.base().shift(2, 0);
+            
+            label += std::to_string(_get_half_spher_index(r2acomps, rint, bra_rec_base_integrals)) + ", ";
+            
+            label += std::to_string(integral[1]) + ", "  + std::to_string(integral[2]) + ", " + std::to_string(integral[3]);
             
             label += ");";
             
@@ -1634,20 +1764,60 @@ T4CGeomFuncBodyDriver::_add_bra_trafo_call_tree(      VCodeLines&  lines,
                                                 const SI4CIntegrals& ket_rec_base_integrals,
                                                 const I4CIntegral&   integral) const
 {
-    auto skints = _get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral);
+    const auto geom_orders = integral.prefixes_order();
     
-    auto btcomps = _get_all_half_spher_components(skints);
-    
-    skints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
-    
-    auto rtcomps = _get_all_half_spher_components(skints);
-    
-    if (integral[0] > 0)
+    if (geom_orders == std::vector<int>{1, 0, 0, 0})
     {
-        skints = _get_geom_half_spher_buffers_integrals(geom_integrals, integral);
+        auto skints = _get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral);
+        
+        auto btcomps = _get_all_half_spher_components(skints);
+        
+        skints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
+        
+        auto rtcomps = _get_all_half_spher_components(skints);
+        
+        if (integral[0] > 0)
+        {
+            skints = _get_geom_half_spher_buffers_integrals(geom_integrals, integral);
+        }
+        
+        if (integral.prefixes_order() == std::vector<int>({1, 0, 0, 0}))
+        {
+            auto angpair = std::array<int, 2>({integral[0], integral[1]});
+                            
+            auto bcart_comps = t2c::number_of_cartesian_components(angpair);
+            
+            auto bspher_comps = t2c::number_of_spherical_components(angpair);
+                            
+            angpair = std::array<int, 2>({integral[2], integral[3]});
+                            
+            auto kspher_comps = t2c::number_of_spherical_components(angpair);
+            
+            auto gindex = _get_geom_half_spher_index(btcomps + rtcomps, integral, skints);
+            
+            if (integral[0] == 0)
+            {
+                const auto tint = *integral.shift(1, 0);
+                
+                gindex = _get_geom_half_spher_index(btcomps, tint.base(), skints);
+            }
+            
+            for (int i = 0; i < 3; i++)
+            {
+                std::string label = "t4cfunc::bra_transform<" + std::to_string(integral[0]) + ", " + std::to_string(integral[1]) + ">";
+                    
+                label += "(sbuffer, " + std::to_string(i * bspher_comps * kspher_comps) + ", skbuffer, ";
+                
+                label += std::to_string(gindex + i * bcart_comps * kspher_comps) + ", ";
+                
+                label += std::to_string(integral[2]) + ", " + std::to_string(integral[3]) + ");";
+                
+                lines.push_back({3, 0, 2, label});
+            }
+        }
     }
     
-    if (integral.prefixes_order() == std::vector<int>({1, 0, 0, 0}))
+    if (geom_orders == std::vector<int>{2, 0, 0, 0})
     {
         auto angpair = std::array<int, 2>({integral[0], integral[1]});
                         
@@ -1659,16 +1829,15 @@ T4CGeomFuncBodyDriver::_add_bra_trafo_call_tree(      VCodeLines&  lines,
                         
         auto kspher_comps = t2c::number_of_spherical_components(angpair);
         
-        auto gindex = _get_geom_half_spher_index(btcomps + rtcomps, integral, skints);
+        auto rskints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
         
-        if (integral[0] == 0)
-        {
-            const auto tint = *integral.shift(1, 0);
-            
-            gindex = _get_geom_half_spher_index(btcomps, tint.base(), skints);
-        }
+        auto rscomps = _get_all_half_spher_components(rskints);
         
-        for (int i = 0; i < 3; i++)
+        auto r2acomps = _get_geom20_half_spher_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
+        
+        auto gindex = rscomps + r2acomps; 
+        
+        for (int i = 0; i < 6; i++)
         {
             std::string label = "t4cfunc::bra_transform<" + std::to_string(integral[0]) + ", " + std::to_string(integral[1]) + ">";
                 
@@ -1681,7 +1850,7 @@ T4CGeomFuncBodyDriver::_add_bra_trafo_call_tree(      VCodeLines&  lines,
             lines.push_back({3, 0, 2, label});
         }
     }
-       
+    
     std::string label = "distributor.distribute(sbuffer, 0, a_indices, b_indices, c_indices, d_indices, ";
     
     label += std::to_string(integral[0]) + ", ";
@@ -1946,6 +2115,22 @@ T4CGeomFuncBodyDriver::_get_geom20_half_spher_2a_size(const SI4CIntegrals& bra_i
             tcomps += icomps;
         }
     }
+    
+    return tcomps;
+}
+
+size_t
+T4CGeomFuncBodyDriver::_get_geom20_half_spher_size(const I4CIntegral& integral) const
+{
+    size_t tcomps = 0;
+    
+    auto angpair = std::array<int, 2>({integral[2], integral[3]});
+            
+    tcomps += t2c::number_of_spherical_components(angpair);
+        
+    angpair = std::array<int, 2>({integral[0], integral[1]});
+            
+    tcomps *= 6 * t2c::number_of_cartesian_components(angpair);
     
     return tcomps;
 }

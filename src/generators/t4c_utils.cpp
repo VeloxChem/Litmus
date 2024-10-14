@@ -266,7 +266,23 @@ bra_geom_hrr_compute_func_name(const I4CIntegral& integral)
     
     auto label =  "comp_bra_geom" + std::to_string(geom_orders[0]) + std::to_string(geom_orders[1]);
     
-    label += "_hrr_" + t4c::integral_split_label(integral) + "_" + bra_one.label() + bra_two.label() + "xx";
+    label += "_hrr_" + t4c::integral_split_label(integral);
+    
+    if (geom_orders == std::vector<int>({2, 0, 0, 0}))
+    {
+        if (integral[0] == 0)
+        {
+            label += "_" + bra_one.label() + "xxx";
+        }
+        else
+        {
+            label += "_" + bra_one.label() + bra_two.label() + "xx";
+        }
+    }
+    else
+    {
+        label += "_" + bra_one.label() + bra_two.label() + "xx";
+    }
     
     return fstr::lowercase(label);
 }
