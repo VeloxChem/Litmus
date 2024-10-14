@@ -75,6 +75,34 @@ T4CHrrDocuDriver::write_bra_doc_str(      std::ofstream& fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+void
+T4CHrrDocuDriver::write_bra_geom_doc_str(      std::ofstream& fstream,
+                                         const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, _get_bra_geom_compute_str(integral)});
+    
+   // TODO: Add special variables here
+    
+    for (const auto& label : _get_bra_geom_buffers_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_bra_coordinates_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_bra_recursion_variables_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
 std::string
 T4CHrrDocuDriver::_get_ket_compute_str(const I4CIntegral& integral) const
 {
@@ -157,6 +185,22 @@ T4CHrrDocuDriver::_get_bra_compute_str(const I4CIntegral& integral) const
     return label;
 }
 
+std::string
+T4CHrrDocuDriver::_get_bra_geom_compute_str(const I4CIntegral& integral) const
+{
+    const auto bra_one = Tensor(integral[0]);
+    
+    const auto bra_two = Tensor(integral[1]);
+    
+    const auto integrand = integral.integrand();
+    
+    auto label = "/// Computes (" +  bra_one.label() + bra_two.label() + "|";
+   
+    label += t4c::integrand_label(integral.integrand()) + "XX)  integral derivatives for set of data buffers.";
+    
+    return label;
+}
+
 std::vector<std::string>
 T4CHrrDocuDriver::_get_bra_buffers_str(const I4CIntegral& integral) const
 {
@@ -169,6 +213,27 @@ T4CHrrDocuDriver::_get_bra_buffers_str(const I4CIntegral& integral) const
     vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
     
     for (const auto& tint : t4c::get_bra_hrr_integrals(integral))
+    {
+        label = t4c::get_hrr_index(tint, false);
+        
+        vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
+    }
+
+    return vstr;
+}
+
+std::vector<std::string>
+T4CHrrDocuDriver::_get_bra_geom_buffers_str(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("/// @param cbuffer The contracted integrals buffer.");
+    
+    auto label = t4c::get_hrr_index(integral, false);
+    
+    vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
+    
+    for (const auto& tint : t4c::get_bra_geom_hrr_integrals(integral))
     {
         label = t4c::get_hrr_index(tint, false);
         

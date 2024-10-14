@@ -106,6 +106,10 @@ public:
     /// @return The vector of prefix operator components of integral component.
     VOperatorComponents prefixes() const;
     
+    /// Gets vector of prefix operator orders.
+    /// @return The vector of prefix operator orders.
+    std::vector<int> prefixes_order() const;
+    
     /// Creates primitive textual label of this integral component.
     /// @param use_order The flag to include order of integral into its label.
     /// @return The string with primitive textual label of integral component.
@@ -331,6 +335,20 @@ VOperatorComponents
 IntegralComponent<T,U>::prefixes() const
 {
     return _prefixes;
+}
+
+template <class T, class U>
+std::vector<int>
+IntegralComponent<T,U>::prefixes_order() const
+{
+    std::vector<int> orders;
+    
+    for (const auto& prefix : _prefixes)
+    {
+        orders.push_back(prefix.shape().order());
+    }
+    
+    return orders;
 }
 
 template <class T, class U>

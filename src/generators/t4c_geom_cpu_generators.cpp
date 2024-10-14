@@ -27,6 +27,7 @@
 #include "t4c_geom_body.hpp"
 #include "v4i_center_driver.hpp"
 #include "v4i_geom10_eri_driver.hpp"
+#include "v4i_geom20_eri_driver.hpp"
 #include "v4i_eri_driver.hpp"
 
 void
@@ -66,72 +67,72 @@ T4CGeomCPUGenerator::generate(const std::string&        label,
                         
                         _write_cpp_header(geom_integrals, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, vrr_integrals, integral);
                         
-//                        if ((i == 2) && (j == 2) && (k == 2) && (l == 2))
+//                       if ((i == 2) && (j == 2) && (k == 2) && (l == 2))
 //                        {
                             std::cout << " *** REFERENCE: " << integral.prefix_label() << " | " << integral.label() << std::endl;
                             
-//                            std::cout << " --- GEOM REC. --- " << std::endl;
-//                            
-//                            for (const auto& tint : geom_integrals)
-//                            {
-//                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
-//                            }
-//                            
-//                            std::cout << " --- GEOM. BASE. REC. --- " << std::endl;
-//                            
-//                            for (const auto& tint : geom_base_integrals)
-//                            {
-//                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
-//                            }
-//                            
-//                            std::cout << " --- GEOM. REC. REC. --- " << std::endl;
-//                            
-//                            for (const auto& tint : geom_rec_integrals)
-//                            {
-//                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
-//                            }
-//                            
-//                            std::cout << " --- BRA. REC. REC. --- " << std::endl;
-//                            
-//                            for (const auto& tint : bra_rec_integrals)
-//                            {
-//                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
-//                            }
-//                            
-//                            std::cout << " --- BRA. BASE REC. --- " << std::endl;
-//                            
-//                            for (const auto& tint : bra_base_integrals)
-//                            {
-//                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
-//                            }
-//                            
-//                            std::cout << " --- BRA. REC. BASE REC. --- " << std::endl;
-//                            
-//                            for (const auto& tint : bra_rec_base_integrals)
-//                            {
-//                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
-//                            }
-//                            
-//                            std::cout << " --- KET. BASE REC. --- " << std::endl;
-//                            
-//                            for (const auto& tint : ket_base_integrals)
-//                            {
-//                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
-//                            }
-//                            
-//                            std::cout << " --- KET. REC. BASE REC. --- " << std::endl;
-//                            
-//                            for (const auto& tint : ket_rec_base_integrals)
-//                            {
-//                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
-//                            }
-//                            
-//                            std::cout << " --- VRR --- " << std::endl;
-//                            
-//                            for (const auto& tint : vrr_integrals)
-//                            {
-//                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << "_"  << tint.order() << std::endl;
-//                            }
+                            std::cout << " --- GEOM REC. --- " << std::endl;
+                            
+                            for (const auto& tint : geom_integrals)
+                            {
+                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
+                            }
+                            
+                            std::cout << " --- GEOM. BASE. REC. --- " << std::endl;
+                            
+                            for (const auto& tint : geom_base_integrals)
+                            {
+                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
+                            }
+                            
+                            std::cout << " --- GEOM. REC. REC. --- " << std::endl;
+                            
+                            for (const auto& tint : geom_rec_integrals)
+                            {
+                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
+                            }
+                            
+                            std::cout << " --- BRA. REC. REC. --- " << std::endl;
+                            
+                            for (const auto& tint : bra_rec_integrals)
+                            {
+                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
+                            }
+                            
+                            std::cout << " --- BRA. BASE REC. --- " << std::endl;
+                           
+                            for (const auto& tint : bra_base_integrals)
+                            {
+                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
+                            }
+                            
+                            std::cout << " --- BRA. REC. BASE REC. --- " << std::endl;
+                            
+                            for (const auto& tint : bra_rec_base_integrals)
+                            {
+                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
+                            }
+                            
+                            std::cout << " --- KET. BASE REC. --- " << std::endl;
+                            
+                            for (const auto& tint : ket_base_integrals)
+                            {
+                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
+                            }
+                            
+                            std::cout << " --- KET. REC. BASE REC. --- " << std::endl;
+                            
+                            for (const auto& tint : ket_rec_base_integrals)
+                            {
+                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
+                            }
+                            
+                            std::cout << " --- VRR --- " << std::endl;
+                            
+                            for (const auto& tint : vrr_integrals)
+                            {
+                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << "_"  << tint.order() << std::endl;
+                            }
 //                        }
                     }
                 }
@@ -201,6 +202,26 @@ T4CGeomCPUGenerator::_generate_geom_integral_group(const I4CIntegral& integral) 
         tints = geom_drv.apply_bra_hrr_recursion(integral);
     }
     
+    if (geom_order == std::vector<int>({2, 0, 0, 0}))
+    {
+        V4IGeom20ElectronRepulsionDriver geom_drv;
+        
+        V4IGeom10ElectronRepulsionDriver grad_drv;
+        
+        for (const auto& tint : geom_drv.apply_bra_hrr_recursion(integral))
+        {
+            tints.insert(tint);
+            
+            if (tint.prefixes_order() == std::vector<int>({1, 0, 0, 0}))
+            {
+                for (const auto& cint : grad_drv.apply_bra_hrr_recursion(tint))
+                {
+                    tints.insert(cint);
+                }
+            }
+        }
+    }
+    
     return tints;
 }
 
@@ -255,6 +276,29 @@ T4CGeomCPUGenerator::_generate_bra_hrr_integral_group(const I4CIntegral&   integ
         }
     }
     
+    if (integral.prefixes_order() == std::vector<int>{2, 0, 0, 0})
+    {
+        if (integral[0] == 0)
+        {
+            tints.insert((integral.shift(2, 0))->base());
+            
+            tints.insert(integral.base());
+        }
+
+        for (const auto& tint : integrals)
+        {
+            if (tint.prefixes_order() == std::vector<int>{1, 0, 0, 0})
+            {
+                if (tint[0] == 0)
+                {
+                    tints.insert((tint.shift(2, 0))->base());
+                    
+                    tints.insert(integral.base());
+                }
+            }
+        }
+    }
+    
     return tints;
 }
 
@@ -276,6 +320,19 @@ T4CGeomCPUGenerator::_generate_bra_base_hrr_integral_group(const I4CIntegral&   
         }
     }
     
+    if (integral.prefixes_order() == std::vector<int>{2, 0, 0, 0})
+    {
+        // Electron repulsion integrals
+        
+        if (integral.integrand() == Operator("1/|r-r'|"))
+        {
+            V4IElectronRepulsionDriver eri_drv;
+            
+            tints = eri_drv.create_bra_hrr_recursion(integrals);
+        }
+    }
+    
+    
     return tints;
 }
 
@@ -293,6 +350,14 @@ T4CGeomCPUGenerator::_generate_ket_hrr_integral_group(const I4CIntegral&   integ
         }
     }
     
+    if (integral.prefixes_order() == std::vector<int>{2, 0, 0, 0})
+    {
+        for (const auto& tint : integrals)
+        {
+            if (tint[2] > 0) tints.insert(tint);
+        }
+    }
+    
     return tints;
 }
 
@@ -303,6 +368,26 @@ T4CGeomCPUGenerator::_generate_ket_base_hrr_integral_group(const I4CIntegral&   
     SI4CIntegrals tints;
     
     if (integral.prefixes_order() == std::vector<int>{1, 0, 0, 0})
+    {
+        // Electron repulsion integrals
+        
+        if (integral.integrand() == Operator("1/|r-r'|"))
+        {
+            V4IElectronRepulsionDriver eri_drv;
+            
+            for (const auto& tint : integrals)
+            {
+                if ((tint[0] == 0) && (tint[2] > 0))
+                {
+                    const auto ctints = eri_drv.create_ket_hrr_recursion({tint, });
+                    
+                    tints.insert(ctints.cbegin(), ctints.cend());
+                }
+            }
+        }
+    }
+    
+    if (integral.prefixes_order() == std::vector<int>{2, 0, 0, 0})
     {
         // Electron repulsion integrals
         

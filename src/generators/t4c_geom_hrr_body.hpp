@@ -14,8 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef t4c_hrr_body_hpp
-#define t4c_hrr_body_hpp
+#ifndef t4c_geom_hrr_body_hpp
+#define t4c_geom_hrr_body_hpp
 
 #include <string>
 #include <array>
@@ -27,22 +27,23 @@
 #include "file_stream.hpp"
 
 // Four-center compute function body generators for CPU.
-class T4CHrrFuncBodyDriver
+class T4CGeomHrrFuncBodyDriver
 {
+    /// Computes ket horizontal recursion for integral component.
+    /// @param integral The base four center integral component.
+    /// @return The recursion expansion of integral component.
+    R4CDist _get_ket_hrr_recursion(const T4CIntegral& integral) const;
+    
+    /// Computes ket horizontal recursion for integral component.
+    /// @param integral The base four center integral component.
+    /// @return The recursion expansion of integral component.
+    R4CDist _get_bra_hrr_recursion(const T4CIntegral& integral) const;
+    
     /// Generates vector of buffer strings.
     /// @param integral The base four center integral.
     /// @return The vector of buffer strings.
     std::vector<std::string> _get_ket_buffers_str(const std::vector<R4CDist>& rec_dists,
                                                   const I4CIntegral&          integral) const;
-    
-    /// Generates vector of buffer strings.
-    /// @param integral The base four center integral.
-    /// @param components The vector of integral components.
-    /// @param rec_range The recursion range [first, last) in integral components space.
-    /// @return The vector of buffer strings.
-    std::vector<std::string> _get_ket_buffers_str(const I4CIntegral&        integral,
-                                                  const VT4CIntegrals&      components,
-                                                  const std::array<int, 2>& rec_range) const;
     
     /// Generates vector of buffer strings.
     /// @param integral The base four center integral.
@@ -69,44 +70,37 @@ class T4CHrrFuncBodyDriver
     /// Gets tensor label for integral.
     /// @param integral The base four center integral.
     /// @return The tensorial label.
-    std::string _get_tensor_label(const I4CIntegral& integral) const;
-    
-    /// Gets tensor label for integral.
-    /// @param integral The base four center integral.
-    /// @return The tensorial label.
     std::string _get_tensor_label(const T4CIntegral& integral) const;
     
-    /// Adds single loop computation of primitive integrals.
-    /// @param lines The code lines container to which loop start definition are added.
-    /// @param integral The base four center integral.
-    /// @param components The vector of integral components.
-    /// @param rec_range The recursion range [first, last) in integral components space.
-    void _add_ket_recursion_loop(      VCodeLines&         lines,
-                                 const I4CIntegral&        integral,
-                                 const VT4CIntegrals&      components,
-                                 const std::array<int, 2>& rec_range) const;
-    
-    /// Gets pragma string for vector of recursion distributions.
-    /// @param integral The base four center integral.
-    std::string _get_ket_pragma_str(const I4CIntegral& integral,
-                                    const std::vector<R4CDist>& rec_distributions) const;
-    
-    /// Computes ket horizontal recursion for integral component.
+    /// Gets integral component label.
     /// @param integral The base four center integral component.
-    /// @return The recursion expansion of integral component.
-    R4CDist _get_ket_hrr_recursion(const T4CIntegral& integral) const;
+    /// @return The string with integral component label.
+    std::string _get_bra_component_label(const T4CIntegral& integral) const;
     
-    /// Creates code line for recursion expansion.
-    /// @param rec_distribution The recursion distribution
-    /// @return The string with code line.
-    std::string _get_ket_code_line(const R4CDist& rec_distribution) const;
+    /// Gets integral component label.
+    /// @param integral The base four center integral component.
+    /// @return The string with integral component label.
+    std::string _get_ket_component_label(const T4CIntegral& integral) const;
     
-    /// Creates code string for recursion term.
-    /// @param rec_term The recursion distribution.
-    /// @param is_first The flag to indicate first term in recursion expnasion.
-    /// @return The string with code term.
-    std::string _get_ket_rterm_code(const R4CTerm& rec_term,
-                                    const bool     is_first) const;
+    /// Gets integral offset definition.
+    /// @param integral The base four center integral component.
+    /// @return The string with integral offset definition.
+    std::string _get_bra_offset_def(const I4CIntegral& integral) const;
+    
+    /// Gets integral offset definition.
+    /// @param integral The base four center integral component.
+    /// @return The string with integral offset definition.
+    std::string _get_ket_offset_def(const I4CIntegral& integral) const;
+    
+    /// Gets integral offset label.
+    /// @param integral The base four center integral component.
+    /// @return The string with integral offset label.
+    std::string _get_bra_offset_label(const I4CIntegral& integral) const;
+    
+    /// Gets integral offset label.
+    /// @param integral The base four center integral component.
+    /// @return The string with integral offset label.
+    std::string _get_ket_offset_label(const I4CIntegral& integral) const;
     
     /// Adds single loop computation of primitive integrals.
     /// @param lines The code lines container to which loop start definition are added.
@@ -123,11 +117,6 @@ class T4CHrrFuncBodyDriver
     std::string _get_bra_pragma_str(const I4CIntegral& integral,
                                     const std::vector<R4CDist>& rec_distributions) const;
     
-    /// Computes ket horizontal recursion for integral component.
-    /// @param integral The base four center integral component.
-    /// @return The recursion expansion of integral component.
-    R4CDist _get_bra_hrr_recursion(const T4CIntegral& integral) const;
-    
     /// Creates code line for recursion expansion.
     /// @param rec_distribution The recursion distribution
     /// @return The string with code line.
@@ -139,45 +128,11 @@ class T4CHrrFuncBodyDriver
     /// @return The string with code term.
     std::string _get_bra_rterm_code(const R4CTerm& rec_term,
                                     const bool     is_first) const;
-    
-    /// Gets integral component label.
-    /// @param integral The base four center integral component.
-    /// @return The string with integral component label.
-    std::string _get_component_label(const T4CIntegral& integral) const;
-    
-    /// Gets integral component label.
-    /// @param integral The base four center integral component.
-    /// @return The string with integral component label.
-    std::string _get_ket_component_label(const T4CIntegral& integral) const;
-    
-    /// Gets integral offset definition.
-    /// @param integral The base four center integral component.
-    /// @return The string with integral offset definition.
-    std::string _get_ket_offset_def(const I4CIntegral& integral) const;
-    
-    /// Gets integral offset label.
-    /// @param integral The base four center integral component.
-    /// @return The string with integral offset label.
-    std::string _get_ket_offset_label(const I4CIntegral& integral) const;
-    
-    /// Gets integral component label.
-    /// @param integral The base four center integral component.
-    /// @return The string with integral component label.
-    std::string _get_bra_component_label(const T4CIntegral& integral) const;
-    
-    /// Gets integral offset definition.
-    /// @param integral The base four center integral component.
-    /// @return The string with integral offset definition.
-    std::string _get_bra_offset_def(const I4CIntegral& integral) const;
-    
-    /// Gets integral offset label.
-    /// @param integral The base four center integral component.
-    /// @return The string with integral offset label.
-    std::string _get_bra_offset_label(const I4CIntegral& integral) const;
 
 public:
+    
     /// Creates a two-center compute function body generator.
-    T4CHrrFuncBodyDriver() = default;
+    T4CGeomHrrFuncBodyDriver() = default;
     
     /// Writes body of primitive compute function.
     /// @param fstream the file stream.
@@ -192,4 +147,5 @@ public:
                              const I4CIntegral&   integral) const;
 };
 
-#endif /* t4c_hrr_body_hpp */
+
+#endif /* t4c_geom_hrr_body_hpp */

@@ -194,11 +194,13 @@ class T4CGeomFuncBodyDriver
     /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
     /// @param ket_base_integrals The set of geometrical derivative integrals.
     /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param integral The base two center integral.
     /// @return The vector of buffers in compute function.
     std::vector<std::string> _get_cart_buffers_def(const SI4CIntegrals& bra_base_integrals,
                                                    const SI4CIntegrals& bra_rec_base_integrals,
                                                    const SI4CIntegrals& ket_base_integrals,
-                                                   const SI4CIntegrals& ket_rec_base_integrals) const;
+                                                   const SI4CIntegrals& ket_rec_base_integrals,
+                                                   const I4CIntegral&   integral) const;
     
     /// Generates vector of contracted buffers in compute function.
     /// @param ket_base_integrals The set of geometrical derivative integrals.
@@ -292,12 +294,14 @@ class T4CGeomFuncBodyDriver
     /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
     /// @param ket_base_integrals The set of geometrical derivative integrals.
     /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param integral The base two center integral.
     /// @param spacer The tabulation spacer.
     void _add_ket_hrr_call_tree(      VCodeLines&  lines,
                                 const SI4CIntegrals& bra_base_integrals,
                                 const SI4CIntegrals& bra_rec_base_integrals,
                                 const SI4CIntegrals& ket_base_integrals,
                                 const SI4CIntegrals& ket_rec_base_integrals,
+                                const I4CIntegral&   integral,
                                 const size_t         spacer) const;
     
     /// Adds call tree for ket side transformation.
@@ -406,6 +410,28 @@ class T4CGeomFuncBodyDriver
     /// Gets total number of spherical components in set of integrals.
     /// @param integral The base four center integral.
     size_t _get_all_spher_components(const I4CIntegral& integral) const;
+    
+    /// Gets scaled (2 a) integrals block size in buffer.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param integral The base four center integral.
+    size_t _get_geom20_cart_2a_size(const SI4CIntegrals& bra_integrals,
+                                    const SI4CIntegrals& ket_integrals,
+                                    const I4CIntegral& integral) const;
+    
+    /// Gets scaled (2 a) integrals block size in buffer.
+    /// @param integrals The set of unique integrals for bra horizontal recursion.
+    /// @param integral The base four center integral.
+    size_t _get_geom20_contr_2a_size(const SI4CIntegrals& integrals,
+                                     const I4CIntegral& integral) const;
+    
+    /// Gets scaled (2 a) integrals block size in buffer.
+    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
+    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
+    /// @param integral The base four center integral.
+    size_t _get_geom20_half_spher_2a_size(const SI4CIntegrals& bra_integrals,
+                                          const SI4CIntegrals& ket_integrals,
+                                          const I4CIntegral& integral) const;
 
 public:
     /// Creates a two-center compute function body generator.

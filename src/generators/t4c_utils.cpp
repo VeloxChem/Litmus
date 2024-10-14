@@ -524,9 +524,21 @@ get_index_label(const I4CIntegral& integral)
 
 std::string
 get_hrr_index(const I4CIntegral& integral,
-                     const bool         use_ket)
+              const bool         use_ket)
 {
     std::string label = "idx_";
+    
+    if (const auto geom_order = integral.prefixes_order(); !geom_order.empty())
+    {
+        if (use_ket)
+        {
+            label += "geom_" + std::to_string(geom_order[2]) + std::to_string(geom_order[2]) + "_";
+        }
+        else
+        {
+            label += "geom_" + std::to_string(geom_order[0]) + std::to_string(geom_order[1]) + "_";
+        }
+    }
     
     if (use_ket)
     {

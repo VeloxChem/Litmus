@@ -176,7 +176,6 @@ T4CHrrFuncBodyDriver::write_bra_func_body(      std::ofstream& fstream,
     ost::write_code_lines(fstream, lines);
 }
 
-
 std::vector<std::string>
 T4CHrrFuncBodyDriver::_get_ket_buffers_str(const std::vector<R4CDist>& rec_dists,
                                            const I4CIntegral&          integral) const
@@ -303,7 +302,6 @@ T4CHrrFuncBodyDriver::_find_integral(const std::vector<R4CDist>& rec_dists,
     
     return false;
 }
-
 
 std::string
 T4CHrrFuncBodyDriver::_get_tensor_label(const I4CIntegral& integral) const

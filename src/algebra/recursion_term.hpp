@@ -107,6 +107,10 @@ public:
     /// @return The vector of prefix operator components of recursion term.
     VOperatorComponents prefixes() const;
     
+    /// Gets vector of prefix operator orders.
+    /// @return The vector of prefix operator orders.
+    std::vector<int> prefixes_order() const;
+    
     /// Gets integral of recursion term.
     /// @return The integral of recursion term.
     T integral() const;
@@ -196,6 +200,9 @@ public:
     /// @param center The angular center to check.
     /// @return True if recursion term is auxilary, false otherwise.
     bool auxilary(const int center) const;
+    
+    /// Removes prefixes from recursion term..
+    void clear_prefixes();
 };
 
 template <class T>
@@ -342,6 +349,13 @@ VOperatorComponents
 RecursionTerm<T>::prefixes() const
 {
     return _integral.prefixes();
+}
+
+template <class T>
+std::vector<int>
+RecursionTerm<T>::prefixes_order() const
+{
+    return _integral.prefixes_order();
 }
 
 template <class T>
@@ -536,6 +550,13 @@ RecursionTerm<T>::auxilary(const int center) const
     {
         return false; 
     }
+}
+
+template <class T>
+void
+RecursionTerm<T>::clear_prefixes()
+{
+    _integral = _integral.base(); 
 }
 
 template <class T>

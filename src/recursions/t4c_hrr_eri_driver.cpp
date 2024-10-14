@@ -137,7 +137,6 @@ T4CHrrElectronRepulsionDriver::apply_bra_hrr(const R4CTerm& rterm) const
     return t4crt;
 }
 
-
 R4CDist
 T4CHrrElectronRepulsionDriver::apply_ket_hrr(const R4CTerm& rterm) const
 {

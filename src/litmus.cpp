@@ -26,6 +26,7 @@
 #include "t4c_cpu_generators.hpp"
 #include "t4c_diag_cpu_generators.hpp"
 #include "t4c_geom_cpu_generators.hpp"
+#include "t4c_geom_hrr_cpu_generators.hpp"
 #include "t4c_geom_deriv_cpu_generators.hpp"
 #include "t4c_eri_tree_generators.hpp"
 
@@ -35,7 +36,7 @@ int main(int argc, char **argv)
 
     const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
 
-    const int max_ang_mom = 4;
+    const int max_ang_mom = 2;
 
     // set up start timer
     
@@ -70,7 +71,7 @@ int main(int argc, char **argv)
     if (run_type.first == "t4c_cpu")
     {
     // a, b, operator, c, d
-        std::array<int, 5> geom_drvs = {0, 0, 0, 0, 0};
+        std::array<int, 5> geom_drvs = {2, 0, 0, 0, 0};
         
         if (geom_drvs == std::array<int, 5>({0, 0, 0, 0, 0}))
         {
@@ -94,6 +95,16 @@ int main(int argc, char **argv)
             
         t4c_geom_drv.generate(max_ang_mom, geom_drvs);
     }
+    
+    if (run_type.first == "t4c_geom_hrr_cpu")
+    {
+        std::array<int, 4> geom_drvs = {1, 0, 0, 0};
+        
+        const auto t4c_geom_drv = T4CGeomHrrCPUGenerator();
+            
+        t4c_geom_drv.generate(run_type.second, max_ang_mom, geom_drvs);
+    }
+    
     
     if (run_type.first == "t2c_geom_cpu")
     {
