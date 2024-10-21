@@ -1638,7 +1638,6 @@ T4CGeomFuncBodyDriver::_add_bra_hrr_call_tree(      VCodeLines&  lines,
     {
         auto skints = _get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral);
         
-        
         const auto skstart = _get_geom20_half_spher_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
         
         skints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
@@ -1740,14 +1739,18 @@ T4CGeomFuncBodyDriver::_add_bra_geom_hrr_call_tree(      VCodeLines&  lines,
         
         auto r2acomps = _get_geom20_half_spher_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
         
-        //const auto gints = _get_geom_half_spher_buffers_integrals(geom_integrals, integral);
-        
-        auto gints = geom_integrals;
-        
-        if (gints.empty()) gints.insert(integral);
+        const auto gints =_get_geom_half_spher_buffers_integrals(geom_integrals, integral); 
         
         for (const auto& tint : gints)
         {
+            if (tint[0] > 0)
+            {
+                if (tint.prefixes_order() == std::vector<int>({1, 0, 0, 0}))
+                {
+                    // FIX ME :
+                }
+            }
+            
             if (tint[0] == 0)
             {
                 if (tint.prefixes_order() == std::vector<int>({2, 0, 0, 0}))
@@ -1763,6 +1766,30 @@ T4CGeomFuncBodyDriver::_add_bra_geom_hrr_call_tree(      VCodeLines&  lines,
                     const auto rint = *tint.base().shift(2, 0);
                     
                     label += std::to_string(_get_half_spher_index(r2acomps, rint, bra_rec_base_integrals)) + ", ";
+                    
+                    label += std::to_string(tint[1]) + ", "  + std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+                    
+                    label += ");";
+                    
+                    lines.push_back({spacer, 0, 2, label});
+                }
+            }
+            
+            if (tint[0] > 0)
+            {
+                if (tint.prefixes_order() == std::vector<int>({2, 0, 0, 0}))
+                {
+                    auto name = t4c::bra_geom_hrr_compute_func_name(tint);
+                    
+                    auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+                    
+                    label += std::to_string(_get_geom_half_spher_index(rscomps + r2acomps, tint, geom_integrals)) + ", ";
+                    
+                    //label += std::to_string(_get_half_spher_index(0, tint.base(), rskints)) + ", ";
+                    
+                    //const auto rint = *tint.base().shift(2, 0);
+                    
+                    //label += std::to_string(_get_half_spher_index(r2acomps, rint, bra_rec_base_integrals)) + ", ";
                     
                     label += std::to_string(tint[1]) + ", "  + std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
                     
@@ -1982,18 +2009,40 @@ T4CGeomFuncBodyDriver::_get_geom_half_spher_buffers_integrals(const SI4CIntegral
     
     std::vector<std::string> vstr;
     
-    if (integral[0] > 0)
+    const auto geom_orders = integral.prefixes_order();
+    
+    if (geom_orders == std::vector<int>({1, 0, 0, 0}))
     {
+        if (integral[0] > 0)
+        {
+            for (const auto& tint : integrals)
+            {
+                if ((tint[0] > 0) && (tint[2] == integral[2]) && (tint[3] == integral[3]) && (!tint.prefixes().empty()))
+                {
+                    tints.insert(tint);
+                }
+            }
+        }
+        
+        tints.insert(integral);
+    }
+    
+    if (geom_orders == std::vector<int>({2, 0, 0, 0}))
+    {
+     
         for (const auto& tint : integrals)
         {
-            if ((tint[0] > 0) && (tint[2] == integral[2]) && (tint[3] == integral[3]) && (!tint.prefixes().empty()))
+            if ((tint[2] == integral[2]) && (tint[3] == integral[3]) && (!tint.prefixes().empty()))
             {
+                if ((tint.prefixes_order() == std::vector<int>({1, 0, 0, 0})) && (tint[0] == 0)) continue;
+                
                 tints.insert(tint);
             }
         }
+        
+        tints.insert(integral);
     }
     
-    tints.insert(integral);
     
     return tints;
 }
