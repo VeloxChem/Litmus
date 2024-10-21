@@ -41,7 +41,7 @@ T4CGeomFuncBodyDriver::write_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_contr_buffers_def(ket_base_integrals, ket_rec_base_integrals))
+    for (const auto& label : _get_contr_buffers_def(ket_base_integrals, ket_rec_base_integrals, integral))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -629,13 +629,21 @@ T4CGeomFuncBodyDriver::_get_cart_buffers_def(const SI4CIntegrals& bra_base_integ
 
 std::vector<std::string>
 T4CGeomFuncBodyDriver::_get_contr_buffers_def(const SI4CIntegrals& ket_base_integrals,
-                                              const SI4CIntegrals& ket_rec_base_integrals) const
+                                              const SI4CIntegrals& ket_rec_base_integrals,
+                                              const I4CIntegral&   integral) const
 {
     std::vector<std::string> vstr;
     
     auto tcomps = _get_all_components(_get_contr_buffers_integrals(ket_base_integrals));
     
     tcomps += _get_all_components(_get_contr_buffers_integrals(ket_rec_base_integrals));
+    
+    const auto geom_orders = integral.prefixes_order();
+    
+    if (geom_orders == std::vector<int>({2, 0, 0, 0}))
+    {
+        tcomps += _get_geom20_contr_2a_size(ket_rec_base_integrals, integral);
+    }
     
     if (tcomps > 0)
     {
@@ -1052,7 +1060,7 @@ T4CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&  lines,
         
         for (const auto& tint : cints)
         {
-            if (((tint[0] + tint[2]) == 0) && (tint[1] == integral[1]))
+            if (((tint[0] + tint[2]) == 0) && (tint[1] >= integral[1]) && (tint[1] <= (integral[0] + integral[1])))
             {
                 std::string label = "pbuffer.scale(2.0 * a_exp, {";
                 
@@ -1068,7 +1076,7 @@ T4CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&  lines,
         
         for (const auto& tint : cints)
         {
-            if (((tint[0] + tint[2]) == 0) && (tint[1] == integral[1]))
+            if (((tint[0] + tint[2]) == 0) && (tint[1] >= integral[1]) && (tint[1] <= (integral[0] + integral[1])))
             {
                 std::string label = "t2cfunc::reduce(cbuffer, ";
                 
@@ -1094,7 +1102,7 @@ T4CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&  lines,
             {
                 std::string label;
                 
-                if (tint[1] == integral[1])
+                if ((tint[1] >= integral[1]) && (tint[1] <= (integral[0] + integral[1])))
                 {
                     label += "pbuffer.scale(2.0 * a_exp, {";
                 }
@@ -1484,7 +1492,7 @@ T4CGeomFuncBodyDriver::_add_ket_trafo_call_tree(      VCodeLines&  lines,
             
             for (const auto& tint : ket_rec_base_integrals)
             {
-                if ((tint[0] == 0) && (tint[1] == integral[1]) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
+                if ((tint[0] == 0) && (tint[1] >= integral[1]) && (tint[1] <= (integral[1] + integral[0])) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
                 {
                     std::string label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
                     
@@ -1527,7 +1535,7 @@ T4CGeomFuncBodyDriver::_add_ket_trafo_call_tree(      VCodeLines&  lines,
             
             for (const auto& tint : bra_rec_base_integrals)
             {
-                if ((tint[0] == 0) && (tint[1] == integral[1]) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
+                if ((tint[0] == 0) && (tint[1] >= integral[1]) && (tint[1] <= (integral[1] + integral[0])) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
                 {
                     std::string label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
                         
@@ -1732,25 +1740,37 @@ T4CGeomFuncBodyDriver::_add_bra_geom_hrr_call_tree(      VCodeLines&  lines,
         
         auto r2acomps = _get_geom20_half_spher_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
         
-        if (integral[0] == 0)
+        //const auto gints = _get_geom_half_spher_buffers_integrals(geom_integrals, integral);
+        
+        auto gints = geom_integrals;
+        
+        if (gints.empty()) gints.insert(integral);
+        
+        for (const auto& tint : gints)
         {
-            auto name = t4c::bra_geom_hrr_compute_func_name(integral);
-            
-            auto label = t4c::namespace_label(integral) + "::" + name + "(skbuffer, ";
-            
-            label += std::to_string(rscomps + r2acomps) + ", ";
-            
-            label += std::to_string(_get_half_spher_index(0, integral.base(), rskints)) + ", ";
-            
-            const auto rint = *integral.base().shift(2, 0);
-            
-            label += std::to_string(_get_half_spher_index(r2acomps, rint, bra_rec_base_integrals)) + ", ";
-            
-            label += std::to_string(integral[1]) + ", "  + std::to_string(integral[2]) + ", " + std::to_string(integral[3]);
-            
-            label += ");";
-            
-            lines.push_back({spacer, 0, 2, label});
+            if (tint[0] == 0)
+            {
+                if (tint.prefixes_order() == std::vector<int>({2, 0, 0, 0}))
+                {
+                    auto name = t4c::bra_geom_hrr_compute_func_name(tint);
+                    
+                    auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+                    
+                    label += std::to_string(_get_geom_half_spher_index(rscomps + r2acomps, tint, geom_integrals)) + ", ";
+                    
+                    label += std::to_string(_get_half_spher_index(0, tint.base(), rskints)) + ", ";
+                    
+                    const auto rint = *tint.base().shift(2, 0);
+                    
+                    label += std::to_string(_get_half_spher_index(r2acomps, rint, bra_rec_base_integrals)) + ", ";
+                    
+                    label += std::to_string(tint[1]) + ", "  + std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+                    
+                    label += ");";
+                    
+                    lines.push_back({spacer, 0, 2, label});
+                }
+            }
         }
     }
 }
@@ -2067,7 +2087,7 @@ T4CGeomFuncBodyDriver::_get_geom20_cart_2a_size(const SI4CIntegrals& bra_integra
     
     for (const auto& tint : _get_cart_buffer_integrals(bra_integrals, ket_integrals))
     {
-        if (((tint[0] + tint[2]) == 0) && (tint[1] == integral[1]))
+        if (((tint[0] + tint[2]) == 0) && (tint[1] >= integral[1]) && (tint[1] <= (integral[0] + integral[1])))
         {
             tcomp += tint.components<T2CPair, T2CPair>().size();
         }
@@ -2084,7 +2104,7 @@ T4CGeomFuncBodyDriver::_get_geom20_contr_2a_size(const SI4CIntegrals& integrals,
     
     for (const auto& tint : _get_contr_buffers_integrals(integrals))
     {
-        if ((tint[0] == 0) && (tint[1] == integral[1]) && (tint[2] > 0))
+        if ((tint[0] == 0) && (tint[1] >= integral[1]) && (tint[1] <= (integral[0] + integral[1])) && (tint[2] > 0))
         {
             tcomps += tint.components<T2CPair, T2CPair>().size();
         }
@@ -2102,7 +2122,7 @@ T4CGeomFuncBodyDriver::_get_geom20_half_spher_2a_size(const SI4CIntegrals& bra_i
     
     for (const auto& tint : _get_half_spher_buffers_integrals(bra_integrals, ket_integrals, integral))
     {
-        if ((tint[0] == 0) && (tint[1] == integral[1]) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
+        if ((tint[0] == 0) && (tint[1] >= integral[1]) && (tint[1] <= (integral[0] + integral[1])) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
         {
             auto angpair = std::array<int, 2>({tint[2], tint[3]});
                     

@@ -287,6 +287,16 @@ T4CGeomCPUGenerator::_generate_bra_hrr_integral_group(const I4CIntegral&   integ
 
         for (const auto& tint : integrals)
         {
+            if (tint.prefixes_order() == std::vector<int>{2, 0, 0, 0})
+            {
+                if (tint[0] == 0)
+                {
+                    tints.insert((tint.shift(2, 0))->base());
+                    
+                    tints.insert(tint.base());
+                }
+            }
+            
             if (tint.prefixes_order() == std::vector<int>{1, 0, 0, 0})
             {
                 if (tint[0] == 0)
@@ -614,6 +624,13 @@ T4CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     if (integral[0] > 0)
     {
         labels.insert(t4c::bra_geom_hrr_file_name(integral));
+    }
+    
+    const auto geom_orders = integral.prefixes_order();
+    
+    if (geom_orders == std::vector<int>({2, 0, 0, 0}))
+    {
+        labels.insert("ElectronRepulsionGeom2000ContrRecSXXX");
     }
     
     for (const auto& label : labels)

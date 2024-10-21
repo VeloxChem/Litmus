@@ -205,9 +205,11 @@ class T4CGeomFuncBodyDriver
     /// Generates vector of contracted buffers in compute function.
     /// @param ket_base_integrals The set of geometrical derivative integrals.
     /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param integral The base two center integral.
     /// @return The vector of buffers in compute function.
     std::vector<std::string> _get_contr_buffers_def(const SI4CIntegrals& ket_base_integrals,
-                                                    const SI4CIntegrals& ket_rec_base_integrals) const;
+                                                    const SI4CIntegrals& ket_rec_base_integrals,
+                                                    const I4CIntegral&   integral) const;
     
     /// Generates vector of half transformed buffers in compute function.
     /// @param geom_integrals The set of geometrical derivative integrals.
