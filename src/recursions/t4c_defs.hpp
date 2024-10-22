@@ -17,6 +17,8 @@
 #ifndef t4c_defs_hpp
 #define t4c_defs_hpp
 
+#include <utility>
+
 #include "recursion_group.hpp"
 #include "recursion_expansion.hpp"
 #include "recursion_term.hpp"
@@ -49,5 +51,8 @@ using I4CIntegral = Integral<I2CPair, I2CPair>;
 
 using SI4CIntegrals = SIntegrals<I2CPair, I2CPair>;
 
+using G4Term = std::pair<std::array<int, 4>, I4CIntegral>;
+
+using SG4Terms = std::set<G4Term>;
 
 #endif /* t4c_defs_hpp */

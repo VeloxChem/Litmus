@@ -47,6 +47,37 @@ class T4CGeomCPUGenerator
     /// @return The set of integrals.
     SI4CIntegrals _generate_geom_integral_group(const I4CIntegral& integral) const;
     
+    /// Generates set of geometrical terms required for geometrical derivatives.
+    /// @param integrals The set of four center integrals.
+    /// @return The set of geometrical terms.
+    SG4Terms _generate_geom_terms_group(const SI4CIntegrals& integrals) const;
+    
+    /// Adds bra horizontal recursion to geometrical terms.
+    /// @param terms The set of geometrical terms.
+    void _add_bra_hrr_terms_group(SG4Terms& terms) const;
+    
+    /// Adds ket horizontal recursion to geometrical terms.
+    /// @param terms The set of geometrical terms.
+    void _add_ket_hrr_terms_group(SG4Terms& terms) const;
+    
+    /// Filters cbuffer terms from set of geometrical terms.
+    /// @param terms The set of filtered geometrical terms.
+    SG4Terms _filter_cbuffer_terms(const SG4Terms& terms) const;
+    
+    /// Filters ckbuffer terms from set of geometrical terms.
+    /// @param terms The set of filtered geometrical terms.
+    SG4Terms _filter_ckbuffer_terms(const SG4Terms& terms) const;
+    
+    /// Filters ckbuffer terms from set of geometrical terms.
+    /// @param terms The set of filtered geometrical terms.
+    SG4Terms _filter_skbuffer_terms(const I4CIntegral& integral,
+                                    const SG4Terms&    terms) const;
+    
+    /// Generates set of integrals required for geometrical derivatives.
+    /// @param terms The set of geometrical terms.
+    /// @return The set of integrals.
+    SI4CIntegrals _generate_vrr_integral_group(const SG4Terms& terms) const;
+    
     /// Generates set of integrals required for geometrical derivatives.
     /// @param integrals The set of four center integrals.
     /// @return The set of integrals.

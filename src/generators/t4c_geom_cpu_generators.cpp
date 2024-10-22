@@ -49,91 +49,99 @@ T4CGeomCPUGenerator::generate(const std::string&        label,
                         
                         const auto geom_integrals = _generate_geom_integral_group(integral);
                         
-                        const auto geom_base_integrals = _generate_geom_base_integral_group(geom_integrals);
+                        auto geom_terms = _generate_geom_terms_group(geom_integrals);
                         
-                        const auto geom_rec_integrals = _generate_geom_rec_integral_group(geom_integrals);
+                        _add_bra_hrr_terms_group(geom_terms);
                         
-                        const auto bra_rec_integrals = _generate_bra_hrr_integral_group(integral, geom_rec_integrals);
+                        _add_ket_hrr_terms_group(geom_terms);
                         
-                        const auto bra_base_integrals = _generate_bra_base_hrr_integral_group(integral, geom_base_integrals);
+                        const auto cterms = _filter_cbuffer_terms(geom_terms);
                         
-                        const auto bra_rec_base_integrals = _generate_bra_base_hrr_integral_group(integral, bra_rec_integrals);
+                        const auto ckterms = _filter_ckbuffer_terms(geom_terms);
                         
-                        const auto ket_base_integrals = _generate_ket_base_hrr_integral_group(integral, bra_base_integrals);
+                        const auto skterms = _filter_skbuffer_terms(integral, geom_terms);
                         
-                        const auto ket_rec_base_integrals = _generate_ket_base_hrr_integral_group(integral, bra_rec_base_integrals);
+                        const auto vrr_integrals = _generate_vrr_integral_group(geom_terms);
                         
-                        const auto vrr_integrals = _generate_vrr_integral_group(integral, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals);
-                        
-                        _write_cpp_header(geom_integrals, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, vrr_integrals, integral);
+//                        const auto geom_base_integrals = _generate_geom_base_integral_group(geom_integrals);
+//                        
+//                        const auto geom_rec_integrals = _generate_geom_rec_integral_group(geom_integrals);
+//                        
+//                        const auto bra_rec_integrals = _generate_bra_hrr_integral_group(integral, geom_rec_integrals);
+//                        
+//                        const auto bra_base_integrals = _generate_bra_base_hrr_integral_group(integral, geom_base_integrals);
+//                        
+//                        const auto bra_rec_base_integrals = _generate_bra_base_hrr_integral_group(integral, bra_rec_integrals);
+//                        
+//                        const auto ket_base_integrals = _generate_ket_base_hrr_integral_group(integral, bra_base_integrals);
+//                        
+//                        const auto ket_rec_base_integrals = _generate_ket_base_hrr_integral_group(integral, bra_rec_base_integrals);
+//                        
+//                        const auto vrr_integrals = _generate_vrr_integral_group(integral, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals);
+//                        
+//                        _write_cpp_header(geom_integrals, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, vrr_integrals, integral);
                         
 //                       if ((i == 2) && (j == 2) && (k == 2) && (l == 2))
 //                        {
                             std::cout << " *** REFERENCE: " << integral.prefix_label() << " | " << integral.label() << std::endl;
                             
-                            std::cout << " --- GEOM REC. --- " << std::endl;
+                            std::cout << " --- GEOM INTEGRALS. --- " << std::endl;
                             
                             for (const auto& tint : geom_integrals)
                             {
                                 std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
                             }
-                            
-                            std::cout << " --- GEOM. BASE. REC. --- " << std::endl;
-                            
-                            for (const auto& tint : geom_base_integrals)
+                        
+                            std::cout << " --- GEOM TERMS. --- " << std::endl;
+                        
+                            for (const auto& term : geom_terms)
                             {
-                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
+                                std::cout << " * ";
+                                
+                                for (int t = 0; t < 4; t++) std::cout << term.first[t] << ",";
+                                
+                                std::cout << " * <>" << term.second.prefix_label() << " | " << term.second.label() << std::endl;
                             }
-                            
-                            std::cout << " --- GEOM. REC. REC. --- " << std::endl;
-                            
-                            for (const auto& tint : geom_rec_integrals)
+                        
+                            std::cout << " --- CBUFFER TERMS. --- " << std::endl;
+                    
+                            for (const auto& term : cterms)
                             {
-                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
+                                std::cout << " * ";
+                            
+                                for (int t = 0; t < 4; t++) std::cout << term.first[t] << ",";
+                            
+                                std::cout << " * <>" << term.second.prefix_label() << " | " << term.second.label() << std::endl;
                             }
-                            
-                            std::cout << " --- BRA. REC. REC. --- " << std::endl;
-                            
-                            for (const auto& tint : bra_rec_integrals)
+                        
+                            std::cout << " --- CKBUFFER TERMS. --- " << std::endl;
+                
+                            for (const auto& term : ckterms)
                             {
-                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
+                                std::cout << " * ";
+                        
+                                for (int t = 0; t < 4; t++) std::cout << term.first[t] << ",";
+                        
+                                std::cout << " * <>" << term.second.prefix_label() << " | " << term.second.label() << std::endl;
                             }
-                            
-                            std::cout << " --- BRA. BASE REC. --- " << std::endl;
-                           
-                            for (const auto& tint : bra_base_integrals)
+                        
+                            std::cout << " --- SKBUFFER TERMS. --- " << std::endl;
+            
+                            for (const auto& term : skterms)
                             {
-                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
+                                std::cout << " * ";
+                    
+                                for (int t = 0; t < 4; t++) std::cout << term.first[t] << ",";
+                    
+                                std::cout << " * <>" << term.second.prefix_label() << " | " << term.second.label() << std::endl;
                             }
-                            
-                            std::cout << " --- BRA. REC. BASE REC. --- " << std::endl;
-                            
-                            for (const auto& tint : bra_rec_base_integrals)
-                            {
-                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
-                            }
-                            
-                            std::cout << " --- KET. BASE REC. --- " << std::endl;
-                            
-                            for (const auto& tint : ket_base_integrals)
-                            {
-                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
-                            }
-                            
-                            std::cout << " --- KET. REC. BASE REC. --- " << std::endl;
-                            
-                            for (const auto& tint : ket_rec_base_integrals)
-                            {
-                                std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
-                            }
-                            
-                            std::cout << " --- VRR --- " << std::endl;
-                            
+                        
+                            std::cout << " --- VRR INTEGRALS --- " << std::endl;
+                        
                             for (const auto& tint : vrr_integrals)
                             {
                                 std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << "_"  << tint.order() << std::endl;
                             }
-//                        }
                     }
                 }
             }
@@ -219,6 +227,172 @@ T4CGeomCPUGenerator::_generate_geom_integral_group(const I4CIntegral& integral) 
                     tints.insert(cint);
                 }
             }
+        }
+    }
+    
+    tints.insert(integral); 
+    
+    return tints;
+}
+
+SG4Terms
+T4CGeomCPUGenerator::_generate_geom_terms_group(const SI4CIntegrals& integrals) const
+{
+    SG4Terms terms;
+    
+    for (const auto& tint : integrals)
+    {
+        terms.insert({std::array<int, 4>{0, 0, 0, 0}, tint});
+    
+        if (tint.prefixes_order() == std::vector<int>({1, 0, 0, 0}))
+        {
+            if (tint[0] == 0)
+            {
+                terms.insert({std::array<int, 4>{1, 0, 0, 0}, tint.shift(1, 0)->base()});
+            }
+        }
+        
+        if (tint.prefixes_order() == std::vector<int>({2, 0, 0, 0}))
+        {
+            if (tint[0] == 0)
+            {
+                terms.insert({std::array<int, 4>{2, 0, 0, 0}, tint.shift(2, 0)->base()});
+                
+                terms.insert({std::array<int, 4>{1, 0, 0, 0}, tint.base()});
+            }
+        }
+    }
+    
+    return terms;
+}
+
+void
+T4CGeomCPUGenerator::_add_bra_hrr_terms_group(SG4Terms& terms) const
+{
+    SG4Terms new_terms;
+    
+    for (const auto& term : terms)
+    {
+        if (term.second[0] > 0)
+        {
+            V4IElectronRepulsionDriver eri_drv;
+            
+            if (term.second.prefixes().empty())
+            {
+                for (const auto& tint : eri_drv.create_bra_hrr_recursion({term.second, }))
+                {
+                    new_terms.insert({term.first, tint});
+                }
+            }
+            else
+            {
+                new_terms.insert(term);
+            }
+        }
+        else
+        {
+            new_terms.insert(term);
+        }
+    }
+    
+    terms = new_terms;
+}
+
+void
+T4CGeomCPUGenerator::_add_ket_hrr_terms_group(SG4Terms& terms) const
+{
+    SG4Terms new_terms;
+    
+    for (const auto& term : terms)
+    {
+        if ((term.second[0] == 0) && (term.second[2] > 0))
+        {
+            V4IElectronRepulsionDriver eri_drv;
+            
+            if (term.second.prefixes().empty())
+            {
+                for (const auto& tint : eri_drv.create_ket_hrr_recursion({term.second, }))
+                {
+                    new_terms.insert({term.first, tint});
+                }
+            }
+            else
+            {
+                new_terms.insert(term);
+            }
+        }
+        else
+        {
+            new_terms.insert(term);
+        }
+    }
+    
+    terms = new_terms;
+}
+
+SG4Terms
+T4CGeomCPUGenerator::_filter_cbuffer_terms(const SG4Terms& terms) const
+{
+    SG4Terms new_terms;
+    
+    for (const auto& term : terms)
+    {
+        if ((term.second[0] == 0) && (term.second[2] == 0) && term.second.prefixes().empty())
+        {
+            new_terms.insert(term);
+        }
+    }
+    
+    return new_terms;
+}
+
+SG4Terms
+T4CGeomCPUGenerator::_filter_ckbuffer_terms(const SG4Terms& terms) const
+{
+    SG4Terms new_terms;
+    
+    for (const auto& term : terms)
+    {
+        if ((term.second[0] == 0) && (term.second[2] > 0))
+        {
+            new_terms.insert(term);
+        }
+    }
+    
+    return new_terms;
+}
+
+SG4Terms
+T4CGeomCPUGenerator::_filter_skbuffer_terms(const I4CIntegral& integral,
+                                            const SG4Terms& terms) const
+{
+    SG4Terms new_terms;
+    
+    for (const auto& term : terms)
+    {
+        if ((term.second[2] == integral[2]) && (term.second[3] == integral[3]))
+        {
+            new_terms.insert(term);
+        }
+    }
+    
+    return new_terms;
+}
+
+SI4CIntegrals
+T4CGeomCPUGenerator::_generate_vrr_integral_group(const SG4Terms& terms) const
+{
+    SI4CIntegrals tints;
+       
+    V4IElectronRepulsionDriver eri_drv;
+        
+    for (const auto& term : terms)
+    {
+        if ((term.second[0] == 0) && (term.second[2] == 0) && term.second.prefixes().empty())
+        {
+            const auto ctints = eri_drv.create_vrr_recursion({term.second, });
+                
+            tints.insert(ctints.cbegin(), ctints.cend());
         }
     }
     
