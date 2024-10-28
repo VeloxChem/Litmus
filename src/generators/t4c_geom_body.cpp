@@ -72,8 +72,8 @@ T4CGeomFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     _add_ket_hrr_call_tree(lines, cterms, ckterms, integral, 3);
 
     _add_ket_trafo_call_tree(lines, cterms, ckterms, skterms, integral, 3);
-//
-//    _add_bra_hrr_call_tree(lines, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral, 3);
+
+    _add_bra_hrr_call_tree(lines, skterms, integral, 3);
 //    
 //    _add_bra_geom_hrr_call_tree(lines, geom_integrals, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral, 3);
 //    
@@ -1257,295 +1257,115 @@ T4CGeomFuncBodyDriver::_add_ket_trafo_call_tree(      VCodeLines&  lines,
             lines.push_back({spacer, 0, 2, label});
         }
     }
+}
+
+void
+T4CGeomFuncBodyDriver::_add_bra_hrr_call_tree(      VCodeLines&  lines,
+                                              const SG4Terms&    skterms,
+                                              const I4CIntegral& integral,
+                                              const size_t       spacer) const
+{
+    const auto geom_orders = integral.prefixes_order();
     
-//    const auto geom_orders = integral.prefixes_order();
+    for (const auto& term : skterms)
+    {
+        const auto tint = term.second;
+        
+        if ((tint[0] > 0) && tint.prefixes().empty())
+        {
+            const auto name = t4c::bra_hrr_compute_func_name(tint);
+            
+            auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+            
+            label += _get_bra_hrr_arguments(term, skterms);
+            
+            label += "r_ab, ";
+            
+            label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+            
+            label += ");";
+            
+            lines.push_back({spacer, 0, 2, label});
+        }
+    }
 //    
 //    if (geom_orders == std::vector<int>({1, 0, 0, 0}))
 //    {
 //        auto skints = _get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral);
 //        
-//        auto ckints = _get_contr_buffers_integrals(ket_base_integrals);
-//        
-//        auto cints = _get_cart_buffer_integrals(bra_base_integrals, ket_base_integrals);
-//        
-//        // non scaled integrals
-//        
-//        if (integral[2] > 0)
+//        for (const auto& tint : bra_base_integrals)
 //        {
-//            for (const auto& tint : ket_base_integrals)
+//            if (tint[0] > 0)
 //            {
-//                if ((tint[0] == 0) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
-//                {
-//                    std::string label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
-//                    
-//                    label += "(skbuffer, "  + std::to_string(_get_half_spher_index(0, tint, skints)) + ", ";
-//                    
-//                    label += "ckbuffer, " + std::to_string(_get_index(0, tint, ckints))  + ", ";
-//                    
-//                    label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
-//                    
-//                    lines.push_back({spacer, 0, 2, label});
-//                }
+//                const auto name = t4c::bra_hrr_compute_func_name(tint);
+//                
+//                auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+//                
+//                label += _get_bra_hrr_arguments(0, tint, skints);
+//                
+//                label += "r_ab, ";
+//                
+//                label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+//                
+//                label += ");";
+//                
+//                lines.push_back({spacer, 0, 2, label});
 //            }
 //        }
-//        
-//        if ((integral[0] >= 0) && (integral[2] == 0))
-//        {
-//            for (const auto& tint : cints)
-//            {
-//                if ((tint[0] == 0) && (tint[2] == 0))
-//                {
-//                    std::string label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
-//                        
-//                    label += "(skbuffer, "  +  std::to_string(_get_half_spher_index(0, tint, skints)) + ", ";
-//                    
-//                    label += "cbuffer, " + std::to_string(_get_index(0, tint, cints))  + ", ";
-//                    
-//                    label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
-//                        
-//                    lines.push_back({spacer, 0, 2, label});
-//                }
-//            }
-//        }
-//        
-//        // scaled integrals
 //        
 //        const auto skcomps = _get_all_half_spher_components(skints);
 //        
-//        const auto ckcomps = _get_all_components(ckints);
-//        
-//        const auto ccomps = _get_all_components(cints);
-//        
 //        skints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
 //        
-//        ckints = _get_contr_buffers_integrals(ket_rec_base_integrals);
-//        
-//        cints = _get_cart_buffer_integrals(bra_rec_base_integrals, ket_rec_base_integrals);
-//        
-//        if (integral[2] > 0)
+//        for (const auto& tint : bra_rec_base_integrals)
 //        {
-//            for (const auto& tint : ket_rec_base_integrals)
+//            if (tint[0] > 0)
 //            {
-//                if ((tint[0] == 0) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
-//                {
-//                    std::string label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
-//                    
-//                    label += "(skbuffer, "  + std::to_string(_get_half_spher_index(skcomps, tint, skints)) + ", ";
-//                    
-//                    label += "ckbuffer, " + std::to_string(_get_index(ckcomps, tint, ckints))  + ", ";
-//                    
-//                    label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
-//                    
-//                    lines.push_back({spacer, 0, 2, label});
-//                }
-//            }
-//        }
-//        
-//        if ((integral[0] >= 0) && (integral[2] == 0))
-//        {
-//            for (const auto& tint : bra_rec_base_integrals)
-//            {
-//                if ((tint[0] == 0) && (tint[2] == 0))
-//                {
-//                    std::string label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
-//                        
-//                    label += "(skbuffer, "  +  std::to_string(_get_half_spher_index(skcomps, tint, skints)) + ", ";
-//                    
-//                    label += "cbuffer, " + std::to_string(_get_index(ccomps, tint, cints))  + ", ";
-//                    
-//                    label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
-//                        
-//                    lines.push_back({spacer, 0, 2, label});
-//                }
+//                const auto name = t4c::bra_hrr_compute_func_name(tint);
+//                
+//                auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+//                
+//                label += _get_bra_hrr_arguments(skcomps, tint, skints);
+//                
+//                label += "r_ab, ";
+//                
+//                label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+//                
+//                label += ");";
+//                
+//                lines.push_back({spacer, 0, 2, label});
 //            }
 //        }
 //    }
 //    
 //    if (geom_orders == std::vector<int>({2, 0, 0, 0}))
 //    {
-//        auto cints = _get_cart_buffer_integrals(bra_rec_base_integrals, ket_rec_base_integrals);
+//        auto skints = _get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral);
 //        
-//        auto ckints = _get_contr_buffers_integrals(ket_rec_base_integrals);
+//        const auto skstart = _get_geom20_half_spher_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
 //        
-//        auto skints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
+//        skints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
 //        
-//        if (integral[2] > 0)
+//        for (const auto& tint : bra_rec_base_integrals)
 //        {
-//            // scaled integrals (2 alpha)
-//            
-//            for (const auto& tint : ket_rec_base_integrals)
+//            if (tint[0] > 0)
 //            {
-//                if ((tint[0] == 0) && (tint[1] >= integral[1]) && (tint[1] <= (integral[1] + integral[0])) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
-//                {
-//                    std::string label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
-//                    
-//                    label += "(skbuffer, "  + std::to_string(_get_half_spher_index(0, tint, skints)) + ", ";
-//                    
-//                    label += "ckbuffer, " + std::to_string(_get_index(0, tint, ckints))  + ", ";
-//                    
-//                    label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
-//                    
-//                    lines.push_back({spacer, 0, 2, label});
-//                }
-//            }
-//            
-//            // scaled integrals (4 alpha)
-//            
-//            const auto ckstart = _get_geom20_contr_2a_size(ket_rec_base_integrals, integral);
-//            
-//            const auto skstart = _get_geom20_half_spher_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
-//            
-//            for (const auto& tint : ket_rec_base_integrals)
-//            {
-//                if ((tint[0] == 0) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
-//                {
-//                    std::string label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
-//                    
-//                    label += "(skbuffer, "  + std::to_string(_get_half_spher_index(skstart, tint, skints)) + ", ";
-//                    
-//                    label += "ckbuffer, " + std::to_string(_get_index(ckstart, tint, ckints))  + ", ";
-//                    
-//                    label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
-//                    
-//                    lines.push_back({spacer, 0, 2, label});
-//                }
-//            }
-//        }
-//        
-//        if (integral[2] == 0)
-//        {
-//            // scaled integrals (2 alpha)
-//            
-//            for (const auto& tint : bra_rec_base_integrals)
-//            {
-//                if ((tint[0] == 0) && (tint[1] >= integral[1]) && (tint[1] <= (integral[1] + integral[0])) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
-//                {
-//                    std::string label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
-//                        
-//                    label += "(skbuffer, "  +  std::to_string(_get_half_spher_index(0, tint, skints)) + ", ";
-//                    
-//                    label += "cbuffer, " + std::to_string(_get_index(0, tint, cints))  + ", ";
-//                    
-//                    label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
-//                        
-//                    lines.push_back({spacer, 0, 2, label});
-//                }
-//            }
-//            
-//            // scaled integrals (4 alpha)
-//            
-//            const auto cstart = _get_geom20_cart_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
-//            
-//            const auto skstart = _get_geom20_half_spher_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
-//            
-//            for (const auto& tint : bra_rec_base_integrals)
-//            {
-//                if ((tint[0] == 0) && (tint[2] == integral[2]) && (tint[3] == integral[3]))
-//                {
-//                    std::string label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
-//                        
-//                    label += "(skbuffer, "  +  std::to_string(_get_half_spher_index(skstart, tint, skints)) + ", ";
-//                    
-//                    label += "cbuffer, " + std::to_string(_get_index(cstart, tint, cints))  + ", ";
-//                    
-//                    label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
-//                        
-//                    lines.push_back({spacer, 0, 2, label});
-//                }
+//                const auto name = t4c::bra_hrr_compute_func_name(tint);
+//                
+//                auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+//                
+//                label += _get_bra_hrr_arguments(skstart, tint, skints);
+//                
+//                label += "r_ab, ";
+//                
+//                label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+//                
+//                label += ");";
+//                
+//                lines.push_back({spacer, 0, 2, label});
 //            }
 //        }
 //    }
-}
-
-void
-T4CGeomFuncBodyDriver::_add_bra_hrr_call_tree(      VCodeLines&  lines,
-                                              const SI4CIntegrals& bra_base_integrals,
-                                              const SI4CIntegrals& bra_rec_base_integrals,
-                                              const SI4CIntegrals& ket_base_integrals,
-                                              const SI4CIntegrals& ket_rec_base_integrals,
-                                              const I4CIntegral&   integral,
-                                              const size_t         spacer) const
-{
-    const auto geom_orders = integral.prefixes_order();
-    
-    if (geom_orders == std::vector<int>({1, 0, 0, 0}))
-    {
-        auto skints = _get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral);
-        
-        for (const auto& tint : bra_base_integrals)
-        {
-            if (tint[0] > 0)
-            {
-                const auto name = t4c::bra_hrr_compute_func_name(tint);
-                
-                auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
-                
-                label += _get_bra_hrr_arguments(0, tint, skints);
-                
-                label += "r_ab, ";
-                
-                label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
-                
-                label += ");";
-                
-                lines.push_back({spacer, 0, 2, label});
-            }
-        }
-        
-        const auto skcomps = _get_all_half_spher_components(skints);
-        
-        skints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
-        
-        for (const auto& tint : bra_rec_base_integrals)
-        {
-            if (tint[0] > 0)
-            {
-                const auto name = t4c::bra_hrr_compute_func_name(tint);
-                
-                auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
-                
-                label += _get_bra_hrr_arguments(skcomps, tint, skints);
-                
-                label += "r_ab, ";
-                
-                label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
-                
-                label += ");";
-                
-                lines.push_back({spacer, 0, 2, label});
-            }
-        }
-    }
-    
-    if (geom_orders == std::vector<int>({2, 0, 0, 0}))
-    {
-        auto skints = _get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral);
-        
-        const auto skstart = _get_geom20_half_spher_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
-        
-        skints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
-        
-        for (const auto& tint : bra_rec_base_integrals)
-        {
-            if (tint[0] > 0)
-            {
-                const auto name = t4c::bra_hrr_compute_func_name(tint);
-                
-                auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
-                
-                label += _get_bra_hrr_arguments(skstart, tint, skints);
-                
-                label += "r_ab, ";
-                
-                label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
-                
-                label += ");";
-                
-                lines.push_back({spacer, 0, 2, label});
-            }
-        }
-    }
-    
 }
 
 void
@@ -1834,15 +1654,14 @@ T4CGeomFuncBodyDriver::_get_ket_hrr_arguments(const G4Term&  term,
 }
 
 std::string
-T4CGeomFuncBodyDriver::_get_bra_hrr_arguments(const size_t start,
-                                              const I4CIntegral& integral,
-                                              const SI4CIntegrals& integrals) const
+T4CGeomFuncBodyDriver::_get_bra_hrr_arguments(const G4Term&  term,
+                                              const SG4Terms& skterms) const
 {
-    std::string label = std::to_string(_get_half_spher_index(start, integral, integrals)) + ", ";
+    std::string label = std::to_string(_get_half_spher_index(term, skterms))  + ", ";
     
-    for (const auto& tint : t4c::get_bra_hrr_integrals(integral))
+    for (const auto& tint : t4c::get_bra_hrr_integrals(term.second))
     {
-        label += std::to_string(_get_half_spher_index(start, tint, integrals))  + ", ";
+        label += std::to_string(_get_half_spher_index(G4Term({term.first, tint}), skterms))  + ", ";
     }
     
     return label;
