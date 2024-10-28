@@ -70,6 +70,12 @@ class T4CGeomFuncBodyDriver
                       const I4CIntegral&   integral,
                       const SI4CIntegrals& integrals) const;
     
+    /// Gets index of requested integral in set of integrals.
+    /// @param term The base four center term.
+    /// @param terms The set of four center terms.
+    size_t _get_index(const G4Term&   term,
+                      const SG4Terms& terms) const;
+    
     /// Gets index of requested integral in set of half transformed integrals.
     /// @param start The initial index.
     /// @param integral The base four center integral.
@@ -77,6 +83,13 @@ class T4CGeomFuncBodyDriver
     size_t _get_half_spher_index(const size_t         start,
                                  const I4CIntegral&   integral,
                                  const SI4CIntegrals& integrals) const;
+    
+    
+    /// Gets index of requested integral in set of half transformed integrals.
+    /// @param term The base four center term.
+    /// @param terms The set of four center terms.
+    size_t _get_half_spher_index(const G4Term&   term,
+                                 const SG4Terms& terms) const;
     
     /// Gets index of requested integral in set of half transformed integrals.
     /// @param start The initial index.
@@ -204,19 +217,11 @@ class T4CGeomFuncBodyDriver
                                                     const I4CIntegral& integral) const;
     
     /// Generates vector of half transformed buffers in compute function.
-    /// @param geom_integrals The set of geometrical derivative integrals.
-    /// @param bra_base_integrals The set of geometrical derivative integrals.
-    /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param skterms The set of filtered geometrical terms.
     /// @param integral The base two center integral.
     /// @return The vector of buffers in compute function.
-    std::vector<std::string> _get_half_spher_buffers_def(const SI4CIntegrals& geom_integrals,
-                                                         const SI4CIntegrals& bra_base_integrals,
-                                                         const SI4CIntegrals& bra_rec_base_integrals,
-                                                         const SI4CIntegrals& ket_base_integrals,
-                                                         const SI4CIntegrals& ket_rec_base_integrals,
-                                                         const I4CIntegral&   integral) const;
+    std::vector<std::string> _get_half_spher_buffers_def(const SG4Terms&    skterms,
+                                                         const I4CIntegral& integral) const;
     
     /// Generates vector of half transformed buffers in compute function.
     /// @param integral The base two center integral.
@@ -248,17 +253,11 @@ class T4CGeomFuncBodyDriver
     
     /// Adds ket loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
-    /// @param bra_base_integrals The set of geometrical derivative integrals.
-    /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param cterms The set of filtered geometrical terms.
     /// @param vrr_integrals The set of unique integrals for vertical recursion.
     /// @param integral The base two center integral.
     void _add_ket_loop_end(      VCodeLines&    lines,
-                           const SI4CIntegrals& bra_base_integrals,
-                           const SI4CIntegrals& bra_rec_base_integrals,
-                           const SI4CIntegrals& ket_base_integrals,
-                           const SI4CIntegrals& ket_rec_base_integrals,
+                           const SG4Terms&      cterms,
                            const SI4CIntegrals& vrr_integrals,
                            const I4CIntegral&   integral) const;
     
@@ -284,33 +283,27 @@ class T4CGeomFuncBodyDriver
     
     /// Adds call tree for ket horizontal recursion.
     /// @param lines The code lines container to which loop start definition are added.
-    /// @param bra_base_integrals The set of geometrical derivative integrals.
-    /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param cterms The set of filtered geometrical terms.
+    /// @param ckterms The set of filtered geometrical terms.
     /// @param integral The base two center integral.
     /// @param spacer The tabulation spacer.
     void _add_ket_hrr_call_tree(      VCodeLines&  lines,
-                                const SI4CIntegrals& bra_base_integrals,
-                                const SI4CIntegrals& bra_rec_base_integrals,
-                                const SI4CIntegrals& ket_base_integrals,
-                                const SI4CIntegrals& ket_rec_base_integrals,
+                                const SG4Terms&      cterms,
+                                const SG4Terms&      ckterms,
                                 const I4CIntegral&   integral,
                                 const size_t         spacer) const;
     
     /// Adds call tree for ket side transformation.
     /// @param lines The code lines container to which loop start definition are added.
-    /// @param bra_base_integrals The set of geometrical derivative integrals.
-    /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param cterms The set of filtered geometrical terms.
+    /// @param ckterms The set of filtered geometrical terms.
+    /// @param skterms The set of filtered geometrical terms.
     /// @param integral The base two center integral.
     /// @param spacer The tabulation spacer.
     void _add_ket_trafo_call_tree(      VCodeLines&  lines,
-                                  const SI4CIntegrals& bra_base_integrals,
-                                  const SI4CIntegrals& bra_rec_base_integrals,
-                                  const SI4CIntegrals& ket_base_integrals,
-                                  const SI4CIntegrals& ket_rec_base_integrals,
+                                  const SG4Terms&      cterms,
+                                  const SG4Terms&      ckterms,
+                                  const SG4Terms&      skterms,
                                   const I4CIntegral&   integral,
                                   const size_t         spacer) const;
     
@@ -373,14 +366,12 @@ class T4CGeomFuncBodyDriver
                                    const I4CIntegral&   integral) const;
     
     /// Gets arguments list for ket horizontal recursion function call.
-    /// @param start The starting index of arguments list.
-    /// @param integral The base four center integral.
-    /// @param bra_integrals The set of unique integrals for bra horizontal recursion.
-    /// @param ket_integrals The set of unique integrals for ket horizontal recursion.
-    std::string _get_ket_hrr_arguments(const size_t       start,
-                                       const I4CIntegral& integral,
-                                       const SI4CIntegrals& bra_integrals,
-                                       const SI4CIntegrals& ket_integrals) const;
+    /// @param term The recursion term.
+    /// @param cterms The set of filtered geometrical terms.
+    /// @param ckterms The set of filtered geometrical terms.
+    std::string _get_ket_hrr_arguments(const G4Term&  term,
+                                       const SG4Terms& cterms,
+                                       const SG4Terms& ckterms) const;
     
     /// Gets arguments list for bra horizontal recursion function call.
     /// @param integral The base four center integral.
