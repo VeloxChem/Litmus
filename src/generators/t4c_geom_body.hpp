@@ -190,26 +190,18 @@ class T4CGeomFuncBodyDriver
                                                    const I4CIntegral&   integral) const;
     
     /// Generates vector of Cartesian buffers in compute function.
-    /// @param bra_base_integrals The set of geometrical derivative integrals.
-    /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param cterms The set of filtered geometrical terms.
     /// @param integral The base two center integral.
     /// @return The vector of buffers in compute function.
-    std::vector<std::string> _get_cart_buffers_def(const SI4CIntegrals& bra_base_integrals,
-                                                   const SI4CIntegrals& bra_rec_base_integrals,
-                                                   const SI4CIntegrals& ket_base_integrals,
-                                                   const SI4CIntegrals& ket_rec_base_integrals,
-                                                   const I4CIntegral&   integral) const;
+    std::vector<std::string> _get_cart_buffers_def(const SG4Terms&    cterms,
+                                                   const I4CIntegral& integral) const;
     
     /// Generates vector of contracted buffers in compute function.
-    /// @param ket_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param ckterms The set of filtered geometrical terms.
     /// @param integral The base two center integral.
     /// @return The vector of buffers in compute function.
-    std::vector<std::string> _get_contr_buffers_def(const SI4CIntegrals& ket_base_integrals,
-                                                    const SI4CIntegrals& ket_rec_base_integrals,
-                                                    const I4CIntegral&   integral) const;
+    std::vector<std::string> _get_contr_buffers_def(const SG4Terms&    ckterms,
+                                                    const I4CIntegral& integral) const;
     
     /// Generates vector of half transformed buffers in compute function.
     /// @param geom_integrals The set of geometrical derivative integrals.
@@ -445,19 +437,15 @@ public:
     
     /// Writes body of primitive compute function.
     /// @param fstream the file stream.
-    /// @param geom_integrals The set of unique integrals for geometrical recursion.
-    /// @param bra_base_integrals The set of geometrical derivative integrals.
-    /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param cterms The set of filtered geometrical terms.
+    /// @param ckterms The set of filtered geometrical terms.
+    /// @param skterms The set of filtered geometrical terms.
     /// @param vrr_integrals The set of unique integrals for vertical recursion.
     /// @param integral The base four center integral.
     void write_func_body(      std::ofstream& fstream,
-                         const SI4CIntegrals& geom_integrals,
-                         const SI4CIntegrals& bra_base_integrals,
-                         const SI4CIntegrals& bra_rec_base_integrals,
-                         const SI4CIntegrals& ket_base_integrals,
-                         const SI4CIntegrals& ket_rec_base_integrals,
+                         const SG4Terms&      cterms,
+                         const SG4Terms&      ckterms,
+                         const SG4Terms&      skterms,
                          const SI4CIntegrals& vrr_integrals,
                          const I4CIntegral&   integral) const;
 };

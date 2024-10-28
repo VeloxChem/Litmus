@@ -135,18 +135,14 @@ class T4CGeomCPUGenerator
     std::string _file_name(const I4CIntegral& integral) const;
     
     /// Writes header file for recursion.
-    /// @param geom_integrals The set of unique integrals for geometrical recursion.
-    /// @param bra_base_integrals The set of geometrical derivative integrals.
-    /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param cterms The set of filtered geometrical terms.
+    /// @param ckterms The set of filtered geometrical terms.
+    /// @param skterms The set of filtered geometrical terms.
     /// @param vrr_integrals The set of unique integrals for vertical recursion.
     /// @param integral The base two center integral.
-    void _write_cpp_header(const SI4CIntegrals& geom_integrals,
-                           const SI4CIntegrals& bra_base_integrals,
-                           const SI4CIntegrals& bra_rec_base_integrals,
-                           const SI4CIntegrals& ket_base_integrals,
-                           const SI4CIntegrals& ket_rec_base_integrals,
+    void _write_cpp_header(const SG4Terms&      cterms,
+                           const SG4Terms&      ckterms,
+                           const SG4Terms&      skterms,
                            const SI4CIntegrals& vrr_integrals,
                            const I4CIntegral&   integral) const;
     
@@ -160,19 +156,13 @@ class T4CGeomCPUGenerator
     
     /// Writes definitions of includes for header file.
     /// @param fstream the file stream.
-    /// @param geom_integrals The set of unique integrals for geometrical recursion.
-    /// @param bra_base_integrals The set of geometrical derivative integrals.
-    /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param ckterms The set of filtered geometrical terms.
+    /// @param skterms The set of filtered geometrical terms.
     /// @param vrr_integrals The set of unique integrals for vertical recursion.
     /// @param integral The base two center integral.
     void _write_hpp_includes(      std::ofstream& fstream,
-                             const SI4CIntegrals& geom_integrals,
-                             const SI4CIntegrals& bra_base_integrals,
-                             const SI4CIntegrals& bra_rec_base_integrals,
-                             const SI4CIntegrals& ket_base_integrals,
-                             const SI4CIntegrals& ket_rec_base_integrals,
+                             const SG4Terms&      ckterms,
+                             const SG4Terms&      skterms,
                              const SI4CIntegrals& vrr_integrals,
                              const I4CIntegral&   integral) const;
     

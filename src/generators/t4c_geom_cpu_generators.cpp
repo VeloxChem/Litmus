@@ -62,24 +62,8 @@ T4CGeomCPUGenerator::generate(const std::string&        label,
                         const auto skterms = _filter_skbuffer_terms(integral, geom_terms);
                         
                         const auto vrr_integrals = _generate_vrr_integral_group(geom_terms);
-                        
-//                        const auto geom_base_integrals = _generate_geom_base_integral_group(geom_integrals);
-//                        
-//                        const auto geom_rec_integrals = _generate_geom_rec_integral_group(geom_integrals);
-//                        
-//                        const auto bra_rec_integrals = _generate_bra_hrr_integral_group(integral, geom_rec_integrals);
-//                        
-//                        const auto bra_base_integrals = _generate_bra_base_hrr_integral_group(integral, geom_base_integrals);
-//                        
-//                        const auto bra_rec_base_integrals = _generate_bra_base_hrr_integral_group(integral, bra_rec_integrals);
-//                        
-//                        const auto ket_base_integrals = _generate_ket_base_hrr_integral_group(integral, bra_base_integrals);
-//                        
-//                        const auto ket_rec_base_integrals = _generate_ket_base_hrr_integral_group(integral, bra_rec_base_integrals);
-//                        
-//                        const auto vrr_integrals = _generate_vrr_integral_group(integral, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals);
-//                        
-//                        _write_cpp_header(geom_integrals, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, vrr_integrals, integral);
+                                                                    
+                        _write_cpp_header(cterms, ckterms, skterms, vrr_integrals, integral);
                         
 //                       if ((i == 2) && (j == 2) && (k == 2) && (l == 2))
 //                        {
@@ -353,7 +337,14 @@ T4CGeomCPUGenerator::_filter_ckbuffer_terms(const SG4Terms& terms) const
     
     for (const auto& term : terms)
     {
-        if ((term.second[0] == 0) && (term.second[2] > 0))
+        int korder = 0;
+        
+        if (const auto gorders = term.second.prefixes_order(); !gorders.empty())
+        {
+            korder = gorders[0]; 
+        }
+        
+        if ((term.second[0] == 0) && (term.second[2] > 0) && (korder == 0))
         {
             new_terms.insert(term);
         }
@@ -662,11 +653,9 @@ T4CGeomCPUGenerator::_file_name(const I4CIntegral& integral) const
 }
 
 void
-T4CGeomCPUGenerator::_write_cpp_header(const SI4CIntegrals& geom_integrals,
-                                       const SI4CIntegrals& bra_base_integrals,
-                                       const SI4CIntegrals& bra_rec_base_integrals,
-                                       const SI4CIntegrals& ket_base_integrals,
-                                       const SI4CIntegrals& ket_rec_base_integrals,
+T4CGeomCPUGenerator::_write_cpp_header(const SG4Terms&      cterms,
+                                       const SG4Terms&      ckterms,
+                                       const SG4Terms&      skterms,
                                        const SI4CIntegrals& vrr_integrals,
                                        const I4CIntegral& integral) const
 {
@@ -678,7 +667,7 @@ T4CGeomCPUGenerator::_write_cpp_header(const SI4CIntegrals& geom_integrals,
     
     _write_hpp_defines(fstream, integral, true);
     
-    _write_hpp_includes(fstream, geom_integrals, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, vrr_integrals, integral);
+    _write_hpp_includes(fstream, ckterms, skterms, vrr_integrals, integral);
     
     _write_namespace(fstream, integral, true);
     
@@ -692,7 +681,7 @@ T4CGeomCPUGenerator::_write_cpp_header(const SI4CIntegrals& geom_integrals,
     
     decl_drv.write_func_decl(fstream, integral, false);
     
-    func_drv.write_func_body(fstream, geom_integrals, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, vrr_integrals, integral);
+    func_drv.write_func_body(fstream, cterms, ckterms, skterms, vrr_integrals, integral);
     
     fstream << std::endl;
 
@@ -728,11 +717,8 @@ T4CGeomCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
 
 void
 T4CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
-                                         const SI4CIntegrals& geom_integrals,
-                                         const SI4CIntegrals& bra_base_integrals,
-                                         const SI4CIntegrals& bra_rec_base_integrals,
-                                         const SI4CIntegrals& ket_base_integrals,
-                                         const SI4CIntegrals& ket_rec_base_integrals,
+                                         const SG4Terms&      ckterms,
+                                         const SG4Terms&      skterms,
                                          const SI4CIntegrals& vrr_integrals,
                                          const I4CIntegral&   integral) const
 {
@@ -745,67 +731,50 @@ T4CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     lines.push_back({0, 0, 2, "#include <utility>"});
     
     std::set<std::string> labels;
-    
+        
     for (const auto& tint : vrr_integrals)
     {
-        auto red_tint = tint;
-        
-        red_tint.set_order(0);
-       
         labels.insert(t4c::prim_file_name(tint));
     }
     
-    for (const auto& tint : ket_base_integrals)
+    for (const auto& term : ckterms)
     {
+        const auto tint = term.second;
+        
         if ((tint[0] == 0) && (tint[2] > 0) && (tint.prefixes().empty()))
         {
             labels.insert(t4c::ket_hrr_file_name(tint));
         }
     }
     
-    for (const auto& tint : ket_rec_base_integrals)
+    for (const auto& term : skterms)
     {
-        if ((tint[0] == 0) && (tint[2] > 0) && (tint.prefixes().empty()))
+        const auto tint = term.second;
+        
+        if ((tint[2] == integral[2]) && (tint[3] == integral[3]))
         {
-            labels.insert(t4c::ket_hrr_file_name(tint));
+            if (tint[0] > 0)
+            {
+                if (tint.prefixes().empty())
+                {
+                    labels.insert(t4c::bra_hrr_file_name(tint));
+                }
+                else
+                {
+                    labels.insert(t4c::bra_geom_hrr_file_name(tint));
+                }
+            }
+            else
+            {
+                if (tint.prefixes_order() == std::vector<int>({2, 0, 0, 0}))
+                {
+                    labels.insert("ElectronRepulsionGeom2000ContrRecSXXX");
+                }
+            }
         }
     }
     
-    for (const auto& tint : bra_base_integrals)
-    {
-        if ((tint[0] > 0) && (tint[2] == integral[2]) && (tint[3] == integral[3]) && (tint.prefixes().empty()))
-        {
-            labels.insert(t4c::bra_hrr_file_name(tint));
-        }
-    }
-    
-    for (const auto& tint : bra_rec_base_integrals)
-    {
-        if ((tint[0] > 0) && (tint[2] == integral[2]) && (tint[3] == integral[3]) && (tint.prefixes().empty()))
-        {
-            labels.insert(t4c::bra_hrr_file_name(tint));
-        }
-    }
-    
-    for (const auto& tint : geom_integrals)
-    {
-        if ((tint[0] > 0) && (tint[2] == integral[2]) && (tint[3] == integral[3]) && (!tint.prefixes().empty()))
-        {
-            labels.insert(t4c::bra_geom_hrr_file_name(tint));
-        }
-    }
-    
-    if (integral[0] > 0)
-    {
-        labels.insert(t4c::bra_geom_hrr_file_name(integral));
-    }
-    
-    const auto geom_orders = integral.prefixes_order();
-    
-    if (geom_orders == std::vector<int>({2, 0, 0, 0}))
-    {
-        labels.insert("ElectronRepulsionGeom2000ContrRecSXXX");
-    }
+    // Add remaining stuff
     
     for (const auto& label : labels)
     {

@@ -9,11 +9,9 @@
 
 void
 T4CGeomFuncBodyDriver::write_func_body(      std::ofstream& fstream,
-                                       const SI4CIntegrals& geom_integrals,
-                                       const SI4CIntegrals& bra_base_integrals,
-                                       const SI4CIntegrals& bra_rec_base_integrals,
-                                       const SI4CIntegrals& ket_base_integrals,
-                                       const SI4CIntegrals& ket_rec_base_integrals,
+                                       const SG4Terms&      cterms,
+                                       const SG4Terms&      ckterms,
+                                       const SG4Terms&      skterms,
                                        const SI4CIntegrals& vrr_integrals,
                                        const I4CIntegral&   integral) const
 {
@@ -36,20 +34,20 @@ T4CGeomFuncBodyDriver::write_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_cart_buffers_def(bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral))
+    for (const auto& label : _get_cart_buffers_def(cterms, integral))
     {
         lines.push_back({1, 0, 2, label});
     }
-    
-    for (const auto& label : _get_contr_buffers_def(ket_base_integrals, ket_rec_base_integrals, integral))
+   
+    for (const auto& label : _get_contr_buffers_def(ckterms, integral))
     {
         lines.push_back({1, 0, 2, label});
     }
-    
-    for (const auto& label : _get_half_spher_buffers_def(geom_integrals, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral))
-    {
-        lines.push_back({1, 0, 2, label});
-    }
+//    
+//    for (const auto& label : _get_half_spher_buffers_def(geom_integrals, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral))
+//    {
+//        lines.push_back({1, 0, 2, label});
+//    }
     
     for (const auto& label : _get_spher_buffers_def(integral))
     {
@@ -61,27 +59,27 @@ T4CGeomFuncBodyDriver::write_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    _add_loop_start(lines, integral);
-    
-    _add_ket_loop_start(lines, integral);
-    
-    _add_auxilary_integrals(lines, vrr_integrals, integral, 4);
-    
-    _add_vrr_call_tree(lines, vrr_integrals, integral, 4);
-    
-    _add_ket_loop_end(lines, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, vrr_integrals, integral);
-    
-    _add_ket_hrr_call_tree(lines, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral, 3);
-    
-    _add_ket_trafo_call_tree(lines, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral, 3);
-    
-    _add_bra_hrr_call_tree(lines, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral, 3);
-    
-    _add_bra_geom_hrr_call_tree(lines, geom_integrals, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral, 3);
-    
-    _add_bra_trafo_call_tree(lines, geom_integrals, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral);
-    
-    _add_loop_end(lines, integral);
+//    _add_loop_start(lines, integral);
+//    
+//    _add_ket_loop_start(lines, integral);
+//    
+//    _add_auxilary_integrals(lines, vrr_integrals, integral, 4);
+//    
+//    _add_vrr_call_tree(lines, vrr_integrals, integral, 4);
+//    
+//    _add_ket_loop_end(lines, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, vrr_integrals, integral);
+//    
+//    _add_ket_hrr_call_tree(lines, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral, 3);
+//    
+//    _add_ket_trafo_call_tree(lines, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral, 3);
+//    
+//    _add_bra_hrr_call_tree(lines, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral, 3);
+//    
+//    _add_bra_geom_hrr_call_tree(lines, geom_integrals, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral, 3);
+//    
+//    _add_bra_trafo_call_tree(lines, geom_integrals, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral);
+//    
+//    _add_loop_end(lines, integral);
     
     lines.push_back({0, 0, 1, "}"});
     
@@ -597,25 +595,18 @@ T4CGeomFuncBodyDriver::_get_prim_buffers_def(const SI4CIntegrals& integrals,
 }
 
 std::vector<std::string>
-T4CGeomFuncBodyDriver::_get_cart_buffers_def(const SI4CIntegrals& bra_base_integrals,
-                                             const SI4CIntegrals& bra_rec_base_integrals,
-                                             const SI4CIntegrals& ket_base_integrals,
-                                             const SI4CIntegrals& ket_rec_base_integrals,
-                                             const I4CIntegral&   integral) const
+T4CGeomFuncBodyDriver::_get_cart_buffers_def(const SG4Terms&    cterms,
+                                             const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
     vstr.push_back("// allocate aligned Cartesian integrals");
     
-    auto tcomps = _get_all_components(_get_cart_buffer_integrals(bra_base_integrals, ket_base_integrals));
+    size_t tcomps= 0;
     
-    tcomps += _get_all_components(_get_cart_buffer_integrals(bra_rec_base_integrals, ket_rec_base_integrals));
-    
-    const auto geom_orders = integral.prefixes_order();
-    
-    if (geom_orders == std::vector<int>({2, 0, 0, 0}))
+    for (const auto& term : cterms)
     {
-        tcomps += _get_geom20_cart_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
+        tcomps += term.second.components<T2CPair, T2CPair>().size();
     }
     
     std::string label = "CSimdArray<double> cbuffer";
@@ -628,21 +619,16 @@ T4CGeomFuncBodyDriver::_get_cart_buffers_def(const SI4CIntegrals& bra_base_integ
 }
 
 std::vector<std::string>
-T4CGeomFuncBodyDriver::_get_contr_buffers_def(const SI4CIntegrals& ket_base_integrals,
-                                              const SI4CIntegrals& ket_rec_base_integrals,
-                                              const I4CIntegral&   integral) const
+T4CGeomFuncBodyDriver::_get_contr_buffers_def(const SG4Terms&    ckterms,
+                                              const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    auto tcomps = _get_all_components(_get_contr_buffers_integrals(ket_base_integrals));
+    size_t tcomps= 0;
     
-    tcomps += _get_all_components(_get_contr_buffers_integrals(ket_rec_base_integrals));
-    
-    const auto geom_orders = integral.prefixes_order();
-    
-    if (geom_orders == std::vector<int>({2, 0, 0, 0}))
+    for (const auto& term : ckterms)
     {
-        tcomps += _get_geom20_contr_2a_size(ket_rec_base_integrals, integral);
+        tcomps += term.second.components<T2CPair, T2CPair>().size();
     }
     
     if (tcomps > 0)
