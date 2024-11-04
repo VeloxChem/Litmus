@@ -329,19 +329,11 @@ class T4CGeomFuncBodyDriver
     
     /// Adds call tree for bra side transformation.
     /// @param lines The code lines container to which loop start definition are added.
-    /// @param geom_integrals The set of geometrical derivative integrals.
-    /// @param bra_base_integrals The set of geometrical derivative integrals.
-    /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param skterms The set of filtered geometrical terms.
     /// @param integral The base two center integral.
     void _add_bra_trafo_call_tree(      VCodeLines&  lines,
-                                  const SI4CIntegrals& geom_integrals,
-                                  const SI4CIntegrals& bra_base_integrals,
-                                  const SI4CIntegrals& bra_rec_base_integrals,
-                                  const SI4CIntegrals& ket_base_integrals,
-                                  const SI4CIntegrals& ket_rec_base_integrals,
-                                  const I4CIntegral&   integral) const;
+                                  const SG4Terms&    skterms,
+                                  const I4CIntegral& integral) const;
     
     /// Gets arguments list for primitive vertical recursion function call.
     /// @param start The indexes starting position.

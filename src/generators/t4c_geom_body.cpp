@@ -76,10 +76,10 @@ T4CGeomFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     _add_bra_hrr_call_tree(lines, skterms, integral, 3);
     
     _add_bra_geom_hrr_call_tree(lines, skterms, integral, 3);
-//    
-//    _add_bra_trafo_call_tree(lines, geom_integrals, bra_base_integrals, bra_rec_base_integrals, ket_base_integrals, ket_rec_base_integrals, integral);
-//    
-//    _add_loop_end(lines, integral);
+    
+    _add_bra_trafo_call_tree(lines, skterms, integral);
+    
+    _add_loop_end(lines, integral);
     
     lines.push_back({0, 0, 1, "}"});
     
@@ -1475,113 +1475,42 @@ T4CGeomFuncBodyDriver::_add_bra_geom_hrr_call_tree(      VCodeLines&  lines,
 
 void
 T4CGeomFuncBodyDriver::_add_bra_trafo_call_tree(      VCodeLines&  lines,
-                                                const SI4CIntegrals& geom_integrals,
-                                                const SI4CIntegrals& bra_base_integrals,
-                                                const SI4CIntegrals& bra_rec_base_integrals,
-                                                const SI4CIntegrals& ket_base_integrals,
-                                                const SI4CIntegrals& ket_rec_base_integrals,
-                                                const I4CIntegral&   integral) const
+                                                const SG4Terms&    skterms,
+                                                const I4CIntegral& integral) const
 {
-    const auto geom_orders = integral.prefixes_order();
+    size_t gcomps = 1;
     
-    if (geom_orders == std::vector<int>{1, 0, 0, 0})
+    for (const auto& prefix : integral.prefixes())
     {
-        auto skints = _get_half_spher_buffers_integrals(bra_base_integrals, ket_base_integrals, integral);
-        
-        auto btcomps = _get_all_half_spher_components(skints);
-        
-        skints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
-        
-        auto rtcomps = _get_all_half_spher_components(skints);
-        
-        if (integral[0] > 0)
-        {
-            skints = _get_geom_half_spher_buffers_integrals(geom_integrals, integral);
-        }
-        
-        if (integral.prefixes_order() == std::vector<int>({1, 0, 0, 0}))
-        {
-            auto angpair = std::array<int, 2>({integral[0], integral[1]});
-                            
-            auto bcart_comps = t2c::number_of_cartesian_components(angpair);
-            
-            auto bspher_comps = t2c::number_of_spherical_components(angpair);
-                            
-            angpair = std::array<int, 2>({integral[2], integral[3]});
-                            
-            auto kspher_comps = t2c::number_of_spherical_components(angpair);
-            
-            auto gindex = _get_geom_half_spher_index(btcomps + rtcomps, integral, skints);
-            
-            if (integral[0] == 0)
-            {
-                const auto tint = *integral.shift(1, 0);
-                
-                gindex = _get_geom_half_spher_index(btcomps, tint.base(), skints);
-            }
-            
-            for (int i = 0; i < 3; i++)
-            {
-                std::string label = "t4cfunc::bra_transform<" + std::to_string(integral[0]) + ", " + std::to_string(integral[1]) + ">";
-                    
-                label += "(sbuffer, " + std::to_string(i * bspher_comps * kspher_comps) + ", skbuffer, ";
-                
-                label += std::to_string(gindex + i * bcart_comps * kspher_comps) + ", ";
-                
-                label += std::to_string(integral[2]) + ", " + std::to_string(integral[3]) + ");";
-                
-                lines.push_back({3, 0, 2, label});
-            }
-        }
+        gcomps *= prefix.components().size();
     }
     
-    if (geom_orders == std::vector<int>{2, 0, 0, 0})
+    auto angpair = std::array<int, 2>({integral[0], integral[1]});
+    
+    auto bccomps = t2c::number_of_cartesian_components(angpair);
+    
+    auto bscomps = t2c::number_of_spherical_components(angpair);
+    
+    angpair = std::array<int, 2>({integral[2], integral[3]});
+    
+    auto kscomps = t2c::number_of_spherical_components(angpair);
+    
+    auto gterm = t4c::prune_term(G4Term({std::array<int, 4>({0, 0, 0, 0}), integral}));
+    
+    const auto gindex = _get_half_spher_index(gterm, skterms);
+    
+    for (size_t i = 0; i < gcomps; i++)
     {
-        auto angpair = std::array<int, 2>({integral[0], integral[1]});
-                        
-        auto bcart_comps = t2c::number_of_cartesian_components(angpair);
-        
-        auto bspher_comps = t2c::number_of_spherical_components(angpair);
-                        
-        angpair = std::array<int, 2>({integral[2], integral[3]});
-                        
-        auto kspher_comps = t2c::number_of_spherical_components(angpair);
-        
-        auto rskints = _get_half_spher_buffers_integrals(bra_rec_base_integrals, ket_rec_base_integrals, integral);
-        
-        auto rscomps = _get_all_half_spher_components(rskints);
-        
-        auto r2acomps = _get_geom20_half_spher_2a_size(bra_rec_base_integrals, ket_rec_base_integrals, integral);
-        
-        auto gindex = rscomps + r2acomps; 
-        
-        for (int i = 0; i < 6; i++)
-        {
-            std::string label = "t4cfunc::bra_transform<" + std::to_string(integral[0]) + ", " + std::to_string(integral[1]) + ">";
-                
-            label += "(sbuffer, " + std::to_string(i * bspher_comps * kspher_comps) + ", skbuffer, ";
-            
-            label += std::to_string(gindex + i * bcart_comps * kspher_comps) + ", ";
-            
-            label += std::to_string(integral[2]) + ", " + std::to_string(integral[3]) + ");";
-            
-            lines.push_back({3, 0, 2, label});
-        }
+        std::string label = "t4cfunc::bra_transform<" + std::to_string(integral[0]) + ", " + std::to_string(integral[1]) + ">";
+       
+        label += "(sbuffer, " + std::to_string(i * bscomps * kscomps) + ", skbuffer, ";
+       
+        label += std::to_string(gindex + i * bccomps * kscomps) + ", ";
+       
+        label += std::to_string(integral[2]) + ", " + std::to_string(integral[3]) + ");";
+       
+        lines.push_back({3, 0, 2, label});
     }
-    
-    std::string label = "distributor.distribute(sbuffer, 0, a_indices, b_indices, c_indices, d_indices, ";
-    
-    label += std::to_string(integral[0]) + ", ";
-    
-    label += std::to_string(integral[1]) + ", ";
-    
-    label += std::to_string(integral[2]) + ", ";
-    
-    label += std::to_string(integral[3]) + ", ";
-   
-    label += "j, ket_range);";
-   
-    lines.push_back({3, 0, 1, label});
 }
 
 std::string
