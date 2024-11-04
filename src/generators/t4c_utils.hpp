@@ -167,6 +167,11 @@ std::string get_index_label(const I4CIntegral& integral);
 std::string get_hrr_index(const I4CIntegral& integral,
                           const bool         use_ket);
 
+/// Prunes geometrical recursion term.
+/// @param term The geometrical recursion term.
+/// @return The pruned geometrical recursion term.
+G4Term prune_term(const G4Term& term);
+
 } // t4c namespace
 
 #endif /* t4c_utils_hpp */

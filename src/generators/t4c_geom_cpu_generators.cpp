@@ -55,6 +55,8 @@ T4CGeomCPUGenerator::generate(const std::string&        label,
                         
                         _add_ket_hrr_terms_group(geom_terms);
                         
+                        _prune_terms_group(geom_terms);
+                        
                         const auto cterms = _filter_cbuffer_terms(geom_terms);
                         
                         const auto ckterms = _filter_ckbuffer_terms(geom_terms);
@@ -817,4 +819,17 @@ T4CGeomCPUGenerator::_write_namespace(      std::ofstream& fstream,
     }
     
     ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CGeomCPUGenerator::_prune_terms_group(SG4Terms& terms) const
+{
+    SG4Terms new_terms;
+    
+    for (const auto& term : terms)
+    {
+        new_terms.insert(t4c::prune_term(term));
+    }
+    
+    terms = new_terms;
 }

@@ -21,6 +21,7 @@
 #include "v4i_eri_driver.hpp"
 #include "t4c_center_driver.hpp"
 #include "v4i_geom10_eri_driver.hpp"
+#include "v4i_geom20_eri_driver.hpp"
 
 namespace t4c { // t4c namespace
 
@@ -392,6 +393,13 @@ get_bra_geom_hrr_integrals(const I4CIntegral& integral)
         tints = geom_drv.bra_hrr(integral);
     }
     
+    if (geom_order == std::vector<int>({2, 0, 0, 0}))
+    {
+        V4IGeom20ElectronRepulsionDriver geom_drv;
+        
+        tints = geom_drv.bra_hrr(integral);
+    }
+    
     return tints;
 }
 
@@ -574,6 +582,21 @@ get_hrr_index(const I4CIntegral& integral,
     }
     
     return fstr::lowercase(label);
+}
+
+G4Term
+prune_term(const G4Term& term)
+{
+    const auto tint = term.second;
+    
+    if (tint.prefixes_order() == std::vector<int>({1, 0, 0, 0}) && (tint[0] == 0))
+    {
+        const auto cint = *tint.shift(1, 0);
+        
+        return G4Term({std::array<int, 4>({1, 0, 0, 0}), cint.base()});
+    }
+    
+    return term;
 }
 
 } // t4c namespace

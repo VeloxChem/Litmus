@@ -319,21 +319,13 @@ class T4CGeomFuncBodyDriver
     
     /// Adds call tree for bra horizontal recursion.
     /// @param lines The code lines container to which loop start definition are added.
-    /// @param geom_integrals The set of geometrical derivative integrals.
-    /// @param bra_base_integrals The set of geometrical derivative integrals.
-    /// @param bra_rec_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_base_integrals The set of geometrical derivative integrals.
-    /// @param ket_rec_base_integrals The set of geometrical derivative integrals.
+    /// @param skterms The set of filtered geometrical terms.
     /// @param integral The base two center integral.
     /// @param spacer The tabulation spacer.
     void _add_bra_geom_hrr_call_tree(      VCodeLines&  lines,
-                                     const SI4CIntegrals& geom_integrals,
-                                     const SI4CIntegrals& bra_base_integrals,
-                                     const SI4CIntegrals& bra_rec_base_integrals,
-                                     const SI4CIntegrals& ket_base_integrals,
-                                     const SI4CIntegrals& ket_rec_base_integrals,
-                                     const I4CIntegral&   integral,
-                                     const size_t         spacer) const;
+                                     const SG4Terms&    skterms,
+                                     const I4CIntegral& integral,
+                                     const size_t       spacer) const;
     
     /// Adds call tree for bra side transformation.
     /// @param lines The code lines container to which loop start definition are added.
@@ -372,6 +364,12 @@ class T4CGeomFuncBodyDriver
     /// @param skterms The set of filtered geometrical terms.
     std::string _get_bra_hrr_arguments(const G4Term&  term,
                                        const SG4Terms& skterms) const;
+    
+    /// Gets arguments list for bra horizontal recursion function call.
+    /// @param term The recursion term.
+    /// @param skterms The set of filtered geometrical terms.
+    std::string _get_bra_geom_hrr_arguments(const G4Term&  term,
+                                            const SG4Terms& skterms) const;
 
     /// Gets total number of components in set of integrals.
     /// @param integrals The set of inetrgals.

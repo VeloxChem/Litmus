@@ -174,6 +174,10 @@ class T4CGeomCPUGenerator
                           const I4CIntegral&   integral,
                           const bool           start) const;
     
+    /// Prunes set of geometrical terms removing terms which matches one to one with ordinary integrals.
+    /// @param terms The set of geometrical terms.
+    void _prune_terms_group(SG4Terms& terms) const;
+    
 public:
     /// Creates a geometrical derivatives of four-center integrals CPU code generator.
     T4CGeomCPUGenerator() = default;
