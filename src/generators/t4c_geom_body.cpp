@@ -324,6 +324,19 @@ T4CGeomFuncBodyDriver::_get_index(const G4Term&   term,
     return 0;
 }
 
+bool
+T4CGeomFuncBodyDriver::_find_term(const G4Term&   term,
+                                  const SG4Terms& terms) const
+{
+    for (const auto& cterm : terms)
+    {
+        if (term == cterm) return true;
+    }
+    
+    return false;
+}
+
+
 size_t
 T4CGeomFuncBodyDriver::_get_half_spher_index(const size_t         start,
                                              const I4CIntegral&   integral,
@@ -1081,15 +1094,15 @@ T4CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
             
             std::string label;
                 
-            const auto gterm = G4Term({std::array<int, 4>({1, 0, 0, 0}), tint});
+            const auto gterm = t4c::prune_term(G4Term({std::array<int, 4>({1, 0, 0, 0}), tint}));
                 
-            if (_get_index(gterm, cterms) != 0)
+            if (_find_term(gterm, cterms))
             {
                 label += "pbuffer.scale(2.0 * a_exp, {";
             }
             else
             {
-                label += "pbuffer.scale(4.0 * a_exp, {";
+                label += "pbuffer.scale(4.0 * a_exp * a_exp, {";
             }
                 
             label +=  std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
@@ -1511,6 +1524,20 @@ T4CGeomFuncBodyDriver::_add_bra_trafo_call_tree(      VCodeLines&  lines,
        
         lines.push_back({3, 0, 2, label});
     }
+    
+    std::string label = "distributor.distribute(sbuffer, 0, a_indices, b_indices, c_indices, d_indices, ";
+    
+    label += std::to_string(integral[0]) + ", ";
+    
+    label += std::to_string(integral[1]) + ", ";
+    
+    label += std::to_string(integral[2]) + ", ";
+    
+    label += std::to_string(integral[3]) + ", ";
+    
+    label += "j, ket_range);";
+    
+    lines.push_back({3, 0, 1, label});
 }
 
 std::string

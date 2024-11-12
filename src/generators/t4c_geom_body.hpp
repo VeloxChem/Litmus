@@ -76,6 +76,12 @@ class T4CGeomFuncBodyDriver
     size_t _get_index(const G4Term&   term,
                       const SG4Terms& terms) const;
     
+    /// Finds if requested integral in set of integrals.
+    /// @param term The base four center term.
+    /// @param terms The set of four center terms.
+    bool _find_term(const G4Term&   term,
+                    const SG4Terms& terms) const;
+    
     /// Gets index of requested integral in set of half transformed integrals.
     /// @param start The initial index.
     /// @param integral The base four center integral.
