@@ -19,6 +19,7 @@
 #include "t4c_utils.hpp"
 #include "t2c_utils.hpp"
 #include "t4c_geom_10_hrr_eri_driver.hpp"
+#include "t4c_geom_20_hrr_eri_driver.hpp"
 #include "string_formater.hpp"
 
 void
@@ -73,14 +74,23 @@ T4CGeomHrrFuncBodyDriver::write_ket_func_body(      std::ofstream& fstream,
     
     lines.push_back({3, 0, 2, _get_ket_offset_def(integral)});
     
-    for (int i = 0; i < bcomps; i++)
+    size_t gcomps = 1;
+    
+    for (const auto& prefix : integral.prefixes())
+    {
+        gcomps *= prefix.components().size();
+    }
+    
+    for (int i = 0; i < bcomps *  gcomps; i++)
     {
         const std::array<int, 2> rec_range({i * kcomps, (i + 1) * kcomps});
         
-//        for (const auto& label : _get_ket_buffers_str(integral, components, rec_range))
-//        {
-//            lines.push_back({3, 0, 2, label});
-//        }
+        std::cout << "XXX : " << rec_range[0] << " " << rec_range[1] << std::endl;
+        
+        for (const auto& label : _get_ket_buffers_str(integral, components, rec_range))
+        {
+            lines.push_back({3, 0, 2, label});
+        }
 //        
 //        _add_ket_recursion_loop(lines, integral, components, {i * kcomps, (i + 1) * kcomps});
         
@@ -168,7 +178,24 @@ T4CGeomHrrFuncBodyDriver::write_bra_func_body(      std::ofstream& fstream,
                 if (i < (3 * bcomps - 1)) lines.push_back({0, 0, 1, ""});;
             }
     }
+    
+    if (geom_orders == std::vector<int>({2, 0, 0, 0}))
+    {
+            for (int i = 0; i < 6 * bcomps; i++)
+            {
+                const std::array<int, 2> rec_range({i * kcomps, (i + 1) * kcomps});
         
+                for (const auto& label : _get_bra_buffers_str(integral, components, rec_range))
+                {
+                    lines.push_back({3, 0, 2, label});
+                }
+        
+                _add_bra_recursion_loop(lines, integral, components, {i * kcomps, (i + 1) * kcomps});
+        
+                if (i < (6 * bcomps - 1)) lines.push_back({0, 0, 1, ""});;
+            }
+    }
+    
     lines.push_back({2, 0, 1, "}"});
     
     lines.push_back({1, 0, 1, "}"});
@@ -190,6 +217,19 @@ T4CGeomHrrFuncBodyDriver::_get_bra_hrr_recursion(const T4CIntegral& integral) co
         if (integral.integrand().name() == "1/|r-r'|")
         {
             T4CGeom10HrrElectronRepulsionDriver eri_drv;
+    
+            if (integral[0].order() > 0)
+            {
+                rdist = eri_drv.apply_bra_hrr(R4CTerm(integral));
+            }
+        }
+    }
+    
+    if (geom_order == std::vector<int>({2, 0, 0, 0}))
+    {
+        if (integral.integrand().name() == "1/|r-r'|")
+        {
+            T4CGeom20HrrElectronRepulsionDriver eri_drv;
     
             if (integral[0].order() > 0)
             {
@@ -252,6 +292,28 @@ T4CGeomHrrFuncBodyDriver::_get_ket_buffers_str(const std::vector<R4CDist>& rec_d
             
             index++;
         }
+    }
+    
+    return vstr;
+}
+
+std::vector<std::string>
+T4CGeomHrrFuncBodyDriver::_get_ket_buffers_str(const I4CIntegral&        integral,
+                                               const VT4CIntegrals&      components,
+                                               const std::array<int, 2>& rec_range) const
+{
+    std::vector<std::string> vstr;
+    
+    auto label = "cbuffer.data(";
+    
+    vstr.push_back("/// Set up " + std::to_string(rec_range[0]) + "-" + std::to_string(rec_range[1]) +
+                       " components of targeted buffer : " + label);
+    
+    for (int i = rec_range[0]; i < rec_range[1]; i++)
+    {
+        const auto line = "auto " + _get_ket_component_label(components[i]) + " = " + label;
+        
+        vstr.push_back(line + _get_ket_offset_label(integral) + " + " + std::to_string(i) + ");");
     }
     
     return vstr;

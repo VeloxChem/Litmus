@@ -28,6 +28,7 @@
 #include "v4i_center_driver.hpp"
 #include "v4i_geom10_eri_driver.hpp"
 #include "v4i_geom20_eri_driver.hpp"
+#include "v4i_geom11_eri_driver.hpp"
 #include "v4i_eri_driver.hpp"
 
 void
@@ -51,11 +52,11 @@ T4CGeomCPUGenerator::generate(const std::string&        label,
                         
                         auto geom_terms = _generate_geom_terms_group(geom_integrals);
                         
+                        _prune_terms_group(geom_terms);
+                        
                         _add_bra_hrr_terms_group(geom_terms);
                         
                         _add_ket_hrr_terms_group(geom_terms);
-                        
-                        _prune_terms_group(geom_terms);
                         
                         const auto cterms = _filter_cbuffer_terms(geom_terms);
                         
@@ -199,6 +200,26 @@ T4CGeomCPUGenerator::_generate_geom_integral_group(const I4CIntegral& integral) 
     if (geom_order == std::vector<int>({2, 0, 0, 0}))
     {
         V4IGeom20ElectronRepulsionDriver geom_drv;
+        
+        V4IGeom10ElectronRepulsionDriver grad_drv;
+        
+        for (const auto& tint : geom_drv.apply_bra_hrr_recursion(integral))
+        {
+            tints.insert(tint);
+            
+            if (tint.prefixes_order() == std::vector<int>({1, 0, 0, 0}))
+            {
+                for (const auto& cint : grad_drv.apply_bra_hrr_recursion(tint))
+                {
+                    tints.insert(cint);
+                }
+            }
+        }
+    }
+    
+    if (geom_order == std::vector<int>({1, 1, 0, 0}))
+    {
+        V4IGeom11ElectronRepulsionDriver geom_drv;
         
         V4IGeom10ElectronRepulsionDriver grad_drv;
         

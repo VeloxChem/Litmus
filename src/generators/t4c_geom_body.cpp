@@ -1088,6 +1088,46 @@ T4CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
     
     for (const auto& term : cterms)
     {
+        if (term.first == std::array<int, 4>({1, 1, 0, 0}))
+        {
+            const auto tint = term.second;
+            
+            std::string label;
+           
+            label += "pbuffer.scale(4.0 * a_exp * b_exp, {";
+                
+            label +=  std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
+           
+            label +=  std::to_string(_get_index(0, tint, vrr_integrals) + tint.components<T2CPair, T2CPair>().size()) + "});";
+           
+            lines.push_back({4, 0, 2, label});
+        }
+    }
+    
+    for (const auto& term : cterms)
+    {
+        if (term.first == std::array<int, 4>({1, 1, 0, 0}))
+        {
+            const auto tint = term.second;
+            
+            std::string label = "t2cfunc::reduce(cbuffer, ";
+            
+            label +=  std::to_string(_get_index(term, cterms)) + ", ";
+            
+            label += "pbuffer, ";
+            
+            label += std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
+            
+            label += std::to_string(tint.components<T2CPair, T2CPair>().size()) + ", ";
+            
+            label += "ket_width, ket_npgtos);";
+            
+            lines.push_back({4, 0, 2, label});
+        }
+    }
+    
+    for (const auto& term : cterms)
+    {
         if (term.first == std::array<int, 4>({2, 0, 0, 0}))
         {
             const auto tint = term.second;

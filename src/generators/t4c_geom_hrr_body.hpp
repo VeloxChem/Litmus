@@ -47,6 +47,15 @@ class T4CGeomHrrFuncBodyDriver
     
     /// Generates vector of buffer strings.
     /// @param integral The base four center integral.
+    /// @param components The vector of integral components.
+    /// @param rec_range The recursion range [first, last) in integral components space.
+    /// @return The vector of buffer strings.
+    std::vector<std::string> _get_ket_buffers_str(const I4CIntegral&        integral,
+                                                  const VT4CIntegrals&      components,
+                                                  const std::array<int, 2>& rec_range) const;
+    
+    /// Generates vector of buffer strings.
+    /// @param integral The base four center integral.
     /// @return The vector of buffer strings.
     std::vector<std::string> _get_bra_buffers_str(const std::vector<R4CDist>& rec_dists,
                                                   const I4CIntegral&          integral) const;

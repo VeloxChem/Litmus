@@ -14,12 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "v4i_geom20_eri_driver.hpp"
+#include "v4i_geom11_eri_driver.hpp"
 
 bool
-V4IGeom20ElectronRepulsionDriver::is_electron_repulsion(const I4CIntegral& integral) const
+V4IGeom11ElectronRepulsionDriver::is_electron_repulsion(const I4CIntegral& integral) const
 {
-    if (integral.prefixes_order() != std::vector<int>({2, 0, 0, 0}))
+    if (integral.prefixes_order() != std::vector<int>({1, 1, 0, 0}))
     {
         return false;
     }
@@ -35,7 +35,7 @@ V4IGeom20ElectronRepulsionDriver::is_electron_repulsion(const I4CIntegral& integ
 }
 
 SI4CIntegrals
-V4IGeom20ElectronRepulsionDriver::bra_hrr(const I4CIntegral& integral) const
+V4IGeom11ElectronRepulsionDriver::bra_hrr(const I4CIntegral& integral) const
 {
     SI4CIntegrals tints;
     
@@ -56,6 +56,13 @@ V4IGeom20ElectronRepulsionDriver::bra_hrr(const I4CIntegral& integral) const
         
         // third recursion term
         
+        if (const auto r2val = tval->shift_prefix(-1, 1, false))
+        {
+            tints.insert(*r2val);
+        }
+        
+        // fourth recursion term
+        
         if (const auto r3val = tval->shift(1, 1))
         {
             tints.insert(*r3val);
@@ -66,7 +73,7 @@ V4IGeom20ElectronRepulsionDriver::bra_hrr(const I4CIntegral& integral) const
 }
 
 SI4CIntegrals
-V4IGeom20ElectronRepulsionDriver::apply_bra_hrr_recursion(const I4CIntegral& integral) const
+V4IGeom11ElectronRepulsionDriver::apply_bra_hrr_recursion(const I4CIntegral& integral) const
 {
     SI4CIntegrals tints;
     
