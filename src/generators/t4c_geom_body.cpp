@@ -1128,6 +1128,47 @@ T4CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
     
     for (const auto& term : cterms)
     {
+        if (term.first == std::array<int, 4>({1, 0, 1, 0}))
+        {
+            const auto tint = term.second;
+            
+            std::string label;
+           
+            label += "pbuffer.scale(pfactors, 0, 4.0 * a_exp, {";
+                
+            label +=  std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
+           
+            label +=  std::to_string(_get_index(0, tint, vrr_integrals) + tint.components<T2CPair, T2CPair>().size()) + "});";
+           
+            lines.push_back({4, 0, 2, label});
+        }
+    }
+    
+    for (const auto& term : cterms)
+    {
+        if (term.first == std::array<int, 4>({1, 0, 1, 0}))
+        {
+            const auto tint = term.second;
+            
+            std::string label = "t2cfunc::reduce(cbuffer, ";
+            
+            label +=  std::to_string(_get_index(term, cterms)) + ", ";
+            
+            label += "pbuffer, ";
+            
+            label += std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
+            
+            label += std::to_string(tint.components<T2CPair, T2CPair>().size()) + ", ";
+            
+            label += "ket_width, ket_npgtos);";
+            
+            lines.push_back({4, 0, 2, label});
+        }
+    }
+    
+    
+    for (const auto& term : cterms)
+    {
         if (term.first == std::array<int, 4>({2, 0, 0, 0}))
         {
             const auto tint = term.second;
@@ -1288,26 +1329,52 @@ T4CGeomFuncBodyDriver::_add_ket_trafo_call_tree(      VCodeLines&  lines,
 {
     for (const auto& term : skterms)
     {
+        std::string label;
+        
         const auto tint = term.second;
         
         if (tint[0] == 0 && tint.prefixes().empty())
         {
-            std::string label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
-            
-            label += "(skbuffer, "  + std::to_string(_get_half_spher_index(term, skterms)) + ", ";
-            
-            if (tint[2] == 0)
+            if (term.first[2] > 0)
             {
-                label += "cbuffer, " + std::to_string(_get_index(term, cterms))  + ", ";
+                const auto gcomps = Tensor(term.first[2]).components().size();
+               
+                const auto ccomps = t2c::number_of_cartesian_components(std::array<int, 2>{tint[0], tint[1]});
+                
+                const auto scomps = t2c::number_of_spherical_components(std::array<int, 2>{tint[0], tint[1]});
+                
+                for (size_t i = 0; i < gcomps; i++)
+                {
+                    label = "t4cfunc::ket_transform<" + std::to_string(tint[2] - term.first[2]) + ", " + std::to_string(tint[3]) + ">";
+                    
+                    label += "(skbuffer, "  + std::to_string(_get_half_spher_index(term, skterms) + i * scomps ) + ", ";
+                    
+                    label += "ckbuffer, " + std::to_string(_get_index(term, ckterms) + i * ccomps)  + ", ";
+                    
+                    label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
+                    
+                    lines.push_back({spacer, 0, 2, label});
+                }
             }
             else
             {
-                label += "ckbuffer, " + std::to_string(_get_index(term, ckterms))  + ", ";
+                label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
+                
+                label += "(skbuffer, "  + std::to_string(_get_half_spher_index(term, skterms)) + ", ";
+                
+                if (tint[2] == 0)
+                {
+                    label += "cbuffer, " + std::to_string(_get_index(term, cterms))  + ", ";
+                }
+                else
+                {
+                    label += "ckbuffer, " + std::to_string(_get_index(term, ckterms))  + ", ";
+                }
+                
+                label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
+                
+                lines.push_back({spacer, 0, 2, label});
             }
-            
-            label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
-            
-            lines.push_back({spacer, 0, 2, label});
         }
     }
 }
@@ -1326,19 +1393,43 @@ T4CGeomFuncBodyDriver::_add_bra_hrr_call_tree(      VCodeLines&  lines,
         
         if ((tint[0] > 0) && tint.prefixes().empty())
         {
-            const auto name = t4c::bra_hrr_compute_func_name(tint);
-            
-            auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
-            
-            label += _get_bra_hrr_arguments(term, skterms);
-            
-            label += "r_ab, ";
-            
-            label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
-            
-            label += ");";
-            
-            lines.push_back({spacer, 0, 2, label});
+            if (term.first[2] > 0)
+            {
+                const auto gcomps = Tensor(term.first[2]).components().size();
+                
+                for (size_t i = 0; i < gcomps; i++)
+                {
+                    const auto name = t4c::bra_hrr_compute_func_name(tint);
+                    
+                    auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+                    
+                    label += _get_bra_hrr_arguments(term, skterms);
+                    
+                    label += "r_ab, ";
+                    
+                    label += std::to_string(tint[2] - term.first[2]) + ", " + std::to_string(tint[3]);
+                    
+                    label += ");";
+                    
+                    lines.push_back({spacer, 0, 2, label});
+                }
+            }
+            else
+            {
+                const auto name = t4c::bra_hrr_compute_func_name(tint);
+                
+                auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+                
+                label += _get_bra_hrr_arguments(term, skterms);
+                
+                label += "r_ab, ";
+                
+                label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+                
+                label += ");";
+                
+                lines.push_back({spacer, 0, 2, label});
+            }
         }
     }
 }
