@@ -434,9 +434,11 @@ T4CGeomCPUGenerator::_filter_skbuffer_terms(const I4CIntegral& integral,
 {
     SG4Terms new_terms;
     
+    const auto gorders = integral.prefixes_order();
+    
     for (const auto& term : terms)
     {
-        if ((term.second[2] == integral[2]) && (term.second[3] == integral[3]))
+        if ((term.second[2] == (integral[2] + gorders[2])) && (term.second[3] == (integral[3] + gorders[3])))
         {
             new_terms.insert(term);
         }

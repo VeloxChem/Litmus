@@ -665,6 +665,16 @@ prune_term(const G4Term& term)
         return G4Term({std::array<int, 4>({1, 1, 0, 0}), btint->base()});
     }
     
+    if (tint.prefixes_order() == std::vector<int>({1, 0, 1, 0}) && (tint[0] == 0) && (tint[2] == 0))
+    {
+        auto atint = tint.shift(1, 0);
+        
+        auto btint = atint->shift(1, 2);
+
+        return G4Term({std::array<int, 4>({1, 0, 1, 0}), btint->base()});
+    }
+    
+    
     return term;
 }
 
