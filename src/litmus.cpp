@@ -34,9 +34,9 @@ int main(int argc, char **argv)
 {
     // run configuration
 
-    //const auto run_type = std::pair<std::string, std::string>({"t4c_geom_hrr_cpu", "electron repulsion"});
+    const auto run_type = std::pair<std::string, std::string>({"t4c_geom_hrr_cpu", "electron repulsion"});
     
-    const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
+    //const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
 
     const int max_ang_mom = 2;
 
@@ -100,13 +100,12 @@ int main(int argc, char **argv)
     
     if (run_type.first == "t4c_geom_hrr_cpu")
     {
-        std::array<int, 4> geom_drvs = {2, 0, 0, 0};
+        std::array<int, 4> geom_drvs = {0, 1, 0, 0};
         
         const auto t4c_geom_drv = T4CGeomHrrCPUGenerator();
             
         t4c_geom_drv.generate(run_type.second, max_ang_mom, geom_drvs);
     }
-    
     
     if (run_type.first == "t2c_geom_cpu")
     {

@@ -14,12 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "v4i_geom11_eri_driver.hpp"
+#include "v4i_geom01_eri_driver.hpp"
 
 bool
-V4IGeom11ElectronRepulsionDriver::is_electron_repulsion(const I4CIntegral& integral) const
+V4IGeom01ElectronRepulsionDriver::is_electron_repulsion(const I4CIntegral& integral) const
 {
-    if (integral.prefixes_order() != std::vector<int>({1, 1, 0, 0}))
+    if (integral.prefixes_order() != std::vector<int>({0, 1, 0, 0}))
     {
         return false;
     }
@@ -35,7 +35,7 @@ V4IGeom11ElectronRepulsionDriver::is_electron_repulsion(const I4CIntegral& integ
 }
 
 SI4CIntegrals
-V4IGeom11ElectronRepulsionDriver::bra_hrr(const I4CIntegral& integral) const
+V4IGeom01ElectronRepulsionDriver::bra_hrr(const I4CIntegral& integral) const
 {
     SI4CIntegrals tints;
     
@@ -48,32 +48,22 @@ V4IGeom11ElectronRepulsionDriver::bra_hrr(const I4CIntegral& integral) const
         tints.insert(*tval);
         
         // second recursion term
-        
-        if (const auto r2val = tval->shift_prefix(-1, 0, false))
-        {
-            tints.insert(*r2val);
-        }
+
+        tints.insert(tval->base());
         
         // third recursion term
         
-        if (const auto r3val = tval->shift_prefix(-1, 1, false))
+        if (const auto r2val = tval->shift(1, 1))
         {
-            tints.insert(*r3val);
-        }
-        
-        // fourth recursion term
-        
-        if (const auto r4val = tval->shift(1, 1))
-        {
-            tints.insert(*r4val);
+            tints.insert(*r2val);
         }
     }
-    
+        
     return tints;
 }
 
 SI4CIntegrals
-V4IGeom11ElectronRepulsionDriver::apply_bra_hrr_recursion(const I4CIntegral& integral) const
+V4IGeom01ElectronRepulsionDriver::apply_bra_hrr_recursion(const I4CIntegral& integral) const
 {
     SI4CIntegrals tints;
     

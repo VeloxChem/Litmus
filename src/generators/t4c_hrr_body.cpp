@@ -114,13 +114,13 @@ T4CHrrFuncBodyDriver::write_bra_func_body(      std::ofstream& fstream,
     lines.push_back({1, 0, 2, "const auto dcomps = tensor::number_of_spherical_components(std::array<int, 1>{d_angmom,});"});
     
     lines.push_back({1, 0, 2, "// set up R(AB) distances"});
-
+        
     lines.push_back({1, 0, 2, "const auto xyz = r_ab.coordinates();"});
-
+        
     lines.push_back({1, 0, 2, "const auto ab_x = xyz[0];"});
-
+        
     lines.push_back({1, 0, 2, "const auto ab_y = xyz[1];"});
-
+        
     lines.push_back({1, 0, 2, "const auto ab_z = xyz[2];"});
     
     lines.push_back({1, 0, 1, "for (int i = 0; i < ccomps; i++)"});

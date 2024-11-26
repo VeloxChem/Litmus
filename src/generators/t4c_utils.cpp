@@ -20,7 +20,9 @@
 
 #include "v4i_eri_driver.hpp"
 #include "t4c_center_driver.hpp"
+#include "v4i_geom11_eri_driver.hpp"
 #include "v4i_geom10_eri_driver.hpp"
+#include "v4i_geom01_eri_driver.hpp"
 #include "v4i_geom20_eri_driver.hpp"
 
 namespace t4c { // t4c namespace
@@ -393,9 +395,23 @@ get_bra_geom_hrr_integrals(const I4CIntegral& integral)
         tints = geom_drv.bra_hrr(integral);
     }
     
+    if (geom_order == std::vector<int>({0, 1, 0, 0}))
+    {
+        V4IGeom01ElectronRepulsionDriver geom_drv;
+        
+        tints = geom_drv.bra_hrr(integral);
+    }
+    
     if (geom_order == std::vector<int>({2, 0, 0, 0}))
     {
         V4IGeom20ElectronRepulsionDriver geom_drv;
+        
+        tints = geom_drv.bra_hrr(integral);
+    }
+    
+    if (geom_order == std::vector<int>({1, 1, 0, 0}))
+    {
+        V4IGeom11ElectronRepulsionDriver geom_drv;
         
         tints = geom_drv.bra_hrr(integral);
     }
@@ -420,6 +436,43 @@ get_geom_integrals(const I4CIntegral& integral)
         {
             tints.insert(I4CIntegral(rgroup[i][j].integral().base()));
         }
+    }
+    
+    return tints;
+}
+
+SI4CIntegrals
+get_aux_geom_hrr_integrals(const I4CIntegral& integral)
+{
+    const auto geom_order = integral.prefixes_order();
+    
+    SI4CIntegrals tints;
+    
+    if ((geom_order == std::vector<int>({0, 1, 0, 0})) && (integral[0] == 0))
+    {
+        if (const auto cint = integral.shift(1, 1))
+        {
+            tints.insert(cint->base());
+        }
+        
+        if (const auto cint = integral.shift(-1, 1))
+        {
+            tints.insert(cint->base());
+        }
+    }
+    
+    if ((geom_order == std::vector<int>({1, 1, 0, 0})) && (integral[0] == 0))
+    {
+        const auto rtint = integral.shift_prefix(-1, 0, false);
+        
+        if (const auto cint = rtint->shift(1, 1))
+        {
+            tints.insert(*cint);
+        }
+        
+        tints.insert(*rtint);
+        
+        tints.insert(rtint->base()); 
     }
     
     return tints;
@@ -594,6 +647,13 @@ prune_term(const G4Term& term)
         const auto cint = *tint.shift(1, 0);
         
         return G4Term({std::array<int, 4>({1, 0, 0, 0}), cint.base()});
+    }
+    
+    if (tint.prefixes_order() == std::vector<int>({0, 1, 0, 0}) && (tint[0] == 0) && (tint[1] == 0))
+    {
+        const auto cint = *tint.shift(1, 1);
+        
+        return G4Term({std::array<int, 4>({0, 1, 0, 0}), cint.base()});
     }
     
     if (tint.prefixes_order() == std::vector<int>({1, 1, 0, 0}) && (tint[0] == 0) && (tint[1] == 0))

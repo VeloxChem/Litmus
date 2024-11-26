@@ -125,6 +125,10 @@ SI4CIntegrals get_bra_geom_hrr_integrals(const I4CIntegral& integral);
 /// @param integral The base two center integral.
 SI4CIntegrals get_geom_integrals(const I4CIntegral& integral);
 
+/// Gets arguments list for bra auxilary horizontal recursion function call.
+/// @param integral The base two center integral.
+SI4CIntegrals get_aux_geom_hrr_integrals(const I4CIntegral& integral);
+
 /// Generates primitive file name.
 /// @param integral The base four center integral.
 /// @return The primitive file name.

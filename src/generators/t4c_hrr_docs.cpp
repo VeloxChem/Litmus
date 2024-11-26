@@ -233,13 +233,25 @@ T4CHrrDocuDriver::_get_bra_geom_buffers_str(const I4CIntegral& integral) const
     
     vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
     
-    for (const auto& tint : t4c::get_bra_geom_hrr_integrals(integral))
+    if (integral[0] == 0)
     {
-        label = t4c::get_hrr_index(tint, false);
-        
-        vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
+        for (const auto& tint : t4c::get_aux_geom_hrr_integrals(integral))
+        {
+            label = t4c::get_hrr_index(tint, false);
+            
+            vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
+        }
     }
-
+    else
+    {
+        for (const auto& tint : t4c::get_bra_geom_hrr_integrals(integral))
+        {
+            label = t4c::get_hrr_index(tint, false);
+            
+            vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
+        }
+    }
+    
     return vstr;
 }
 
@@ -248,7 +260,14 @@ T4CHrrDocuDriver::_get_bra_coordinates_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
    
-    vstr.push_back("/// @param r_ab The Cartesian distance R(AB) = A - B.");
+    const bool no_rab = (integral.prefixes_order() == std::vector<int>({0, 1, 0, 0}))
+    
+                      && (integral[0] == 0);
+    
+    if (!no_rab)
+    {
+        vstr.push_back("/// @param r_ab The Cartesian distance R(AB) = A - B.");
+    }
             
     return vstr;
 }

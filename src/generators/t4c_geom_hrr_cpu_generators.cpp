@@ -33,15 +33,46 @@ T4CGeomHrrCPUGenerator::generate(const std::string&        label,
 {
     if (_is_available(label))
     {
-        for (int i = 1; i <= 2 * max_ang_mom; i++)
+        if (geom_drvs == std::array<int, 4>({0, 1, 0, 0}))
         {
-            for (int j = 0; j <= 2 * max_ang_mom; j++)
+            for (int i = 0; i <= 3 * max_ang_mom; i++)
             {
-                const auto integral = _get_integral(label, {i, j, 0, 0}, geom_drvs);
-                
-                _write_bra_hrr_cpp_header(integral);
-                
-                _write_bra_hrr_cpp_file(integral);
+                for (int j = 0; j <= 3 * max_ang_mom; j++)
+                {
+                    const auto integral = _get_integral(label, {i, j, 0, 0}, geom_drvs);
+                    
+                    _write_bra_hrr_cpp_header(integral);
+                    
+                    _write_bra_hrr_cpp_file(integral);
+                }
+            }
+        }
+        else if (geom_drvs == std::array<int, 4>({1, 1, 0, 0}))
+        {
+            for (int i = 0; i <= 2 * max_ang_mom; i++)
+            {
+                for (int j = 0; j <= 2 * max_ang_mom; j++)
+                {
+                    const auto integral = _get_integral(label, {i, j, 0, 0}, geom_drvs);
+                    
+                    _write_bra_hrr_cpp_header(integral);
+                    
+                    _write_bra_hrr_cpp_file(integral);
+                }
+            }
+        }
+        else
+        {
+            for (int i = 1; i <= 2 * max_ang_mom; i++)
+            {
+                for (int j = 0; j <= 2 * max_ang_mom; j++)
+                {
+                    const auto integral = _get_integral(label, {i, j, 0, 0}, geom_drvs);
+                    
+                    _write_bra_hrr_cpp_header(integral);
+                    
+                    _write_bra_hrr_cpp_file(integral);
+                }
             }
         }
     }

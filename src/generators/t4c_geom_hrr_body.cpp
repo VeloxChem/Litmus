@@ -18,7 +18,9 @@
 
 #include "t4c_utils.hpp"
 #include "t2c_utils.hpp"
+#include "t4c_geom_11_hrr_eri_driver.hpp"
 #include "t4c_geom_10_hrr_eri_driver.hpp"
+#include "t4c_geom_01_hrr_eri_driver.hpp"
 #include "t4c_geom_20_hrr_eri_driver.hpp"
 #include "string_formater.hpp"
 
@@ -120,15 +122,22 @@ T4CGeomHrrFuncBodyDriver::write_bra_func_body(      std::ofstream& fstream,
     
     lines.push_back({1, 0, 2, "const auto dcomps = tensor::number_of_spherical_components(std::array<int, 1>{d_angmom,});"});
     
-    lines.push_back({1, 0, 2, "// set up R(AB) distances"});
-
-    lines.push_back({1, 0, 2, "const auto xyz = r_ab.coordinates();"});
-
-    lines.push_back({1, 0, 2, "const auto ab_x = xyz[0];"});
-
-    lines.push_back({1, 0, 2, "const auto ab_y = xyz[1];"});
-
-    lines.push_back({1, 0, 2, "const auto ab_z = xyz[2];"});
+    const bool no_rab = (integral.prefixes_order() == std::vector<int>({0, 1, 0, 0}))
+    
+                      && (integral[0] == 0);
+    
+    if (!no_rab)
+    {
+        lines.push_back({1, 0, 2, "// set up R(AB) distances"});
+        
+        lines.push_back({1, 0, 2, "const auto xyz = r_ab.coordinates();"});
+        
+        lines.push_back({1, 0, 2, "const auto ab_x = xyz[0];"});
+        
+        lines.push_back({1, 0, 2, "const auto ab_y = xyz[1];"});
+        
+        lines.push_back({1, 0, 2, "const auto ab_z = xyz[2];"});
+    }
     
     lines.push_back({1, 0, 1, "for (int i = 0; i < ccomps; i++)"});
     
@@ -147,7 +156,7 @@ T4CGeomHrrFuncBodyDriver::write_bra_func_body(      std::ofstream& fstream,
         rec_dists.push_back(_get_bra_hrr_recursion(component));
     }
     
-   for (const auto& label : _get_bra_buffers_str(rec_dists, integral))
+    for (const auto& label : _get_bra_buffers_str(rec_dists, integral))
     {
         lines.push_back({3, 0, 2, label});
     }
@@ -196,6 +205,40 @@ T4CGeomHrrFuncBodyDriver::write_bra_func_body(      std::ofstream& fstream,
             }
     }
     
+    if (geom_orders == std::vector<int>({1, 1, 0, 0}))
+    {
+            for (int i = 0; i < 9 * bcomps; i++)
+            {
+                const std::array<int, 2> rec_range({i * kcomps, (i + 1) * kcomps});
+        
+                for (const auto& label : _get_bra_buffers_str(integral, components, rec_range))
+                {
+                    lines.push_back({3, 0, 2, label});
+                }
+        
+                _add_bra_recursion_loop(lines, integral, components, {i * kcomps, (i + 1) * kcomps});
+        
+                if (i < (9 * bcomps - 1)) lines.push_back({0, 0, 1, ""});;
+            }
+    }
+    
+    if (geom_orders == std::vector<int>({0, 1, 0, 0}))
+    {
+            for (int i = 0; i < 3 * bcomps; i++)
+            {
+                const std::array<int, 2> rec_range({i * kcomps, (i + 1) * kcomps});
+        
+                for (const auto& label : _get_bra_buffers_str(integral, components, rec_range))
+                {
+                    lines.push_back({3, 0, 2, label});
+                }
+        
+                _add_bra_recursion_loop(lines, integral, components, {i * kcomps, (i + 1) * kcomps});
+        
+                if (i < (3 * bcomps - 1)) lines.push_back({0, 0, 1, ""});;
+            }
+    }
+    
     lines.push_back({2, 0, 1, "}"});
     
     lines.push_back({1, 0, 1, "}"});
@@ -219,6 +262,40 @@ T4CGeomHrrFuncBodyDriver::_get_bra_hrr_recursion(const T4CIntegral& integral) co
             T4CGeom10HrrElectronRepulsionDriver eri_drv;
     
             if (integral[0].order() > 0)
+            {
+                rdist = eri_drv.apply_bra_hrr(R4CTerm(integral));
+            }
+        }
+    }
+    
+    if (geom_order == std::vector<int>({0, 1, 0, 0}))
+    {
+        if (integral.integrand().name() == "1/|r-r'|")
+        {
+            T4CGeom01HrrElectronRepulsionDriver eri_drv;
+            
+            if (integral[0].order() == 0)
+            {
+                rdist = eri_drv.apply_bra_aux_hrr(R4CTerm(integral));
+            }
+            else
+            {
+                rdist = eri_drv.apply_bra_hrr(R4CTerm(integral));
+            }
+        }
+    }
+    
+    if (geom_order == std::vector<int>({1, 1, 0, 0}))
+    {
+        if (integral.integrand().name() == "1/|r-r'|")
+        {
+            T4CGeom11HrrElectronRepulsionDriver eri_drv;
+            
+            if (integral[0].order() == 0)
+            {
+                rdist = eri_drv.apply_bra_aux_hrr(R4CTerm(integral));
+            }
+            else
             {
                 rdist = eri_drv.apply_bra_hrr(R4CTerm(integral));
             }
@@ -325,7 +402,10 @@ T4CGeomHrrFuncBodyDriver::_get_bra_buffers_str(const std::vector<R4CDist>& rec_d
 {
     std::vector<std::string> vstr;
     
-    for (const auto& tint : t4c::get_bra_geom_hrr_integrals(integral))
+    auto tints = (integral[0] == 0) ? t4c::get_aux_geom_hrr_integrals(integral)
+                                    : t4c::get_bra_geom_hrr_integrals(integral);
+    
+    for (const auto& tint : tints)
     {
         auto label = "cbuffer.data(";
         

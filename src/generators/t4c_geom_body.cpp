@@ -1026,6 +1026,8 @@ T4CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
                                          const SI4CIntegrals& vrr_integrals,
                                          const I4CIntegral&   integral) const
 {
+    // non-scaled integrals
+    
     for (const auto& term : cterms)
     {
         if (term.first == std::array<int, 4>({0, 0, 0, 0}))
@@ -1048,13 +1050,66 @@ T4CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
         }
     }
     
+    // scalec integrals on center B
+    
+    for (const auto& term : cterms)
+    {
+        if (term.first == std::array<int, 4>({0, 1, 0, 0}))
+        {
+            const auto tint = term.second;
+            
+            std::string label = "pbuffer.scale(2.0 * b_exp, {";
+           
+            label +=  std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
+           
+            label +=  std::to_string(_get_index(0, tint, vrr_integrals) + tint.components<T2CPair, T2CPair>().size()) + "});";
+           
+            lines.push_back({4, 0, 2, label});
+        }
+    }
+    
+    for (const auto& term : cterms)
+    {
+        if (term.first == std::array<int, 4>({0, 1, 0, 0}))
+        {
+            const auto tint = term.second;
+            
+            std::string label = "t2cfunc::reduce(cbuffer, ";
+                
+            label +=  std::to_string(_get_index(term, cterms)) + ", ";
+                
+            label += "pbuffer, ";
+                
+            label += std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
+                
+            label += std::to_string(tint.components<T2CPair, T2CPair>().size()) + ", ";
+                
+            label += "ket_width, ket_npgtos);";
+                
+            lines.push_back({4, 0, 2, label});
+        }
+    }
+    
+    // scaled integrals on center B
+    
     for (const auto& term : cterms)
     {
         if (term.first == std::array<int, 4>({1, 0, 0, 0}))
         {
             const auto tint = term.second;
             
-            std::string label = "pbuffer.scale(2.0 * a_exp, {";
+            std::string label;
+            
+            const auto gterm = t4c::prune_term(G4Term({std::array<int, 4>({0, 1, 0, 0}), tint}));
+                
+            if (_find_term(gterm, cterms))
+            {
+                label += "pbuffer.scale(a_exp / b_exp, {";
+            }
+            else
+            {
+                label += "pbuffer.scale(2.0 * a_exp, {";
+            }
            
             label +=  std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
            
@@ -1086,6 +1141,8 @@ T4CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
         }
     }
     
+    // scaled integrals on centers A and B
+    
     for (const auto& term : cterms)
     {
         if (term.first == std::array<int, 4>({1, 1, 0, 0}))
@@ -1093,8 +1150,17 @@ T4CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
             const auto tint = term.second;
             
             std::string label;
-           
-            label += "pbuffer.scale(4.0 * a_exp * b_exp, {";
+            
+            const auto gterm = t4c::prune_term(G4Term({std::array<int, 4>({1, 0, 0, 0}), tint}));
+                
+            if (_find_term(gterm, cterms))
+            {
+                label += "pbuffer.scale(2.0 * b_exp, {";
+            }
+            else
+            {
+                label += "pbuffer.scale(4.0 * a_exp * b_exp, {";
+            }
                 
             label +=  std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
            
@@ -1255,6 +1321,8 @@ T4CGeomFuncBodyDriver::_add_ket_hrr_call_tree(      VCodeLines&  lines,
     {
         const auto tint = term.second;
         
+        if (!tint.prefixes().empty()) continue;
+        
         const auto name = t4c::ket_hrr_compute_func_name(tint);
             
         auto label = t4c::namespace_label(tint) + "::" + name + "(ckbuffer, ";
@@ -1354,6 +1422,50 @@ T4CGeomFuncBodyDriver::_add_bra_geom_hrr_call_tree(      VCodeLines&  lines,
         const auto tint = term.second;
         
         if (tint.prefixes_order() == std::vector<int>({1, 0, 0, 0}))
+        {
+            const auto name = t4c::bra_geom_hrr_compute_func_name(tint);
+           
+            auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+            
+            label += _get_bra_geom_hrr_arguments(term, skterms);
+            
+            label += "r_ab, ";
+            
+            label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+            
+            label += ");";
+            
+            lines.push_back({spacer, 0, 2, label});
+        }
+    }
+    
+    for (const auto& term : skterms)
+    {
+        const auto tint = term.second;
+        
+        if (tint.prefixes_order() == std::vector<int>({0, 1, 0, 0}))
+        {
+            const auto name = t4c::bra_geom_hrr_compute_func_name(tint);
+           
+            auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+            
+            label += _get_bra_geom_hrr_arguments(term, skterms);
+            
+            if (tint[0] > 0) label += "r_ab, ";
+            
+            label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+            
+            label += ");";
+            
+            lines.push_back({spacer, 0, 2, label});
+        }
+    }
+    
+    for (const auto& term : skterms)
+    {
+        const auto tint = term.second;
+        
+        if (tint.prefixes_order() == std::vector<int>({1, 1, 0, 0}))
         {
             const auto name = t4c::bra_geom_hrr_compute_func_name(tint);
            
@@ -1641,6 +1753,35 @@ T4CGeomFuncBodyDriver::_get_bra_geom_hrr_arguments(const G4Term&  term,
     
     if (tint[0] == 0)
     {
+        if (tint.prefixes_order() == std::vector<int>({0, 1, 0, 0}))
+        {
+            for (const auto& rtint : t4c::get_aux_geom_hrr_integrals(tint))
+            {
+                if (rtint[1] > tint[1])
+                {
+                    auto rterm = G4Term({std::array<int, 4>{1, 1, 0, 0}, rtint});
+                    
+                    label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
+                }
+                else
+                {
+                    auto rterm = G4Term({std::array<int, 4>{1, 0, 0, 0}, rtint});
+                    
+                    label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
+                }
+            }
+        }
+        
+        if (tint.prefixes_order() == std::vector<int>({1, 1, 0, 0}))
+        {
+            for (const auto& rtint : t4c::get_aux_geom_hrr_integrals(tint))
+            {
+                auto rterm = G4Term({std::array<int, 4>{1, 0, 0, 0}, rtint});
+                
+                label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
+            }
+        }
+                
         if (tint.prefixes_order() == std::vector<int>({2, 0, 0, 0}))
         {
             auto rterm = G4Term({std::array<int, 4>{1, 0, 0, 0}, tint.base()});

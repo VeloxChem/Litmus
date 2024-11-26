@@ -179,14 +179,14 @@ T4CHrrDeclDriver::_get_bra_buffers_str(const I4CIntegral& integral) const
     auto label = t4c::get_hrr_index(integral, false);
     
     vstr.push_back(spacer + "const size_t " + label + "," );
-    
+   
     for (const auto& tint : t4c::get_bra_hrr_integrals(integral))
     {
         label = t4c::get_hrr_index(tint, false);
-        
+            
         vstr.push_back(spacer + "const size_t " + label + "," );
     }
-    
+   
     return vstr;
 }
 
@@ -205,11 +205,23 @@ T4CHrrDeclDriver::_get_bra_geom_buffers_str(const I4CIntegral& integral) const
     
     vstr.push_back(spacer + "const size_t " + label + "," );
     
-    for (const auto& tint : t4c::get_bra_geom_hrr_integrals(integral))
+    if (integral[0] == 0)
     {
-        label = t4c::get_hrr_index(tint, false);
-        
-        vstr.push_back(spacer + "const size_t " + label + "," );
+        for (const auto& tint : t4c::get_aux_geom_hrr_integrals(integral))
+        {
+            label = t4c::get_hrr_index(tint, false);
+            
+            vstr.push_back(spacer + "const size_t " + label + "," );
+        }
+    }
+    else
+    {
+        for (const auto& tint : t4c::get_bra_geom_hrr_integrals(integral))
+        {
+            label = t4c::get_hrr_index(tint, false);
+            
+            vstr.push_back(spacer + "const size_t " + label + "," );
+        }
     }
     
     return vstr;
@@ -237,9 +249,16 @@ T4CHrrDeclDriver::_get_bra_geom_coordinates_str(const I4CIntegral& integral) con
     auto name = t4c::bra_geom_hrr_compute_func_name(integral) + "(";
     
     const auto spacer = std::string(name.size(), ' ');
+    
+    const bool no_rab = (integral.prefixes_order() == std::vector<int>({0, 1, 0, 0}))
+    
+                      && (integral[0] == 0);
+    
+    if (!no_rab)
+    {
+        vstr.push_back(spacer + "const TPoint<double>& r_ab,");
+    }
    
-    vstr.push_back(spacer + "const TPoint<double>& r_ab,");
-        
     return vstr;
 }
 

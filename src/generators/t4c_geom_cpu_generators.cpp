@@ -268,6 +268,58 @@ T4CGeomCPUGenerator::_generate_geom_terms_group(const SI4CIntegrals& integrals) 
                 terms.insert({std::array<int, 4>{1, 0, 0, 0}, tint.base()});
             }
         }
+        
+        if (tint.prefixes_order() == std::vector<int>({1, 1, 0, 0}))
+        {
+            if (tint[0] == 0)
+            {
+                if (tint[1] == 0)
+                {
+                    const auto rtint = tint.shift(1, 0);
+                    
+                    const auto ctint = rtint->shift(1, 1);
+                    
+                    terms.insert({std::array<int, 4>{1, 1, 0, 0}, ctint->base()});
+                }
+                else
+                {
+                    const auto rtint = tint.shift_prefix(-1, 0, false);
+                    
+                    // up rec. terms
+                    
+                    if (const auto ctint = rtint->shift(1, 1))
+                    {
+                        terms.insert({std::array<int, 4>{1, 0, 0, 0}, *ctint});
+                        
+                        if (const auto ptint = ctint->shift(1, 1))
+                        {
+                            terms.insert({std::array<int, 4>{1, 1, 0, 0}, ptint->base()});
+                        }
+                        
+                        if (const auto ptint = ctint->shift(-1, 1))
+                        {
+                            terms.insert({std::array<int, 4>{1, 0, 0, 0}, ptint->base()});
+                        }
+                    }
+                    
+                    // down rec. terms
+                    
+                    terms.insert({std::array<int, 4>{1, 0, 0, 0}, *rtint});
+                    
+                    terms.insert({std::array<int, 4>{1, 0, 0, 0}, rtint->base()});
+                    
+                    if (const auto ptint = rtint->shift(1, 1))
+                    {
+                        terms.insert({std::array<int, 4>{1, 1, 0, 0}, ptint->base()});
+                    }
+                    
+                    if (const auto ptint = rtint->shift(-1, 1))
+                    {
+                        terms.insert({std::array<int, 4>{1, 0, 0, 0}, ptint->base()});
+                    }
+                }
+            }
+        }
     }
     
     return terms;
@@ -792,6 +844,16 @@ T4CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
                 if (tint.prefixes_order() == std::vector<int>({2, 0, 0, 0}))
                 {
                     labels.insert("ElectronRepulsionGeom2000ContrRecSXXX");
+                }
+                
+                if (tint.prefixes_order() == std::vector<int>({0, 1, 0, 0}))
+                {
+                    labels.insert(t4c::bra_geom_hrr_file_name(tint));
+                }
+                
+                if (tint.prefixes_order() == std::vector<int>({1, 1, 0, 0}))
+                {
+                    labels.insert(t4c::bra_geom_hrr_file_name(tint));
                 }
             }
         }
