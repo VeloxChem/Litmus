@@ -46,6 +46,34 @@ T4CHrrDeclDriver::write_ket_func_decl(      std::ofstream& fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+void
+T4CHrrDeclDriver::write_ket_geom_func_decl(      std::ofstream& fstream,
+                                           const I4CIntegral&   integral,
+                                           const bool           terminus) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "auto"});
+    
+    for (const auto& label : _get_ket_geom_buffers_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_ket_geom_coordinates_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_ket_geom_recursion_variables_str(integral, terminus))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+        
+    ost::write_code_lines(fstream, lines);
+}
+
+
 std::vector<std::string>
 T4CHrrDeclDriver::_get_ket_buffers_str(const I4CIntegral& integral) const
 {
@@ -77,11 +105,70 @@ T4CHrrDeclDriver::_get_ket_buffers_str(const I4CIntegral& integral) const
 }
 
 std::vector<std::string>
+T4CHrrDeclDriver::_get_ket_geom_buffers_str(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    auto name = t4c::ket_geom_hrr_compute_func_name(integral) + "(";
+    
+    const auto spacer = std::string(name.size(), ' ');
+    
+    auto label = t4c::get_hrr_index(integral, true);
+    
+    vstr.push_back(name + "CSimdArray<double>& cbuffer," );
+    
+    vstr.push_back(spacer + "const size_t " + label + "," );
+    
+    if (integral[2] == 0)
+    {
+        vstr.push_back(spacer + "CSimdArray<double>& pbuffer," );
+    }
+    
+    if (integral[2] == 0)
+    {
+        for (const auto& tint : t4c::get_aux_geom_hrr_integrals(integral))
+        {
+            auto label = t4c::get_hrr_index(tint, true);
+            
+            vstr.push_back(spacer + "const size_t " + label + "," );
+        }
+    }
+    else
+    {
+        for (const auto& tint : t4c::get_ket_geom_hrr_integrals(integral))
+        {
+            auto label = t4c::get_hrr_index(tint, true);
+            
+            vstr.push_back(spacer + "const size_t " + label + "," );
+        }
+        
+    }
+    
+    return vstr;
+}
+
+std::vector<std::string>
 T4CHrrDeclDriver::_get_ket_coordinates_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
     auto name = t4c::ket_hrr_compute_func_name(integral) + "(";
+    
+    const auto spacer = std::string(name.size(), ' ');
+   
+    vstr.push_back(spacer + "const CSimdArray<double>& factors,");
+        
+    vstr.push_back(spacer + "const size_t idx_cd,");
+        
+    return vstr;
+}
+
+std::vector<std::string>
+T4CHrrDeclDriver::_get_ket_geom_coordinates_str(const I4CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    auto name = t4c::ket_geom_hrr_compute_func_name(integral) + "(";
     
     const auto spacer = std::string(name.size(), ' ');
    
@@ -101,6 +188,25 @@ T4CHrrDeclDriver::_get_ket_recursion_variables_str(const I4CIntegral& integral,
     const auto tsymbol = (terminus) ? ";" : "";
     
     auto name = t4c::ket_hrr_compute_func_name(integral) + "(";
+    
+    const auto spacer = std::string(name.size(), ' ');
+    
+    vstr.push_back(spacer + "const int a_angmom,");
+        
+    vstr.push_back(spacer + "const int b_angmom) -> void" + tsymbol);
+ 
+    return vstr;
+}
+
+std::vector<std::string>
+T4CHrrDeclDriver::_get_ket_geom_recursion_variables_str(const I4CIntegral& integral,
+                                                        const bool         terminus) const
+{
+    std::vector<std::string> vstr;
+    
+    const auto tsymbol = (terminus) ? ";" : "";
+    
+    auto name = t4c::ket_geom_hrr_compute_func_name(integral) + "(";
     
     const auto spacer = std::string(name.size(), ' ');
     
@@ -195,21 +301,39 @@ T4CHrrDeclDriver::_get_bra_geom_buffers_str(const I4CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
+    const auto gorders = integral.prefixes_order();
+    
     auto name = t4c::bra_geom_hrr_compute_func_name(integral) + "(";
     
     const auto spacer = std::string(name.size(), ' ');
     
     vstr.push_back(name + "CSimdArray<double>& cbuffer," );
     
-    auto label = t4c::get_hrr_index(integral, false);
+    std::string label;
     
+    if (gorders == std::vector<int>({1, 0, 1, 0}))
+    {
+        label = t4c::get_full_hrr_index(integral, false);
+    }
+    else
+    {
+        label = t4c::get_hrr_index(integral, false);
+    }
+  
     vstr.push_back(spacer + "const size_t " + label + "," );
     
     if (integral[0] == 0)
     {
         for (const auto& tint : t4c::get_aux_geom_hrr_integrals(integral))
         {
-            label = t4c::get_hrr_index(tint, false);
+            if (gorders == std::vector<int>({1, 0, 1, 0}))
+            {
+                label = t4c::get_full_hrr_index(tint, false);
+            }
+            else
+            {
+                label = t4c::get_hrr_index(tint, false);
+            }
             
             vstr.push_back(spacer + "const size_t " + label + "," );
         }

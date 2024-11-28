@@ -31,20 +31,40 @@ class T4CHrrDocuDriver
     /// @return The compute string.
     std::string _get_ket_compute_str(const I4CIntegral& integral) const;
     
+    /// Generates compute string.
+    /// @param integral The base two center integral.
+    /// @return The compute string.
+    std::string _get_ket_geom_compute_str(const I4CIntegral& integral) const;
+    
     /// Generates vector of buffer strings.
     /// @param integral The base two center integral.
     /// @return The vector of buffer strings.
     std::vector<std::string> _get_ket_buffers_str(const I4CIntegral& integral) const;
+    
+    /// Generates vector of buffer strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffer strings.
+    std::vector<std::string> _get_ket_geom_buffers_str(const I4CIntegral& integral) const;
     
     /// Generates vector of coordinates strings.
     /// @param integral The base two center integral.
     /// @return The vector of coordinates strings.
     std::vector<std::string> _get_ket_coordinates_str(const I4CIntegral& integral) const;
     
+    /// Generates vector of coordinates strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of coordinates strings.
+    std::vector<std::string> _get_ket_geom_coordinates_str(const I4CIntegral& integral) const;
+    
     /// Generates vector of recursion variables strings.
     /// @param integral The base two center integral.
     /// @return The vector of recursion variables strings.
     std::vector<std::string> _get_ket_recursion_variables_str(const I4CIntegral& integral) const;
+    
+    /// Generates vector of recursion variables strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of recursion variables strings.
+    std::vector<std::string> _get_ket_geom_recursion_variables_str(const I4CIntegral& integral) const;
     
     /// Generates compute string.
     /// @param integral The base two center integral.
@@ -96,6 +116,12 @@ public:
     /// @param fstream the file stream.
     /// @param integral The base four center integral.
     void write_bra_geom_doc_str(      std::ofstream& fstream,
+                                const I4CIntegral&   integral) const;
+    
+    /// Writes documentation string for primtive compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base four center integral.
+    void write_ket_geom_doc_str(      std::ofstream& fstream,
                                 const I4CIntegral&   integral) const;
     
 };

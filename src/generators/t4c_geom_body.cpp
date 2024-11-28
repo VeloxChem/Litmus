@@ -1385,6 +1385,37 @@ T4CGeomFuncBodyDriver::_add_ket_hrr_call_tree(      VCodeLines&  lines,
             
         lines.push_back({spacer, 0, 2, label});
     }
+    
+    for (const auto& term : ckterms)
+    {
+        const auto tint = term.second;
+        
+        if (const auto gorders = tint.prefixes_order(); !gorders.empty())
+        {
+            if ((gorders[2] + gorders[3]) == 0) continue;
+            
+            const auto name = t4c::ket_geom_hrr_compute_func_name(tint);
+                
+            auto label = t4c::namespace_label(tint) + "::" + name + "(ckbuffer, ";
+                
+            label += std::to_string(_get_index(term, ckterms)) + ", ";
+                
+            if (tint[2] == 0)
+            {
+                label += "cbuffer, ";
+            }
+                
+            label += _get_ket_geom_hrr_arguments(term, cterms, ckterms);
+                
+            label += "cfactors, 6, ";
+                
+            label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]);
+                
+            label += ");";
+                
+            lines.push_back({spacer, 0, 2, label});
+        }
+    }
 }
 
 void
@@ -1427,9 +1458,9 @@ T4CGeomFuncBodyDriver::_add_ket_trafo_call_tree(      VCodeLines&  lines,
             else
             {
                 label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
-                
+                    
                 label += "(skbuffer, "  + std::to_string(_get_half_spher_index(term, skterms)) + ", ";
-                
+                    
                 if (tint[2] == 0)
                 {
                     label += "cbuffer, " + std::to_string(_get_index(term, cterms))  + ", ";
@@ -1438,10 +1469,44 @@ T4CGeomFuncBodyDriver::_add_ket_trafo_call_tree(      VCodeLines&  lines,
                 {
                     label += "ckbuffer, " + std::to_string(_get_index(term, ckterms))  + ", ";
                 }
-                
+                    
                 label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
-                
+                    
                 lines.push_back({spacer, 0, 2, label});
+            }
+        }
+    }
+    
+    for (const auto& term : skterms)
+    {
+        std::string label;
+        
+        const auto tint = term.second;
+        
+        if (const auto gorders = tint.prefixes_order(); !gorders.empty())
+        {
+            if ((gorders[0] + gorders[1]) > 0) continue;
+            
+            if (gorders[2] > 0)
+            {
+                const auto gcomps = Tensor(gorders[2]).components().size();
+               
+                const auto ccomps = t2c::number_of_cartesian_components(std::array<int, 2>{tint[0], tint[1]});
+                
+                const auto scomps = t2c::number_of_spherical_components(std::array<int, 2>{tint[0], tint[1]});
+                
+                for (size_t i = 0; i < gcomps; i++)
+                {
+                    label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
+                    
+                    label += "(skbuffer, "  + std::to_string(_get_half_spher_index(term, skterms) + i * scomps ) + ", ";
+                    
+                    label += "ckbuffer, " + std::to_string(_get_index(term, ckterms) + i * ccomps)  + ", ";
+                    
+                    label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
+                    
+                    lines.push_back({spacer, 0, 2, label});
+                }
             }
         }
     }
@@ -1601,6 +1666,27 @@ T4CGeomFuncBodyDriver::_add_bra_geom_hrr_call_tree(      VCodeLines&  lines,
         }
     }
             
+    for (const auto& term : skterms)
+    {
+        const auto tint = term.second;
+        
+        if (tint.prefixes_order() == std::vector<int>({1, 0, 1, 0}))
+        {
+            const auto name = t4c::bra_geom_hrr_compute_func_name(tint);
+           
+            auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+            
+            label += _get_bra_geom_hrr_arguments(term, skterms);
+            
+            label += "r_ab, " ;
+            
+            label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+            
+            label += ");";
+            
+            lines.push_back({spacer, 0, 2, label});
+        }
+    }
             
 //    const auto geom_orders = integral.prefixes_order();
 //    
@@ -1821,6 +1907,35 @@ T4CGeomFuncBodyDriver::_get_ket_hrr_arguments(const G4Term&  term,
 }
 
 std::string
+T4CGeomFuncBodyDriver::_get_ket_geom_hrr_arguments(const G4Term&  term,
+                                                   const SG4Terms& cterms,
+                                                   const SG4Terms& ckterms) const
+{
+    std::string label;
+    
+    for (const auto& tint : t4c::get_ket_geom_hrr_integrals(term.second))
+    {
+        auto efacts = term.first;
+        
+        if (term.first == std::array<int, 4>({1, 0, 0, 0}))
+        {
+            efacts = std::array<int, 4>({1, 0, 1, 0});
+        }
+        
+        if (term.second[2] == 0)
+        {
+            label += std::to_string(_get_index(G4Term({efacts, tint}), cterms)) + ", ";
+        }
+        else
+        {
+            label += std::to_string(_get_index(G4Term({efacts, tint}), ckterms)) + ", ";
+        }
+    }
+    
+    return label;
+}
+
+std::string
 T4CGeomFuncBodyDriver::_get_bra_hrr_arguments(const G4Term&  term,
                                               const SG4Terms& skterms) const
 {
@@ -1880,6 +1995,19 @@ T4CGeomFuncBodyDriver::_get_bra_geom_hrr_arguments(const G4Term&  term,
             label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
             
             rterm = G4Term({std::array<int, 4>{2, 0, 0, 0}, tint.shift(2, 0)->base()});
+                                    
+            label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
+        }
+        
+        if (tint.prefixes_order() == std::vector<int>({1, 0, 1, 0}))
+        {
+            auto cint = tint.shift_prefix(-1, 0, false);
+            
+            auto rterm = G4Term({std::array<int, 4>{1, 0, 0, 0}, *cint});
+            
+            label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
+            
+            rterm = G4Term({std::array<int, 4>{1, 0, 0, 0}, *(cint->shift(1, 1))});
                                     
             label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
         }

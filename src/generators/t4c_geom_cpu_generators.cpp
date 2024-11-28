@@ -29,6 +29,7 @@
 #include "v4i_geom10_eri_driver.hpp"
 #include "v4i_geom20_eri_driver.hpp"
 #include "v4i_geom11_eri_driver.hpp"
+#include "v4i_geom1010_eri_driver.hpp"
 #include "v4i_eri_driver.hpp"
 
 void
@@ -237,6 +238,28 @@ T4CGeomCPUGenerator::_generate_geom_integral_group(const I4CIntegral& integral) 
         }
     }
     
+    if (geom_order == std::vector<int>({1, 0, 1, 0}))
+    {
+        V4IGeom10ElectronRepulsionDriver grad_drv;
+        
+        auto cints = grad_drv.apply_ket_hrr_recursion(integral);
+        
+        if (cints.empty()) cints.insert(integral);
+        
+        for (auto cint : cints)
+        {
+            if ((cint[0] > 0) && (cint[2] == 0))
+            {
+                for (auto rint : grad_drv.apply_bra_hrr_recursion(cint))
+                {
+                    tints.insert(rint);
+                }
+            }
+            
+            tints.insert(cint);
+        }
+    }
+    
     tints.insert(integral); 
     
     return tints;
@@ -256,6 +279,28 @@ T4CGeomCPUGenerator::_generate_geom_terms_group(const SI4CIntegrals& integrals) 
             if (tint[0] == 0)
             {
                 terms.insert({std::array<int, 4>{1, 0, 0, 0}, tint.shift(1, 0)->base()});
+            }
+        }
+        
+        if (tint.prefixes_order() == std::vector<int>({1, 0, 1, 0}))
+        {
+            if ((tint[0] == 0) && (tint[2] == 0))
+            {
+                const auto btint = tint.shift_prefix(-1, 0, false);
+                
+                const auto bptint = btint->shift(1, 1);
+                
+                terms.insert({std::array<int, 4>{1, 0, 0, 0}, *btint});
+                
+                terms.insert({std::array<int, 4>{1, 0, 0, 0}, *bptint});
+                
+                terms.insert({std::array<int, 4>{1, 0, 1, 0}, btint->base()});
+                
+                terms.insert({std::array<int, 4>{1, 0, 1, 0}, btint->shift(1, 3)->base()});
+                
+                terms.insert({std::array<int, 4>{1, 0, 1, 0}, bptint->base()});
+                
+                terms.insert({std::array<int, 4>{1, 0, 1, 0}, bptint->shift(1, 3)->base()});
             }
         }
         
@@ -414,12 +459,19 @@ T4CGeomCPUGenerator::_filter_ckbuffer_terms(const SG4Terms& terms) const
     {
         int korder = 0;
         
-        if (const auto gorders = term.second.prefixes_order(); !gorders.empty())
+        const auto gorders = term.second.prefixes_order();
+        
+        if (!gorders.empty())
         {
             korder = gorders[0]; 
         }
         
         if ((term.second[0] == 0) && (term.second[2] > 0) && (korder == 0))
+        {
+            new_terms.insert(term);
+        }
+        
+        if ((term.second[0] == 0) && (gorders == std::vector<int>({0, 0, 1, 0})))
         {
             new_terms.insert(term);
         }
@@ -438,9 +490,22 @@ T4CGeomCPUGenerator::_filter_skbuffer_terms(const I4CIntegral& integral,
     
     for (const auto& term : terms)
     {
-        if ((term.second[2] == (integral[2] + gorders[2])) && (term.second[3] == (integral[3] + gorders[3])))
+        if ((gorders[2] + gorders[3]) > 0)
         {
-            new_terms.insert(term);
+            if (const auto corders = term.second.prefixes_order(); !corders.empty())
+            {
+                if ((corders[2] == gorders[2]) && (corders[3] == gorders[3]))
+                {
+                    new_terms.insert(term);
+                }
+            }
+        }
+        else
+        {
+            if ((term.second[2] == integral[2]) && (term.second[3] == integral[3]))
+            {
+                new_terms.insert(term);
+            }
         }
     }
     
@@ -854,6 +919,16 @@ T4CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
                 }
                 
                 if (tint.prefixes_order() == std::vector<int>({1, 1, 0, 0}))
+                {
+                    labels.insert(t4c::bra_geom_hrr_file_name(tint));
+                }
+                
+                if (tint.prefixes_order() == std::vector<int>({0, 0, 1, 0}))
+                {
+                    labels.insert(t4c::ket_geom_hrr_file_name(tint));
+                }
+                
+                if (tint.prefixes_order() == std::vector<int>({1, 0, 1, 0}))
                 {
                     labels.insert(t4c::bra_geom_hrr_file_name(tint));
                 }

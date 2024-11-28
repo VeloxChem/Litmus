@@ -91,6 +91,11 @@ std::string geom_compute_func_name(const I4CIntegral& integral);
 /// @return The primitive compute function name.
 std::string ket_hrr_compute_func_name(const I4CIntegral& integral);
 
+/// Generates ket horizontal recursion compute function name.
+/// @param integral The base two center integral.
+/// @return The primitive compute function name.
+std::string ket_geom_hrr_compute_func_name(const I4CIntegral& integral);
+
 /// Generates bra horizontal recursion compute function name.
 /// @param integral The base two center integral.
 /// @return The primitive compute function name.
@@ -112,6 +117,10 @@ SI4CIntegrals get_full_vrr_integrals(const I4CIntegral& integral);
 /// Gets arguments list for ket horizontal recursion function call.
 /// @param integral The base two center integral.
 SI4CIntegrals get_ket_hrr_integrals(const I4CIntegral& integral);
+
+/// Gets arguments list for ket horizontal recursion function call.
+/// @param integral The base two center integral.
+SI4CIntegrals get_ket_geom_hrr_integrals(const I4CIntegral& integral);
 
 /// Gets arguments list for bra horizontal recursion function call.
 /// @param integral The base two center integral.
@@ -144,6 +153,11 @@ std::string geom_file_name(const I4CIntegral& integral);
 /// @return The primitive file name.
 std::string ket_hrr_file_name(const I4CIntegral& integral);
 
+/// Generates ket horizontal recursion file name.
+/// @param integral The base four center integral.
+/// @return The primitive file name.
+std::string ket_geom_hrr_file_name(const I4CIntegral& integral);
+
 /// Generates bra horizontal recursion file name.
 /// @param integral The base four center integral.
 /// @return The primitive file name.
@@ -170,6 +184,13 @@ std::string get_index_label(const I4CIntegral& integral);
 /// @return The string with integral buffer index.
 std::string get_hrr_index(const I4CIntegral& integral,
                           const bool         use_ket);
+
+/// Generates horizontal recursion integral buffer index.
+/// @param integral The base two center integral.
+/// @param use_ket The flag to use ket as primary label.
+/// @return The string with integral buffer index.
+std::string get_full_hrr_index(const I4CIntegral& integral,
+                               const bool         use_ket);
 
 /// Prunes geometrical recursion term.
 /// @param term The geometrical recursion term.

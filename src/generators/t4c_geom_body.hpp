@@ -357,6 +357,14 @@ class T4CGeomFuncBodyDriver
                                        const SG4Terms& cterms,
                                        const SG4Terms& ckterms) const;
     
+    /// Gets arguments list for ket horizontal recursion function call.
+    /// @param term The recursion term.
+    /// @param cterms The set of filtered geometrical terms.
+    /// @param ckterms The set of filtered geometrical terms.
+    std::string _get_ket_geom_hrr_arguments(const G4Term&  term,
+                                            const SG4Terms& cterms,
+                                            const SG4Terms& ckterms) const;
+    
     /// Gets arguments list for bra horizontal recursion function call.
     /// @param term The recursion term.
     /// @param skterms The set of filtered geometrical terms.

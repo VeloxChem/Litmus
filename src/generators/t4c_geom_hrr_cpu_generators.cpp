@@ -35,9 +35,37 @@ T4CGeomHrrCPUGenerator::generate(const std::string&        label,
     {
         if (geom_drvs == std::array<int, 4>({0, 1, 0, 0}))
         {
-            for (int i = 0; i <= 3 * max_ang_mom; i++)
+            for (int i = 0; i <= 2 * max_ang_mom; i++)
             {
-                for (int j = 0; j <= 3 * max_ang_mom; j++)
+                for (int j = 0; j <= 2 * max_ang_mom; j++)
+                {
+                    const auto integral = _get_integral(label, {i, j, 0, 0}, geom_drvs);
+                    
+                    _write_bra_hrr_cpp_header(integral);
+                    
+                    _write_bra_hrr_cpp_file(integral);
+                }
+            }
+        }
+        else if (geom_drvs == std::array<int, 4>({0, 0, 1, 0}))
+        {
+            for (int i = 0; i <= 2 * max_ang_mom; i++)
+            {
+                for (int j = 0; j <= 2 * max_ang_mom; j++)
+                {
+                    const auto integral = _get_integral(label, {0, 0, i, j}, geom_drvs);
+                    
+                    _write_ket_hrr_cpp_header(integral);
+                    
+                    _write_ket_hrr_cpp_file(integral);
+                }
+            }
+        }
+        else if (geom_drvs == std::array<int, 4>({1, 0, 1, 0}))
+        {
+            for (int i = 0; i <= 2 * max_ang_mom; i++)
+            {
+                for (int j = 0; j <= 2 * max_ang_mom; j++)
                 {
                     const auto integral = _get_integral(label, {i, j, 0, 0}, geom_drvs);
                     
@@ -156,6 +184,36 @@ T4CGeomHrrCPUGenerator::_write_bra_hrr_cpp_header(const I4CIntegral& integral) c
 }
 
 void
+T4CGeomHrrCPUGenerator::_write_ket_hrr_cpp_header(const I4CIntegral& integral) const
+{
+    auto fname = t4c::ket_geom_hrr_file_name(integral) + ".hpp";
+        
+    std::ofstream fstream;
+               
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_ket_hrr_hpp_defines(fstream, integral, true);
+    
+    _write_ket_hrr_hpp_includes(fstream, integral);
+
+    _write_namespace(fstream, integral, true);
+
+    T4CHrrDocuDriver docs_drv;
+
+    docs_drv.write_ket_geom_doc_str(fstream, integral);
+
+    T4CHrrDeclDriver decl_drv;
+
+    decl_drv.write_ket_geom_func_decl(fstream, integral, true);
+
+    _write_namespace(fstream, integral, false);
+   
+    _write_ket_hrr_hpp_defines(fstream, integral, false);
+    
+    fstream.close();
+}
+
+void
 T4CGeomHrrCPUGenerator::_write_bra_hrr_cpp_file(const I4CIntegral& integral) const
 {
     auto fname = t4c::bra_geom_hrr_file_name(integral) + ".cpp";
@@ -184,11 +242,62 @@ T4CGeomHrrCPUGenerator::_write_bra_hrr_cpp_file(const I4CIntegral& integral) con
 }
 
 void
+T4CGeomHrrCPUGenerator::_write_ket_hrr_cpp_file(const I4CIntegral& integral) const
+{
+    auto fname = t4c::ket_geom_hrr_file_name(integral) + ".cpp";
+        
+    std::ofstream fstream;
+        
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    _write_ket_hrr_cpp_includes(fstream, integral);
+
+    _write_namespace(fstream, integral, true);
+
+    T4CHrrDeclDriver decl_drv;
+    
+    decl_drv.write_ket_geom_func_decl(fstream, integral, false);
+
+    T4CGeomHrrFuncBodyDriver func_drv;
+
+    func_drv.write_ket_geom_func_body(fstream, integral);
+    
+    fstream << std::endl;
+    
+    _write_namespace(fstream, integral, false);
+        
+    fstream.close();
+}
+
+void
 T4CGeomHrrCPUGenerator::_write_bra_hrr_hpp_defines(      std::ofstream& fstream,
                                                    const I4CIntegral&   integral,
                                                    const bool           start) const
 {
     auto fname = t4c::bra_geom_hrr_file_name(integral) + "_hpp";
+    
+    auto lines = VCodeLines();
+ 
+    if (start)
+    {
+        lines.push_back({0, 0, 1, "#ifndef " + fname});
+        
+        lines.push_back({0, 0, 2, "#define " + fname});
+    }
+    else
+    {
+        lines.push_back({0, 0, 1, "#endif /* " + fname + " */"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CGeomHrrCPUGenerator::_write_ket_hrr_hpp_defines(      std::ofstream& fstream,
+                                                   const I4CIntegral&   integral,
+                                                   const bool           start) const
+{
+    auto fname = t4c::ket_geom_hrr_file_name(integral) + "_hpp";
     
     auto lines = VCodeLines();
  
@@ -222,6 +331,21 @@ T4CGeomHrrCPUGenerator::_write_bra_hrr_hpp_includes(      std::ofstream& fstream
 }
 
 void
+T4CGeomHrrCPUGenerator::_write_ket_hrr_hpp_includes(      std::ofstream& fstream,
+                                                    const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include <cstddef>"});
+    
+    lines.push_back({0, 0, 1, "#include \"Point.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"SimdArray.hpp\""});
+        
+    ost::write_code_lines(fstream, lines);
+}
+
+void
 T4CGeomHrrCPUGenerator::_write_namespace(      std::ofstream& fstream,
                                          const I4CIntegral&   integral,
                                          const bool           start) const
@@ -238,6 +362,19 @@ T4CGeomHrrCPUGenerator::_write_namespace(      std::ofstream& fstream,
     {
         lines.push_back({0, 0, 2, "} // " + label + " namespace"});
     }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T4CGeomHrrCPUGenerator::_write_ket_hrr_cpp_includes(      std::ofstream& fstream,
+                                                    const I4CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + t4c::ket_geom_hrr_file_name(integral) +  ".hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"TensorComponents.hpp\""});
     
     ost::write_code_lines(fstream, lines);
 }

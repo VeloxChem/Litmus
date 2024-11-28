@@ -46,9 +46,17 @@ class T4CGeomHrrCPUGenerator
     /// @param integral The base two center integral.
     void _write_bra_hrr_cpp_header(const I4CIntegral& integral) const;
     
+    /// Writes ket hrr header file for recursion.
+    /// @param integral The base two center integral.
+    void _write_ket_hrr_cpp_header(const I4CIntegral& integral) const;
+    
     /// Writes C++ code file for primtive recursion.
     /// @param integral The base four center integral.
     void _write_bra_hrr_cpp_file(const I4CIntegral& integral) const;
+    
+    /// Writes C++ code file for primtive recursion.
+    /// @param integral The base four center integral.
+    void _write_ket_hrr_cpp_file(const I4CIntegral& integral) const;
     
     /// Writes definitions of define for header file.
     /// @param fstream the file stream.
@@ -58,11 +66,31 @@ class T4CGeomHrrCPUGenerator
                                     const I4CIntegral&   integral,
                                     const bool           start) const;
     
+    /// Writes definitions of define for header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param start The flag to indicate position of define (start or end).
+    void _write_ket_hrr_hpp_defines(      std::ofstream& fstream,
+                                    const I4CIntegral&   integral,
+                                    const bool           start) const;
+    
     /// Writes definitions of includes for primitive header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
     void _write_bra_hrr_hpp_includes(      std::ofstream& fstream,
                                      const I4CIntegral&   integral) const;
+    
+    /// Writes definitions of includes for primitive header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_ket_hrr_hpp_includes(      std::ofstream& fstream,
+                                     const I4CIntegral&   integral) const;
+    
+    /// Writes definitions of includes for primitive header file.
+    /// @param fstream the file stream.
+    /// @param integral The base four center integral.
+    void _write_ket_hrr_cpp_includes(      std::ofstream& fstream,
+                                     const I4CIntegral&  integral) const;
     
     /// Writes definitions of includes for primitive header file.
     /// @param fstream the file stream.

@@ -55,6 +55,19 @@ public:
     /// @param rterm The recursion term.
     /// @param axis The axis of vertical recursion.
     /// @return The recursion expansion of given recursion term.
+    std::optional<R4CDist> bra_aux_hrr(const R4CTerm& rterm,
+                                       const char     axis) const;
+    
+    /// Applies horizontal recursion to ket side recursion term containing
+    /// electron repulsion integral.
+    /// @param rterm The recursion term with electron repulsion integral.
+    /// @return The recursion expansion of given recursion term.
+    R4CDist apply_bra_aux_hrr(const R4CTerm& rterm) const;
+    
+    /// Applies horizontal recursion to ket side  of given recursion term.
+    /// @param rterm The recursion term.
+    /// @param axis The axis of vertical recursion.
+    /// @return The recursion expansion of given recursion term.
     std::optional<R4CDist> ket_hrr(const R4CTerm& rterm,
                                    const char     axis) const;
     
@@ -63,6 +76,19 @@ public:
     /// @param rterm The recursion term with electron repulsion integral.
     /// @return The recursion expansion of given recursion term.
     R4CDist apply_ket_hrr(const R4CTerm& rterm) const;
+    
+    /// Applies horizontal recursion to ket side  of given recursion term.
+    /// @param rterm The recursion term.
+    /// @param axis The axis of vertical recursion.
+    /// @return The recursion expansion of given recursion term.
+    std::optional<R4CDist> ket_aux_hrr(const R4CTerm& rterm,
+                                       const char     axis) const;
+    
+    /// Applies horizontal recursion to ket side recursion term containing
+    /// electron repulsion integral.
+    /// @param rterm The recursion term with electron repulsion integral.
+    /// @return The recursion expansion of given recursion term.
+    R4CDist apply_ket_aux_hrr(const R4CTerm& rterm) const;
 };
 
 #endif /* t4c_geom_10_hrr_eri_driver_hpp */

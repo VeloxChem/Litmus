@@ -24,6 +24,7 @@
 #include "v4i_geom10_eri_driver.hpp"
 #include "v4i_geom01_eri_driver.hpp"
 #include "v4i_geom20_eri_driver.hpp"
+#include "v4i_geom1010_eri_driver.hpp"
 
 namespace t4c { // t4c namespace
 
@@ -247,6 +248,24 @@ ket_hrr_compute_func_name(const I4CIntegral& integral)
 }
 
 std::string
+ket_geom_hrr_compute_func_name(const I4CIntegral& integral)
+{
+    const auto ket_one = Tensor(integral[2]);
+    
+    const auto ket_two = Tensor(integral[3]);
+    
+    auto geom_orders = integral.prefixes_order();
+    
+    auto label =  "comp_ket_geom" + std::to_string(geom_orders[2]) + std::to_string(geom_orders[3]);
+    
+    label += "_hrr_" + t4c::integral_split_label(integral);
+    
+    label +=  "_xx" + ket_one.label() + ket_two.label();
+    
+    return fstr::lowercase(label);
+}
+
+std::string
 bra_hrr_compute_func_name(const I4CIntegral& integral)
 {
     const auto bra_one = Tensor(integral[0]);
@@ -268,6 +287,11 @@ bra_geom_hrr_compute_func_name(const I4CIntegral& integral)
     auto geom_orders = integral.prefixes_order();
     
     auto label =  "comp_bra_geom" + std::to_string(geom_orders[0]) + std::to_string(geom_orders[1]);
+    
+    if ((geom_orders[2] + geom_orders[3]) > 0)
+    {
+        label += std::to_string(geom_orders[2]) + std::to_string(geom_orders[3]);
+    }
     
     label += "_hrr_" + t4c::integral_split_label(integral);
     
@@ -364,6 +388,30 @@ get_ket_hrr_integrals(const I4CIntegral& integral)
 }
 
 SI4CIntegrals
+get_ket_geom_hrr_integrals(const I4CIntegral& integral)
+{
+    const auto geom_order = integral.prefixes_order();
+    
+    SI4CIntegrals tints;
+    
+    if (geom_order == std::vector<int>({0, 0, 1, 0}))
+    {
+        V4IGeom10ElectronRepulsionDriver geom_drv;
+        
+        if (integral[2] == 0)
+        {
+            tints = geom_drv.ket_aux_hrr(integral);
+        }
+        else
+        {
+            tints = geom_drv.ket_hrr(integral);
+        }
+    }
+    
+    return tints;
+}
+
+SI4CIntegrals
 get_bra_hrr_integrals(const I4CIntegral& integral)
 {
     SI4CIntegrals tints;
@@ -416,6 +464,13 @@ get_bra_geom_hrr_integrals(const I4CIntegral& integral)
         tints = geom_drv.bra_hrr(integral);
     }
     
+    if (geom_order == std::vector<int>({1, 0, 1, 0}))
+    {
+        V4IGeom1010ElectronRepulsionDriver geom_drv;
+        
+        tints = geom_drv.bra_hrr(integral);
+    }
+    
     return tints;
 }
 
@@ -461,6 +516,16 @@ get_aux_geom_hrr_integrals(const I4CIntegral& integral)
         }
     }
     
+    if ((geom_order == std::vector<int>({0, 0, 1, 0})) && (integral[2] == 0))
+    {
+        if (const auto cint = integral.shift(1, 3))
+        {
+            tints.insert(cint->base());
+        }
+        
+        tints.insert(integral.base());
+    }
+    
     if ((geom_order == std::vector<int>({1, 1, 0, 0})) && (integral[0] == 0))
     {
         const auto rtint = integral.shift_prefix(-1, 0, false);
@@ -473,6 +538,18 @@ get_aux_geom_hrr_integrals(const I4CIntegral& integral)
         tints.insert(*rtint);
         
         tints.insert(rtint->base()); 
+    }
+    
+    if ((geom_order == std::vector<int>({1, 0, 1, 0})) && (integral[0] == 0))
+    {
+        const auto rtint = integral.shift_prefix(-1, 0, false);
+        
+        if (const auto cint = rtint->shift(1, 1))
+        {
+            tints.insert(*cint);
+        }
+        
+        tints.insert(*rtint);
     }
     
     return tints;
@@ -537,6 +614,16 @@ bra_geom_hrr_file_name(const I4CIntegral& integral)
     const auto bra_two = Tensor(integral[1]);
         
     return t4c::integral_label(integral) + "ContrRec" + bra_one.label() + bra_two.label() + "XX";
+}
+
+std::string
+ket_geom_hrr_file_name(const I4CIntegral& integral)
+{
+    const auto ket_one = Tensor(integral[2]);
+    
+    const auto ket_two = Tensor(integral[3]);
+    
+    return t4c::integral_label(integral) + "ContrRecXX" + ket_one.label() + ket_two.label();
 }
 
 // Only relevant for geometric derivatives
@@ -609,12 +696,45 @@ get_hrr_index(const I4CIntegral& integral,
     {
         if (use_ket)
         {
-            label += "geom_" + std::to_string(geom_order[2]) + std::to_string(geom_order[2]) + "_";
+            label += "geom_" + std::to_string(geom_order[2]) + std::to_string(geom_order[3]) + "_";
         }
         else
         {
             label += "geom_" + std::to_string(geom_order[0]) + std::to_string(geom_order[1]) + "_";
         }
+    }
+    
+    if (use_ket)
+    {
+        const auto ket_one = Tensor(integral[2]);
+        
+        const auto ket_two = Tensor(integral[3]);
+        
+        label += "xx" + ket_one.label() + ket_two.label();
+    }
+    else
+    {
+        const auto bra_one = Tensor(integral[0]);
+        
+        const auto bra_two = Tensor(integral[1]);
+        
+        label += bra_one.label() + bra_two.label() + "xx";
+    }
+    
+    return fstr::lowercase(label);
+}
+
+std::string
+get_full_hrr_index(const I4CIntegral& integral,
+                   const bool         use_ket)
+{
+    std::string label = "idx_";
+    
+    if (const auto geom_order = integral.prefixes_order(); !geom_order.empty())
+    {
+        label += "geom_" + std::to_string(geom_order[0]) + std::to_string(geom_order[1]);
+      
+        label += std::to_string(geom_order[2]) + std::to_string(geom_order[3]) + "_";
     }
     
     if (use_ket)
@@ -664,16 +784,6 @@ prune_term(const G4Term& term)
 
         return G4Term({std::array<int, 4>({1, 1, 0, 0}), btint->base()});
     }
-    
-    if (tint.prefixes_order() == std::vector<int>({1, 0, 1, 0}) && (tint[0] == 0) && (tint[2] == 0))
-    {
-        auto atint = tint.shift(1, 0);
-        
-        auto btint = atint->shift(1, 2);
-
-        return G4Term({std::array<int, 4>({1, 0, 1, 0}), btint->base()});
-    }
-    
     
     return term;
 }

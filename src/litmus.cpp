@@ -100,7 +100,7 @@ int main(int argc, char **argv)
     
     if (run_type.first == "t4c_geom_hrr_cpu")
     {
-        std::array<int, 4> geom_drvs = {0, 1, 0, 0};
+        std::array<int, 4> geom_drvs = {0, 0, 1, 0};
         
         const auto t4c_geom_drv = T4CGeomHrrCPUGenerator();
             

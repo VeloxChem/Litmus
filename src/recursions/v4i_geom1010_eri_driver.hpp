@@ -14,20 +14,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef v4i_geom10_eri_driver_hpp
-#define v4i_geom10_eri_driver_hpp
+#ifndef v4i_geom1010_eri_driver_hpp
+#define v4i_geom1010_eri_driver_hpp
 
 #include <array>
 
 #include "t4c_defs.hpp"
 
 /// Four center electron repulsion integrals driver class.
-class V4IGeom10ElectronRepulsionDriver
+class V4IGeom1010ElectronRepulsionDriver
 {
    
 public:
     /// Creates a four center electron repulsion integrals driver.
-    V4IGeom10ElectronRepulsionDriver() = default;
+    V4IGeom1010ElectronRepulsionDriver() = default;
     
     /// Check if integral is for four-center electron repulsion integral.
     /// @param integral The integral to check.
@@ -39,30 +39,10 @@ public:
     /// @return The set of integrals.
     SI4CIntegrals bra_hrr(const I4CIntegral& integral) const;
     
-    /// Applies horizontal recursion to bra side of electron repulsion integral.
-    /// @param integral The  electron repulsion integral.
-    /// @return The set of integrals.
-    SI4CIntegrals ket_hrr(const I4CIntegral& integral) const;
-    
-    /// Applies horizontal recursion to bra side of electron repulsion integral.
-    /// @param integral The  electron repulsion integral.
-    /// @return The set of integrals.
-    SI4CIntegrals ket_aux_hrr(const I4CIntegral& integral) const;
-    
     /// Applies bra hrr recursion expansion for set of integral.
     /// @param integral The  integral to apply recursion.
     /// @return The set of integrals.
     SI4CIntegrals apply_bra_hrr_recursion(const I4CIntegral& integral) const;
-    
-    /// Applies bra hrr recursion expansion for set of integral.
-    /// @param integral The  integral to apply recursion.
-    /// @return The set of integrals.
-    SI4CIntegrals apply_ket_hrr_recursion(const I4CIntegral& integral) const;
-    
-    /// Creates bra hrr recursion expansion for set of integral.
-    /// @param integrals The  set of integrals to apply recursion.
-    /// @return The set of integrals.
-    SI4CIntegrals create_bra_hrr_recursion(const SI4CIntegrals& integrals) const;
 };
 
-#endif /* v4i_geom10_eri_driver_hpp */
+#endif /* v4i_geom1010_eri_driver_hpp */

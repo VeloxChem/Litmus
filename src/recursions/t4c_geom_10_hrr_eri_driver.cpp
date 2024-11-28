@@ -29,8 +29,9 @@ T4CGeom10HrrElectronRepulsionDriver::T4CGeom10HrrElectronRepulsionDriver()
 bool
 T4CGeom10HrrElectronRepulsionDriver::is_electron_repulsion(const R4CTerm& rterm) const
 {
-    if ((rterm.prefixes_order() != std::vector<int>({1, 0, 0, 0})) ||
-        (rterm.prefixes_order() != std::vector<int>({0, 0, 1, 0})))
+    if ((rterm.prefixes_order() != std::vector<int>({1, 0, 0, 0})) &&
+        (rterm.prefixes_order() != std::vector<int>({0, 0, 1, 0})) &&
+        (rterm.prefixes_order() != std::vector<int>({1, 0, 1, 0})))
     {
         return false;
     }
@@ -190,5 +191,115 @@ T4CGeom10HrrElectronRepulsionDriver::apply_ket_hrr(const R4CTerm& rterm) const
         }
     }
     
+    return t4crt;
+}
+
+std::optional<R4CDist>
+T4CGeom10HrrElectronRepulsionDriver::bra_aux_hrr(const R4CTerm& rterm,
+                                                 const char     axis) const
+{
+    if (!is_electron_repulsion(rterm)) return std::nullopt;
+    
+    if (const auto tval = rterm.shift_prefix(axis, -1, 0))
+    {
+        R4CDist t4crt(rterm);
+        
+        // first recursion term
+        
+        auto x1val = *tval;
+        
+        const auto coord = _rxyz[axes::to_index(axis)];
+        
+        x1val.add(Factor("BA", "ab", coord), Fraction(-1));
+        
+        t4crt.add(x1val);
+        
+        // third recursion term
+        
+        if (const auto r2val = tval->shift(axis, 1, 1))
+        {
+            auto x2val = *r2val;
+            
+            //x2val.clear_prefixes();
+            
+            t4crt.add(x2val);
+        }
+        
+        return t4crt;
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+std::optional<R4CDist>
+T4CGeom10HrrElectronRepulsionDriver::ket_aux_hrr(const R4CTerm& rterm,
+                                                 const char     axis) const
+{
+    if (!is_electron_repulsion(rterm)) return std::nullopt;
+    
+    if (const auto tval = rterm.shift_prefix(axis, -1, 2))
+    {
+        R4CDist t4crt(rterm);
+        
+        // first recursion term
+        
+        auto x1val = *tval;
+        
+        x1val.clear_prefixes();
+        
+        const auto coord = _rxyz[axes::to_index(axis)];
+        
+        x1val.add(Factor("DC", "cd", coord), Fraction(-1));
+        
+        t4crt.add(x1val);
+        
+        // third recursion term
+        
+        if (const auto r2val = tval->shift(axis, 1, 3))
+        {
+            auto x2val = *r2val;
+            
+            x2val.clear_prefixes();
+            
+            t4crt.add(x2val);
+        }
+        
+        return t4crt;
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+R4CDist
+T4CGeom10HrrElectronRepulsionDriver::apply_bra_aux_hrr(const R4CTerm& rterm) const
+{
+    R4CDist t4crt;
+    
+    if (const auto prefixes = rterm.integral().prefixes(); !prefixes.empty())
+    {
+        const auto axis = prefixes[0].shape().primary();
+        
+        if (const auto trec = bra_aux_hrr(rterm, axis)) t4crt = *trec;
+    }
+   
+    return t4crt;
+}
+
+R4CDist
+T4CGeom10HrrElectronRepulsionDriver::apply_ket_aux_hrr(const R4CTerm& rterm) const
+{
+    R4CDist t4crt;
+    
+    if (const auto prefixes = rterm.integral().prefixes(); !prefixes.empty())
+    {
+        const auto axis = prefixes[2].shape().primary();
+        
+        if (const auto trec = ket_aux_hrr(rterm, axis)) t4crt = *trec;
+    }
+   
     return t4crt;
 }
