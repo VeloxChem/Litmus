@@ -201,10 +201,10 @@ T4CHrrDocuDriver::_get_ket_geom_buffers_str(const I4CIntegral& integral) const
     
     vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
     
-    if (integral[2] == 0)
-    {
-        vstr.push_back("/// @param pbuffer The Cartesian integrals buffer.");
-    }
+    // if (integral[2] == 0)
+    // {
+    vstr.push_back("/// @param pbuffer The Cartesian integrals buffer.");
+    // }
        
     if (integral[2] == 0)
     {

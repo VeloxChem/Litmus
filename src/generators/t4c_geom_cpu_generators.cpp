@@ -45,7 +45,9 @@ T4CGeomCPUGenerator::generate(const std::string&        label,
             {
                 for (int k = 0; k <= max_ang_mom; k++)
                 {
-                    for (int l = k; l <= max_ang_mom; l++)
+                    const auto lstart = ((geom_drvs[3] + geom_drvs[4]) > 0) ? 0 : k;
+                    
+                    for (int l = lstart; l <= max_ang_mom; l++)
                     {
                         const auto integral = _get_integral(label, {i, j, k, l}, geom_drvs);
                         

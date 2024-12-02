@@ -555,6 +555,63 @@ T4CGeomHrrFuncBodyDriver::_get_ket_geom_buffers_str(const std::vector<R4CDist>& 
             }
         }
     }
+    else
+    {
+        for (const auto& tint : t4c::get_ket_geom_hrr_integrals(integral))
+        {
+            const auto gorders = tint.prefixes_order();
+            
+            if (!gorders.empty())
+            {
+                std::string label = "cbuffer.data(";
+                
+                vstr.push_back("/// Set up components of auxilary buffer : " + tint.label());
+                
+                vstr.push_back(_get_ket_offset_def(tint));
+                
+                const auto bcomps = t2c::number_of_cartesian_components(tint[2]);
+                
+                const auto kcomps = t2c::number_of_cartesian_components(tint[3]);
+                
+                int index = 0;
+                
+                for (const auto& tcomp : tint.components<T2CPair, T2CPair>())
+                {
+                    const auto line = "auto " + _get_ket_component_label(tcomp) + " = " + label;
+                    
+                    const std::string glabel = std::to_string((index / (bcomps * kcomps)) * bcomps * kcomps) + " * acomps * bcomps";
+                    
+                    vstr.push_back(line + _get_ket_offset_label(tint) + " + " + glabel + " + " + std::to_string(index % (bcomps * kcomps)) + ");");
+                   
+                    index++;
+                }
+            }
+            else
+            {
+                std::string label = "pbuffer.data(";
+                
+                vstr.push_back("/// Set up components of auxilary buffer : " + tint.label());
+                
+                vstr.push_back(_get_ket_offset_def(tint));
+                
+                int index = 0;
+                
+                for (const auto& tcomp : tint.components<T2CPair, T2CPair>())
+                {
+                    //if (_find_integral(rec_dists, tcomp))
+                    //{
+                        auto line = "auto " + _get_ket_component_label(tcomp) + " = " + label;
+                        
+                        line +=  _get_ket_offset_label(tint) + " + "  + std::to_string(index) + ");";
+                        
+                        vstr.push_back(fstr::lowercase(line));
+                    //}
+                    
+                    index++;
+                }
+            }
+        }
+    }
 
     return vstr;
 }

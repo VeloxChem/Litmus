@@ -1491,17 +1491,19 @@ T4CGeomFuncBodyDriver::_add_ket_trafo_call_tree(      VCodeLines&  lines,
             {
                 const auto gcomps = Tensor(gorders[2]).components().size();
                
-                const auto ccomps = t2c::number_of_cartesian_components(std::array<int, 2>{tint[0], tint[1]});
+                const auto bcomps = t2c::number_of_cartesian_components(std::array<int, 2>{tint[0], tint[1]});
                 
-                const auto scomps = t2c::number_of_spherical_components(std::array<int, 2>{tint[0], tint[1]});
+                const auto kccomps = t2c::number_of_cartesian_components(std::array<int, 2>{tint[2], tint[3]});
+                
+                const auto kscomps = t2c::number_of_spherical_components(std::array<int, 2>{tint[2], tint[3]});
                 
                 for (size_t i = 0; i < gcomps; i++)
                 {
                     label = "t4cfunc::ket_transform<" + std::to_string(tint[2]) + ", " + std::to_string(tint[3]) + ">";
                     
-                    label += "(skbuffer, "  + std::to_string(_get_half_spher_index(term, skterms) + i * scomps ) + ", ";
+                    label += "(skbuffer, "  + std::to_string(_get_half_spher_index(term, skterms) + i * bcomps * kscomps ) + ", ";
                     
-                    label += "ckbuffer, " + std::to_string(_get_index(term, ckterms) + i * ccomps)  + ", ";
+                    label += "ckbuffer, " + std::to_string(_get_index(term, ckterms) + i * bcomps * kccomps)  + ", ";
                     
                     label += std::to_string(tint[0]) + ", " + std::to_string(tint[1]) + ");";
                     
@@ -2001,13 +2003,29 @@ T4CGeomFuncBodyDriver::_get_bra_geom_hrr_arguments(const G4Term&  term,
         
         if (tint.prefixes_order() == std::vector<int>({1, 0, 1, 0}))
         {
+            G4Term rterm;
+            
             auto cint = tint.shift_prefix(-1, 0, false);
             
-            auto rterm = G4Term({std::array<int, 4>{1, 0, 0, 0}, *cint});
+            if (tint[2] > 0)
+            {
+                rterm = G4Term({std::array<int, 4>{0, 0, 0, 0}, *cint});
+            }
+            else
+            {
+                rterm = G4Term({std::array<int, 4>{1, 0, 0, 0}, *cint});
+            }
             
             label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
             
-            rterm = G4Term({std::array<int, 4>{1, 0, 0, 0}, *(cint->shift(1, 1))});
+            if (tint[2] > 0)
+            {
+                rterm = G4Term({std::array<int, 4>{0, 0, 0, 0}, *(cint->shift(1, 1))});
+            }
+            else
+            {
+                rterm = G4Term({std::array<int, 4>{1, 0, 0, 0}, *(cint->shift(1, 1))});
+            }
                                     
             label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
         }

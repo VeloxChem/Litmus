@@ -34,9 +34,9 @@ int main(int argc, char **argv)
 {
     // run configuration
 
-    const auto run_type = std::pair<std::string, std::string>({"t4c_geom_hrr_cpu", "electron repulsion"});
+    //const auto run_type = std::pair<std::string, std::string>({"t4c_geom_hrr_cpu", "electron repulsion"});
     
-    //const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
+    const auto run_type = std::pair<std::string, std::string>({"t4c_cpu", "electron repulsion"});
 
     const int max_ang_mom = 2;
 
