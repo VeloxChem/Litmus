@@ -1199,9 +1199,18 @@ T4CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
             const auto tint = term.second;
             
             std::string label;
-           
-            label += "pbuffer.scale(pfactors, 0, 4.0 * a_exp, {";
+            
+            const auto gterm = t4c::prune_term(G4Term({std::array<int, 4>({1, 0, 0, 0}), tint}));
                 
+            if (_find_term(gterm, cterms))
+            {
+                label += "pbuffer.scale(pfactors, 0, 2.0, {";
+            }
+            else
+            {
+                label += "pbuffer.scale(pfactors, 0, 4.0 * a_exp, {";
+            }
+           
             label +=  std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
            
             label +=  std::to_string(_get_index(0, tint, vrr_integrals) + tint.components<T2CPair, T2CPair>().size()) + "});";

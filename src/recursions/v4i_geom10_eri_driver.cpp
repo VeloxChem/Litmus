@@ -113,6 +113,29 @@ V4IGeom10ElectronRepulsionDriver::ket_hrr(const I4CIntegral& integral) const
 }
 
 SI4CIntegrals
+V4IGeom10ElectronRepulsionDriver::bra_aux_hrr(const I4CIntegral& integral) const
+{
+    SI4CIntegrals tints;
+    
+    if (!is_electron_repulsion(integral)) return tints;
+    
+    if (integral[0] > 0) return tints;
+    
+    if (const auto tval = integral.shift_prefix(-1, 0, false))
+    {
+        // first recursion term
+
+        tints.insert(*tval);
+        
+        // second recursion term
+        
+        tints.insert(*(tval->shift(1, 1)));
+    }
+    
+    return tints;
+}
+
+SI4CIntegrals
 V4IGeom10ElectronRepulsionDriver::ket_aux_hrr(const I4CIntegral& integral) const
 {
     SI4CIntegrals tints;

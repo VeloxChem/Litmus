@@ -47,6 +47,11 @@ public:
     /// Applies horizontal recursion to bra side of electron repulsion integral.
     /// @param integral The  electron repulsion integral.
     /// @return The set of integrals.
+    SI4CIntegrals bra_aux_hrr(const I4CIntegral& integral) const;
+    
+    /// Applies horizontal recursion to bra side of electron repulsion integral.
+    /// @param integral The  electron repulsion integral.
+    /// @return The set of integrals.
     SI4CIntegrals ket_aux_hrr(const I4CIntegral& integral) const;
     
     /// Applies bra hrr recursion expansion for set of integral.

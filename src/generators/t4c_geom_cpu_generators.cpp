@@ -244,15 +244,38 @@ T4CGeomCPUGenerator::_generate_geom_integral_group(const I4CIntegral& integral) 
     {
         V4IGeom10ElectronRepulsionDriver grad_drv;
         
-        auto cints = grad_drv.apply_ket_hrr_recursion(integral);
+        if ((integral[0] == 0) && (integral[2] == 0))
+        {
+            tints.insert(integral);
+            
+            return tints; 
+        }
         
+        SI4CIntegrals cints;
+        
+        if (integral[0] == 0)
+        {
+            cints = grad_drv.bra_aux_hrr(integral);
+        }
+        else
+        {
+            cints = grad_drv.apply_bra_hrr_recursion(integral);
+        }
+       
         if (cints.empty()) cints.insert(integral);
         
         for (auto cint : cints)
         {
-            if ((cint[0] > 0) && (cint[2] == 0))
+            if ((cint[2] > 0) && (cint[0] == 0))
             {
-                for (auto rint : grad_drv.apply_bra_hrr_recursion(cint))
+                for (auto rint : grad_drv.apply_ket_hrr_recursion(cint))
+                {
+                    tints.insert(rint);
+                }
+            }
+            else
+            {
+                for (auto rint : grad_drv.ket_aux_hrr(cint))
                 {
                     tints.insert(rint);
                 }
@@ -501,6 +524,20 @@ T4CGeomCPUGenerator::_filter_skbuffer_terms(const I4CIntegral& integral,
                     new_terms.insert(term);
                 }
             }
+//            else
+//            {
+//                if (gorders == std::vector<int>({1, 0, 1, 0}))
+//                {
+//                    if ((integral[2] == (term.second[2] + 1)) &&
+//                        (term.second[3] == integral[3])       &&
+//                        (term.first == std::array<int, 4>({1, 0, 0, 0})))
+//                    {
+//                        std::cout << " I am here..." << std::endl;
+//                            
+//                        new_terms.insert(term);
+//                    }
+//                }
+//            }
         }
         else
         {
