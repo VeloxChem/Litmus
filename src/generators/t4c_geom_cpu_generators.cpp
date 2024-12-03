@@ -263,37 +263,30 @@ T4CGeomCPUGenerator::_generate_geom_integral_group(const I4CIntegral& integral) 
             return tints;
         }
         
-        SI4CIntegrals cints;
-        
-        if (integral[0] == 0)
+        if ((integral[0] > 0) && (integral[2] == 0))
         {
-            cints = grad_drv.bra_aux_hrr(integral);
-        }
-        else
-        {
-            cints = grad_drv.apply_bra_hrr_recursion(integral);
-        }
-       
-        if (cints.empty()) cints.insert(integral);
-        
-        for (auto cint : cints)
-        {
-            if ((cint[2] > 0) && (cint[0] == 0))
+            tints.insert(integral);
+            
+            for (const auto& cint : grad_drv.apply_bra_hrr_recursion(integral))
             {
-                for (auto rint : grad_drv.apply_ket_hrr_recursion(cint))
-                {
-                    tints.insert(rint);
-                }
-            }
-            else
-            {
-                for (auto rint : grad_drv.ket_aux_hrr(cint))
-                {
-                    tints.insert(rint);
-                }
+                tints.insert(cint);
             }
             
+            return tints;
+        }
+        
+        tints.insert(integral);
+        
+        auto cints = grad_drv.apply_bra_hrr_recursion(integral);
+
+        for (auto cint : cints)
+        {
             tints.insert(cint);
+            
+            for (auto rint : grad_drv.apply_ket_hrr_recursion(cint))
+            {
+                tints.insert(rint);
+            }
         }
     }
     
@@ -316,6 +309,16 @@ T4CGeomCPUGenerator::_generate_geom_terms_group(const SI4CIntegrals& integrals) 
             if (tint[0] == 0)
             {
                 terms.insert({std::array<int, 4>{1, 0, 0, 0}, tint.shift(1, 0)->base()});
+            }
+        }
+        
+        if (tint.prefixes_order() == std::vector<int>({0, 0, 1, 0}))
+        {
+            if (tint[2] == 0)
+            {
+                terms.insert({std::array<int, 4>{0, 0, 1, 0}, tint.base()});
+                
+                terms.insert({std::array<int, 4>{0, 0, 1, 0}, tint.shift(1, 3)->base()});
             }
         }
         

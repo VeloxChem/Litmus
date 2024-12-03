@@ -68,18 +68,13 @@ T4CGeom10HrrElectronRepulsionDriver::bra_hrr(const R4CTerm& rterm,
         
         // second recursion term
         
-        auto x2val = *tval;
-        
-        if (const auto prefixes = x2val.integral().prefixes(); !prefixes.empty())
+        if (const auto r2val = tval->shift_prefix(axis, -1, 0))
         {
-            if (prefixes[0].shape().primary() == axis)
-            {
-                x2val.clear_prefixes();
+            auto x2val = *r2val;
+          
+            x2val.scale(Fraction(-1));
                 
-                x2val.scale(Fraction(-1));
-                
-                t4crt.add(x2val); 
-            }
+            t4crt.add(x2val);
         }
         
         // third recursion term

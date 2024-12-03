@@ -326,7 +326,7 @@ T4CHrrDeclDriver::_get_bra_geom_buffers_str(const I4CIntegral& integral) const
     {
         for (const auto& tint : t4c::get_aux_geom_hrr_integrals(integral))
         {
-            if (gorders == std::vector<int>({1, 0, 1, 0}))
+            if ((gorders[0] + gorders[1]) > 0)
             {
                 label = t4c::get_full_hrr_index(tint, false);
             }
@@ -342,7 +342,14 @@ T4CHrrDeclDriver::_get_bra_geom_buffers_str(const I4CIntegral& integral) const
     {
         for (const auto& tint : t4c::get_bra_geom_hrr_integrals(integral))
         {
-            label = t4c::get_hrr_index(tint, false);
+            if ((gorders[0] + gorders[1]) > 0)
+            {
+                label = t4c::get_full_hrr_index(tint, false);
+            }
+            else
+            {
+                label = t4c::get_hrr_index(tint, false);
+            }
             
             vstr.push_back(spacer + "const size_t " + label + "," );
         }

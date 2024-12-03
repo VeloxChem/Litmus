@@ -1114,22 +1114,15 @@ T4CGeomHrrFuncBodyDriver::_get_bra_pragma_str(const I4CIntegral&          integr
 {
     std::set<std::string> tlabels;
     
+    const auto gorders = integral.prefixes_order();
+    
     for (const auto& rdist : rec_distributions)
     {
         auto tint = rdist.root().integral();
         
-        const auto gorders = tint.prefixes_order();
-        
         if (!gorders.empty())
         {
-            if ((gorders[2] + gorders[3]) > 0)
-            {
-                tlabels.insert(_get_full_bra_component_label(tint));
-            }
-            else
-            {
-                tlabels.insert(_get_bra_component_label(tint));
-            }
+            tlabels.insert(_get_full_bra_component_label(tint));
         }
         else
         {
@@ -1140,18 +1133,9 @@ T4CGeomHrrFuncBodyDriver::_get_bra_pragma_str(const I4CIntegral&          integr
         {
             auto tint = rdist[i].integral();
             
-            const auto gorders = tint.prefixes_order();
-            
             if (!gorders.empty())
             {
-                if ((gorders[2] + gorders[3]) > 0)
-                {
-                    tlabels.insert(_get_full_bra_component_label(tint));
-                }
-                else
-                {
-                    tlabels.insert(_get_bra_component_label(tint));
-                }
+                tlabels.insert(_get_full_bra_component_label(tint));
             }
             else
             {

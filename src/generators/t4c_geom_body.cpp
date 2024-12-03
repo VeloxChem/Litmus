@@ -1194,17 +1194,63 @@ T4CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
     
     for (const auto& term : cterms)
     {
+        if (term.first == std::array<int, 4>({0, 0, 1, 0}))
+        {
+            const auto tint = term.second;
+            
+            std::string label;
+            
+            label += "pbuffer.scale(pfactors, 0, 2.0, {";
+           
+            label +=  std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
+           
+            label +=  std::to_string(_get_index(0, tint, vrr_integrals) + tint.components<T2CPair, T2CPair>().size()) + "});";
+           
+            lines.push_back({4, 0, 2, label});
+        }
+    }
+    
+    for (const auto& term : cterms)
+    {
+        if (term.first == std::array<int, 4>({0, 0, 1, 0}))
+        {
+            const auto tint = term.second;
+            
+            std::string label = "t2cfunc::reduce(cbuffer, ";
+            
+            label +=  std::to_string(_get_index(term, cterms)) + ", ";
+            
+            label += "pbuffer, ";
+            
+            label += std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
+            
+            label += std::to_string(tint.components<T2CPair, T2CPair>().size()) + ", ";
+            
+            label += "ket_width, ket_npgtos);";
+            
+            lines.push_back({4, 0, 2, label});
+        }
+    }
+    
+    for (const auto& term : cterms)
+    {
         if (term.first == std::array<int, 4>({1, 0, 1, 0}))
         {
             const auto tint = term.second;
             
             std::string label;
             
-            const auto gterm = t4c::prune_term(G4Term({std::array<int, 4>({1, 0, 0, 0}), tint}));
+            const auto gbterm = t4c::prune_term(G4Term({std::array<int, 4>({1, 0, 0, 0}), tint}));
+            
+            const auto gkterm = t4c::prune_term(G4Term({std::array<int, 4>({0, 0, 1, 0}), tint}));
                 
-            if (_find_term(gterm, cterms))
+            if (_find_term(gbterm, cterms))
             {
                 label += "pbuffer.scale(pfactors, 0, 2.0, {";
+            }
+            else if (_find_term(gkterm, cterms))
+            {
+                label += "pbuffer.scale(2.0 * a_exp, {";
             }
             else
             {
@@ -1413,7 +1459,12 @@ T4CGeomFuncBodyDriver::_add_ket_hrr_call_tree(      VCodeLines&  lines,
             {
                 label += "cbuffer, ";
             }
-                
+            
+            if ((gorders[2] == 1) && (gorders[3] == 0) && (tint[2] == 1))
+            {
+                label += "cbuffer, ";
+            }
+            
             label += _get_ket_geom_hrr_arguments(term, cterms, ckterms);
                 
             label += "cfactors, 6, ";
@@ -1928,12 +1979,14 @@ T4CGeomFuncBodyDriver::_get_ket_geom_hrr_arguments(const G4Term&  term,
     {
         auto efacts = term.first;
         
-        if (term.first == std::array<int, 4>({1, 0, 0, 0}))
+        if ((term.first == std::array<int, 4>({1, 0, 0, 0})) && (term.second[2] == 0))
         {
             efacts = std::array<int, 4>({1, 0, 1, 0});
         }
         
-        if (term.second[2] == 0)
+        const auto gorders = tint.prefixes_order();
+        
+        if (gorders.empty())
         {
             label += std::to_string(_get_index(G4Term({efacts, tint}), cterms)) + ", ";
         }
@@ -2016,25 +2069,25 @@ T4CGeomFuncBodyDriver::_get_bra_geom_hrr_arguments(const G4Term&  term,
             
             auto cint = tint.shift_prefix(-1, 0, false);
             
-            if (tint[2] > 0)
-            {
-                rterm = G4Term({std::array<int, 4>{0, 0, 0, 0}, *cint});
-            }
-            else
-            {
+//            if (tint[2] > 0)
+//            {
+//                rterm = G4Term({std::array<int, 4>{0, 0, 0, 0}, *cint});
+//            }
+//            else
+//            {
                 rterm = G4Term({std::array<int, 4>{1, 0, 0, 0}, *cint});
-            }
+//            }
             
             label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
             
-            if (tint[2] > 0)
-            {
-                rterm = G4Term({std::array<int, 4>{0, 0, 0, 0}, *(cint->shift(1, 1))});
-            }
-            else
-            {
+//            if (tint[2] > 0)
+//            {
+//                rterm = G4Term({std::array<int, 4>{0, 0, 0, 0}, *(cint->shift(1, 1))});
+//            }
+//            else
+//            {
                 rterm = G4Term({std::array<int, 4>{1, 0, 0, 0}, *(cint->shift(1, 1))});
-            }
+            //}
                                     
             label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
         }
