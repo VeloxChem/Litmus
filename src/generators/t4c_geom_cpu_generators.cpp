@@ -251,6 +251,18 @@ T4CGeomCPUGenerator::_generate_geom_integral_group(const I4CIntegral& integral) 
             return tints; 
         }
         
+        if ((integral[0] == 0) && (integral[2] > 0))
+        {
+            tints.insert(integral);
+            
+            for (const auto& cint : grad_drv.apply_ket_hrr_recursion(integral))
+            {
+                tints.insert(cint);
+            }
+            
+            return tints;
+        }
+        
         SI4CIntegrals cints;
         
         if (integral[0] == 0)
@@ -326,6 +338,17 @@ T4CGeomCPUGenerator::_generate_geom_terms_group(const SI4CIntegrals& integrals) 
                 terms.insert({std::array<int, 4>{1, 0, 1, 0}, bptint->base()});
                 
                 terms.insert({std::array<int, 4>{1, 0, 1, 0}, bptint->shift(1, 3)->base()});
+            }
+            
+            if ((tint[0] == 0) && (tint[2] > 0))
+            {
+                const auto btint = tint.shift_prefix(-1, 0, false);
+                
+                const auto bptint = btint->shift(1, 1);
+                
+                terms.insert({std::array<int, 4>{1, 0, 0, 0}, *btint});
+                
+                terms.insert({std::array<int, 4>{1, 0, 0, 0}, *bptint});
             }
         }
         
@@ -519,7 +542,8 @@ T4CGeomCPUGenerator::_filter_skbuffer_terms(const I4CIntegral& integral,
         {
             if (const auto corders = term.second.prefixes_order(); !corders.empty())
             {
-                if ((corders[2] == gorders[2]) && (corders[3] == gorders[3]))
+                if ((corders[2] == gorders[2]) && (corders[3] == gorders[3]) &&
+                    (term.second[2] == integral[2]) && (term.second[3] == integral[3]))
                 {
                     new_terms.insert(term);
                 }
