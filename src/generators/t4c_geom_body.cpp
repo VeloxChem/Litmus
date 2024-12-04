@@ -1200,8 +1200,17 @@ T4CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
             
             std::string label;
             
-            label += "pbuffer.scale(pfactors, 0, 2.0, {";
-           
+            const auto gbterm = t4c::prune_term(G4Term({std::array<int, 4>({1, 0, 0, 0}), tint}));
+            
+            if (_find_term(gbterm, cterms))
+            {
+                label += "pbuffer.scale(pfactors, 0, 1.0 / a_exp, {";
+            }
+            else
+            {
+                label += "pbuffer.scale(pfactors, 0, 2.0, {";
+            }
+            
             label +=  std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
            
             label +=  std::to_string(_get_index(0, tint, vrr_integrals) + tint.components<T2CPair, T2CPair>().size()) + "});";
@@ -1244,13 +1253,17 @@ T4CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
             
             const auto gkterm = t4c::prune_term(G4Term({std::array<int, 4>({0, 0, 1, 0}), tint}));
                 
-            if (_find_term(gbterm, cterms))
+            if (_find_term(gbterm, cterms) && _find_term(gkterm, cterms))
             {
-                label += "pbuffer.scale(pfactors, 0, 2.0, {";
+                label += "pbuffer.scale(2.0 * a_exp, {";
             }
             else if (_find_term(gkterm, cterms))
             {
                 label += "pbuffer.scale(2.0 * a_exp, {";
+            }
+            else if (_find_term(gbterm, cterms))
+            {
+                label += "pbuffer.scale(pfactors, 0, 2.0, {";
             }
             else
             {
@@ -1982,6 +1995,11 @@ T4CGeomFuncBodyDriver::_get_ket_geom_hrr_arguments(const G4Term&  term,
         if ((term.first == std::array<int, 4>({1, 0, 0, 0})) && (term.second[2] == 0))
         {
             efacts = std::array<int, 4>({1, 0, 1, 0});
+        }
+        
+        if ((term.first == std::array<int, 4>({0, 0, 0, 0})) && (term.second[2] == 0))
+        {
+            efacts = std::array<int, 4>({0, 0, 1, 0});
         }
         
         const auto gorders = tint.prefixes_order();
