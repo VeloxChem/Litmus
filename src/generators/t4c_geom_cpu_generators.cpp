@@ -322,6 +322,19 @@ T4CGeomCPUGenerator::_generate_geom_terms_group(const SI4CIntegrals& integrals) 
             }
         }
         
+        if (tint.prefixes_order() == std::vector<int>({0, 1, 0, 0}))
+        {
+            if (tint[0] == 0)
+            {
+                terms.insert({std::array<int, 4>{0, 1, 0, 0}, tint.shift(1, 1)->base()});
+                
+                if (tint[1] > 0)
+                {
+                    terms.insert({std::array<int, 4>{0, 0, 0, 0}, tint.shift(-1, 1)->base()});
+                }
+            }
+        }
+        
         if (tint.prefixes_order() == std::vector<int>({1, 0, 1, 0}))
         {
             if ((tint[0] == 0) && (tint[2] == 0))

@@ -73,7 +73,7 @@ int main(int argc, char **argv)
     if (run_type.first == "t4c_cpu")
     {
         // a, b, operator, c, d
-        std::array<int, 5> geom_drvs = {1, 0, 0, 1, 0};
+        std::array<int, 5> geom_drvs = {1, 1, 0, 0, 0};
         
         if (geom_drvs == std::array<int, 5>({0, 0, 0, 0, 0}))
         {
