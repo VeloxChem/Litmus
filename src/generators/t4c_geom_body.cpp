@@ -2047,15 +2047,35 @@ T4CGeomFuncBodyDriver::_get_bra_geom_hrr_arguments(const G4Term&  term,
             {
                 if (rtint[1] > tint[1])
                 {
-                    auto rterm = G4Term({std::array<int, 4>{1, 1, 0, 0}, rtint});
+                    if (term.first == std::array<int, 4>({1, 0, 0, 0}))
+                    {
+                        auto rterm = G4Term({std::array<int, 4>{1, 1, 0, 0}, rtint});
+                        
+                        label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
+                    }
                     
-                    label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
+                    if (term.first == std::array<int, 4>({0, 0, 0, 0}))
+                    {
+                        auto rterm = G4Term({std::array<int, 4>{0, 1, 0, 0}, rtint});
+                        
+                        label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
+                    }
                 }
                 else
                 {
-                    auto rterm = G4Term({std::array<int, 4>{1, 0, 0, 0}, rtint});
+                    if (term.first == std::array<int, 4>({1, 0, 0, 0}))
+                    {
+                        auto rterm = G4Term({std::array<int, 4>{1, 0, 0, 0}, rtint});
+                        
+                        label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
+                    }
                     
-                    label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
+                    if (term.first == std::array<int, 4>({0, 0, 0, 0}))
+                    {
+                        auto rterm = G4Term({std::array<int, 4>{0, 0, 0, 0}, rtint});
+                        
+                        label += std::to_string(_get_half_spher_index(rterm, skterms))  + ", ";
+                    }
                 }
             }
         }
