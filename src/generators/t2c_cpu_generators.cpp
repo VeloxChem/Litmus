@@ -98,6 +98,8 @@ T2CCPUGenerator::_is_available(const std::string& label) const
     if (fstr::lowercase(label) == "nuclear potential") return true;
 
     if (fstr::lowercase(label) == "linear momentum") return true;
+    
+    if (fstr::lowercase(label) == "three center overlap") return true;
         
     return false;
 }
@@ -153,6 +155,13 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
         {
             return I2CIntegral(bra, ket, Operator("AG", Tensor(geom_drvs[1])), 0, {});
         }
+    }
+    
+    // three center overlap integrals
+    
+    if (fstr::lowercase(label) == "three center overlap")
+    {
+        return I2CIntegral(bra, ket, Operator("G(r)"), 0, {});
     }
     
     return I2CIntegral();
