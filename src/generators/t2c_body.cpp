@@ -102,6 +102,13 @@ T2CFuncBodyDriver::_get_external_data_def(const I2CIntegral&           integral,
         }
     }
     
+    if ((integral.integrand().name() == "G(r)"))
+    {
+        vstr.push_back("// intialize external Gaussian(s)");
+        
+        vstr.push_back("const auto exgtos = distributor.data();");
+    }
+    
     if ((integral.integrand().name() == "A"))
     {
         vstr.push_back("// intialize external charge(s)");
@@ -514,8 +521,19 @@ T2CFuncBodyDriver::_add_sum_loop_start(      VCodeLines&            lines,
 {
     if (rec_form.first)
     {
-        lines.push_back({4, 0, 1, "for (size_t l = 0; l < coords.size(); l++)"});
-       
+        const auto integrand = integral.integrand();
+        
+        if (integrand.name() == "G(r)")
+        {
+            lines.push_back({4, 0, 2, "const size_t npoints = coords.size();"});
+                
+            lines.push_back({4, 0, 1, "for (size_t l = 0; l < npoints; l++)"});
+        }
+        else
+        {
+            lines.push_back({4, 0, 1, "for (size_t l = 0; l < coords.size(); l++)"});
+        }
+        
         lines.push_back({4, 0, 1, "{"});
        
         if (_need_distances_pc(integral))
@@ -850,6 +868,8 @@ T2CFuncBodyDriver::_need_center_p(const I2CIntegral& integral) const
     
     if (integrand.name() == "r") return true;
     
+    if (integrand.name() == "G(r)") return true;
+    
     if (integrand.name() == "A") return true;
     
     if (integrand.name() == "AG") return true;
@@ -863,6 +883,8 @@ T2CFuncBodyDriver::_need_distances_pc(const I2CIntegral& integral) const
     const auto integrand = integral.integrand();
     
     if (integrand.name() == "r") return true;
+    
+    if (integrand.name() == "G(r)") return true;
     
     if (integrand.name() == "A") return true;
     
@@ -957,6 +979,8 @@ T2CFuncBodyDriver::_need_external_coords(const I2CIntegral& integral) const
     if (integrand.name() == "AG") return true;
     
     if (integrand.name() == "r") return true;
+    
+    if (integrand.name() == "G(r)") return true;
     
     return false;
 }

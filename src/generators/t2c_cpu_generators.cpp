@@ -60,8 +60,10 @@ T2CCPUGenerator::generate(const std::string&           label,
                             const auto integral = _get_integral(label, {i, j}, geom_drvs);
 
                             const auto integrals = _generate_integral_group(integral, geom_drvs);
+                            
+                            std::cout << "XXX : " << integral.label() << " : " << integrals.size() << std::endl;
 
-                             _write_cpp_header(integrals, integral, rec_form, use_rs);
+                            _write_cpp_header(integrals, integral, rec_form, use_rs);
                             
                             if (((i + j) > 0) && (!use_rs))
                             {
@@ -289,6 +291,20 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral&        integral,
 //        {
 //           std::cout << tint.label() << " : " << tint.integrand().name() << " : "<< tint.order() << " Shape: " << tint.integrand().shape().order() << std::endl;
 //        }
+    }
+    
+    if (integral.integrand() == Operator("G(r)"))
+    {
+        V3IOverlapDriver ovl_drv;
+        
+        if (integral.is_simple())
+        {
+            tints = ovl_drv.create_recursion({integral,});
+        }
+        else
+        {
+            tints = ovl_drv.create_recursion(tints);
+        }
     }
     
     return tints;

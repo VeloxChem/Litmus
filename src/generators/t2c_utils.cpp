@@ -141,7 +141,7 @@ integral_split_label(const I2CIntegral& integral)
         return "Kinetic_Energy";
     }
     
-    if (integrand.name() == "1")
+    if ((integrand.name() == "1") || (integrand.name() == "G(r)"))
     {
         return "Overlap";
     }

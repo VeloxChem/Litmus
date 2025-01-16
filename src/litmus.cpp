@@ -50,7 +50,7 @@ int main(int argc, char **argv)
     {
         std::array<int, 3> geom_drvs = {0, 0, 0};
         
-        const auto rec_form = std::pair<bool, bool>({false, false});
+        const auto rec_form = std::pair<bool, bool>({true, false});
         
         const auto use_rs = false;
         
