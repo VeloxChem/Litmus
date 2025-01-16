@@ -182,6 +182,14 @@ class T2CFuncBodyDriver
     /// @param integral The base two center integral.
     bool _need_distances_pb(const I2CIntegral& integral) const;
     
+    /// Checks if distances of (G-A) are required for integration.
+    /// @param integral The base three center integral.
+    bool _need_distances_ga(const I2CIntegral& integral) const;
+    
+    /// Checks if distances of (G-B) are required for integration.
+    /// @param integral The base three center integral.
+    bool _need_distances_gb(const I2CIntegral& integral) const;
+    
     /// Checks if exponents on center A  are required for integration.
     /// @param integral The base two center integral.
     bool _need_exponents(const I2CIntegral& integral) const;
@@ -212,6 +220,16 @@ class T2CFuncBodyDriver
     /// @param integral The base two center integral.
     /// @return The string with index label.
     int _get_index_pc(const I2CIntegral& integral) const;
+    
+    /// Gets index of R(GA) distances in factors list.
+    /// @param integral The base three center integral.
+    /// @return The string with index label.
+    int _get_index_ga(const I2CIntegral& integral) const;
+    
+    /// Gets index of R(GB) distances in factors list.
+    /// @param integral The base three center integral.
+    /// @return The string with index label.
+    int _get_index_gb(const I2CIntegral& integral) const;
     
 public:
     /// Creates a two-center compute function body generator.

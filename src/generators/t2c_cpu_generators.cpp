@@ -37,6 +37,7 @@
 #include "v2i_linmom_driver.hpp"
 #include "v2i_el_field_driver.hpp"
 #include "v2i_center_driver.hpp"
+#include "v3i_ovl_driver.hpp"
 
 void
 T2CCPUGenerator::generate(const std::string&           label,

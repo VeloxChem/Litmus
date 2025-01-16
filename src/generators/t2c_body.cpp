@@ -443,8 +443,9 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&            lines,
         lines.push_back({4, 0, 2, "t2cfunc::comp_coordinates_p(factors, 8, 2, r_a, a_exp);"});
     }
 
-    if (t2c::get_effective_order(integral, 0) > 0)
+    if ((t2c::get_effective_order(integral, 0) > 0) && (integral.integrand().name() != "G(r)"))
     {
+        
         const auto label = std::to_string(_get_index_pa(integral));
         
         if (_need_center_p(integral))
@@ -457,7 +458,7 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&            lines,
         }
     }
 
-    if (t2c::get_effective_order(integral, 1) > 0)
+    if ((t2c::get_effective_order(integral, 1) > 0) && (integral.integrand().name() != "G(r)"))
     {
         const auto label = std::to_string(_get_index_pb(integral));
         
@@ -541,6 +542,20 @@ T2CFuncBodyDriver::_add_sum_loop_start(      VCodeLines&            lines,
             const auto label = std::to_string(_get_index_pc(integral));
         
             lines.push_back({5, 0, 2, "t2cfunc::comp_distances_pc(factors, " + label + ", 8, coords[l]);"});
+        }
+        
+        if (_need_distances_ga(integral))
+        {
+            const auto label = std::to_string(_get_index_ga(integral));
+        
+            lines.push_back({5, 0, 2, "t2cfunc::comp_distances_ga(factors, " + label + ", 8, r_a, coords[l], a_exp, exgtos[l]);"});
+        }
+        
+        if (_need_distances_gb(integral))
+        {
+            const auto label = std::to_string(_get_index_gb(integral));
+        
+            lines.push_back({5, 0, 2, "t2cfunc::comp_distances_gb(factors, " + label + ", 8, 2, coords[l], a_exp, exgtos[l]);"});
         }
         
         if (_need_boys_func(integral))
@@ -671,6 +686,19 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
                     lines.push_back({spacer, 0, 2, "npotrec::comp_prim_nuclear_potential_ss(pbuffer, " + label + ", bf_data, " + std::to_string(tint.order()) + ", factors, a_exp);"});
                 }
             }
+            
+            if ((tint.integrand().name() == "G(r)"))
+            {
+                const auto sint = tint.replace(Operator("1"));
+                
+                if (rec_form.first && in_sum_loop)
+                {
+                    const auto label = std::to_string(_get_position(tint, integrals)) + ", " + std::to_string(_get_position(sint, integrals));
+                    
+                    lines.push_back({spacer, 0, 2, "t3ovlrec::comp_prim_overlap_ss(pbuffer, " + label + ", factors, " + std::to_string(_get_index_pc(integral)) + ", a_exp, exgtos[l], exgtos[npoints + l]);"});
+                }
+            }
+            
             
             if ((tint.integrand().name() == "AG"))
             {
@@ -910,6 +938,8 @@ T2CFuncBodyDriver::_need_distances_pc_in_call_tree(const I2CIntegral& integral) 
 bool
 T2CFuncBodyDriver::_need_distances_pa(const I2CIntegral& integral) const
 {
+    if (integral.integrand().name() == "G(r)") return false;
+    
     if (integral.is_simple())
     {
         return integral[0] > 0;
@@ -923,6 +953,45 @@ T2CFuncBodyDriver::_need_distances_pa(const I2CIntegral& integral) const
 bool
 T2CFuncBodyDriver::_need_distances_pb(const I2CIntegral& integral) const
 {
+    if (integral.integrand().name() == "G(r)") return false;
+    
+    if (integral.is_simple())
+    {
+        return integral[1] > 0;
+    }
+    else
+    {
+        if (auto prefixes = integral.prefixes(); prefixes.size() == 2)
+        {
+            return (integral[1] + prefixes[1].shape().order()) > 0;
+        }
+        else
+        {
+            return integral[1] > 0;
+        }
+    }
+}
+
+bool
+T2CFuncBodyDriver::_need_distances_ga(const I2CIntegral& integral) const
+{
+    if (integral.integrand().name() != "G(r)") return false;
+    
+    if (integral.is_simple())
+    {
+        return integral[0] > 0;
+    }
+    else
+    {
+        return (integral[0] + (integral.prefixes())[0].shape().order()) > 0;
+    }
+}
+
+bool
+T2CFuncBodyDriver::_need_distances_gb(const I2CIntegral& integral) const
+{
+    if (integral.integrand().name() != "G(r)") return false;
+    
     if (integral.is_simple())
     {
         return integral[1] > 0;
@@ -1034,5 +1103,24 @@ T2CFuncBodyDriver::_get_index_pc(const I2CIntegral& integral) const
         {
             return 11;
         }
+    }
+}
+
+int
+T2CFuncBodyDriver::_get_index_ga(const I2CIntegral& integral) const
+{
+    return _get_index_pc(integral) + 3;
+}
+
+int
+T2CFuncBodyDriver::_get_index_gb(const I2CIntegral& integral) const
+{
+    if (_need_distances_ga(integral))
+    {
+       return _get_index_ga(integral) + 3;
+    }
+    else
+    {
+        return _get_index_pc(integral) + 3;
     }
 }

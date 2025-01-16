@@ -14,17 +14,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "v2i_ovl_driver.hpp"
+#include "v3i_ovl_driver.hpp"
 
 bool
-V2IOverlapDriver::is_overlap(const I2CIntegral& integral) const
+V3IOverlapDriver::is_overlap(const I2CIntegral& integral) const
 {
     if (!(integral.prefixes()).empty())
     {
         return false;
     }
     
-    if (integral.integrand() != Operator("1"))
+    if (integral.integrand() != Operator("G(r)"))
     {
         return false;
     }
@@ -35,7 +35,7 @@ V2IOverlapDriver::is_overlap(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::bra_vrr(const I2CIntegral& integral) const
+V3IOverlapDriver::bra_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
@@ -66,7 +66,7 @@ V2IOverlapDriver::bra_vrr(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::ket_vrr(const I2CIntegral& integral) const
+V3IOverlapDriver::ket_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
@@ -87,8 +87,26 @@ V2IOverlapDriver::ket_vrr(const I2CIntegral& integral) const
     return tints;
 }
 
+I2CIntegral
+V3IOverlapDriver::aux_vrr(const I2CIntegral& integral) const
+{
+    if ((integral[0] + integral[1]) == 0)
+    {
+        auto xint = integral.replace(Operator("1"));
+                         
+        xint.set_order(0);
+        
+        return xint;
+    }
+    else
+    {
+        return integral;
+    }
+}
+
+
 SI2CIntegrals
-V2IOverlapDriver::apply_bra_vrr(const I2CIntegral& integral) const
+V3IOverlapDriver::apply_bra_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
@@ -132,7 +150,7 @@ V2IOverlapDriver::apply_bra_vrr(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::apply_ket_vrr(const I2CIntegral& integral) const
+V3IOverlapDriver::apply_ket_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
@@ -176,7 +194,7 @@ V2IOverlapDriver::apply_ket_vrr(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::apply_recursion(const SI2CIntegrals& integrals) const
+V3IOverlapDriver::apply_recursion(const SI2CIntegrals& integrals) const
 {
     SI2CIntegrals tints;
     
@@ -188,9 +206,23 @@ V2IOverlapDriver::apply_recursion(const SI2CIntegrals& integrals) const
         {
             if (bintegral[0] == 0)
             {
-                const auto ctints = apply_ket_vrr(bintegral);
-
-                tints.insert(ctints.cbegin(), ctints.cend());
+                if (bintegral[1] != 0)
+                {
+                    const auto ctints = apply_ket_vrr(bintegral);
+                    
+                    for (const auto& ctint : ctints)
+                    {
+                        tints.insert(ctint);
+                        
+                        tints.insert(aux_vrr(ctint));
+                    }
+                }
+                else
+                {
+                    tints.insert(bintegral);
+                    
+                    tints.insert(aux_vrr(bintegral));
+                }
             }
             else
             {
@@ -203,7 +235,7 @@ V2IOverlapDriver::apply_recursion(const SI2CIntegrals& integrals) const
 }
 
 SI2CIntegrals
-V2IOverlapDriver::create_recursion(const SI2CIntegrals& integrals) const
+V3IOverlapDriver::create_recursion(const SI2CIntegrals& integrals) const
 {
     SI2CIntegrals tints;
     
