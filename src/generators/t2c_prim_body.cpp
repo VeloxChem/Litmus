@@ -27,6 +27,7 @@
 #include "t2c_dip_driver.hpp"
 #include "t2c_linmom_driver.hpp"
 #include "t2c_el_field_driver.hpp"
+#include "t2c_eri_driver.hpp"
 
 void
 T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
@@ -251,6 +252,8 @@ T2CPrimFuncBodyDriver::_get_tensor_label(const I2CIntegral& integral) const
     if (integral.integrand().name() == "p") label = "tp";
 
     if (integral.integrand().name() == "AG") label = "ta" + std::to_string(integral.integrand().shape().order());
+    
+    if (integral.integrand().name() == "1/|r-r'|") label = "g";
 
     return label;
 }
@@ -272,6 +275,8 @@ T2CPrimFuncBodyDriver::_get_tensor_label(const T2CIntegral& integral) const
     if (integral.integrand().name() == "p") label = "tp";
 
     if (integral.integrand().name() == "AG") label = "ta" + std::to_string(integral.integrand().shape().order());
+    
+    if (integral.integrand().name() == "1/|r-r'|") label = "g";
 
     return label;
 }
@@ -394,7 +399,7 @@ T2CPrimFuncBodyDriver::_get_factor_lines(                VCodeLines& lines,
             lines.push_back({2, 0, 2, "const double fz_0 = a_exp * b_exps[i] / (a_exp + b_exps[i]);"});
         }
     }
-
+    
     if (std::find(tlabels.begin(), tlabels.end(), "tbe_0") !=  tlabels.end())
     {
         lines.push_back({2, 0, 2, "const double tbe_0 = a_exp;"});
@@ -408,6 +413,30 @@ T2CPrimFuncBodyDriver::_get_factor_lines(                VCodeLines& lines,
     if (std::find(tlabels.begin(), tlabels.end(), "fke_0") !=  tlabels.end())
     {
         lines.push_back({2, 0, 2, "const double fke_0 = 0.5 / b_exps[i];"});
+    }
+    
+    if (std::find(tlabels.begin(), tlabels.end(), "fz_be_0") !=  tlabels.end())
+    {
+        if (std::find(tlabels.begin(), tlabels.end(), "fe_0") !=  tlabels.end())
+        {
+            lines.push_back({2, 0, 2, "const double fz_be_0 =  2.0 * b_exps[i] * fe_0 * fbe_0;"});
+        }
+        else
+        {
+            lines.push_back({2, 0, 2, "const double fz_be_0 = b_exps[i] * fbe_0 / (a_exp + b_exps[i]);"});
+        }
+    }
+    
+    if (std::find(tlabels.begin(), tlabels.end(), "fz_ke_0") !=  tlabels.end())
+    {
+        if (std::find(tlabels.begin(), tlabels.end(), "fe_0") !=  tlabels.end())
+        {
+            lines.push_back({2, 0, 2, "const double fz_ke_0 =  2.0 * a_exp * fe_0 * fke_0;"});
+        }
+        else
+        {
+            lines.push_back({2, 0, 2, "const double fz_ke_0 = a_exp * fke_0 / (a_exp + b_exps[i]);"});
+        }
     }
 }
 
@@ -436,7 +465,6 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
             }
         }
     }
-
 
     if (integral.integrand().name() == "1")
     {
@@ -516,6 +544,20 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
         else
         {
             rdist = el_field_drv.apply_ket_vrr(R2CTerm(integral));
+        }
+    }
+    
+    if (integral.integrand().name() == "1/|r-r'|")
+    {
+        T2CElectronRepulsionDriver eri_drv;
+        
+        if (integral[0].order() > 0)
+        {
+            rdist = eri_drv.apply_bra_vrr(R2CTerm(integral));
+        }
+        else
+        {
+            rdist = eri_drv.apply_ket_vrr(R2CTerm(integral));
         }
     }
     
@@ -600,6 +642,12 @@ T2CPrimFuncBodyDriver::_get_component_label(const T2CIntegral& integral) const
     {
         label += "_" + std::to_string(integral.order());
     }
+    
+    if (integral.integrand().name() == "1/|r-r'|")
+    {
+        label += "_" + std::to_string(integral.order());
+    }
+    
     return label;
 }
 

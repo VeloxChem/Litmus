@@ -26,6 +26,7 @@
 #include "v2i_npot_driver.hpp"
 #include "v2i_linmom_driver.hpp"
 #include "v2i_el_field_driver.hpp"
+#include "v2i_eri_driver.hpp"
 #include "v2i_center_driver.hpp"
 #include "t2c_center_driver.hpp"
 
@@ -121,6 +122,11 @@ integral_label(const I2CIntegral& integral)
         }
     }
     
+    if (integrand.name() == "1/|r-r'|")
+    {
+        return (prefixes.empty()) ? "TwoCenterElectronRepulsion" : "TwoCenterElectronRepulsion" + suffix;
+    }
+    
     return std::string();
 }
 
@@ -159,6 +165,11 @@ integral_split_label(const I2CIntegral& integral)
     if (integrand.name() == "R")
     {
         return "op";
+    }
+    
+    if (integrand.name() == "1/|r-r'|")
+    {
+        return "Electron_Repulsion";
     }
 
     return std::string();
@@ -212,6 +223,11 @@ namespace_label(const I2CIntegral& integral)
         if (iorder == "0") return "t3ovlrec";
         
         if (iorder == "1") return "g3ovlrec";
+    }
+    
+    if (integrand.name() == "1/|r-r'|")
+    {
+        return "t2ceri";
     }
     
     return std::string();
@@ -495,6 +511,11 @@ get_index_label(const I2CIntegral& integral)
         label += "npot_" + std::to_string(integral.order()) + "_";
     }
     
+    if (integral.integrand().name() == "1/|r-r'|")
+    {
+        label += "eri_" + std::to_string(integral.order()) + "_";
+    }
+        
     if (!geom_label.empty()) label += geom_label + "_";
     
     label += fstr::lowercase(integral.label());
@@ -675,7 +696,20 @@ get_integrals(const I2CIntegral& integral)
             tints = el_field_drv.aux_vrr(integral);
         }
     }
-
+    
+    if (integral.integrand().name() == "1/|r-r'|")
+    {
+        V2IElectronRepulsionDriver eri_drv;
+        
+        if (integral[0] > 0)
+        {
+            tints = eri_drv.bra_vrr(integral);
+        }
+        else
+        {
+            tints = eri_drv.ket_vrr(integral);
+        }
+    }
 
     return tints;
 }

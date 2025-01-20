@@ -35,6 +35,7 @@
 #include "v2i_dip_driver.hpp"
 #include "v2i_npot_driver.hpp"
 #include "v2i_linmom_driver.hpp"
+#include "v2i_eri_driver.hpp"
 #include "v2i_el_field_driver.hpp"
 #include "v2i_center_driver.hpp"
 #include "v3i_ovl_driver.hpp"
@@ -103,6 +104,8 @@ T2CCPUGenerator::_is_available(const std::string& label) const
     if (fstr::lowercase(label) == "linear momentum") return true;
     
     if (fstr::lowercase(label) == "three center overlap") return true;
+    
+    if (fstr::lowercase(label) == "electron repulsion") return true;
         
     return false;
 }
@@ -165,6 +168,13 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
     if (fstr::lowercase(label) == "three center overlap")
     {
         return I2CIntegral(bra, ket, Operator("G(r)"), 0, {});
+    }
+    
+    // electron repulsion integrals
+    
+    if (fstr::lowercase(label) == "electron repulsion")
+    {
+        return I2CIntegral(bra, ket, Operator("1/|r-r'|"), 0, {});
     }
     
     return I2CIntegral();
@@ -308,6 +318,20 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral&        integral,
         }
     }
     
+    if (integral.integrand() == Operator("1/|r-r'|"))
+    {
+        V2IElectronRepulsionDriver eri_drv;
+        
+        if (integral.is_simple())
+        {
+            tints = eri_drv.create_recursion({integral,});
+        }
+        else
+        {
+            tints = eri_drv.create_recursion(tints);
+        }
+    }
+    
     return tints;
 }
 
@@ -434,7 +458,9 @@ T2CCPUGenerator::_write_hpp_includes(      std::ofstream&         fstream,
         lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(rint) + ".hpp\""});
     }
     
-    if ((integral.integrand().name() == "A") || (integral.integrand().name() == "AG"))
+    if ((integral.integrand().name() == "A")  ||
+        (integral.integrand().name() == "AG") ||
+        (integral.integrand().name() == "1/|r-r'|"))
     {
         lines.push_back({0, 0, 1, "#include \"BoysFunc.hpp\""});
     }

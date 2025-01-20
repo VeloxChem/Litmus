@@ -14,25 +14,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef v2i_npot_driver_hpp
-#define v2i_npot_driver_hpp
+#ifndef v2i_eri_driver_hpp
+#define v2i_eri_driver_hpp
 
 #include <array>
 
 #include "t2c_defs.hpp"
 
-/// Two center nuclear potential integrals driver class.
-class V2INuclearPotentialDriver
+/// Two center electron repulsion integrals driver class.
+class V2IElectronRepulsionDriver
 {
    
 public:
     /// Creates a two center nuclear potential integrals driver.
-    V2INuclearPotentialDriver() = default;
+    V2IElectronRepulsionDriver() = default;
     
     /// Check if integral is for two-center nuclear potential integral.
     /// @param integral The integral to check.
     /// @return True if reccursion expansion belongs to overlap recursion, False otherwise.
-    bool is_nuclear_potential(const I2CIntegral& integral) const;
+    bool is_electron_repulsion(const I2CIntegral& integral) const;
     
     /// Applies vertical recursion to bra side of nuclear potential integral.
     /// @param integral The  overlap integral.
@@ -43,11 +43,6 @@ public:
     /// @param integral The  overlap integral.
     /// @return The set of integrals.
     SI2CIntegrals ket_vrr(const I2CIntegral& integral) const;
-    
-    /// Applies vertical recursion to auxilary nuclear potential integral.
-    /// @param integral The  overlap integral.
-    /// @return The integral.
-    I2CIntegral aux_vrr(const I2CIntegral& integral) const;
     
     /// Applies vertical recursion to bra side of nuclear potential integral.
     /// @param integral The  overlap integral.
@@ -70,4 +65,5 @@ public:
     SI2CIntegrals create_recursion(const SI2CIntegrals& integrals) const;
 };
 
-#endif /* v2i_npot_driver_hpp */
+
+#endif /* v2i_eri_driver_hpp */

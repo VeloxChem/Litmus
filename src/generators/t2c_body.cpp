@@ -478,6 +478,15 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&            lines,
         
         lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pc(factors, " +  label + ", 8, r_c);"});
     }
+    
+    if (!rec_form.first)
+    {
+        auto order = integral[0] + integral[1] + integral.integrand().shape().order();
+        
+        lines.push_back({4, 0, 2, "t2cfunc::comp_boys_args_with_rho(bf_data, " + std::to_string(order + 1) + ", factors, 5, a_exp);"});
+        
+        lines.push_back({4, 0, 2, "bf_table.compute(bf_data, 0, " + std::to_string(order + 1) + ");"});
+    }
 }
 
 void
@@ -736,6 +745,11 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
                         lines.push_back({spacer, 0, 2, "npotrec::comp_prim_nuclear_potential_geom_020_ss(pbuffer, " + label + ", factors, " +  std::to_string(_get_index_pc(integral)) + ", a_exp);"});
                     }
                 }
+            }
+            
+            if ((tint.integrand().name() == "1/|r-r'|") && (!in_sum_loop))
+            {
+                lines.push_back({4, 0, 2, "t2ceri::comp_prim_electron_repulsion_ss(pbuffer, " + std::to_string(_get_position(tint, integrals)) + ", bf_data, " + std::to_string(tint.order()) + ", factors, a_exp, a_norm);"});
             }
             
             // TODO: other integrals...
@@ -1034,6 +1048,8 @@ T2CFuncBodyDriver::_need_boys_func(const I2CIntegral& integral) const
     if (integrand.name() == "A") return true;
     
     if (integrand.name() == "AG") return true;
+    
+    if (integrand.name() == "1/|r-r'|") return true;
     
     return false;
 }
