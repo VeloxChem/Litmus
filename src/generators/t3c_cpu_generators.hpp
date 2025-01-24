@@ -45,6 +45,108 @@ class T3CCPUGenerator
     /// @return The set of integrals.
     SI3CIntegrals _generate_ket_hrr_integral_group(const I3CIntegral& integral) const;
     
+    /// Generates set of integrals required for vertical Obara-Saika recursion.
+    /// @param integral The base four center integral.
+    /// @param integrals The set of four center integrals.
+    /// @return The set of integrals.
+    SI3CIntegrals _generate_vrr_integral_group(const I3CIntegral&   integral,
+                                               const SI3CIntegrals& integrals) const;
+    
+    /// Writes header file for recursion.
+    /// @param hrr_integrals The set of unique integrals for horizontal recursion.
+    /// @param vrr_integrals The set of unique integrals for vertical recursion.
+    /// @param integral The base two center integral.
+    void _write_cpp_header(const SI3CIntegrals& hrr_integrals,
+                           const SI3CIntegrals& vrr_integrals,
+                           const I3CIntegral& integral) const;
+    
+    /// Gets file name of file with recursion functions for two center integral.
+    /// @param integral The base two center integral.
+    /// @return The file name.
+    std::string _file_name(const I3CIntegral& integral) const;
+    
+    /// Writes definitions of define for header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param start The flag to indicate position of define (start or end).
+    void _write_hpp_defines(      std::ofstream& fstream,
+                            const I3CIntegral&   integral,
+                            const bool           start) const;
+    
+    /// Writes definitions of includes for header file.
+    /// @param fstream the file stream.
+    /// @param hrr_integrals The set of unique integrals for horizontal recursion.
+    /// @param vrr_integrals The set of unique integrals for vertical recursion.
+    /// @param integral The base two center integral.
+    void _write_hpp_includes(      std::ofstream& fstream,
+                             const SI3CIntegrals& hrr_integrals,
+                             const SI3CIntegrals& vrr_integrals,
+                             const I3CIntegral&   integral) const;
+    
+    /// Writes namespace definition to file stream.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param start The flag to indicate position of namespace definition (start or end).
+    void _write_namespace(      std::ofstream& fstream,
+                          const I3CIntegral&   integral,
+                          const bool           start) const;
+    
+    /// Writes primitive header file for recursion.
+    /// @param integral The base two center integral.
+    void _write_prim_cpp_header(const I3CIntegral& integral) const;
+    
+    /// Writes C++ code file for primtive recursion.
+    /// @param integral The base four center integral.
+    void _write_prim_cpp_file(const I3CIntegral& integral) const;
+    
+    /// Writes definitions of define for header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param start The flag to indicate position of define (start or end).
+    void _write_prim_hpp_defines(      std::ofstream& fstream,
+                                 const I3CIntegral&   integral,
+                                 const bool           start) const;
+    
+    /// Writes definitions of includes for primitive header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_prim_hpp_includes(      std::ofstream& fstream,
+                                  const I3CIntegral&   integral) const;
+    
+    /// Writes definitions of includes for primitive header file.
+    /// @param fstream the file stream.
+    /// @param integral The base four center integral.
+    void _write_prim_cpp_includes(      std::ofstream& fstream,
+                                  const I3CIntegral&  integral) const;
+    
+    /// Writes ket hrr header file for recursion.
+    /// @param integral The base two center integral.
+    void _write_hrr_cpp_header(const I3CIntegral& integral) const;
+    
+    /// Writes C++ code file for primtive recursion.
+    /// @param integral The base four center integral.
+    void _write_hrr_cpp_file(const I3CIntegral& integral) const;
+    
+    /// Writes definitions of define for header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param start The flag to indicate position of define (start or end).
+    void _write_hrr_hpp_defines(      std::ofstream& fstream,
+                                const I3CIntegral&   integral,
+                                const bool           start) const;
+    
+    /// Writes definitions of includes for primitive header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_hrr_hpp_includes(      std::ofstream& fstream,
+                                 const I3CIntegral&   integral) const;
+    
+    /// Writes definitions of includes for primitive header file.
+    /// @param fstream the file stream.
+    /// @param integral The base four center integral.
+    void _write_hrr_cpp_includes(      std::ofstream& fstream,
+                                 const I3CIntegral&   integral) const;
+    
 public:
     /// Creates a three-center integrals CPU code generator.
     T3CCPUGenerator() = default;

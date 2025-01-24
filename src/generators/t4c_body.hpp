@@ -530,5 +530,4 @@ public:
                               const I4CIntegral&   integral) const;
 };
 
-
 #endif /* t4c_body_hpp */

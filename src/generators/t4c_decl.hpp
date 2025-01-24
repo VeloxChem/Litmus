@@ -82,5 +82,4 @@ public:
                               const bool           terminus) const;
 };
 
-
 #endif /* t4c_decl_hpp */

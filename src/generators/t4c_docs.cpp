@@ -20,7 +20,6 @@
 #include "t4c_utils.hpp"
 #include "string_formater.hpp"
 
-
 void
 T4CDocuDriver::write_doc_str(      std::ofstream& fstream,
                              const I4CIntegral&   integral) const
