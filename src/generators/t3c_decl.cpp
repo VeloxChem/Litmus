@@ -90,7 +90,7 @@ T3CDeclDriver::_get_indices_str(const I3CIntegral& integral,
     
     const auto tsymbol = (terminus) ? ";" : "";
     
-    vstr.push_back(spacer + "const std::pair<size_t, size_t>& bra_gto_indices) -> void" + tsymbol);
+    vstr.push_back(spacer + "const std::pair<size_t, size_t>& bra_range) -> void" + tsymbol);
         
     return vstr;
 }

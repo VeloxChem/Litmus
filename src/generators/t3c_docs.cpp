@@ -95,7 +95,7 @@ T3CDocuDriver::_get_indices_str() const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("/// @param bra_indices The range [bra_first, bra_last) of basis functions on bra side.");
+    vstr.push_back("/// @param bra_range The range [bra_first, bra_last) of basis functions on bra side.");
         
     return vstr;
 }

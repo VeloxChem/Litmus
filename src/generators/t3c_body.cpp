@@ -260,16 +260,19 @@ T3CFuncBodyDriver::_get_half_spher_buffers_def(const SI3CIntegrals& integrals,
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("// allocate aligned half transformed integrals");
-    
-    auto tcomps = _get_all_half_spher_components(_get_half_spher_buffers_integrals(integrals, integral));
-    
-    std::string label = "CSimdArray<double> ";
-            
-    label += "skbuffer(" + std::to_string(tcomps) + ", 1);";
-            
-    vstr.push_back(label);
+    if (_need_hrr(integral) || (integral[0] > 0))
+    {
+        vstr.push_back("// allocate aligned half transformed integrals");
         
+        auto tcomps = _get_all_half_spher_components(_get_half_spher_buffers_integrals(integrals, integral));
+        
+        std::string label = "CSimdArray<double> ";
+                
+        label += "skbuffer(" + std::to_string(tcomps) + ", 1);";
+                
+        vstr.push_back(label);
+    }
+    
     return vstr;
 }
 
@@ -384,7 +387,7 @@ T3CFuncBodyDriver::_add_loop_start(      VCodeLines&    lines,
                     
     lines.push_back({1, 0, 1, "{"});
     
-    lines.push_back({2, 0, 2, "auto ket_range = batch::batch_range(i, ket_dim, simd::width<double>(), ket_indices.first);"});
+    lines.push_back({2, 0, 2, "auto ket_range = batch::batch_range(i, ket_dim, simd::width<double>(), size_t{0});"});
 
     lines.push_back({2, 0, 2, "pfactors.load(c_vec_exps, ket_range, 0, ket_npgtos);"});
     
@@ -415,12 +418,12 @@ T3CFuncBodyDriver::_add_loop_start(      VCodeLines&    lines,
     
     lines.push_back({2, 0, 2, "cbuffer.set_active_width(ket_width);"});
     
-    if (_need_hrr(integral))
+    if (_need_hrr(integral) || (integral[0] > 0))
     {
-        lines.push_back({2, 0, 2, "ckbuffer.set_active_width(ket_width);"});
+        //lines.push_back({2, 0, 2, "ckbuffer.set_active_width(ket_width);"});
+        
+        lines.push_back({2, 0, 2, "skbuffer.set_active_width(ket_width);"});
     }
-    
-    lines.push_back({2, 0, 2, "skbuffer.set_active_width(ket_width);"});
     
     lines.push_back({2, 0, 2, "sbuffer.set_active_width(ket_width);"});
     
@@ -428,7 +431,7 @@ T3CFuncBodyDriver::_add_loop_start(      VCodeLines&    lines,
       
     lines.push_back({2, 0, 2, "// loop over basis function pairs on bra side"});
 
-    lines.push_back({2, 0, 1, "for (auto j = bra_indices.first; j < bra_indices.second; j++)"});
+    lines.push_back({2, 0, 1, "for (auto j = bra_range.first; j < bra_range.second; j++)"});
 
     lines.push_back({2, 0, 1, "{"});
     
@@ -436,12 +439,12 @@ T3CFuncBodyDriver::_add_loop_start(      VCodeLines&    lines,
     
     lines.push_back({3, 0, 2, "cbuffer.zero();"});
     
-    if (_need_hrr(integral))
+    if (_need_hrr(integral) || (integral[0] > 0))
     {
-        lines.push_back({3, 0, 2, "ckbuffer.zero();"});
+        // lines.push_back({3, 0, 2, "ckbuffer.zero();"});
+        
+        lines.push_back({3, 0, 2, "skbuffer.zero();"});
     }
-    
-    lines.push_back({3, 0, 2, "skbuffer.zero();"});
     
     lines.push_back({3, 0, 2, "sbuffer.zero();"});
 
@@ -449,7 +452,7 @@ T3CFuncBodyDriver::_add_loop_start(      VCodeLines&    lines,
 
     lines.push_back({3, 0, 2, "const auto r_a = bra_gto_coords[j];"});
     
-    lines.push_back({3, 0, 2, "const auto a_xyz = r_a.coordinates();"});
+    //lines.push_back({3, 0, 2, "const auto a_xyz = r_a.coordinates();"});
 }
 
 void
@@ -696,7 +699,7 @@ T3CFuncBodyDriver::_add_bra_trafo_call_tree(      VCodeLines&    lines,
     
     const auto ckints = _get_cart_buffer_integrals(integrals);
     
-    if (integral[1] > 0)
+    if ((integral[0] + integral[1]) > 0) 
     {
         for (const auto& tint : ckints)
         {
@@ -729,7 +732,7 @@ T3CFuncBodyDriver::_add_hrr_call_tree(      VCodeLines&  lines,
         {
             const auto name = t3c::hrr_compute_func_name(tint);
 
-            auto label = t3c::namespace_label(tint) + "::" + name + "(ckbuffer, ";
+            auto label = t3c::namespace_label(tint) + "::" + name + "(skbuffer, ";
             
             label += std::to_string(_get_half_spher_index(0, tint, skints)) + ", ";
             
@@ -795,9 +798,16 @@ T3CFuncBodyDriver::_add_ket_trafo_call_tree(      VCodeLines&    lines,
 {
     const auto skints = _get_half_spher_buffers_integrals(integrals, integral);
     
-    std::string label = "t4cfunc::ket_transform<" + std::to_string(integral[1]) + ", " + std::to_string(integral[2]) + ">";
+    std::string label = "t3cfunc::ket_transform<" + std::to_string(integral[1]) + ", " + std::to_string(integral[2]) + ">";
         
-    label += "(sbuffer, 0, skbuffer, ";
+    if (_need_hrr(integral) || (integral[0] > 0))
+    {
+        label += "(sbuffer, 0, skbuffer, ";
+    }
+    else
+    {
+        label += "(sbuffer, 0, cbuffer, ";
+    }
     
     label += std::to_string(_get_half_spher_index(0, integral, skints)) + ", ";
     

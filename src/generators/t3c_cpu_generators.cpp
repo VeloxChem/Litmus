@@ -281,6 +281,8 @@ T3CCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     
     lines.push_back({0, 0, 1, "#include \"T4CUtils.hpp\""});
     
+    lines.push_back({0, 0, 1, "#include \"T3CUtils.hpp\""});
+    
     lines.push_back({0, 0, 1, "#include \"T2CUtils.hpp\""});
     
     lines.push_back({0, 0, 1, "#include \"GtoPairBlock.hpp\""});
