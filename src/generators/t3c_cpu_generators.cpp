@@ -50,7 +50,7 @@ T3CCPUGenerator::generate(const std::string& label,
                     
                     const auto vrr_integrals = _generate_vrr_integral_group(integral, hrr_integrals);
                     
-                    //_write_cpp_header(hrr_integrals, vrr_integrals, integral);
+                    _write_cpp_header(hrr_integrals, vrr_integrals, integral);
                 }
             }
         }
@@ -63,9 +63,9 @@ T3CCPUGenerator::generate(const std::string& label,
                 
                 const auto integral = _get_integral(label, {i, 0, j});
 
-                // _write_prim_cpp_header(integral);
+                _write_prim_cpp_header(integral);
 
-                // _write_prim_cpp_file(integral);
+                _write_prim_cpp_file(integral);
             }
         }
         
