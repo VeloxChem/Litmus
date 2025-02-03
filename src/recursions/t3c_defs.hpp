@@ -41,7 +41,7 @@ using I3CIntegral = Integral<I1CPair, I2CPair>;
 
 using SI3CIntegrals = SIntegrals<I1CPair, I2CPair>;
 
-using G3Term = std::pair<std::array<int, 4>, I3CIntegral>;
+using G3Term = std::pair<std::array<int, 3>, I3CIntegral>;
 
 using SG3Terms = std::set<G3Term>;
 

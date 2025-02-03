@@ -30,6 +30,7 @@
 #include "t4c_geom_deriv_cpu_generators.hpp"
 #include "t4c_eri_tree_generators.hpp"
 #include "t3c_cpu_generators.hpp"
+#include "t3c_geom_cpu_generators.hpp"
 
 int main(int argc, char **argv)
 {
@@ -136,7 +137,7 @@ int main(int argc, char **argv)
     if (run_type.first == "t3c_cpu")
     {
         // a, b, operator, c, d
-        std::array<int, 3> geom_drvs = {0, 0, 0};
+        std::array<int, 3> geom_drvs = {1, 0, 0};
         
         if (geom_drvs == std::array<int, 3>({0, 0, 0}))
         {
@@ -146,9 +147,9 @@ int main(int argc, char **argv)
         }
         else
         {
-//            const auto t4c_drv = T4CGeomCPUGenerator();
-//            
-//            t4c_drv.generate(run_type.second, max_ang_mom, geom_drvs);
+            const auto t3c_drv = T3CGeomCPUGenerator();
+            
+            t3c_drv.generate(run_type.second, max_ang_mom, max_ang_mom, geom_drvs);
         }
     }
     

@@ -25,6 +25,7 @@
 #include "v2i_npot_driver.hpp"
 #include "v2i_linmom_driver.hpp"
 #include "v2i_el_field_driver.hpp"
+#include "v2i_eri_driver.hpp"
 
 #include "string_formater.hpp"
 #include "file_stream.hpp"
@@ -72,7 +73,7 @@ T2CGeomCPUGenerator::generate(const std::string&           label,
     }
     else
     {
-        std::cerr << "*** ERROR *** Unsupported type of four-center integral: ";
+        std::cerr << "*** ERROR *** Unsupported type of two-center integral: ";
         
         std::cerr << label << " !!!" << std::endl;
         
@@ -90,6 +91,8 @@ T2CGeomCPUGenerator::_is_available(const std::string& label) const
     if (fstr::lowercase(label) == "dipole momentum") return true;
     
     if (fstr::lowercase(label) == "nuclear potential") return true;
+    
+    if (fstr::lowercase(label) == "electron repulsion") return true;
     
     return false;
 }
@@ -146,6 +149,13 @@ T2CGeomCPUGenerator::_get_integral(const std::string&        label,
         {
             return I2CIntegral(bra, ket, Operator("AG", Tensor(geom_drvs[1])), 0, prefixes);
         }
+    }
+    
+    // electron repulsion integrals
+    
+    if (fstr::lowercase(label) == "electron repulsion")
+    {
+        return I2CIntegral(bra, ket, Operator("1/|r-r'|"), 0, prefixes);
     }
     
     return I2CIntegral();
@@ -225,6 +235,13 @@ T2CGeomCPUGenerator::_generate_vrr_integral_group(const I2CIntegral&   integral,
         V2INuclearPotentialDriver npot_drv;
         
         tints = npot_drv.create_recursion(tints);
+    }
+    
+    if (integral.integrand() == Operator("1/|r-r'|"))
+    {
+        V2IElectronRepulsionDriver eri_drv;
+        
+        tints = eri_drv.create_recursion(tints);
     }
     
     return tints;
