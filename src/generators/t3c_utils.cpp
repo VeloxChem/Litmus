@@ -28,15 +28,13 @@ integral_label(const I3CIntegral& integral)
     
     const auto prefixes = integral.prefixes();
     
-    if (const auto nterms = prefixes.size(); nterms == 4)
+    if (const auto nterms = prefixes.size(); nterms == 3)
     {
         suffix += std::to_string(prefixes[0].shape().order());
         
         suffix += std::to_string(prefixes[1].shape().order());
         
         suffix += std::to_string(prefixes[2].shape().order());
-        
-        suffix += std::to_string(prefixes[3].shape().order());
     }
     
     const auto integrand = integral.integrand();
@@ -270,6 +268,46 @@ get_hrr_buffer_label(const I3CIntegral& integral)
     label += "x" + ket_one.label() + ket_two.label();
     
     return fstr::lowercase(label);
+}
+
+std::string
+prefixes_label(const I3CIntegral& integral)
+{
+    const auto prefixes = integral.prefixes();
+    
+    std::string label;
+    
+    if (const auto border = prefixes[0].shape().order(); border > 0)
+    {
+        label += "d^(" + std::to_string(border) + ")/dA^(" + std::to_string(border) + ")";
+    }
+    
+    if (const auto border = prefixes[1].shape().order(); border > 0)
+    {
+        label += "d^(" + std::to_string(border) + ")/dC^(" + std::to_string(border) + ")";
+    }
+    
+    if (const auto border = prefixes[2].shape().order(); border > 0)
+    {
+        label += "d^(" + std::to_string(border) + ")/dD^(" + std::to_string(border) + ")";
+    }
+    
+    return label;
+}
+
+G3Term
+prune_term(const G3Term& term)
+{
+    const auto tint = term.second;
+    
+    if (tint.prefixes_order() == std::vector<int>({1, 0, 0}) && (tint[0] == 0))
+    {
+        const auto cint = *tint.shift(1, 0);
+        
+        return G3Term({std::array<int, 3>({1, 0, 0}), cint.base()});
+    }
+    
+    return term;
 }
 
 } // t3c namespace

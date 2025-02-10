@@ -102,6 +102,16 @@ std::string get_hrr_index(const I3CIntegral& integral);
 /// @return The string with integral label.
 std::string get_hrr_buffer_label(const I3CIntegral& integral);
 
+/// Generates geometrical derrivatives labels.
+/// @param integral The base four center integral.
+/// @return The geometrical derivative labels.
+std::string prefixes_label(const I3CIntegral& integral);
+
+/// Prunes geometrical recursion term.
+/// @param term The geometrical recursion term.
+/// @return The pruned geometrical recursion term.
+G3Term prune_term(const G3Term& term);
+
 } // t3c namespace
 
 #endif /* t3c_utils_hpp */

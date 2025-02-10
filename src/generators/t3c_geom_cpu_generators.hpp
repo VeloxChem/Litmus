@@ -41,6 +41,61 @@ class T3CGeomCPUGenerator
     /// @param terms The set of geometrical terms.
     void _add_ket_hrr_terms_group(SG3Terms& terms) const;
     
+    /// Filters cbuffer terms from set of geometrical terms.
+    /// @param terms The set of filtered geometrical terms.
+    SG3Terms _filter_cbuffer_terms(const SG3Terms& terms) const;
+    
+    /// Filters ckbuffer terms from set of geometrical terms.
+    /// @param terms The set of filtered geometrical terms.
+    SG3Terms _filter_skbuffer_terms(const I3CIntegral& integral,
+                                    const SG3Terms&    terms) const;
+    
+    /// Generates set of integrals required for geometrical derivatives.
+    /// @param terms The set of geometrical terms.
+    /// @return The set of integrals.
+    SI3CIntegrals _generate_vrr_integral_group(const SG3Terms& terms) const;
+    
+    /// Writes header file for recursion.
+    /// @param cterms The set of filtered geometrical terms.
+    /// @param skterms The set of filtered geometrical terms.
+    /// @param vrr_integrals The set of unique integrals for vertical recursion.
+    /// @param integral The base two center integral.
+    void _write_cpp_header(const SG3Terms&      cterms,
+                           const SG3Terms&      skterms,
+                           const SI3CIntegrals& vrr_integrals,
+                           const I3CIntegral&   integral) const;
+    
+    /// Gets file name of file with recursion functions for two center integral.
+    /// @param integral The base two center integral.
+    /// @return The file name.
+    std::string _file_name(const I3CIntegral& integral) const;
+    
+    /// Writes definitions of define for header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param start The flag to indicate position of define (start or end).
+    void _write_hpp_defines(      std::ofstream& fstream,
+                            const I3CIntegral&   integral,
+                            const bool           start) const;
+    
+    /// Writes definitions of includes for header file.
+    /// @param fstream the file stream.
+    /// @param skterms The set of filtered geometrical terms.
+    /// @param vrr_integrals The set of unique integrals for vertical recursion.
+    /// @param integral The base two center integral.
+    void _write_hpp_includes(      std::ofstream& fstream,
+                             const SG3Terms&      skterms,
+                             const SI3CIntegrals& vrr_integrals,
+                             const I3CIntegral&   integral) const;
+    
+    /// Writes namespace definition to file stream.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param start The flag to indicate position of namespace definition (start or end).
+    void _write_namespace(      std::ofstream& fstream,
+                          const I3CIntegral&   integral,
+                          const bool           start) const;
+    
 public:
     /// Creates a geometrical derivatives of three-center integrals CPU code generator.
     T3CGeomCPUGenerator() = default;

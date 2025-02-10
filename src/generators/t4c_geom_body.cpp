@@ -393,7 +393,6 @@ T4CGeomFuncBodyDriver::_get_half_spher_index(const G4Term&   term,
     return 0;
 }
 
-
 size_t
 T4CGeomFuncBodyDriver::_get_geom_half_spher_index(const size_t         start,
                                                   const I4CIntegral&   integral,
