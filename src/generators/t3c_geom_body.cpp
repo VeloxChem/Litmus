@@ -76,12 +76,8 @@ T3CGeomFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     _add_ket_loop_end(lines, cterms, vrr_integrals, integral);
     
     _add_bra_trafo_call_tree(lines, cterms, skterms, integral);
-
-//    _add_bra_hrr_call_tree(lines, skterms, integral, 3);
-//    
-//    _add_bra_geom_hrr_call_tree(lines, skterms, integral, 3);
     
-    //_add_ket_hrr_call_tree(lines, cterms, skterms, integral, 3);
+    _add_hrr_call_tree(lines, skterms, integral);
     
     _add_ket_trafo_call_tree(lines, skterms, integral);
     
@@ -874,4 +870,48 @@ T3CGeomFuncBodyDriver::_add_bra_trafo_call_tree(      VCodeLines&  lines,
             }
         }
     }
+}
+
+void
+T3CGeomFuncBodyDriver::_add_hrr_call_tree(      VCodeLines&  lines,
+                                          const SG3Terms&    skterms,
+                                          const I3CIntegral& integral) const
+{
+    for (const auto& term : skterms)
+    {
+        const auto tint = term.second;
+        
+        if (tint[1] > 0)
+        {
+            const auto name = t3c::hrr_compute_func_name(tint);
+
+            auto label = t3c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+            
+            label += std::to_string(_get_half_spher_index(term, skterms)) + ", ";
+            
+            label += _get_hrr_arguments(skterms, term);
+                        
+            label += "cfactors, 6, ";
+            
+            label += std::to_string(tint[0]);
+            
+            label += ");";
+            
+            lines.push_back({3, 0, 2, label});
+        }
+    }
+}
+
+std::string
+T3CGeomFuncBodyDriver::_get_hrr_arguments(const SG3Terms& skterms,
+                                          const G3Term&   term) const
+{
+    std::string label;
+    
+    for (const auto& tint : t3c::get_hrr_integrals(term.second))
+    {
+        label += std::to_string(_get_half_spher_index(G3Term({term.first, tint}), skterms)) + ", ";
+    }
+    
+    return label;
 }

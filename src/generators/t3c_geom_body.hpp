@@ -215,6 +215,20 @@ class T3CGeomFuncBodyDriver
                                   const SG3Terms&    skterms,
                                   const I3CIntegral& integral) const;
     
+    /// Adds call tree for ket horizontal recursion.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param skterms The set of filtered geometrical terms.
+    /// @param integral The base two center integral.
+    void _add_hrr_call_tree(      VCodeLines&  lines,
+                            const SG3Terms&    skterms,
+                            const I3CIntegral& integral) const;
+    
+    /// Gets arguments list for ket horizontal recursion function call.
+    /// @param skterms The set of filtered geometrical terms.
+    /// @param term The base integral term.
+    std::string _get_hrr_arguments(const SG3Terms& skterms,
+                                   const G3Term&   term) const;
+    
 public:
     /// Creates a two-center compute function body generator.
     T3CGeomFuncBodyDriver() = default;
