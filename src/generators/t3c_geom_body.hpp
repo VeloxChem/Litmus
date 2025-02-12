@@ -165,6 +165,18 @@ class T3CGeomFuncBodyDriver
                             const I3CIntegral&   integral,
                             const size_t         spacer) const;
     
+    /// Adds call tree for ket horizontal recursion.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param cterms The set of filtered geometrical terms.
+    /// @param skterms The set of filtered geometrical terms.
+    /// @param integral The base two center integral.
+    /// @param spacer The tabulation spacer.
+    void _add_ket_hrr_call_tree(      VCodeLines&  lines,
+                                const SG3Terms&    cterms,
+                                const SG3Terms&    skterms,
+                                const I3CIntegral& integral,
+                                const size_t       spacer) const;
+    
     /// Gets arguments list for primitive vertical recursion function call.
     /// @param start The indexes starting position.
     /// @param integrals The set of inetrgals.
@@ -192,6 +204,16 @@ class T3CGeomFuncBodyDriver
     /// @param terms The set of four center terms.
     size_t _get_half_spher_index(const G3Term&   term,
                                  const SG3Terms& terms) const;
+    
+    /// Adds call tree for bra side transformation.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param cterms The set of filtered geometrical terms.
+    /// @param skterms The set of filtered geometrical terms.
+    /// @param integral The base two center integral.
+    void _add_bra_trafo_call_tree(      VCodeLines&  lines,
+                                  const SG3Terms&    cterms,
+                                  const SG3Terms&    skterms,
+                                  const I3CIntegral& integral) const;
     
 public:
     /// Creates a two-center compute function body generator.

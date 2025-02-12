@@ -75,16 +75,14 @@ T3CGeomFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     
     _add_ket_loop_end(lines, cterms, vrr_integrals, integral);
     
-    
+    _add_bra_trafo_call_tree(lines, cterms, skterms, integral);
 
-    //_add_bra_hrr_call_tree(lines, cterms, skterms, integral, 3);
-//
-//    _add_ket_trafo_call_tree(lines, cterms, ckterms, skterms, integral, 3);
-//
 //    _add_bra_hrr_call_tree(lines, skterms, integral, 3);
 //    
 //    _add_bra_geom_hrr_call_tree(lines, skterms, integral, 3);
-//    
+    
+    //_add_ket_hrr_call_tree(lines, cterms, skterms, integral, 3);
+    
     _add_ket_trafo_call_tree(lines, skterms, integral);
     
     _add_loop_end(lines, integral);
@@ -837,4 +835,43 @@ T3CGeomFuncBodyDriver::_get_half_spher_index(const G3Term&   term,
     }
     
     return 0;
+}
+
+void
+T3CGeomFuncBodyDriver::_add_bra_trafo_call_tree(      VCodeLines&  lines,
+                                                const SG3Terms&    cterms,
+                                                const SG3Terms&    skterms,
+                                                const I3CIntegral& integral) const
+{
+    if ((integral[0] + integral[1]) > 0)
+    {
+        for (const auto& skterm : skterms)
+        {
+            const auto tint = skterm.second;
+            
+            const auto angpair = std::array<int, 2>({tint[1], tint[2]});
+            
+            const auto ket_comps = t2c::number_of_cartesian_components(angpair);
+            
+            if ((integral[0] == 0) && (tint[0] == 1) && tint[1] == 0)
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    std::string label = "t3cfunc::bra_transform<" + std::to_string(tint[0]) + ">";
+                    
+                    label += "(skbuffer, " + std::to_string(_get_half_spher_index(skterm, skterms) + i * ket_comps) + ", ";
+                    
+                    label += "cbuffer, " + std::to_string(_get_index(skterm, cterms) + i * ket_comps)  + ", ";
+                    
+                    label += std::to_string(tint[1]) + ", " + std::to_string(tint[2]) + ");";
+                    
+                    lines.push_back({3, 0, 2, label});
+                }
+            }
+            else
+            {
+                
+            }
+        }
+    }
 }
