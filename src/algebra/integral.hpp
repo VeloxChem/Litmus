@@ -91,7 +91,11 @@ public:
     /// @param order The order of integral.
     void set_order(const int order);
     
-    /// Reduces scalar prefixes..
+    /// Sets order of integral.
+    /// @param prefixes The vector of prefixes.
+    void set_prefixes(const VOperators& prefixes);
+    
+    /// Reduces scalar prefixes.
     void reduce_prefixes();
     
     /// Create new integral by replacing integrand.
@@ -325,6 +329,13 @@ void
 Integral<T, U>::set_order(const int order)
 {
     _order = order; 
+}
+
+template <class T, class U>
+void
+Integral<T, U>::set_prefixes(const VOperators& prefixes)
+{
+    _prefixes = prefixes; 
 }
 
 template <class T, class U>

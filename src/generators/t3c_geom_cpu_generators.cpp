@@ -34,7 +34,7 @@ T3CGeomCPUGenerator::generate(const std::string&        label,
                     
                     auto geom_terms = _generate_geom_terms_group(geom_integrals, integral);
                     
-                    _add_ket_hrr_terms_group(geom_terms);
+                    //_add_ket_hrr_terms_group(geom_terms);
                     
                     const auto cterms = _filter_cbuffer_terms(geom_terms);
                     
@@ -152,9 +152,33 @@ T3CGeomCPUGenerator::_generate_geom_integral_group(const I3CIntegral& integral) 
     
     if (geom_order == std::vector<int>({1, 0, 0}))
     {
-        V3IGeom100ElectronRepulsionDriver geom_drv;
+        if (integral[1] > 0)
+        {
+            V3IElectronRepulsionDriver eri_drv;
+            
+            for (auto& tint : eri_drv.create_ket_hrr_recursion({integral.base(), }))
+            {
+                auto ctint = tint;
+                
+                ctint.set_prefixes(integral.prefixes()); 
+                
+                tints.insert(ctint);
+            }
+        }
         
-        tints = geom_drv.apply_bra_hrr_recursion(integral);
+        V3IGeom100ElectronRepulsionDriver geom_drv;
+    
+        auto new_tints = tints;
+        
+        if (new_tints.empty()) new_tints.insert(integral);
+        
+        for (const auto& tint : new_tints)
+        {
+            for (const auto& ctint : geom_drv.apply_bra_hrr_recursion(tint))
+            {
+                tints.insert(ctint);
+            }
+        }
     }
   
     tints.insert(integral);
@@ -274,20 +298,20 @@ T3CGeomCPUGenerator::_filter_skbuffer_terms(const I3CIntegral& integral,
     
     const auto gorders = integral.prefixes_order();
     
-    
-    
     for (const auto& term : terms)
     {
-        if ((gorders[1] + gorders[2]) > 0)
+        if (gorders == std::vector<int>({1, 0, 0}))
         {
-            
-        }
-        else
-        {
-            if ((term.second[0] == (integral[0] + 1)) ||
-                (term.second[0] == (integral[0] - 1)) )
+            if (integral[0] == 0)
             {
-                if ((integral[0] != 0) || ((term.second[1] + term.second[2]) > 0))
+                if ((term.second[0] == 1) && term.second.prefixes().empty())
+                {
+                    new_terms.insert(term);
+                }
+            }
+            else
+            {
+                if ((term.second[0] == integral[0]) && (!term.second.prefixes().empty()))
                 {
                     new_terms.insert(term);
                 }
