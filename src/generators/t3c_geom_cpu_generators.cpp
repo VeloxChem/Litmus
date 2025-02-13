@@ -393,7 +393,7 @@ T3CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     {
         const auto tint = term.second;
         
-        if (tint[2] == integral[2])
+        if (tint[2] >= integral[2])
         {
             if (tint[1] > 0)
             {
