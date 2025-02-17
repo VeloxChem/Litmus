@@ -55,7 +55,7 @@ T3CCPUGenerator::generate(const std::string& label,
             }
         }
         
-        for (int i = 0; i <= max_aux_ang_mom; i++)
+        for (int i = 0; i <= max_aux_ang_mom + 1; i++)
         {
             for (int j = 0; j <= 2 * max_ang_mom; j++)
             {

@@ -62,6 +62,15 @@ T3CGeomHrrFuncBodyDriver::write_bra_func_body(      std::ofstream& fstream,
     const auto geom_orders = integral.prefixes_order();
     
     lines.push_back({3, 0, 2, "/// set up bra offset for " + t3c::get_hrr_buffer_label(integral, false)});
+    
+    if (geom_orders == std::vector<int>({1, 0, 0}))
+    {
+        lines.push_back({3, 0, 2, _get_full_bra_offset_def(integral)});
+    }
+    else
+    {
+        lines.push_back({3, 0, 2, _get_bra_offset_def(integral)});
+    }
 
     if (geom_orders == std::vector<int>({1, 0, 0}))
     {
@@ -434,7 +443,7 @@ T3CGeomHrrFuncBodyDriver::_get_bra_rterm_code(const R3CTerm& rec_term,
     
     if (!gorders.empty())
     {
-        if ((gorders[2] + gorders[3]) > 0)
+        if ((gorders[0] + gorders[1]) > 0)
         {
             plabel += _get_full_bra_component_label(tint) + "[k]";
         }
@@ -445,7 +454,7 @@ T3CGeomHrrFuncBodyDriver::_get_bra_rterm_code(const R3CTerm& rec_term,
     }
     else
     {
-        plabel += _get_bra_component_label(tint) + "[k]";
+        plabel += _get_full_bra_component_label(tint) + "[k]";
     }
     
     for (const auto& fact : rec_term.factors())

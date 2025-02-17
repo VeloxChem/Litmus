@@ -6,6 +6,7 @@
 #include "file_stream.hpp"
 
 #include "v3i_geom100_eri_driver.hpp"
+#include "v3i_geom010_eri_driver.hpp"
 #include "v3i_eri_driver.hpp"
 #include "t3c_utils.hpp"
 #include "t3c_geom_docs.hpp"
@@ -180,6 +181,13 @@ T3CGeomCPUGenerator::_generate_geom_integral_group(const I3CIntegral& integral) 
             }
         }
     }
+    
+    if (geom_order == std::vector<int>({0, 1, 0}))
+    {
+        V3IGeom010ElectronRepulsionDriver geom_drv;
+        
+        tints = geom_drv.apply_ket_hrr_recursion(integral);
+    }
   
     tints.insert(integral);
     
@@ -194,6 +202,8 @@ T3CGeomCPUGenerator::_generate_geom_terms_group(const SI3CIntegrals& integrals,
     
     for (const auto& tint : integrals)
     {
+        terms.insert({std::array<int, 3>{0, 0, 0}, tint});
+        
         if (integral.prefixes_order() == std::vector<int>({1, 0, 0}))
         {
             if (tint.prefixes_order() == std::vector<int>({1, 0, 0}))
@@ -215,6 +225,14 @@ T3CGeomCPUGenerator::_generate_geom_terms_group(const SI3CIntegrals& integrals,
                 {
                     terms.insert({std::array<int, 3>{0, 0, 0}, tint});
                 }
+            }
+        }
+        
+        if (tint.prefixes_order() == std::vector<int>({0, 1, 0}))
+        {
+            if (tint[1] == 0)
+            {
+                terms.insert({std::array<int, 3>{0, 1, 0}, tint.shift(1, 1)->base()});
             }
         }
     }
