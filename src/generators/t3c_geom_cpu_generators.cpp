@@ -265,6 +265,11 @@ T3CGeomCPUGenerator::_filter_cbuffer_terms(const SG3Terms& terms) const
         {
             new_terms.insert(term);
         }
+        
+        if ((term.second[0] > 0) && (term.second[1] == 0) && (!term.second.prefixes().empty()))
+        {
+            new_terms.insert(term);
+        }
     }
     
     return new_terms;
@@ -427,12 +432,15 @@ T3CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
                 }
                 else
                 {
-                   // labels.insert(t4c::bra_geom_hrr_file_name(tint));
+                    
                 }
             }
             else
             {
-                // FIX ME !!!
+                if (!tint.prefixes().empty())
+                {
+                    labels.insert(t3c::bra_geom_file_name(tint));
+                }
             }
         }
     }

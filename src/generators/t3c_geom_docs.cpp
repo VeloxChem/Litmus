@@ -45,6 +45,35 @@ T3CGeomDocuDriver::write_doc_str(      std::ofstream& fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+void
+T3CGeomDocuDriver::write_bra_geom_doc_str(      std::ofstream& fstream,
+                                         const I3CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, _get_bra_geom_compute_str(integral)});
+    
+   // TODO: Add special variables here
+    
+    for (const auto& label : _get_bra_geom_buffers_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_bra_coordinates_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_bra_recursion_variables_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+
 std::string
 T3CGeomDocuDriver::_get_compute_str(const I3CIntegral& integral) const
 {
@@ -96,5 +125,34 @@ T3CGeomDocuDriver::_get_indices_str() const
     
     vstr.push_back("/// @param bra_range The range [bra_first, bra_last) of basis functions on bra side.");
     
+    return vstr;
+}
+
+std::vector<std::string>
+T3CGeomDocuDriver::_get_bra_coordinates_str(const I3CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+   
+//    const bool no_rab = (integral.prefixes_order() == std::vector<int>({0, 1, 0, 0}))
+//    
+//                      && (integral[0] == 0);
+//    
+//    if (!no_rab)
+//    {
+//        vstr.push_back("/// @param r_ab The Cartesian distance R(AB) = A - B.");
+//    }
+            
+    return vstr;
+}
+
+std::vector<std::string>
+T3CGeomDocuDriver::_get_bra_recursion_variables_str(const I3CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("/// @param c_angmom The angular momentum on center C.");
+    
+    vstr.push_back("/// @param d_angmom The angular momentum on center D.");
+                       
     return vstr;
 }

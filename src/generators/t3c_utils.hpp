@@ -112,6 +112,34 @@ std::string prefixes_label(const I3CIntegral& integral);
 /// @return The pruned geometrical recursion term.
 G3Term prune_term(const G3Term& term);
 
+/// Generates bra horizontal recursion compute function name.
+/// @param integral The base two center integral.
+/// @return The primitive compute function name.
+std::string bra_geom_compute_func_name(const I3CIntegral& integral);
+
+/// Gets arguments list for bra recursion function call.
+/// @param integral The base two center integral.
+SI3CIntegrals get_bra_geom_integrals(const I3CIntegral& integral);
+
+/// Generates bra recursion file name.
+/// @param integral The base four center integral.
+/// @return The primitive file name.
+std::string bra_geom_file_name(const I3CIntegral& integral);
+
+/// Generates horizontal recursion integral buffer index.
+/// @param integral The base two center integral.
+/// @param use_ket The flag to use ket as primary label.
+/// @return The string with integral buffer index.
+std::string get_full_hrr_index(const I3CIntegral& integral,
+                               const bool         use_ket);
+
+/// Generates horizontal recursion integral buffer label.
+/// @param integral The base two center integral.
+/// @param use_ket The flag to use ket as primary label.
+/// @return The string with integral label.
+std::string get_hrr_buffer_label(const I3CIntegral& integral,
+                                 const bool         use_ket);
+
 } // t3c namespace
 
 #endif /* t3c_utils_hpp */

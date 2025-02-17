@@ -229,6 +229,28 @@ class T3CGeomFuncBodyDriver
     std::string _get_hrr_arguments(const SG3Terms& skterms,
                                    const G3Term&   term) const;
     
+    /// Gets arguments list for ket horizontal recursion function call.
+    /// @param skterms The set of filtered geometrical terms.
+    /// @param term The base integral term.
+    /// @param icomponent The index of geometrical derivative on bra side.
+    std::string _get_hrr_arguments(const SG3Terms& skterms,
+                                   const G3Term&   term,
+                                   const int       icomponent) const; 
+    
+    /// Adds call tree for bra horizontal recursion.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param cterms The set of filtered geometrical terms.
+    /// @param integral The base two center integral.
+    void _add_bra_geom_call_tree(      VCodeLines&  lines,
+                                 const SG3Terms&    cterms,
+                                 const I3CIntegral& integral) const;
+    
+    /// Gets arguments list for bra recursion function call.
+    /// @param term The recursion term.
+    /// @param cterms The set of filtered geometrical terms.
+    std::string _get_bra_geom_arguments(const G3Term&  term,
+                                        const SG3Terms& cterms) const;
+    
 public:
     /// Creates a two-center compute function body generator.
     T3CGeomFuncBodyDriver() = default;

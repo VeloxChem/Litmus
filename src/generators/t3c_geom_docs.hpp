@@ -62,6 +62,26 @@ class T3CGeomDocuDriver
     /// @return The vector of indices strings.
     std::vector<std::string> _get_indices_str() const;
     
+    /// Generates compute string.
+    /// @param integral The base two center integral.
+    /// @return The compute string.
+    std::string _get_bra_geom_compute_str(const I3CIntegral& integral) const;
+    
+    /// Generates vector of buffer strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffer strings.
+    std::vector<std::string> _get_bra_geom_buffers_str(const I3CIntegral& integral) const;
+    
+    /// Generates vector of coordinates strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of coordinates strings.
+    std::vector<std::string> _get_bra_coordinates_str(const I3CIntegral& integral) const;
+    
+    /// Generates vector of recursion variables strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of recursion variables strings.
+    std::vector<std::string> _get_bra_recursion_variables_str(const I3CIntegral& integral) const;
+    
 public:
     /// Creates a primtive three-center documentation generator.
     T3CGeomDocuDriver() = default;
@@ -71,6 +91,12 @@ public:
     /// @param integral The base four center integral.
     void write_doc_str(      std::ofstream& fstream,
                        const I3CIntegral&   integral) const;
+    
+    /// Writes documentation string for primtive compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base four center integral.
+    void write_bra_geom_doc_str(      std::ofstream& fstream,
+                                const I3CIntegral&   integral) const;
     
 };
 

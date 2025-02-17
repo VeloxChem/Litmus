@@ -310,4 +310,112 @@ prune_term(const G3Term& term)
     return term;
 }
 
+std::string
+bra_geom_compute_func_name(const I3CIntegral& integral)
+{
+    const auto bra_one = Tensor(integral[0]);
+    
+    auto geom_orders = integral.prefixes_order();
+    
+    auto label =  "comp_bra_geom" + std::to_string(geom_orders[0]);
+    
+    if ((geom_orders[1] + geom_orders[2]) > 0)
+    {
+        label += std::to_string(geom_orders[1]) + std::to_string(geom_orders[2]);
+    }
+    
+    label += "_" + t3c::integral_split_label(integral);
+    
+    label += "_" + bra_one.label() + "xx";
+    
+    return fstr::lowercase(label);
+}
+
+SI3CIntegrals
+get_bra_geom_integrals(const I3CIntegral& integral)
+{
+    const auto geom_order = integral.prefixes_order();
+    
+    SI3CIntegrals tints;
+    
+    if (geom_order == std::vector<int>({1, 0, 0}))
+    {
+        if (const auto tval = integral.shift(1, 0))
+        {
+            tints.insert(tval->base());
+        }
+        
+        if (const auto tval = integral.shift(-1, 0))
+        {
+            tints.insert(tval->base());
+        }
+    }
+    
+    return tints;
+}
+
+std::string
+bra_geom_file_name(const I3CIntegral& integral)
+{
+    const auto bra_one = Tensor(integral[0]);
+    
+    return t3c::integral_label(integral) + "ContrRec" + bra_one.label() + "XX";
+}
+
+std::string
+get_full_hrr_index(const I3CIntegral& integral,
+                   const bool         use_ket)
+{
+    std::string label = "idx_";
+    
+    if (const auto geom_order = integral.prefixes_order(); !geom_order.empty())
+    {
+        label += "geom_" + std::to_string(geom_order[0]) + std::to_string(geom_order[1]);
+      
+        label += std::to_string(geom_order[2]) + "_";
+    }
+    
+    if (use_ket)
+    {
+        const auto ket_one = Tensor(integral[1]);
+        
+        const auto ket_two = Tensor(integral[2]);
+        
+        label += "x" + ket_one.label() + ket_two.label();
+    }
+    else
+    {
+        const auto bra_one = Tensor(integral[0]);
+        
+        label += bra_one.label()  + "xx";
+    }
+    
+    return fstr::lowercase(label);
+}
+
+std::string
+get_hrr_buffer_label(const I3CIntegral& integral,
+                     const bool         use_ket)
+{
+    std::string label = "contr_buffer_";
+    
+    if (use_ket)
+    {
+        const auto ket_one = Tensor(integral[1]);
+        
+        const auto ket_two = Tensor(integral[2]);
+        
+        label += "xx" + ket_one.label() + ket_two.label();
+    }
+    else
+    {
+        const auto bra_one = Tensor(integral[0]);
+        
+        label += bra_one.label() + "xx";
+    }
+    
+    return fstr::lowercase(label);
+}
+
+
 } // t3c namespace

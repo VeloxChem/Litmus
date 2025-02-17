@@ -31,14 +31,15 @@
 #include "t4c_eri_tree_generators.hpp"
 #include "t3c_cpu_generators.hpp"
 #include "t3c_geom_cpu_generators.hpp"
+#include "t3c_geom_hrr_cpu_generators.hpp"
 
 int main(int argc, char **argv)
 {
     // run configuration
 
-    //const auto run_type = std::pair<std::string, std::string>({"t4c_geom_hrr_cpu", "electron repulsion"});
+    const auto run_type = std::pair<std::string, std::string>({"t3c_geom_hrr_cpu", "electron repulsion"});
     
-    const auto run_type = std::pair<std::string, std::string>({"t3c_cpu", "electron repulsion"});
+    //const auto run_type = std::pair<std::string, std::string>({"t3c_cpu", "electron repulsion"});
 
     const int max_ang_mom = 4;
 
@@ -136,7 +137,6 @@ int main(int argc, char **argv)
     
     if (run_type.first == "t3c_cpu")
     {
-        // a, b, operator, c, d
         std::array<int, 3> geom_drvs = {1, 0, 0};
         
         if (geom_drvs == std::array<int, 3>({0, 0, 0}))
@@ -151,6 +151,15 @@ int main(int argc, char **argv)
             
             t3c_drv.generate(run_type.second, max_ang_mom, max_ang_mom, geom_drvs);
         }
+    }
+    
+    if (run_type.first == "t3c_geom_hrr_cpu")
+    {
+        std::array<int, 3> geom_drvs = {1, 0, 0};
+        
+        const auto t3c_geom_drv = T3CGeomHrrCPUGenerator();
+            
+        t3c_geom_drv.generate(run_type.second, max_ang_mom, geom_drvs);
     }
     
     // set up end timer & compute elapsed time

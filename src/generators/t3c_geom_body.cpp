@@ -75,6 +75,8 @@ T3CGeomFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     
     _add_ket_loop_end(lines, cterms, vrr_integrals, integral);
     
+    _add_bra_geom_call_tree(lines, cterms, integral);
+    
     _add_bra_trafo_call_tree(lines, cterms, skterms, integral);
     
     _add_hrr_call_tree(lines, skterms, integral);
@@ -534,6 +536,8 @@ T3CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
     
     for (const auto& term : cterms)
     {
+        if (!term.second.prefixes().empty()) continue;
+        
         if (term.first == std::array<int, 3>({0, 0, 0}))
         {
             const auto tint = term.second;
@@ -558,6 +562,8 @@ T3CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
 
     for (const auto& term : cterms)
     {
+        if (!term.second.prefixes().empty()) continue;
+        
         if (term.first == std::array<int, 3>({1, 0, 0}))
         {
             const auto tint = term.second;
@@ -574,6 +580,8 @@ T3CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
     
     for (const auto& term : cterms)
     {
+        if (!term.second.prefixes().empty()) continue;
+        
         if (term.first == std::array<int, 3>({1, 0, 0}))
         {
             const auto tint = term.second;
@@ -849,6 +857,10 @@ T3CGeomFuncBodyDriver::_add_bra_trafo_call_tree(      VCodeLines&  lines,
             
             const auto ket_comps = t2c::number_of_cartesian_components(angpair);
             
+            const auto bra_ccomps = t2c::number_of_cartesian_components(std::array<int, 1>{tint[0],});
+            
+            const auto bra_scomps = t2c::number_of_spherical_components(std::array<int, 1>{tint[0],});
+            
             if ((integral[0] == 0) && (tint[0] == 1) && tint[1] == 0)
             {
                 for (int i = 0; i < 3; i++)
@@ -866,7 +878,21 @@ T3CGeomFuncBodyDriver::_add_bra_trafo_call_tree(      VCodeLines&  lines,
             }
             else
             {
-                
+                if (tint[1] == 0)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        std::string label = "t3cfunc::bra_transform<" + std::to_string(integral[0]) + ">";
+                        
+                        label += "(skbuffer, " + std::to_string(_get_half_spher_index(skterm, skterms) + i * bra_scomps * ket_comps) + ", ";
+                        
+                        label += "cbuffer, " + std::to_string(_get_index(skterm, cterms) + i * bra_ccomps * ket_comps)  + ", ";
+                        
+                        label += std::to_string(tint[1]) + ", " + std::to_string(tint[2]) + ");";
+                        
+                        lines.push_back({3, 0, 2, label});
+                    }
+                }
             }
         }
     }
@@ -883,21 +909,52 @@ T3CGeomFuncBodyDriver::_add_hrr_call_tree(      VCodeLines&  lines,
         
         if (tint[1] > 0)
         {
-            const auto name = t3c::hrr_compute_func_name(tint);
+            const auto gorders = tint.prefixes_order();
+            
+            if (gorders == std::vector<int>({0, 0, 0}))
+            {
+                const auto name = t3c::hrr_compute_func_name(tint);
 
-            auto label = t3c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+                auto label = t3c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+                
+                label += std::to_string(_get_half_spher_index(term, skterms)) + ", ";
+                
+                label += _get_hrr_arguments(skterms, term);
+                            
+                label += "cfactors, 6, ";
+                
+                label += std::to_string(tint[0]);
+                
+                label += ");";
+                
+                lines.push_back({3, 0, 2, label});
+            }
             
-            label += std::to_string(_get_half_spher_index(term, skterms)) + ", ";
-            
-            label += _get_hrr_arguments(skterms, term);
-                        
-            label += "cfactors, 6, ";
-            
-            label += std::to_string(tint[0]);
-            
-            label += ");";
-            
-            lines.push_back({3, 0, 2, label});
+            if (gorders == std::vector<int>({1, 0, 0}))
+            {
+                const auto bra_comps = t2c::number_of_spherical_components(std::array<int, 1>{tint[0],});
+                
+                const auto ket_comps = t2c::number_of_cartesian_components(std::array<int, 2>{tint[1], tint[2],});
+                
+                for (int i = 0; i < 3; i++)
+                {
+                    const auto name = t3c::hrr_compute_func_name(tint);
+
+                    auto label = t3c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+                    
+                    label += std::to_string(_get_half_spher_index(term, skterms) + i * bra_comps * ket_comps) + ", ";
+                    
+                    label += _get_hrr_arguments(skterms, term, i);
+                                
+                    label += "cfactors, 6, ";
+                    
+                    label += std::to_string(tint[0]);
+                    
+                    label += ");";
+                    
+                    lines.push_back({3, 0, 2, label});
+                }
+            }
         }
     }
 }
@@ -915,3 +972,80 @@ T3CGeomFuncBodyDriver::_get_hrr_arguments(const SG3Terms& skterms,
     
     return label;
 }
+
+std::string
+T3CGeomFuncBodyDriver::_get_hrr_arguments(const SG3Terms& skterms,
+                                          const G3Term&   term,
+                                          const int       icomponent) const
+{
+    std::string label;
+    
+    for (const auto& tint : t3c::get_hrr_integrals(term.second.base()))
+    {
+        std::cout << "XXX"  <<  tint.prefix_label() << " " << tint.label() << std::endl;
+        
+        const auto bra_comps = t2c::number_of_spherical_components(std::array<int, 1>{tint[0], });
+        
+        const auto ket_comps = t2c::number_of_cartesian_components(std::array<int, 2>{tint[1], tint[2],});
+        
+        auto ctint = tint;
+        
+        ctint.set_prefixes(term.second.prefixes());
+        
+        label += std::to_string(_get_half_spher_index(G3Term({term.first, ctint}), skterms) + icomponent * bra_comps * ket_comps) + ", ";
+    }
+    
+    return label;
+}
+
+void
+T3CGeomFuncBodyDriver::_add_bra_geom_call_tree(      VCodeLines&  lines,
+                                               const SG3Terms&    cterms,
+                                               const I3CIntegral& integral) const
+{
+    
+    for (const auto& term : cterms)
+    {
+        const auto tint = term.second;
+        
+        if (tint.prefixes_order() == std::vector<int>({1, 0, 0}))
+        {
+            const auto name = t3c::bra_geom_compute_func_name(tint);
+           
+            auto label = t3c::namespace_label(tint) + "::" + name + "(cbuffer, ";
+            
+            label += std::to_string(_get_index(term, cterms)) + ", ";
+            
+            label += _get_bra_geom_arguments(term, cterms);
+            
+            label += std::to_string(tint[1]) + ", " + std::to_string(tint[2]);
+            
+            label += ");";
+            
+            lines.push_back({3, 0, 2, label});
+        }
+    }
+}
+
+std::string
+T3CGeomFuncBodyDriver::_get_bra_geom_arguments(const G3Term&   term,
+                                               const SG3Terms& cterms) const
+{
+    std::string label;
+    
+    const auto tint = term.second;
+    
+    if (tint.prefixes_order() == std::vector<int>({1, 0, 0}))
+    {
+        for (const auto& rtint : t3c::get_bra_geom_integrals(tint))
+        {
+            const auto rterm = (tint[0] > rtint[0]) ? G3Term(std::array<int, 3>({0, 0, 0}), rtint)
+                                                    : G3Term(std::array<int, 3>({1, 0, 0}), rtint);
+            
+            label += std::to_string(_get_index(rterm, cterms))  + ", ";
+        }
+    }
+    
+    return label;
+}
+
