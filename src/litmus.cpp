@@ -137,7 +137,7 @@ int main(int argc, char **argv)
     
     if (run_type.first == "t3c_cpu")
     {
-        std::array<int, 3> geom_drvs = {0, 1, 0};
+        std::array<int, 3> geom_drvs = {0, 0, 0};
         
         if (geom_drvs == std::array<int, 3>({0, 0, 0}))
         {
