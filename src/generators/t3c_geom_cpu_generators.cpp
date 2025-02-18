@@ -35,7 +35,7 @@ T3CGeomCPUGenerator::generate(const std::string&        label,
                     
                     auto geom_terms = _generate_geom_terms_group(geom_integrals, integral);
                     
-                    //_add_ket_hrr_terms_group(geom_terms);
+                    _prune_terms_group(geom_terms);
                     
                     const auto cterms = _filter_cbuffer_terms(geom_terms);
                     
@@ -233,6 +233,14 @@ T3CGeomCPUGenerator::_generate_geom_terms_group(const SI3CIntegrals& integrals,
             if (tint[1] == 0)
             {
                 terms.insert({std::array<int, 3>{0, 1, 0}, tint.shift(1, 1)->base()});
+                
+                terms.insert({std::array<int, 3>{0, 1, 0}, tint.shift(1, 2)->base()});
+                
+                terms.insert({std::array<int, 3>{0, 1, 0}, tint.base()});
+            }
+            else
+            {
+                terms.insert({std::array<int, 3>{0, 0, 0}, tint});
             }
         }
     }
@@ -338,6 +346,29 @@ T3CGeomCPUGenerator::_filter_skbuffer_terms(const I3CIntegral& integral,
                 {
                     new_terms.insert(term);
                 }
+            }
+        }
+        
+        if (gorders == std::vector<int>({0, 1, 0}))
+        {
+            if (integral[1] == 0)
+            {
+                if ((term.second[1] == 1) && term.second.prefixes().empty())
+                {
+                    new_terms.insert(term);
+                }
+            }
+            else
+            {
+                if (term.second[1] > 0)
+                {
+                    new_terms.insert(term);
+                }
+            }
+            
+            if ((term.second[0] == integral[0]) && (term.second[1] == 0))
+            {
+                new_terms.insert(term);
             }
         }
     }
@@ -510,4 +541,17 @@ T3CGeomCPUGenerator::_write_namespace(      std::ofstream& fstream,
     }
     
     ost::write_code_lines(fstream, lines);
+}
+
+void
+T3CGeomCPUGenerator::_prune_terms_group(SG3Terms& terms) const
+{
+    SG3Terms new_terms;
+    
+    for (const auto& term : terms)
+    {
+        new_terms.insert(t3c::prune_term(term));
+    }
+    
+    terms = new_terms;
 }

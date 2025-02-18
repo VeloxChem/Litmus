@@ -601,6 +601,48 @@ T3CGeomFuncBodyDriver::_add_ket_loop_end(      VCodeLines&    lines,
             lines.push_back({4, 0, 2, label});
         }
     }
+    
+    // scales integrals on center B
+    
+    for (const auto& term : cterms)
+    {
+        if (term.first == std::array<int, 3>({0, 1, 0}))
+        {
+            const auto tint = term.second;
+            
+            std::string label;
+            
+            label += "pbuffer.scale(pfactors, 0, 2.0, {";
+            
+            label +=  std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
+           
+            label +=  std::to_string(_get_index(0, tint, vrr_integrals) + tint.components<T1CPair, T2CPair>().size()) + "});";
+           
+            lines.push_back({4, 0, 2, label});
+        }
+    }
+    
+    for (const auto& term : cterms)
+    {
+        if (term.first == std::array<int, 3>({0, 1, 0}))
+        {
+            const auto tint = term.second;
+            
+            std::string label = "t2cfunc::reduce(cbuffer, ";
+            
+            label +=  std::to_string(_get_index(term, cterms)) + ", ";
+            
+            label += "pbuffer, ";
+            
+            label += std::to_string(_get_index(0, tint, vrr_integrals)) + ", ";
+            
+            label += std::to_string(tint.components<T1CPair, T2CPair>().size()) + ", ";
+            
+            label += "ket_width, ket_npgtos);";
+            
+            lines.push_back({4, 0, 2, label});
+        }
+    }
                 
     lines.push_back({3, 0, 2, "}"});
 }
@@ -847,52 +889,81 @@ T3CGeomFuncBodyDriver::_add_bra_trafo_call_tree(      VCodeLines&  lines,
                                                 const SG3Terms&    skterms,
                                                 const I3CIntegral& integral) const
 {
-    if ((integral[0] + integral[1]) > 0)
+    const auto gotders = integral.prefixes_order();
+    
+    if (gotders == std::vector<int>({1, 0, 0}))
+    {
+        if ((integral[0] + integral[1]) > 0)
+        {
+            for (const auto& skterm : skterms)
+            {
+                const auto tint = skterm.second;
+                
+                if (gotders == std::vector<int>({1, 0, 0}))
+                {
+                    const auto angpair = std::array<int, 2>({tint[1], tint[2]});
+                    
+                    const auto ket_comps = t2c::number_of_cartesian_components(angpair);
+                    
+                    const auto bra_ccomps = t2c::number_of_cartesian_components(std::array<int, 1>{tint[0],});
+                    
+                    const auto bra_scomps = t2c::number_of_spherical_components(std::array<int, 1>{tint[0],});
+                    
+                    if ((integral[0] == 0) && (tint[0] == 1) && tint[1] == 0)
+                    {
+                        for (int i = 0; i < 3; i++)
+                        {
+                            std::string label = "t3cfunc::bra_transform<" + std::to_string(integral[0]) + ">";
+                            
+                            label += "(skbuffer, " + std::to_string(_get_half_spher_index(skterm, skterms) + i * ket_comps) + ", ";
+                            
+                            label += "cbuffer, " + std::to_string(_get_index(skterm, cterms) + i * ket_comps)  + ", ";
+                            
+                            label += std::to_string(tint[1]) + ", " + std::to_string(tint[2]) + ");";
+                            
+                            lines.push_back({3, 0, 2, label});
+                        }
+                    }
+                    else
+                    {
+                        if (tint[1] == 0)
+                        {
+                            for (int i = 0; i < 3; i++)
+                            {
+                                std::string label = "t3cfunc::bra_transform<" + std::to_string(integral[0]) + ">";
+                                
+                                label += "(skbuffer, " + std::to_string(_get_half_spher_index(skterm, skterms) + i * bra_scomps * ket_comps) + ", ";
+                                
+                                label += "cbuffer, " + std::to_string(_get_index(skterm, cterms) + i * bra_ccomps * ket_comps)  + ", ";
+                                
+                                label += std::to_string(tint[1]) + ", " + std::to_string(tint[2]) + ");";
+                                
+                                lines.push_back({3, 0, 2, label});
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    if (gotders == std::vector<int>({0, 1, 0}))
     {
         for (const auto& skterm : skterms)
         {
             const auto tint = skterm.second;
             
-            const auto angpair = std::array<int, 2>({tint[1], tint[2]});
-            
-            const auto ket_comps = t2c::number_of_cartesian_components(angpair);
-            
-            const auto bra_ccomps = t2c::number_of_cartesian_components(std::array<int, 1>{tint[0],});
-            
-            const auto bra_scomps = t2c::number_of_spherical_components(std::array<int, 1>{tint[0],});
-            
-            if ((integral[0] == 0) && (tint[0] == 1) && tint[1] == 0)
+            if ((tint[1] == 0) && (tint.prefixes().empty()))
             {
-                for (int i = 0; i < 3; i++)
-                {
-                    std::string label = "t3cfunc::bra_transform<" + std::to_string(integral[0]) + ">";
-                    
-                    label += "(skbuffer, " + std::to_string(_get_half_spher_index(skterm, skterms) + i * ket_comps) + ", ";
-                    
-                    label += "cbuffer, " + std::to_string(_get_index(skterm, cterms) + i * ket_comps)  + ", ";
-                    
-                    label += std::to_string(tint[1]) + ", " + std::to_string(tint[2]) + ");";
-                    
-                    lines.push_back({3, 0, 2, label});
-                }
-            }
-            else
-            {
-                if (tint[1] == 0)
-                {
-                    for (int i = 0; i < 3; i++)
-                    {
-                        std::string label = "t3cfunc::bra_transform<" + std::to_string(integral[0]) + ">";
-                        
-                        label += "(skbuffer, " + std::to_string(_get_half_spher_index(skterm, skterms) + i * bra_scomps * ket_comps) + ", ";
-                        
-                        label += "cbuffer, " + std::to_string(_get_index(skterm, cterms) + i * bra_ccomps * ket_comps)  + ", ";
-                        
-                        label += std::to_string(tint[1]) + ", " + std::to_string(tint[2]) + ");";
-                        
-                        lines.push_back({3, 0, 2, label});
-                    }
-                }
+                std::string label = "t3cfunc::bra_transform<" + std::to_string(integral[0]) + ">";
+                
+                label += "(skbuffer, " + std::to_string(_get_half_spher_index(skterm, skterms)) + ", ";
+                
+                label += "cbuffer, " + std::to_string(_get_index(skterm, cterms))  + ", ";
+                
+                label += std::to_string(tint[1]) + ", " + std::to_string(tint[2]) + ");";
+                
+                lines.push_back({3, 0, 2, label});
             }
         }
     }
@@ -911,7 +982,7 @@ T3CGeomFuncBodyDriver::_add_hrr_call_tree(      VCodeLines&  lines,
         {
             const auto gorders = tint.prefixes_order();
             
-            if (gorders == std::vector<int>({0, 0, 0}))
+            if (gorders == std::vector<int>({0, 0, 0}) || gorders.empty())
             {
                 const auto name = t3c::hrr_compute_func_name(tint);
 

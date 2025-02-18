@@ -307,6 +307,13 @@ prune_term(const G3Term& term)
         return G3Term({std::array<int, 3>({1, 0, 0}), cint.base()});
     }
     
+    if (tint.prefixes_order() == std::vector<int>({0, 1, 0}) && (tint[1] == 0))
+    {
+        const auto cint = *tint.shift(1, 1);
+        
+        return G3Term({std::array<int, 3>({0, 1, 0}), cint.base()});
+    }
+    
     return term;
 }
 
