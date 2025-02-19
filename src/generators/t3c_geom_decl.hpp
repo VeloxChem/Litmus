@@ -75,6 +75,23 @@ class T3CGeomDeclDriver
     std::vector<std::string> _get_bra_geom_recursion_variables_str(const I3CIntegral& integral,
                                                                    const bool         terminus) const;
     
+    /// Generates vector of buffer strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffer strings.
+    std::vector<std::string> _get_ket_geom_buffers_str(const I3CIntegral& integral) const;
+    
+    /// Generates vector of coordinates strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of coordinates strings.
+    std::vector<std::string> _get_ket_geom_coordinates_str(const I3CIntegral& integral) const;
+    
+    /// Generates vector of recursion variables strings.
+    /// @param integral The base two center integral.
+    /// @param terminus The flag to add termination symbol.
+    /// @return The vector of recursion variables strings.
+    std::vector<std::string> _get_ket_geom_recursion_variables_str(const I3CIntegral& integral,
+                                                                   const bool         terminus) const;
+    
 public:
     /// Creates a three-center geometrical derivatives functions declaration generator.
     T3CGeomDeclDriver() = default;
@@ -92,6 +109,14 @@ public:
     /// @param integral The base two center integral.
     /// @param terminus The flag to add termination symbol.
     void write_bra_geom_func_decl(      std::ofstream& fstream,
+                                  const I3CIntegral&   integral,
+                                  const bool           terminus) const;
+    
+    /// Writes declaration for primitive compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param terminus The flag to add termination symbol.
+    void write_ket_geom_func_decl(      std::ofstream& fstream,
                                   const I3CIntegral&   integral,
                                   const bool           terminus) const;
 };

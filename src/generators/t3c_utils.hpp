@@ -83,6 +83,10 @@ std::string hrr_compute_func_name(const I3CIntegral& integral);
 /// @param integral The base two center integral.
 SI3CIntegrals get_hrr_integrals(const I3CIntegral& integral);
 
+/// Gets arguments list for ket horizontal recursion function call.
+/// @param integral The base two center integral.
+SI3CIntegrals get_geom_hrr_integrals(const I3CIntegral& integral);
+
 /// Generates integral index label.
 /// @param integral The base two center integral.
 /// @return The string with index label.
@@ -117,6 +121,11 @@ G3Term prune_term(const G3Term& term);
 /// @return The primitive compute function name.
 std::string bra_geom_compute_func_name(const I3CIntegral& integral);
 
+/// Generates bra horizontal recursion compute function name.
+/// @param integral The base two center integral.
+/// @return The primitive compute function name.
+std::string ket_geom_compute_func_name(const I3CIntegral& integral);
+
 /// Gets arguments list for bra recursion function call.
 /// @param integral The base two center integral.
 SI3CIntegrals get_bra_geom_integrals(const I3CIntegral& integral);
@@ -125,6 +134,11 @@ SI3CIntegrals get_bra_geom_integrals(const I3CIntegral& integral);
 /// @param integral The base four center integral.
 /// @return The primitive file name.
 std::string bra_geom_file_name(const I3CIntegral& integral);
+
+/// Generates bra recursion file name.
+/// @param integral The base four center integral.
+/// @return The primitive file name.
+std::string ket_geom_file_name(const I3CIntegral& integral);
 
 /// Generates horizontal recursion integral buffer index.
 /// @param integral The base two center integral.

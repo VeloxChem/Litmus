@@ -121,6 +121,12 @@ public:
     /// @param integral The base four center integral.
     void write_bra_func_body(      std::ofstream& fstream,
                              const I3CIntegral&   integral) const;
+    
+    /// Writes body of primitive compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base four center integral.
+    void write_ket_func_body(      std::ofstream& fstream,
+                             const I3CIntegral&   integral) const;
 };
 
 #endif /* t3c_geom_hrr_body_hpp */

@@ -18,6 +18,7 @@
 
 #include "string_formater.hpp"
 #include "v3i_eri_driver.hpp"
+#include "v3i_geom010_eri_driver.hpp"
 
 namespace t3c { // t3c namespace
 
@@ -208,6 +209,28 @@ get_hrr_integrals(const I3CIntegral& integral)
     return tints;
 }
 
+SI3CIntegrals
+get_geom_hrr_integrals(const I3CIntegral& integral)
+{
+    SI3CIntegrals tints;
+    
+    if (integral.integrand().name() == "1/|r-r'|")
+    {
+        V3IGeom010ElectronRepulsionDriver eri_drv;
+        
+        if (integral[1] == 0)
+        {
+            tints = eri_drv.ket_aux_hrr(integral);
+        }
+        else
+        {
+            tints = eri_drv.ket_hrr(integral);
+        }
+    }
+    
+    return tints;
+}
+
 std::string
 get_index_label(const I3CIntegral& integral)
 {
@@ -338,6 +361,29 @@ bra_geom_compute_func_name(const I3CIntegral& integral)
     return fstr::lowercase(label);
 }
 
+std::string
+ket_geom_compute_func_name(const I3CIntegral& integral)
+{
+    const auto ket_one = Tensor(integral[1]);
+    
+    const auto ket_two = Tensor(integral[2]);
+    
+    auto geom_orders = integral.prefixes_order();
+    
+    auto label =  "comp_ket_geom" + std::to_string(geom_orders[0]);
+    
+    if ((geom_orders[1] + geom_orders[2]) > 0)
+    {
+        label += std::to_string(geom_orders[1]) + std::to_string(geom_orders[2]);
+    }
+    
+    label += "_" + t3c::integral_split_label(integral);
+    
+    label += "_x" + ket_one.label() + ket_two.label();
+    
+    return fstr::lowercase(label);
+}
+
 SI3CIntegrals
 get_bra_geom_integrals(const I3CIntegral& integral)
 {
@@ -367,6 +413,16 @@ bra_geom_file_name(const I3CIntegral& integral)
     const auto bra_one = Tensor(integral[0]);
     
     return t3c::integral_label(integral) + "ContrRec" + bra_one.label() + "XX";
+}
+
+std::string
+ket_geom_file_name(const I3CIntegral& integral)
+{
+    const auto ket_one = Tensor(integral[1]);
+    
+    const auto ket_two = Tensor(integral[2]);
+    
+    return t3c::integral_label(integral) + "ContrRecX" + ket_one.label() + ket_two.label();
 }
 
 std::string

@@ -205,3 +205,100 @@ T3CGeomDeclDriver::_get_bra_geom_recursion_variables_str(const I3CIntegral& inte
     return vstr;
 }
 
+void
+T3CGeomDeclDriver::write_ket_geom_func_decl(      std::ofstream& fstream,
+                                            const I3CIntegral&   integral,
+                                            const bool           terminus) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "auto"});
+    
+    for (const auto& label : _get_ket_geom_buffers_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_ket_geom_coordinates_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_ket_geom_recursion_variables_str(integral, terminus))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+        
+    ost::write_code_lines(fstream, lines);
+}
+
+std::vector<std::string>
+T3CGeomDeclDriver::_get_ket_geom_buffers_str(const I3CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    const auto gorders = integral.prefixes_order();
+    
+    auto name = t3c::ket_geom_compute_func_name(integral) + "(";
+    
+    const auto spacer = std::string(name.size(), ' ');
+    
+    vstr.push_back(name + "CSimdArray<double>& cbuffer," );
+    
+    std::string label = t3c::get_hrr_index(integral);
+    
+    vstr.push_back(spacer + "const size_t " + label + "," );
+    
+    for (const auto& tint : t3c::get_geom_hrr_integrals(integral))
+    {
+        if (gorders[0] > 0)
+        {
+            label = t3c::get_full_hrr_index(tint, false);
+        }
+        else
+        {
+            label = t3c::get_hrr_index(tint);
+        }
+            
+        vstr.push_back(spacer + "const size_t " + label + "," );
+    }
+    
+    return vstr;
+}
+
+std::vector<std::string>
+T3CGeomDeclDriver::_get_ket_geom_coordinates_str(const I3CIntegral& integral) const
+{
+    std::vector<std::string> vstr;
+
+    if (integral[1] > 0)
+    {
+        auto name = t3c::ket_geom_compute_func_name(integral) + "(";
+        
+        const auto spacer = std::string(name.size(), ' ');
+       
+        vstr.push_back(spacer + "const CSimdArray<double>& factors,");
+            
+        vstr.push_back(spacer + "const size_t idx_cd,");
+    }
+    
+    return vstr;
+}
+
+std::vector<std::string>
+T3CGeomDeclDriver::_get_ket_geom_recursion_variables_str(const I3CIntegral& integral,
+                                                         const bool         terminus) const
+{
+    std::vector<std::string> vstr;
+    
+    const auto tsymbol = (terminus) ? ";" : "";
+    
+    auto name = t3c::ket_geom_compute_func_name(integral) + "(";
+    
+    const auto spacer = std::string(name.size(), ' ');
+        
+    vstr.push_back(spacer + "const int a_angmom) -> void" + tsymbol);
+ 
+    return vstr;
+}
+

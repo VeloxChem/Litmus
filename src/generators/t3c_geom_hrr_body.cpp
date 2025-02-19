@@ -480,3 +480,74 @@ T3CGeomHrrFuncBodyDriver::_get_bra_rterm_code(const R3CTerm& rec_term,
         
     return plabel;
 }
+
+void
+T3CGeomHrrFuncBodyDriver::write_ket_func_body(      std::ofstream& fstream,
+                                              const I3CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "{"});
+    
+    lines.push_back({1, 0, 2, "const auto nelems = cbuffer.number_of_active_elements();"});
+    
+    lines.push_back({1, 0, 2, "const auto acomps = tensor::number_of_spherical_components(std::array<int, 1>{a_angmom,});"});
+    
+    lines.push_back({1, 0, 1, "for (int i = 0; i < acomps; i++)"});
+    
+    lines.push_back({1, 0, 1, "{"});
+    
+    const auto components = integral.components<T1CPair, T2CPair>();
+    
+    std::vector<R3CDist> rec_dists;
+
+    for (const auto& component : components)
+    {
+        rec_dists.push_back(_get_ket_hrr_recursion(component));
+    }
+    
+    for (const auto& label : _get_ket_buffers_str(rec_dists, integral))
+    {
+        lines.push_back({3, 0, 2, label});
+    }
+//   
+//    const auto bcomps = t2c::number_of_cartesian_components(integral[0]);
+//
+//    const auto geom_orders = integral.prefixes_order();
+//    
+//    lines.push_back({3, 0, 2, "/// set up bra offset for " + t3c::get_hrr_buffer_label(integral, false)});
+//    
+//    if (geom_orders == std::vector<int>({1, 0, 0}))
+//    {
+//        lines.push_back({3, 0, 2, _get_full_bra_offset_def(integral)});
+//    }
+//    else
+//    {
+//        lines.push_back({3, 0, 2, _get_bra_offset_def(integral)});
+//    }
+//
+//    if (geom_orders == std::vector<int>({1, 0, 0}))
+//    {
+//        for (int i = 0; i < 3; i++)
+//        {
+//            const std::array<int, 2> rec_range({i * bcomps, (i + 1) * bcomps});
+//            
+//            for (const auto& label : _get_bra_buffers_str(integral, components, rec_range))
+//            {
+//                lines.push_back({3, 0, 2, label});
+//            }
+//        
+//            _add_bra_recursion_loop(lines, integral, components, {i * bcomps, (i + 1) * bcomps});
+//
+//            if (i < 2) lines.push_back({0, 0, 1, ""});;
+//        }
+//    }
+//
+//    lines.push_back({2, 0, 1, "}"});
+    
+    lines.push_back({1, 0, 1, "}"});
+   
+    lines.push_back({0, 0, 1, "}"});
+    
+    ost::write_code_lines(fstream, lines);
+}

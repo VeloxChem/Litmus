@@ -42,6 +42,23 @@ T3CGeomHrrCPUGenerator::generate(const std::string&        label,
                 _write_bra_hrr_cpp_file(integral);
             }
         }
+        
+        if (geom_drvs == std::array<int, 3>({0, 1, 0}))
+        {
+            for (int i = 0; i <= max_ang_mom; i++)
+            {
+                for (int j = 0; j <= max_ang_mom; j++)
+                {
+                    if ((i + j) == 0) continue;
+                    
+                    const auto integral = _get_integral(label, {0, i, j}, geom_drvs);
+                    
+                    _write_ket_hrr_cpp_header(integral);
+                    
+                    _write_ket_hrr_cpp_file(integral);
+                }
+            }
+        }
     }
     else
     {
@@ -272,4 +289,113 @@ T3CGeomDocuDriver::_get_bra_geom_buffers_str(const I3CIntegral& integral) const
     }
     
     return vstr;
+}
+
+void
+T3CGeomHrrCPUGenerator::_write_ket_hrr_cpp_header(const I3CIntegral& integral) const
+{
+    auto fname = t3c::ket_geom_file_name(integral) + ".hpp";
+        
+    std::ofstream fstream;
+               
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_ket_hrr_hpp_defines(fstream, integral, true);
+    
+    _write_ket_hrr_hpp_includes(fstream, integral);
+
+    _write_namespace(fstream, integral, true);
+
+    T3CGeomDocuDriver docs_drv;
+
+    docs_drv.write_ket_geom_doc_str(fstream, integral);
+
+    T3CGeomDeclDriver decl_drv;
+
+    decl_drv.write_ket_geom_func_decl(fstream, integral, true);
+
+    _write_namespace(fstream, integral, false);
+   
+    _write_ket_hrr_hpp_defines(fstream, integral, false);
+    
+    fstream.close();
+}
+
+void
+T3CGeomHrrCPUGenerator::_write_ket_hrr_cpp_file(const I3CIntegral& integral) const
+{
+    auto fname = t3c::ket_geom_file_name(integral) + ".cpp";
+        
+    std::ofstream fstream;
+        
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    _write_ket_hrr_cpp_includes(fstream, integral);
+
+    _write_namespace(fstream, integral, true);
+
+    T3CGeomDeclDriver decl_drv;
+    
+    decl_drv.write_ket_geom_func_decl(fstream, integral, false);
+
+    T3CGeomHrrFuncBodyDriver func_drv;
+
+    func_drv.write_ket_func_body(fstream, integral);
+    
+    fstream << std::endl;
+
+    _write_namespace(fstream, integral, false);
+        
+    fstream.close();
+}
+
+void
+T3CGeomHrrCPUGenerator::_write_ket_hrr_hpp_defines(      std::ofstream& fstream,
+                                                   const I3CIntegral&   integral,
+                                                   const bool           start) const
+{
+    auto fname = t3c::ket_geom_file_name(integral) + "_hpp";
+    
+    auto lines = VCodeLines();
+ 
+    if (start)
+    {
+        lines.push_back({0, 0, 1, "#ifndef " + fname});
+        
+        lines.push_back({0, 0, 2, "#define " + fname});
+    }
+    else
+    {
+        lines.push_back({0, 0, 1, "#endif /* " + fname + " */"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T3CGeomHrrCPUGenerator::_write_ket_hrr_hpp_includes(      std::ofstream& fstream,
+                                                    const I3CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include <cstddef>"});
+    
+    lines.push_back({0, 0, 1, "#include \"Point.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"SimdArray.hpp\""});
+        
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T3CGeomHrrCPUGenerator::_write_ket_hrr_cpp_includes(      std::ofstream& fstream,
+                                                    const I3CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + t3c::ket_geom_file_name(integral) +  ".hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"TensorComponents.hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
 }
