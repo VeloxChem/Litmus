@@ -635,7 +635,7 @@ T3CGeomHrrFuncBodyDriver::_get_ket_buffers_str(const std::vector<R3CDist>& rec_d
                 
                 vstr.push_back(_get_ket_offset_def(tint));
                 
-                const auto bcomps = t2c::number_of_spherical_components(tint[0]);
+                const auto bcomps = t2c::number_of_cartesian_components(tint[1]);
                 
                 const auto kcomps = t2c::number_of_cartesian_components(tint[2]);
                 
