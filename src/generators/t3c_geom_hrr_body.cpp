@@ -19,6 +19,7 @@
 #include "t3c_utils.hpp"
 #include "t2c_utils.hpp"
 #include "t3c_geom_100_eri_driver.hpp"
+#include "t3c_geom_010_eri_driver.hpp"
 #include "string_formater.hpp"
 
 void
@@ -493,6 +494,17 @@ T3CGeomHrrFuncBodyDriver::write_ket_func_body(      std::ofstream& fstream,
     
     lines.push_back({1, 0, 2, "const auto acomps = tensor::number_of_spherical_components(std::array<int, 1>{a_angmom,});"});
     
+    if (integral[1] > 0)
+    {
+        lines.push_back({1, 0, 2, "// Set up R(CD) distances"});
+
+        lines.push_back({1, 0, 2, "auto cd_x = factors.data(idx_cd);"});
+
+        lines.push_back({1, 0, 2, "auto cd_y = factors.data(idx_cd + 1);"});
+
+        lines.push_back({1, 0, 2, "auto cd_z = factors.data(idx_cd + 2);"});
+    }
+    
     lines.push_back({1, 0, 1, "for (int i = 0; i < acomps; i++)"});
     
     lines.push_back({1, 0, 1, "{"});
@@ -508,46 +520,199 @@ T3CGeomHrrFuncBodyDriver::write_ket_func_body(      std::ofstream& fstream,
     
     for (const auto& label : _get_ket_buffers_str(rec_dists, integral))
     {
-        lines.push_back({3, 0, 2, label});
+        lines.push_back({2, 0, 2, label});
     }
-//   
-//    const auto bcomps = t2c::number_of_cartesian_components(integral[0]);
-//
-//    const auto geom_orders = integral.prefixes_order();
-//    
-//    lines.push_back({3, 0, 2, "/// set up bra offset for " + t3c::get_hrr_buffer_label(integral, false)});
-//    
-//    if (geom_orders == std::vector<int>({1, 0, 0}))
-//    {
-//        lines.push_back({3, 0, 2, _get_full_bra_offset_def(integral)});
-//    }
-//    else
-//    {
-//        lines.push_back({3, 0, 2, _get_bra_offset_def(integral)});
-//    }
-//
-//    if (geom_orders == std::vector<int>({1, 0, 0}))
-//    {
-//        for (int i = 0; i < 3; i++)
-//        {
-//            const std::array<int, 2> rec_range({i * bcomps, (i + 1) * bcomps});
-//            
-//            for (const auto& label : _get_bra_buffers_str(integral, components, rec_range))
-//            {
-//                lines.push_back({3, 0, 2, label});
-//            }
-//        
-//            _add_bra_recursion_loop(lines, integral, components, {i * bcomps, (i + 1) * bcomps});
-//
-//            if (i < 2) lines.push_back({0, 0, 1, ""});;
-//        }
-//    }
-//
-//    lines.push_back({2, 0, 1, "}"});
+    
+    const auto bcomps = t2c::number_of_cartesian_components(integral[1]);
+    
+    const auto kcomps = t2c::number_of_cartesian_components(integral[2]);
+    
+    lines.push_back({2, 0, 2, "/// set up bra offset for " + t3c::get_hrr_buffer_label(integral, true)});
+    
+    lines.push_back({2, 0, 2, _get_ket_offset_def(integral)});
+    
+    const auto gorders = integral.prefixes_order();
+
     
     lines.push_back({1, 0, 1, "}"});
    
     lines.push_back({0, 0, 1, "}"});
     
     ost::write_code_lines(fstream, lines);
+}
+
+R3CDist
+T3CGeomHrrFuncBodyDriver::_get_ket_hrr_recursion(const T3CIntegral& integral) const
+{
+    R3CDist rdist;
+    
+    const auto geom_order = integral.prefixes_order();
+    
+    if (geom_order == std::vector<int>({0, 1, 0}))
+    {
+        if (integral.integrand().name() == "1/|r-r'|")
+        {
+            T3CGeom010ElectronRepulsionDriver eri_drv;
+    
+            if (integral[1].order() > 0)
+            {
+                rdist = eri_drv.apply_ket_hrr(R3CTerm(integral));
+            }
+            else
+            {
+                rdist = eri_drv.apply_ket_aux_hrr(R3CTerm(integral));
+            }
+        }
+    }
+    
+    rdist.simplify();
+    
+    return rdist;
+}
+
+std::vector<std::string>
+T3CGeomHrrFuncBodyDriver::_get_ket_buffers_str(const std::vector<R3CDist>& rec_dists,
+                                               const I3CIntegral&          integral) const
+{
+    std::vector<std::string> vstr;
+    
+    if (integral[1] == 0)
+    {
+        for (const auto& tint : t3c::get_geom_hrr_integrals(integral))
+        {
+            
+            auto label = "pbuffer.data(";
+            
+            vstr.push_back("/// Set up components of auxilary buffer : " + tint.label());
+            
+            vstr.push_back(_get_ket_offset_def(tint));
+            
+            int index = 0;
+            
+            for (const auto& tcomp : tint.components<T1CPair, T2CPair>())
+            {
+                //if (_find_integral(rec_dists, tcomp))
+                //{
+                    auto line = "auto " + _get_ket_component_label(tcomp) + " = " + label;
+                    
+                    line +=  _get_ket_offset_label(tint) + " + "  + std::to_string(index) + ");";
+                    
+                    vstr.push_back(fstr::lowercase(line));
+                //}
+                
+                index++;
+            }
+        }
+    }
+    else
+    {
+        for (const auto& tint : t3c::get_geom_hrr_integrals(integral))
+        {
+            const auto gorders = tint.prefixes_order();
+            
+            if (!gorders.empty())
+            {
+                std::string label = "cbuffer.data(";
+                
+                vstr.push_back("/// Set up components of auxilary buffer : " + tint.label());
+                
+                vstr.push_back(_get_ket_offset_def(tint));
+                
+                const auto bcomps = t2c::number_of_spherical_components(tint[0]);
+                
+                const auto kcomps = t2c::number_of_cartesian_components(tint[2]);
+                
+                int index = 0;
+                
+                for (const auto& tcomp : tint.components<T1CPair, T2CPair>())
+                {
+                    const auto line = "auto " + _get_ket_component_label(tcomp) + " = " + label;
+                    
+                    const std::string glabel = std::to_string((index / (bcomps * kcomps)) * bcomps * kcomps) + " * acomps";
+                    
+                    vstr.push_back(line + _get_ket_offset_label(tint) + " + " + glabel + " + " + std::to_string(index % (bcomps * kcomps)) + ");");
+                   
+                    index++;
+                }
+            }
+            else
+            {
+                std::string label = "cbuffer.data(";
+                
+                vstr.push_back("/// Set up components of auxilary buffer : " + tint.label());
+                
+                vstr.push_back(_get_ket_offset_def(tint));
+                
+                int index = 0;
+                
+                for (const auto& tcomp : tint.components<T1CPair, T2CPair>())
+                {
+                    //if (_find_integral(rec_dists, tcomp))
+                    //{
+                        auto line = "auto " + _get_ket_component_label(tcomp) + " = " + label;
+                        
+                        line +=  _get_ket_offset_label(tint) + " + "  + std::to_string(index) + ");";
+                        
+                        vstr.push_back(fstr::lowercase(line));
+                    //}
+                    
+                    index++;
+                }
+            }
+        }
+    }
+
+    return vstr;
+}
+
+std::string
+T3CGeomHrrFuncBodyDriver::_get_ket_component_label(const T3CIntegral& integral) const
+{
+    std::string label = _get_tensor_label(integral);
+    
+    if (const auto prefixes = integral.prefixes(); !prefixes.empty())
+    {
+        label += "_" + prefixes[1].label() + "_" + prefixes[2].label();
+    }
+    
+    label += "_" + integral[1].label() + "_" +  integral[2].label();
+    
+    return label;
+}
+
+std::string
+T3CGeomHrrFuncBodyDriver::_get_ket_offset_def(const I3CIntegral& integral) const
+{
+    // const auto tlabel = std::to_string(integral.components<T2CPair, T2CPair>().size());
+    
+    const auto bcomps = t2c::number_of_cartesian_components(integral[1]);
+    
+    const auto kcomps = t2c::number_of_cartesian_components(integral[2]);
+    
+    const auto tlabel = std::to_string(bcomps * kcomps);
+    
+    auto label = "const auto " + _get_ket_offset_label(integral) + " = ";
+    
+    label += t3c::get_hrr_index(integral) + " + i * " + tlabel + ";";
+    
+    return fstr::lowercase(label);
+}
+
+std::string
+T3CGeomHrrFuncBodyDriver::_get_ket_offset_label(const I3CIntegral& integral) const
+{
+    const auto ket_one = Tensor(integral[1]);
+    
+    const auto ket_two = Tensor(integral[2]);
+    
+    std::string label;
+    
+    if (const auto geom_orders = integral.prefixes_order(); !geom_orders.empty())
+    {
+        label = "_geom_" + std::to_string(geom_orders[1]) + std::to_string(geom_orders[2]);
+    }
+    
+    label = ket_one.label() + ket_two.label() + label  + "_off";
+    
+    return fstr::lowercase(label);
 }

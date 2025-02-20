@@ -111,6 +111,32 @@ class T3CGeomHrrFuncBodyDriver
     std::string _get_bra_rterm_code(const R3CTerm& rec_term,
                                     const bool     is_first) const;
     
+    /// Computes ket horizontal recursion for integral component.
+    /// @param integral The base four center integral component.
+    /// @return The recursion expansion of integral component.
+    R3CDist _get_ket_hrr_recursion(const T3CIntegral& integral) const;
+    
+    /// Generates vector of buffer strings.
+    /// @param integral The base four center integral.
+    /// @return The vector of buffer strings.
+    std::vector<std::string> _get_ket_buffers_str(const std::vector<R3CDist>& rec_dists,
+                                                  const I3CIntegral&          integral) const;
+    
+    /// Gets integral component label.
+    /// @param integral The base four center integral component.
+    /// @return The string with integral component label.
+    std::string _get_ket_component_label(const T3CIntegral& integral) const;
+    
+    /// Gets integral offset definition.
+    /// @param integral The base four center integral component.
+    /// @return The string with integral offset definition.
+    std::string _get_ket_offset_def(const I3CIntegral& integral) const;
+    
+    /// Gets integral offset label.
+    /// @param integral The base four center integral component.
+    /// @return The string with integral offset label.
+    std::string _get_ket_offset_label(const I3CIntegral& integral) const;
+    
 public:
     
     /// Creates a two-center compute function body generator.
