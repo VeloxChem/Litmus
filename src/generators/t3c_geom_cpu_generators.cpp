@@ -466,6 +466,8 @@ T3CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     {
         labels.insert(t3c::prim_file_name(tint));
     }
+    
+    const auto gorders = integral.prefixes_order();
         
     for (const auto& term : skterms)
     {
@@ -477,11 +479,29 @@ T3CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
             {
                 if (tint.prefixes().empty())
                 {
-                    labels.insert(t3c::hrr_file_name(tint));
+                    if (gorders == std::vector<int>({0, 1, 0}))
+                    {
+                        if ((tint[0] == 0) && (tint[1] == 1))
+                        {
+                            labels.insert(t3c::hrr_file_name(tint));
+                        }
+                        else
+                        {
+                            auto ctint = *tint.shift(-1, 1);
+                            
+                            ctint.set_prefixes(integral.prefixes());
+                            
+                            labels.insert(t3c::ket_geom_file_name(ctint));
+                        }
+                    }
+                    else
+                    {
+                        labels.insert(t3c::hrr_file_name(tint));
+                    }
                 }
                 else
                 {
-                    
+                    labels.insert(t3c::ket_geom_file_name(tint));
                 }
             }
             else

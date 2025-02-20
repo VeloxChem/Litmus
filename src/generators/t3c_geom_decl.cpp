@@ -271,16 +271,13 @@ T3CGeomDeclDriver::_get_ket_geom_coordinates_str(const I3CIntegral& integral) co
 {
     std::vector<std::string> vstr;
 
-    if (integral[1] > 0)
-    {
-        auto name = t3c::ket_geom_compute_func_name(integral) + "(";
+    auto name = t3c::ket_geom_compute_func_name(integral) + "(";
         
-        const auto spacer = std::string(name.size(), ' ');
+    const auto spacer = std::string(name.size(), ' ');
        
-        vstr.push_back(spacer + "const CSimdArray<double>& factors,");
+    vstr.push_back(spacer + "const CSimdArray<double>& factors,");
             
-        vstr.push_back(spacer + "const size_t idx_cd,");
-    }
+    vstr.push_back(spacer + "const size_t idx_cd,");
     
     return vstr;
 }

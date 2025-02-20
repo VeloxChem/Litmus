@@ -984,7 +984,28 @@ T3CGeomFuncBodyDriver::_add_hrr_call_tree(      VCodeLines&  lines,
             
             if (gorders == std::vector<int>({0, 0, 0}) || gorders.empty())
             {
-                const auto name = t3c::hrr_compute_func_name(tint);
+                std::string name;
+                
+                if (integral.prefixes_order() == std::vector<int>({0, 1, 0}))
+                {
+                    if ((tint[0] == 0) && (tint[1] == 1))
+                    {
+                        name = t3c::hrr_compute_func_name(tint);
+                        
+                    }
+                    else
+                    {
+                        auto ctint = *tint.shift(-1, 1);
+                        
+                        ctint.set_prefixes(integral.prefixes());
+                        
+                        name = t3c::ket_geom_compute_func_name(ctint);
+                    }
+                }
+                else
+                {
+                    name = t3c::hrr_compute_func_name(tint);
+                }
 
                 auto label = t3c::namespace_label(tint) + "::" + name + "(skbuffer, ";
                 
@@ -1028,6 +1049,37 @@ T3CGeomFuncBodyDriver::_add_hrr_call_tree(      VCodeLines&  lines,
             }
         }
     }
+    
+    for (const auto& term : skterms)
+    {
+        const auto tint = term.second;
+        
+        if (tint[1] > 0)
+        {
+            const auto gorders = tint.prefixes_order();
+            
+            if (gorders == std::vector<int>({0, 1, 0}))
+            {
+                const auto name = t3c::ket_geom_compute_func_name(tint);
+                
+                auto label = t3c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+                
+                label += std::to_string(_get_half_spher_index(term, skterms)) + ", ";
+                
+                //std::cout << " * ZZZ * " << term.second.prefix_label() << " | " << term.second.label() << std::endl;
+                
+                label += _get_hrr_arguments(skterms, term);
+                
+                label += "cfactors, 6, ";
+                
+                label += std::to_string(tint[0]);
+                
+                label += ");";
+                
+                lines.push_back({3, 0, 2, label});
+            }
+        }
+    }
 }
 
 std::string
@@ -1036,9 +1088,32 @@ T3CGeomFuncBodyDriver::_get_hrr_arguments(const SG3Terms& skterms,
 {
     std::string label;
     
-    for (const auto& tint : t3c::get_hrr_integrals(term.second))
+    if (term.second.prefixes_order() == std::vector<int>({0, 1, 0}))
     {
-        label += std::to_string(_get_half_spher_index(G3Term({term.first, tint}), skterms)) + ", ";
+        for (const auto& tint : t3c::get_geom_hrr_integrals(term.second))
+        {
+            auto cterm = G3Term({term.first, tint});
+            
+            if ((tint[0] + tint[1]) == 0)
+            {
+                //std::cout << "CTERM : " << cterm.second.prefix_label() << cterm.second.label() << std::endl;
+                
+                label += std::to_string(_get_half_spher_index(t3c::prune_term(cterm), skterms)) + ", ";
+            }
+            else
+            {
+                //std::cout << "DTERM : " << cterm.second.prefix_label() << cterm.second.label() << std::endl;
+                
+                label += std::to_string(_get_half_spher_index(t3c::prune_term(cterm), skterms)) + ", ";
+            }
+        }
+    }
+    else
+    {
+        for (const auto& tint : t3c::get_hrr_integrals(term.second))
+        {
+            label += std::to_string(_get_half_spher_index(G3Term({term.first, tint}), skterms)) + ", ";
+        }
     }
     
     return label;
@@ -1053,8 +1128,6 @@ T3CGeomFuncBodyDriver::_get_hrr_arguments(const SG3Terms& skterms,
     
     for (const auto& tint : t3c::get_hrr_integrals(term.second.base()))
     {
-        std::cout << "XXX"  <<  tint.prefix_label() << " " << tint.label() << std::endl;
-        
         const auto bra_comps = t2c::number_of_spherical_components(std::array<int, 1>{tint[0], });
         
         const auto ket_comps = t2c::number_of_cartesian_components(std::array<int, 2>{tint[1], tint[2],});

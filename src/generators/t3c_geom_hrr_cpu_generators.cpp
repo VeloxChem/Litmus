@@ -49,8 +49,6 @@ T3CGeomHrrCPUGenerator::generate(const std::string&        label,
             {
                 for (int j = 0; j <= max_ang_mom; j++)
                 {
-                    if ((i + j) == 0) continue;
-                    
                     const auto integral = _get_integral(label, {0, i, j}, geom_drvs);
                     
                     _write_ket_hrr_cpp_header(integral);

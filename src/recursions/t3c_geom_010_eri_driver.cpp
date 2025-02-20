@@ -48,26 +48,31 @@ std::optional<R3CDist>
 T3CGeom010ElectronRepulsionDriver::ket_aux_hrr(const R3CTerm& rterm,
                                                const char     axis) const
 {
-    if (const auto tval = rterm.shift_prefix(axis, -1, 1, false))
+    if (!is_electron_repulsion(rterm)) return std::nullopt;
+    
+    if (const auto tval = rterm.shift_prefix(axis, -1, 1))
     {
         R3CDist t3crt(rterm);
         
-        if (auto r1val = tval->shift(axis, 1, 1))
-        {
-            auto x1val = *r1val;
-            
-            x1val.clear_prefixes();
-            
-            t3crt.add(x1val);
-        }
+        // first recursion term
         
-        if (auto r2val = tval->shift(axis, -1, 1))
+        auto x1val = *tval;
+        
+        x1val.clear_prefixes();
+        
+        const auto coord = _rxyz[axes::to_index(axis)];
+        
+        x1val.add(Factor("DC", "cd", coord), Fraction(-1));
+        
+        t3crt.add(x1val);
+        
+        // third recursion term
+        
+        if (const auto r2val = tval->shift(axis, 1, 2))
         {
             auto x2val = *r2val;
             
             x2val.clear_prefixes();
-            
-            x2val.scale(Fraction(-(*tval)[1][axis]));
             
             t3crt.add(x2val);
         }

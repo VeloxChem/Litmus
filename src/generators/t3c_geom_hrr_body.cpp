@@ -494,16 +494,13 @@ T3CGeomHrrFuncBodyDriver::write_ket_func_body(      std::ofstream& fstream,
     
     lines.push_back({1, 0, 2, "const auto acomps = tensor::number_of_spherical_components(std::array<int, 1>{a_angmom,});"});
     
-    if (integral[1] > 0)
-    {
-        lines.push_back({1, 0, 2, "// Set up R(CD) distances"});
+    lines.push_back({1, 0, 2, "// Set up R(CD) distances"});
 
-        lines.push_back({1, 0, 2, "auto cd_x = factors.data(idx_cd);"});
+    lines.push_back({1, 0, 2, "auto cd_x = factors.data(idx_cd);"});
 
-        lines.push_back({1, 0, 2, "auto cd_y = factors.data(idx_cd + 1);"});
+    lines.push_back({1, 0, 2, "auto cd_y = factors.data(idx_cd + 1);"});
 
-        lines.push_back({1, 0, 2, "auto cd_z = factors.data(idx_cd + 2);"});
-    }
+    lines.push_back({1, 0, 2, "auto cd_z = factors.data(idx_cd + 2);"});
     
     lines.push_back({1, 0, 1, "for (int i = 0; i < acomps; i++)"});
     
@@ -532,6 +529,26 @@ T3CGeomHrrFuncBodyDriver::write_ket_func_body(      std::ofstream& fstream,
     lines.push_back({2, 0, 2, _get_ket_offset_def(integral)});
     
     const auto gorders = integral.prefixes_order();
+    
+    if (gorders == std::vector<int>({0, 1, 0}))
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = 0; j < bcomps; j++)
+            {
+                const std::array<int, 2> rec_range({j * kcomps, (j + 1) * kcomps});
+                
+                for (const auto& label : _get_ket_geom_buffers_str(integral, components, rec_range, i, bcomps * kcomps))
+                {
+                    lines.push_back({2, 0, 2, label});
+                }
+                
+                _add_ket_recursion_loop(lines, integral, components, {j * kcomps, (j + 1) * kcomps}, i, bcomps * kcomps);
+                
+                if (j < (bcomps - 1))  lines.push_back({0, 0, 1, ""});;
+            }
+        }
+    }
 
     
     lines.push_back({1, 0, 1, "}"});
@@ -581,7 +598,7 @@ T3CGeomHrrFuncBodyDriver::_get_ket_buffers_str(const std::vector<R3CDist>& rec_d
         for (const auto& tint : t3c::get_geom_hrr_integrals(integral))
         {
             
-            auto label = "pbuffer.data(";
+            auto label = "cbuffer.data(";
             
             vstr.push_back("/// Set up components of auxilary buffer : " + tint.label());
             
@@ -715,4 +732,170 @@ T3CGeomHrrFuncBodyDriver::_get_ket_offset_label(const I3CIntegral& integral) con
     label = ket_one.label() + ket_two.label() + label  + "_off";
     
     return fstr::lowercase(label);
+}
+
+std::vector<std::string>
+T3CGeomHrrFuncBodyDriver::_get_ket_geom_buffers_str(const I3CIntegral&        integral,
+                                                    const VT3CIntegrals&      components,
+                                                    const std::array<int, 2>& rec_range,
+                                                    const int                 ket_index,
+                                                    const int                 ket_components) const
+{
+    std::vector<std::string> vstr;
+    
+    auto label = "cbuffer.data(";
+    
+    vstr.push_back("/// Set up " + std::to_string(rec_range[0]) + "-" + std::to_string(rec_range[1]) +
+                       " components of targeted buffer : " + label);
+    
+    const int koff = ket_index * ket_components;
+    
+    for (int i = rec_range[0]; i < rec_range[1]; i++)
+    {
+        const auto line = "auto " + _get_ket_component_label(components[koff + i]) + " = " + label;
+        
+        const std::string glabel = std::to_string(koff) + " * acomps ";
+        
+        vstr.push_back(line + _get_ket_offset_label(integral) + " + " + glabel + " + " + std::to_string(i) + ");");
+    }
+    
+    return vstr;
+}
+
+void
+T3CGeomHrrFuncBodyDriver::_add_ket_recursion_loop(      VCodeLines&         lines,
+                                                  const I3CIntegral&        integral,
+                                                  const VT3CIntegrals&      components,
+                                                  const std::array<int, 2>& rec_range,
+                                                  const int                 ket_index,
+                                                  const int                 ket_components) const
+{
+    std::vector<R3CDist> rec_dists;
+    
+    const auto koff = ket_index * ket_components;
+    
+    for (int i = rec_range[0]; i < rec_range[1]; i++)
+    {
+        rec_dists.push_back(_get_ket_hrr_recursion(components[i + koff]));
+    }
+    
+    // set up recursion loop
+    
+    const auto var_str = _get_ket_pragma_str(integral, rec_dists);
+    
+    lines.push_back({2, 0, 1, "#pragma omp simd aligned(" + var_str + " : 64)"});
+    
+    lines.push_back({2, 0, 1, "for (size_t k = 0; k < nelems; k++)"});
+    
+    lines.push_back({2, 0, 1, "{"});
+    
+    for (size_t i = 0; i < rec_dists.size(); i++)
+    {
+        if (i < (rec_dists.size() - 1))
+        {
+            lines.push_back({3, 0, 2, _get_ket_code_line(rec_dists[i])});
+        }
+        else
+        {
+            lines.push_back({3, 0, 1, _get_ket_code_line(rec_dists[i])});
+        }
+    }
+    
+    lines.push_back({2, 0, 1, "}"});
+}
+
+std::string
+T3CGeomHrrFuncBodyDriver::_get_ket_pragma_str(const I3CIntegral&          integral,
+                                              const std::vector<R3CDist>& rec_distributions) const
+{
+    std::set<std::string> tlabels;
+    
+    for (const auto& rdist : rec_distributions)
+    {
+        auto tint = rdist.root().integral();
+        
+        tlabels.insert(_get_ket_component_label(tint));
+        
+        for (size_t i = 0; i < rdist.terms(); i++)
+        {
+            auto tint = rdist[i].integral();
+            
+            tlabels.insert(_get_ket_component_label(tint));
+            
+            for (const auto& fact : rdist[i].factors())
+            {
+                if (fact.order() > 0) tlabels.insert(fact.label());
+            }
+        }
+    }
+    
+    std::string label;
+    
+    for (const auto& tlabel : tlabels)
+    {
+        label += tlabel + ", ";
+    }
+    
+    if (label[label.size() - 2] == ',') label.erase(label.end() - 2);
+    
+    return label;
+}
+
+std::string
+T3CGeomHrrFuncBodyDriver::_get_ket_code_line(const R3CDist& rec_distribution) const
+{
+    auto tint = rec_distribution.root().integral();
+    
+    std::string line = _get_ket_component_label(tint) + "[k] = ";
+    
+    for (size_t i = 0; i < rec_distribution.terms(); i++)
+    {
+        auto tint = rec_distribution[i].integral();
+        
+        line += _get_ket_rterm_code(rec_distribution[i], i == 0);
+    }
+    
+    return line + ";";
+}
+
+std::string
+T3CGeomHrrFuncBodyDriver::_get_ket_rterm_code(const R3CTerm& rec_term,
+                                              const bool     is_first) const
+{
+    const auto pre_fact = rec_term.prefactor();
+        
+    auto plabel = pre_fact.label();
+        
+    if (plabel == "1.0")  plabel = "";
+        
+    if (plabel == "-1.0") plabel = "-";
+    
+    if (plabel.size() > 1) plabel += " * ";
+    
+    auto tint = rec_term.integral();
+    
+    plabel += _get_ket_component_label(tint) + "[k]";
+        
+    for (const auto& fact : rec_term.factors())
+    {
+        plabel+= " * " + fact.label();
+            
+        if (fact.order() > 0) plabel += "[k]";
+    }
+    
+    if (!is_first)
+    {
+        if (plabel[0] == '-')
+        {
+            plabel.insert(plabel.begin() + 1, 1, ' ');
+            
+            plabel = " " + plabel;
+        }
+        else
+        {
+            plabel = " + " + plabel;
+        }
+    }
+        
+    return plabel;
 }

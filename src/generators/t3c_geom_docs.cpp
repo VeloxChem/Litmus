@@ -231,12 +231,9 @@ T3CGeomDocuDriver::_get_ket_coordinates_str(const I3CIntegral& integral) const
 {
     std::vector<std::string> vstr;
    
-    if (integral[1] > 0)
-    {
-        vstr.push_back("/// @param factors The factors buffer.");
+    vstr.push_back("/// @param factors The factors buffer.");
                            
-        vstr.push_back("/// @param idx_cd The vector of distances R(CD) = C - D.");
-    }
+    vstr.push_back("/// @param idx_cd The vector of distances R(CD) = C - D.");
   
     return vstr;
 }

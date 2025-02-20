@@ -122,6 +122,19 @@ class T3CGeomHrrFuncBodyDriver
     std::vector<std::string> _get_ket_buffers_str(const std::vector<R3CDist>& rec_dists,
                                                   const I3CIntegral&          integral) const;
     
+    /// Generates vector of buffer strings.
+    /// @param integral The base four center integral.
+    /// @param components The vector of integral components.
+    /// @param rec_range The recursion range [first, last) in integral components space.
+    /// @param ket_index The index of geometrical derivative.
+    /// @param ket_components The numbed of components in integral.
+    /// @return The vector of buffer strings.
+    std::vector<std::string> _get_ket_geom_buffers_str(const I3CIntegral&        integral,
+                                                       const VT3CIntegrals&      components,
+                                                       const std::array<int, 2>& rec_range,
+                                                       const int                 ket_index,
+                                                       const int                 ket_components) const;
+    
     /// Gets integral component label.
     /// @param integral The base four center integral component.
     /// @return The string with integral component label.
@@ -136,6 +149,37 @@ class T3CGeomHrrFuncBodyDriver
     /// @param integral The base four center integral component.
     /// @return The string with integral offset label.
     std::string _get_ket_offset_label(const I3CIntegral& integral) const;
+    
+    /// Adds single loop computation of primitive integrals.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integral The base four center integral.
+    /// @param components The vector of integral components.
+    /// @param rec_range The recursion range [first, last) in integral components space.
+    /// @param ket_index The index of geometrical derivative.
+    /// @param ket_components The numbed of components in integral.
+    void _add_ket_recursion_loop(      VCodeLines&         lines,
+                                 const I3CIntegral&        integral,
+                                 const VT3CIntegrals&      components,
+                                 const std::array<int, 2>& rec_range,
+                                 const int                 ket_index,
+                                 const int                 ket_components) const;
+    
+    /// Gets pragma string for vector of recursion distributions.
+    /// @param integral The base four center integral.
+    std::string _get_ket_pragma_str(const I3CIntegral& integral,
+                                    const std::vector<R3CDist>& rec_distributions) const;
+    
+    /// Creates code line for recursion expansion.
+    /// @param rec_distribution The recursion distribution
+    /// @return The string with code line.
+    std::string _get_ket_code_line(const R3CDist& rec_distribution) const;
+    
+    /// Creates code string for recursion term.
+    /// @param rec_term The recursion distribution.
+    /// @param is_first The flag to indicate first term in recursion expnasion.
+    /// @return The string with code term.
+    std::string _get_ket_rterm_code(const R3CTerm& rec_term,
+                                    const bool     is_first) const;
     
 public:
     
