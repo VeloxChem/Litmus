@@ -47,7 +47,7 @@ T3CGeomHrrCPUGenerator::generate(const std::string&        label,
         {
             for (int i = 0; i <= max_ang_mom; i++)
             {
-                for (int j = 0; j <= max_ang_mom; j++)
+                for (int j = 0; j <= (2 * max_ang_mom - i); j++)
                 {
                     const auto integral = _get_integral(label, {0, i, j}, geom_drvs);
                     

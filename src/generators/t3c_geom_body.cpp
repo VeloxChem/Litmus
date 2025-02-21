@@ -991,15 +991,21 @@ T3CGeomFuncBodyDriver::_add_hrr_call_tree(      VCodeLines&  lines,
                     if ((tint[0] == 0) && (tint[1] == 1))
                     {
                         name = t3c::hrr_compute_func_name(tint);
-                        
                     }
                     else
                     {
-                        auto ctint = *tint.shift(-1, 1);
-                        
-                        ctint.set_prefixes(integral.prefixes());
-                        
-                        name = t3c::ket_geom_compute_func_name(ctint);
+                        if (term.first == std::array<int, 3>({0, 1, 0}))
+                        {
+                            auto ctint = *tint.shift(-1, 1);
+                            
+                            ctint.set_prefixes(integral.prefixes());
+                            
+                            name = t3c::ket_geom_compute_func_name(ctint);
+                        }
+                        else
+                        {
+                            name = t3c::hrr_compute_func_name(tint);
+                        }
                     }
                 }
                 else
