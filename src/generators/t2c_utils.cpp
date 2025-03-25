@@ -29,6 +29,8 @@
 #include "v2i_eri_driver.hpp"
 #include "v2i_center_driver.hpp"
 #include "t2c_center_driver.hpp"
+#include "v3i_ovl_driver.hpp"
+#include "v3i_ovl_grad_driver.hpp"
 
 namespace t2c { // t2c namespace
 
@@ -109,17 +111,12 @@ integral_label(const I2CIntegral& integral)
     
     if (integrand.name() == "G(r)")
     {
-        const auto iorder = integrand.shape().order();
-        
-        if (iorder == 0)
-        {
-            return "ThreeCenterOverlap";
-        }
-        
-        if (iorder == 1)
-        {
-            return "ThreeCenterOverlapGradient";
-        }
+        return "ThreeCenterOverlap";
+    }
+    
+    if (integrand.name() == "GX(r)")
+    {
+        return "ThreeCenterOverlapGradient";
     }
     
     if (integrand.name() == "1/|r-r'|")
@@ -171,6 +168,11 @@ integral_split_label(const I2CIntegral& integral)
     {
         return "Electron_Repulsion";
     }
+    
+    if (integrand.name() == "GX(r)")
+    {
+        return "Overlap_Gradient";
+    }
 
     return std::string();
 }
@@ -220,9 +222,12 @@ namespace_label(const I2CIntegral& integral)
     
     if (integrand.name() == "G(r)")
     {
-        if (iorder == "0") return "t3ovlrec";
-        
-        if (iorder == "1") return "g3ovlrec";
+        return "t3ovlrec";
+    }
+    
+    if (integrand.name() == "GX(r)")
+    {
+        return "g3ovlrec";
     }
     
     if (integrand.name() == "1/|r-r'|")
@@ -515,6 +520,8 @@ get_index_label(const I2CIntegral& integral)
     {
         label += "eri_" + std::to_string(integral.order()) + "_";
     }
+    
+    if (integral.integrand().name() == "GX(r)") label += "g_";
         
     if (!geom_label.empty()) label += geom_label + "_";
     
@@ -696,6 +703,28 @@ get_integrals(const I2CIntegral& integral)
             tints = el_field_drv.aux_vrr(integral);
         }
     }
+    
+    if (integral.integrand().name() == "G(r)")
+    {
+        V3IOverlapDriver ovl_drv;
+
+        if (integral[0] > 0)
+        {
+            tints = ovl_drv.bra_vrr(integral);
+        }
+        else
+        {
+            tints = ovl_drv.ket_vrr(integral);
+        }
+    }
+    
+    if (integral.integrand().name() == "GX(r)")
+    {
+        V3IOverlapGradientDriver ovl_grad_drv;
+
+        tints = ovl_grad_drv.aux_vrr(integral);
+    }
+    
     
     if (integral.integrand().name() == "1/|r-r'|")
     {

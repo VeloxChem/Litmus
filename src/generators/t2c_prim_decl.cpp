@@ -88,14 +88,33 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
     
     vstr.push_back(spacer + "const CSimdArray<double>& factors,");
    
-    if (integral[0] > 0)
+    if ((integral[0] > 0) && (integral.integrand().name() != "GX(r)"))
     {
-        vstr.push_back(spacer + "const size_t idx_rpa,");
+        if (integral.integrand().name() == "G(r)")
+        {
+            vstr.push_back(spacer + "const size_t idx_rga,");
+        }
+        else
+        {
+            vstr.push_back(spacer + "const size_t idx_rpa,");
+        }
     }
    
-    if ((integral[0] == 0) && (integral[1] > 0))
+    if ((integral[0] == 0) && (integral[1] > 0) && (integral.integrand().name() != "GX(r)"))
     {
-        vstr.push_back(spacer + "const size_t idx_rpb,");
+        if (integral.integrand().name() == "G(r)")
+        {
+            vstr.push_back(spacer + "const size_t idx_rgb,");
+        }
+        else
+        {
+            vstr.push_back(spacer + "const size_t idx_rpb,");
+        }
+    }
+    
+    if (integral.integrand().name() == "GX(r)")
+    {
+        vstr.push_back(spacer + "const size_t idx_rgc,");
     }
     
     if (_need_distances_pc(integral))
@@ -135,9 +154,18 @@ T2CPrimDeclDriver::_get_recursion_variables_str(const I2CIntegral& integral,
     }
     else
     {
-        if (((integral[0] + integral[1]) != 1) || (integral.integrand().name() == "T"))
+        if (((integral[0] + integral[1]) != 1) || (integral.integrand().name() == "T") || (integral.integrand().name() == "GX(r)"))
         {
-            vstr.push_back(spacer + "const double a_exp) -> void" + tsymbol);
+            if ((integral.integrand().name() == "G(r)") || (integral.integrand().name() == "GX(r)"))
+            {
+                vstr.push_back(spacer + "const double a_exp,");
+                
+                vstr.push_back(spacer + "const double c_exp) -> void" + tsymbol);
+            }
+            else
+            {
+                vstr.push_back(spacer + "const double a_exp) -> void" + tsymbol);
+            }
         }
 
         if ( ((integral[0] + integral[1]) == 1)  && (integral.integrand().name() == "r"))
@@ -153,6 +181,8 @@ bool
 T2CPrimDeclDriver::_need_exponents(const I2CIntegral& integral) const
 {
     if (integral.integrand().name() == "T") return true;
+    
+    if (integral.integrand().name() == "GX(r)") return true;
     
     if (integral.integrand().name() == "r") return true;
     

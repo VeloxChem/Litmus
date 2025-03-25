@@ -102,7 +102,7 @@ T2CFuncBodyDriver::_get_external_data_def(const I2CIntegral&           integral,
         }
     }
     
-    if ((integral.integrand().name() == "G(r)"))
+    if ((integral.integrand().name() == "G(r)") || (integral.integrand().name() == "GX(r)"))
     {
         vstr.push_back("// intialize external Gaussian(s)");
         
@@ -240,6 +240,8 @@ T2CFuncBodyDriver::_get_ket_variables_def(const I2CIntegral& integral) const
     if (t2c::get_effective_order(integral, 1) > 0) nelems += 3;
     
     if (_need_distances_pc(integral)) nelems += 3;
+    
+    if (_need_distances_gc(integral)) nelems += 3;
     
     vstr.push_back("CSimdArray<double> factors(" + std::to_string(nelems) +  ", ket_npgtos);");
 
@@ -443,9 +445,8 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&            lines,
         lines.push_back({4, 0, 2, "t2cfunc::comp_coordinates_p(factors, 8, 2, r_a, a_exp);"});
     }
 
-    if ((t2c::get_effective_order(integral, 0) > 0) && (integral.integrand().name() != "G(r)"))
+    if ((t2c::get_effective_order(integral, 0) > 0) && (integral.integrand().name() != "G(r)") && (integral.integrand().name() != "GX(r)"))
     {
-        
         const auto label = std::to_string(_get_index_pa(integral));
         
         if (_need_center_p(integral))
@@ -458,7 +459,7 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&            lines,
         }
     }
 
-    if ((t2c::get_effective_order(integral, 1) > 0) && (integral.integrand().name() != "G(r)"))
+    if ((t2c::get_effective_order(integral, 1) > 0) && (integral.integrand().name() != "G(r)") && (integral.integrand().name() != "GX(r)"))
     {
         const auto label = std::to_string(_get_index_pb(integral));
         
@@ -533,7 +534,7 @@ T2CFuncBodyDriver::_add_sum_loop_start(      VCodeLines&            lines,
     {
         const auto integrand = integral.integrand();
         
-        if (integrand.name() == "G(r)")
+        if ((integrand.name() == "G(r)") || (integrand.name() == "GX(r)"))
         {
             lines.push_back({4, 0, 2, "const size_t npoints = coords.size();"});
                 
@@ -565,6 +566,13 @@ T2CFuncBodyDriver::_add_sum_loop_start(      VCodeLines&            lines,
             const auto label = std::to_string(_get_index_gb(integral));
         
             lines.push_back({5, 0, 2, "t2cfunc::comp_distances_gb(factors, " + label + ", 8, 2, coords[l], a_exp, exgtos[l]);"});
+        }
+        
+        if (_need_distances_gc(integral))
+        {
+            const auto label = std::to_string(_get_index_gc(integral));
+        
+            lines.push_back({5, 0, 2, "t2cfunc::comp_distances_gc(factors, " + label + ", 8, coords[l], a_exp, exgtos[l]);"});
         }
         
         if (_need_boys_func(integral))
@@ -770,7 +778,7 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&            lines,
     {
         if (!tint.is_simple()) continue;
         
-        if ((tint[0] != 0) || (tint[1] != 0))
+        if ((tint[0] != 0) || (tint[1] != 0) || (tint.integrand().name() == "GX(r)"))
         {
             const auto name = t2c::prim_compute_func_name(tint);
             
@@ -780,14 +788,28 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&            lines,
             
             label += "factors, "; 
             
-            if (tint[0] > 0)
+            if ((tint[0] > 0) && (tint.integrand().name() != "GX(r)"))
             {
-                label += std::to_string(_get_index_pa(integral)) + ", ";
+                if (tint.integrand().name() == "G(r)")
+                {
+                    label += std::to_string(_get_index_ga(integral)) + ", ";
+                }
+                else
+                {
+                    label += std::to_string(_get_index_pa(integral)) + ", ";
+                }
             }
             
-            if ((tint[1] > 0) && (tint[0] == 0))
+            if ((tint[1] > 0) && (tint[0] == 0) && (tint.integrand().name() != "GX(r)"))
             {
-                label += std::to_string(_get_index_pb(integral)) + ", ";
+                if (tint.integrand().name() == "G(r)")
+                {
+                    label += std::to_string(_get_index_gb(integral)) + ", ";
+                }
+                else
+                {
+                    label += std::to_string(_get_index_pb(integral)) + ", ";
+                }
             }
             
             if (_need_distances_pc_in_call_tree(tint))
@@ -795,9 +817,19 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&            lines,
                 label += std::to_string(_get_index_pc(integral)) + ", ";
             }
            
+            if (tint.integrand().name() == "GX(r)")
+            {
+                label += std::to_string(_get_index_gc(integral)) + ", ";
+            }
+            
             if (_need_exponents(tint))
             {
                 label += "a_exp";
+                
+                if ((tint.integrand().name() == "G(r)") || (tint.integrand().name() == "GX(r)"))
+                {
+                    label += ", exgtos[l]"; 
+                }
             }
             else
             {
@@ -912,6 +944,8 @@ T2CFuncBodyDriver::_need_center_p(const I2CIntegral& integral) const
     
     if (integrand.name() == "G(r)") return true;
     
+    if (integrand.name() == "GX(r)") return true;
+    
     if (integrand.name() == "A") return true;
     
     if (integrand.name() == "AG") return true;
@@ -927,6 +961,8 @@ T2CFuncBodyDriver::_need_distances_pc(const I2CIntegral& integral) const
     if (integrand.name() == "r") return true;
     
     if (integrand.name() == "G(r)") return true;
+    
+    if (integrand.name() == "GX(r)") return true;
     
     if (integrand.name() == "A") return true;
     
@@ -952,8 +988,6 @@ T2CFuncBodyDriver::_need_distances_pc_in_call_tree(const I2CIntegral& integral) 
 bool
 T2CFuncBodyDriver::_need_distances_pa(const I2CIntegral& integral) const
 {
-    if (integral.integrand().name() == "G(r)") return false;
-    
     if (integral.is_simple())
     {
         return integral[0] > 0;
@@ -967,8 +1001,6 @@ T2CFuncBodyDriver::_need_distances_pa(const I2CIntegral& integral) const
 bool
 T2CFuncBodyDriver::_need_distances_pb(const I2CIntegral& integral) const
 {
-    if (integral.integrand().name() == "G(r)") return false;
-    
     if (integral.is_simple())
     {
         return integral[1] > 0;
@@ -989,7 +1021,7 @@ T2CFuncBodyDriver::_need_distances_pb(const I2CIntegral& integral) const
 bool
 T2CFuncBodyDriver::_need_distances_ga(const I2CIntegral& integral) const
 {
-    if (integral.integrand().name() != "G(r)") return false;
+    if ((integral.integrand().name() != "G(r)") && (integral.integrand().name() != "GX(r)"))  return false;
     
     if (integral.is_simple())
     {
@@ -1004,7 +1036,7 @@ T2CFuncBodyDriver::_need_distances_ga(const I2CIntegral& integral) const
 bool
 T2CFuncBodyDriver::_need_distances_gb(const I2CIntegral& integral) const
 {
-    if (integral.integrand().name() != "G(r)") return false;
+    if ((integral.integrand().name() != "G(r)") && (integral.integrand().name() != "GX(r)")) return false;
     
     if (integral.is_simple())
     {
@@ -1024,9 +1056,19 @@ T2CFuncBodyDriver::_need_distances_gb(const I2CIntegral& integral) const
 }
 
 bool
+T2CFuncBodyDriver::_need_distances_gc(const I2CIntegral& integral) const
+{
+    if (integral.integrand().name() == "GX(r)") return true;
+    
+    return false;
+}
+
+bool
 T2CFuncBodyDriver::_need_exponents(const I2CIntegral& integral) const
 {
     if (integral.integrand().name() == "T") return true;
+    
+    if (integral.integrand().name() == "GX(r)") return true;
     
     if ((integral.integrand().name() == "r") && ((integral[0] + integral[1]) > 0)) return true; 
     
@@ -1066,6 +1108,8 @@ T2CFuncBodyDriver::_need_external_coords(const I2CIntegral& integral) const
     if (integrand.name() == "r") return true;
     
     if (integrand.name() == "G(r)") return true;
+    
+    if (integrand.name() == "GX(r)") return true;
     
     return false;
 }
@@ -1125,18 +1169,17 @@ T2CFuncBodyDriver::_get_index_pc(const I2CIntegral& integral) const
 int
 T2CFuncBodyDriver::_get_index_ga(const I2CIntegral& integral) const
 {
-    return _get_index_pc(integral) + 3;
+    return _get_index_pa(integral);
 }
 
 int
 T2CFuncBodyDriver::_get_index_gb(const I2CIntegral& integral) const
 {
-    if (_need_distances_ga(integral))
-    {
-       return _get_index_ga(integral) + 3;
-    }
-    else
-    {
-        return _get_index_pc(integral) + 3;
-    }
+    return _get_index_pb(integral);
+}
+
+int
+T2CFuncBodyDriver::_get_index_gc(const I2CIntegral& integral) const
+{
+    return _get_index_pc(integral) + 3;
 }

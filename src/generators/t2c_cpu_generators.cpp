@@ -39,6 +39,7 @@
 #include "v2i_el_field_driver.hpp"
 #include "v2i_center_driver.hpp"
 #include "v3i_ovl_driver.hpp"
+#include "v3i_ovl_grad_driver.hpp"
 
 void
 T2CCPUGenerator::generate(const std::string&           label,
@@ -167,7 +168,15 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
     
     if (fstr::lowercase(label) == "three center overlap")
     {
-        return I2CIntegral(bra, ket, Operator("G(r)"), 0, {});
+        if (geom_drvs[1] == 0)
+        {
+            return I2CIntegral(bra, ket, Operator("G(r)"), 0, {});
+        }
+        
+        if (geom_drvs[1] == 1)
+        {
+            return I2CIntegral(bra, ket, Operator("GX(r)", Tensor(1)), 0, {});
+        }
     }
     
     // electron repulsion integrals
@@ -316,6 +325,19 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral&        integral,
         {
             tints = ovl_drv.create_recursion(tints);
         }
+    }
+    
+    if (integral.integrand() == Operator("GX(r)", Tensor(1)))
+    {
+        V3IOverlapGradientDriver ovl_grad_drv;
+        
+        tints = ovl_grad_drv.aux_vrr(integral);
+        
+        tints.insert(integral); 
+        
+        V3IOverlapDriver ovl_drv;
+        
+        tints = ovl_drv.create_recursion(tints);
     }
     
     if (integral.integrand() == Operator("1/|r-r'|"))

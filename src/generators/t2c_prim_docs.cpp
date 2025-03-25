@@ -98,14 +98,34 @@ T2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const
     
     vstr.push_back("/// @param factors The primitive factors buffer.");
    
-    if (integral[0] > 0)
+    if ((integral[0] > 0) && (integral.integrand().name() != "GX(r)"))
     {
-        vstr.push_back("/// @param idx_rpa The vector of distances R(PA) = P - A.");
+        if (integral.integrand().name() == "G(r)")
+        {
+            vstr.push_back("/// @param idx_rga The vector of distances R(GA) = G - A.");
+        }
+        else
+        {
+            vstr.push_back("/// @param idx_rpa The vector of distances R(PA) = P - A.");
+        }
+        
     }
    
-    if ((integral[0] == 0) && (integral[1] > 0))
+    if ((integral[0] == 0) && (integral[1] > 0) && (integral.integrand().name() != "GX(r)"))
     {
-        vstr.push_back("/// @param idx_rpb The vector of distances R(PB) = P - B.");
+        if (integral.integrand().name() == "G(r)")
+        {
+            vstr.push_back("/// @param idx_rgb The vector of distances R(GB) = G - B.");
+        }
+        else
+        {
+            vstr.push_back("/// @param idx_rpb The vector of distances R(PB) = P - B.");
+        }
+    }
+    
+    if (integral.integrand().name() == "GX(r)")
+    {
+        vstr.push_back("/// @param idx_rgc The vector of distances R(GC) = G - C.");
     }
     
     if (_need_distances_pc(integral))
@@ -124,6 +144,11 @@ T2CPrimDocuDriver::_get_recursion_variables_str(const I2CIntegral& integral) con
     if (_need_exponents(integral))
     {
         vstr.push_back("/// @param a_exp The primitive basis function exponent on center A.");
+        
+        if ((integral.integrand().name() == "G(r)") || (integral.integrand().name() == "GX(r)"))
+        {
+            vstr.push_back("/// @param c_exp The primitive basis function exponent on center C.");
+        }
     }
     
     return vstr;
@@ -143,6 +168,8 @@ bool
 T2CPrimDocuDriver::_need_exponents(const I2CIntegral& integral) const
 {
     if (integral.integrand().name() == "T") return true;
+    
+    if (integral.integrand().name() == "GX(r)") return true;
     
     if (integral.integrand().name() == "r") return true;
     
