@@ -32,6 +32,7 @@
 #include "t3c_cpu_generators.hpp"
 #include "t3c_geom_cpu_generators.hpp"
 #include "t3c_geom_hrr_cpu_generators.hpp"
+#include "g2c_cpu_generators.hpp"
 
 int main(int argc, char **argv)
 {
@@ -39,9 +40,9 @@ int main(int argc, char **argv)
 
     //const auto run_type = std::pair<std::string, std::string>({"t3c_geom_hrr_cpu", "electron repulsion"});
     
-    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "three center overlap"});
+    const auto run_type = std::pair<std::string, std::string>({"g2c_cpu", "nuclear potential"});
 
-    const int max_ang_mom = 4;
+    const int max_ang_mom = 2;
 
     // set up start timer
     
@@ -161,6 +162,29 @@ int main(int argc, char **argv)
             
         t3c_geom_drv.generate(run_type.second, max_ang_mom, geom_drvs);
     }
+    
+    // case: two-center integrals on grid
+
+    if (run_type.first == "g2c_cpu")
+    {
+        std::array<int, 3> geom_drvs = {0, 0, 0};
+        
+        const auto use_rs = false;
+        
+        if ((geom_drvs[0] + geom_drvs[2]) == 0)
+        {
+            const auto g2c_drv = G2CCPUGenerator();
+            
+            g2c_drv.generate(run_type.second, max_ang_mom, geom_drvs, use_rs);
+        }
+        else
+        {
+//            const auto t2c_drv = T2CGeomCPUGenerator();
+//            
+//            t2c_drv.generate(run_type.second, max_ang_mom, geom_drvs, rec_form, use_rs);
+        }
+    }
+    
     
     // set up end timer & compute elapsed time
     

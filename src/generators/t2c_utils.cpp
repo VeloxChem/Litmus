@@ -380,6 +380,51 @@ compute_func_name(const I2CIntegral&           integral,
 }
 
 std::string
+grid_compute_func_name(const I2CIntegral&           integral,
+                       const bool                   use_rs)
+{
+    std::string prefix = "comp_on_grid_";
+    
+    if (use_rs) prefix += "erf_";
+    
+    std::string geom_label;
+    
+    auto tint_prefixes = integral.prefixes();
+    
+    if ((!tint_prefixes.empty()) || (integral.integrand().name() == "AG"))
+    {
+        geom_label += "_geom_";
+        
+        if (integral.integrand().name() == "AG")
+        {
+            if (tint_prefixes.empty())
+            {
+                geom_label += "0" + std::to_string(integral.integrand().shape().order()) + "0";
+            }
+            else
+            {
+                geom_label += std::to_string(tint_prefixes[0].shape().order());
+                
+                geom_label += std::to_string(integral.integrand().shape().order());
+                
+                geom_label += std::to_string(tint_prefixes[2].shape().order());
+            }
+        }
+        else
+        {
+            for (const auto& tint_prefix : tint_prefixes)
+            {
+                geom_label += std::to_string(tint_prefix.shape().order());
+            }
+        }
+    }
+        
+    auto label = prefix  + t2c::integral_split_label(integral) + geom_label + "_" + integral.label();
+        
+    return fstr::lowercase(label);
+}
+
+std::string
 geom_compute_func_name(const I2CIntegral&        integral,
                        const std::array<int, 3>& geom_drvs)
 {
@@ -407,6 +452,12 @@ prim_file_name(const I2CIntegral& integral)
     }
 
     return t2c::integral_label(integral) + "PrimRec" + integral.label();
+}
+
+std::string
+grid_prim_file_name(const I2CIntegral& integral)
+{
+    return t2c::integral_label(integral) + "GridPrimRec" + integral.label();
 }
 
 std::string
@@ -555,6 +606,41 @@ prim_compute_func_name(const I2CIntegral& integral)
     }
     
     auto label =  "comp_prim_" + t2c::integral_split_label(integral) +  geom_label + "_" + integral.label();
+    
+    if (tint_prefixes.size() == 2)
+    {
+        if (tint_prefixes[1].shape().order() == 0) label[label.size() - 1] = 'x';
+    }
+    
+    return fstr::lowercase(label);
+}
+
+
+std::string
+grid_prim_compute_func_name(const I2CIntegral& integral)
+{
+    std::string geom_label;
+    
+    auto tint_prefixes = integral.prefixes();
+    
+    if ((!tint_prefixes.empty()) || (integral.integrand().name() == "AG"))
+    {
+        geom_label += "_geom_";
+        
+        if (integral.integrand().name() == "AG")
+        {
+            geom_label += "0" + std::to_string(integral.integrand().shape().order()) + "0";
+        }
+        else
+        {
+            for (const auto& tint_prefix : tint_prefixes)
+            {
+                geom_label += std::to_string(tint_prefix.shape().order());
+            }
+        }
+    }
+    
+    auto label =  "comp_on_grid_prim_" + t2c::integral_split_label(integral) +  geom_label + "_" + integral.label();
     
     if (tint_prefixes.size() == 2)
     {
