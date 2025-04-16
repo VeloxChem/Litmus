@@ -95,9 +95,7 @@ class G2CCPUGenerator
     
     /// Writes primitive header file for recursion.
     /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    void _write_prim_cpp_header(const I2CIntegral&           integral,
-                                const std::pair<bool, bool>& rec_form) const;
+    void _write_prim_cpp_header(const I2CIntegral& integral) const;
     
     /// Writes definitions of includes for primitive header file.
     /// @param fstream the file stream.

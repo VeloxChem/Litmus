@@ -261,9 +261,13 @@ G2CFuncBodyDriver::_add_loop_end(      VCodeLines&    lines,
     
     lines.push_back({3, 0, 2, label});
     
+    lines.push_back({2, 0, 1, "}"});
+    
+    lines.push_back({1, 0, 2, "}"});
+    
     if ((integral[0] + integral[1]) > 0)
     {
-        lines.push_back({3, 0, 2, "// transform integrals"});
+        lines.push_back({1, 0, 2, "// transform integrals"});
         
         label = "t2cfunc::transform<"  + std::to_string(integral[0]);
             
@@ -271,12 +275,10 @@ G2CFuncBodyDriver::_add_loop_end(      VCodeLines&    lines,
         
         label += std::to_string(refpos + ncomps) + ");";
             
-        lines.push_back({3, 0, 1, label});
+        lines.push_back({1, 0, 1, label});
     }
-   
-    lines.push_back({2, 0, 1, "}"});
     
-    lines.push_back({1, 0, 1, "}"});
+    std::cout << " *** (" << std::to_string(integral[0]) << "," << std::to_string(integral[1]) << ") = " << std::to_string(refpos + 2 * ncomps) << std::endl; 
 }
 
 void
@@ -323,7 +325,7 @@ G2CFuncBodyDriver::_add_call_tree(      VCodeLines&            lines,
         {
             if ((tint[0] + tint[1]) == 0)
             {
-                label += "fovl);";
+                label += "fovl, a_exp + b_exp);";
             }
             else
             {

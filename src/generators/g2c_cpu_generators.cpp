@@ -24,6 +24,9 @@
 #include "g2c_docs.hpp"
 #include "g2c_decl.hpp"
 #include "g2c_body.hpp"
+#include "g2c_prim_docs.hpp"
+#include "g2c_prim_decl.hpp"
+#include "g2c_prim_body.hpp"
 
 #include "v2i_npot_driver.hpp"
 
@@ -51,12 +54,12 @@ G2CCPUGenerator::generate(const std::string&           label,
 
                             _write_cpp_header(integrals, integral, use_rs);
                             
-//                            if (((i + j) > 0) && (!use_rs))
-//                            {
-//                                _write_prim_cpp_header(integral, rec_form);
-//                                    
-//                                _write_prim_cpp_file(integral);
-//                            }
+                            if ((i + j) > 0)
+                            {
+                                _write_prim_cpp_header(integral);
+                                    
+                                _write_prim_cpp_file(integral);
+                            }
                         }
                     }
                 }
@@ -241,6 +244,8 @@ G2CCPUGenerator::_write_hpp_includes(      std::ofstream&         fstream,
     
     lines.push_back({0, 0, 1, "#include \"T2CUtils.hpp\""});
     
+    lines.push_back({0, 0, 1, "#include \"T2CTransform.hpp\""});
+    
     if ((integral.integrand().name() == "A")  ||
         (integral.integrand().name() == "AG") ||
         (integral.integrand().name() == "1/|r-r'|"))
@@ -286,6 +291,86 @@ G2CCPUGenerator::_write_namespace(      std::ofstream& fstream,
     {
         lines.push_back({0, 0, 2, "} // " + label + " namespace"});
     }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+G2CCPUGenerator::_write_prim_cpp_header(const I2CIntegral& integral) const
+{
+    auto fname = t2c::grid_prim_file_name(integral) + ".hpp";
+        
+    std::ofstream fstream;
+               
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_hpp_defines(fstream, integral, false, true, true);
+    
+    _write_prim_hpp_includes(fstream, integral);
+    
+    _write_namespace(fstream, integral, true);
+    
+    G2CPrimDocuDriver docs_drv;
+    
+    docs_drv.write_doc_str(fstream, integral);
+    
+    G2CPrimDeclDriver decl_drv;
+    
+    decl_drv.write_func_decl(fstream, integral, true);
+    
+    _write_namespace(fstream, integral, false);
+    
+    _write_hpp_defines(fstream, integral, false, true, false);
+    
+    fstream.close();
+}
+
+void
+G2CCPUGenerator::_write_prim_hpp_includes(      std::ofstream& fstream,
+                                          const I2CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"SubMatrix.hpp\""});
+        
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+G2CCPUGenerator::_write_prim_cpp_file(const I2CIntegral& integral) const
+{
+    auto fname = t2c::grid_prim_file_name(integral) + ".cpp";
+        
+    std::ofstream fstream;
+        
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    _write_prim_cpp_includes(fstream, integral);
+
+    _write_namespace(fstream, integral, true);
+
+    G2CPrimDeclDriver decl_drv;
+    
+    decl_drv.write_func_decl(fstream, integral, false);
+
+    G2CPrimFuncBodyDriver func_drv;
+
+    func_drv.write_func_body(fstream, integral);
+    
+    fstream << std::endl;
+    
+    _write_namespace(fstream, integral, false);
+        
+    fstream.close();
+}
+
+void
+G2CCPUGenerator::_write_prim_cpp_includes(      std::ofstream& fstream,
+                                          const I2CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + t2c::grid_prim_file_name(integral) +  ".hpp\""});
     
     ost::write_code_lines(fstream, lines);
 }
