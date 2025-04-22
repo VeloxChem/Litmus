@@ -14,13 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "t2c_prim_docs.hpp"
+#include "g2c_prim_docs.hpp"
 
 #include "file_stream.hpp"
 #include "t2c_utils.hpp"
 
 void
-T2CPrimDocuDriver::write_doc_str(      std::ofstream& fstream,
+G2CPrimDocuDriver::write_doc_str(      std::ofstream& fstream,
                                  const I2CIntegral&   integral) const
 {
     auto lines = VCodeLines();
@@ -48,7 +48,7 @@ T2CPrimDocuDriver::write_doc_str(      std::ofstream& fstream,
 }
 
 std::string
-T2CPrimDocuDriver::_get_compute_str(const I2CIntegral& integral) const
+G2CPrimDocuDriver::_get_compute_str(const I2CIntegral& integral) const
 {
     const auto bra = Tensor(integral[0]);
         
@@ -65,17 +65,17 @@ T2CPrimDocuDriver::_get_compute_str(const I2CIntegral& integral) const
         label += t2c::integrand_label(integral.integrand()) + "|";
     }
     
-    label += ket_prefix + ket.label() + "]  integrals for set of data buffers.";
+    label += ket_prefix + ket.label() + "]  integrals for set of data buffers on given grid.";
     
     return label;
 }
 
 std::vector<std::string>
-T2CPrimDocuDriver::_get_buffers_str(const I2CIntegral& integral) const
+G2CPrimDocuDriver::_get_buffers_str(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("/// @param pbuffer The primitive integrals buffer.");
+    vstr.push_back("/// @param buffer The primitive integrals buffer.");
     
     auto label = t2c::get_index_label(integral);
     
@@ -92,86 +92,46 @@ T2CPrimDocuDriver::_get_buffers_str(const I2CIntegral& integral) const
 }
 
 std::vector<std::string>
-T2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const
+G2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
-    vstr.push_back("/// @param factors The primitive factors buffer.");
-   
-    if ((integral[0] > 0) && (integral.integrand().name() != "GX(r)"))
+    if (integral[0] > 0)
     {
-        if (integral.integrand().name() == "G(r)")
-        {
-            vstr.push_back("/// @param idx_rga The vector of distances R(GA) = G - A.");
-        }
-        else
-        {
-            vstr.push_back("/// @param idx_rpa The vector of distances R(PA) = P - A.");
-        }
+        vstr.push_back("/// @param rpa_x The Cartesian X distance of R(PA) = P - A.");
         
+        vstr.push_back("/// @param rpa_y The Cartesian Y distance of R(PA) = P - A.");
+        
+        vstr.push_back("/// @param rpa_z The Cartesian Z distance of R(PA) = P - A.");
+    }
+    
+    if ((integral[0] ==  0)  && (integral[1] > 0))
+    {
+        vstr.push_back("/// @param rpb_x The Cartesian X distance of R(PB) = P - B.");
+    
+        vstr.push_back("/// @param rpb_y The Cartesian Y distance of R(PB) = P - B.");
+        
+        vstr.push_back("/// @param rpb_z The Cartesian Z distance of R(PB) = P - B.");
     }
    
-    if ((integral[0] == 0) && (integral[1] > 0) && (integral.integrand().name() != "GX(r)"))
-    {
-        if (integral.integrand().name() == "G(r)")
-        {
-            vstr.push_back("/// @param idx_rgb The vector of distances R(GB) = G - B.");
-        }
-        else
-        {
-            vstr.push_back("/// @param idx_rpb The vector of distances R(PB) = P - B.");
-        }
-    }
-    
-    if (integral.integrand().name() == "GX(r)")
-    {
-        vstr.push_back("/// @param idx_rgc The vector of distances R(GC) = G - C.");
-    }
-    
-    if (_need_distances_pc(integral))
-    {
-        vstr.push_back("/// @param idx_rpc The vector of distances R(PC) = P - C.");
-    }
-    
     return vstr;
 }
 
 std::vector<std::string>
-T2CPrimDocuDriver::_get_recursion_variables_str(const I2CIntegral& integral) const
+G2CPrimDocuDriver::_get_recursion_variables_str(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
     
     if (_need_exponents(integral))
     {
-        vstr.push_back("/// @param a_exp The primitive basis function exponent on center A.");
-        
-        if ((integral.integrand().name() == "G(r)") || (integral.integrand().name() == "GX(r)"))
-        {
-            vstr.push_back("/// @param c_exp The primitive basis function exponent on center C.");
-        }
+        vstr.push_back("/// @param factor The combined exponential factor.");
     }
     
     return vstr;
 }
 
 bool
-T2CPrimDocuDriver::_need_distances_pc(const I2CIntegral& integral) const
+G2CPrimDocuDriver::_need_exponents(const I2CIntegral& integral) const
 {
-    if (integral.integrand().name() == "A") return true;
-    
-    if (integral.integrand().name() == "AG") return true;
-    
-    return false;
-}
-
-bool
-T2CPrimDocuDriver::_need_exponents(const I2CIntegral& integral) const
-{
-    if (integral.integrand().name() == "T") return true;
-    
-    if (integral.integrand().name() == "GX(r)") return true;
-    
-    if (integral.integrand().name() == "r") return true;
-    
     return (integral[0] + integral[1]) > 1;
 }

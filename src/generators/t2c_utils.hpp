@@ -75,6 +75,13 @@ std::string compute_func_name(const I2CIntegral&           integral,
 
 /// Generates compute function  name.
 /// @param integral The base two center integral.
+/// @param use_rs The flag for use of range-separated Coulomb interactions.
+/// @return The compute function name.
+std::string grid_compute_func_name(const I2CIntegral& integral,
+                                   const bool         use_rs);
+
+/// Generates compute function  name.
+/// @param integral The base two center integral.
 /// @param geom_drvs The geometrical derivative of bra and  ket sides.
 /// @return The geometrical derivative compute function name.
 std::string geom_compute_func_name(const I2CIntegral&        integral,
@@ -84,6 +91,11 @@ std::string geom_compute_func_name(const I2CIntegral&        integral,
 /// @param integral The base two center integral.
 /// @return The primitive file name.
 std::string prim_file_name(const I2CIntegral& integral);
+
+/// Generates primitive file name.
+/// @param integral The base two center integral.
+/// @return The primitive file name.
+std::string grid_prim_file_name(const I2CIntegral& integral);
 
 /// Generates primitive file name.
 /// @param integral The base two center integral.
@@ -159,6 +171,11 @@ std::string get_index_label(const I2CIntegral& integral);
 /// @param integral The base two center integral.
 /// @return The primitive compute function name.
 std::string prim_compute_func_name(const I2CIntegral& integral);
+
+/// Generates primitive compute function name.
+/// @param integral The base two center integral.
+/// @return The primitive compute function name.
+std::string grid_prim_compute_func_name(const I2CIntegral& integral);
 
 /// Gets arguments list for primitive function call.
 /// @param integral The base two center integral.

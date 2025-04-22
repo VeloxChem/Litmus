@@ -14,8 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef t2c_body_hpp
-#define t2c_body_hpp
+#ifndef g2c_body_hpp
+#define g2c_body_hpp
 
 #include <string>
 #include <vector>
@@ -26,15 +26,8 @@
 #include "file_stream.hpp"
 
 // Two-center compute function body generators for CPU.
-class T2CFuncBodyDriver
+class G2CFuncBodyDriver
 {
-    /// Generates vector of strings with external data definitions in compute function.
-    /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    /// @return The vector of strings with external data definitions in compute function.
-    std::vector<std::string> _get_external_data_def(const I2CIntegral&           integral,
-                                                    const std::pair<bool, bool>& rec_form) const;
-    
     /// Generates vector of strings with GTOs definitions in compute function.
     /// @return The vector of strings with GTOS definitions in compute function.
     std::vector<std::string> _get_gtos_def() const;
@@ -42,21 +35,7 @@ class T2CFuncBodyDriver
     /// Generates vector of ket factors in compute function.
     /// @param integral The base two center integral.
     /// @return The vector of ket factors in compute function.
-    std::vector<std::string> _get_ket_variables_def(const I2CIntegral& integral) const;
-    
-    /// Generates vector of buffers in compute function.
-    /// @param integrals The set of inetrgals.
-    /// @param integral The base two center integral.
-    /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
-    /// @return The vector of buffers in compute function.
-    std::vector<std::string> _get_buffers_def(const SI2CIntegrals& integrals,
-                                              const I2CIntegral&   integral,
-                                              const std::array<int, 3>& geom_drvs) const;
-    
-    /// Generates vector of Boys function definitions in compute function.
-    /// @param integral The base two center integral.
-    /// @return The vector of Boys function definitions in compute function.
-    std::vector<std::string> _get_boys_function_def(const I2CIntegral& integral) const;
+    std::vector<std::string> _get_variables_def(const I2CIntegral& integral) const;
     
     /// Adds loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
@@ -66,72 +45,19 @@ class T2CFuncBodyDriver
     
     /// Adds loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
-    /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    void _add_loop_end(      VCodeLines&  lines,
-                       const I2CIntegral& integral,
-                       const std::pair<bool, bool>& rec_form) const;
-    
-    /// Adds ket loop start definitions to code lines container.
-    /// @param lines The code lines container to which loop start definition are added.
-    /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    void _add_ket_loop_start(      VCodeLines&            lines,
-                             const I2CIntegral&           integral,
-                             const std::pair<bool, bool>& rec_form) const;
-    
-    /// Adds ket loop end definitions to code lines container.
-    /// @param lines The code lines container to which loop start definition are added.
     /// @param integrals The set of inetrgals.
     /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    void _add_ket_loop_end(      VCodeLines&  lines,
-                           const SI2CIntegrals& integrals,
-                           const I2CIntegral& integral,
-                           const std::pair<bool, bool>& rec_form) const;
-    
-    /// Adds sum loop start definitions to code lines container.
-    /// @param lines The code lines container to which loop start definition are added.
-    /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    /// @param use_rs The flag for use of range-separated Coulomb interactions.
-    void _add_sum_loop_start(      VCodeLines&            lines,
-                             const I2CIntegral&           integral,
-                             const std::pair<bool, bool>& rec_form,
-                             const bool                   use_rs) const;
-    
-    /// Adds sum loop end definitions to code lines container.
-    /// @param lines The code lines container to which loop start definition are added.
-    /// @param integrals The set of inetrgals.
-    /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    void _add_sum_loop_end(      VCodeLines&            lines,
-                           const SI2CIntegrals&         integrals,
-                           const I2CIntegral&           integral,
-                           const std::pair<bool, bool>& rec_form) const;
-    
-    /// Adds auxilary integrals.
-    /// @param lines The code lines container to which loop start definition are added.
-    /// @param integrals The set of inetrgals.
-    /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
-    /// @param in_sum_loop The flag indicating call from inside summation loop.
-    void _add_auxilary_integrals(      VCodeLines&            lines,
-                                 const SI2CIntegrals&         integrals,
-                                 const I2CIntegral&           integral,
-                                 const std::pair<bool, bool>& rec_form,
-                                 const bool                   in_sum_loop) const;
+    void _add_loop_end(      VCodeLines&    lines,
+                       const SI2CIntegrals& integrals,
+                       const I2CIntegral&   integral) const;
     
     /// Adds call tree for recursion.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param integrals The set of inetrgals.
     /// @param integral The base two center integral.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
     void _add_call_tree(      VCodeLines&            lines,
                         const SI2CIntegrals&         integrals,
-                        const I2CIntegral&           integral,
-                        const std::pair<bool, bool>& rec_form) const;
-    
+                        const I2CIntegral&           integral) const;
     
     /// Adds call tree for recursion.
     /// @param lines The code lines container to which loop start definition are added.
@@ -153,14 +79,18 @@ class T2CFuncBodyDriver
     /// Gets arguments list for primitive function call.
     /// @param integral The base two center integral.
     /// @param integrals The set of inetrgals.
+    /// @param ref_integral The reference base two center integral.
     std::string _get_arguments(const I2CIntegral&   integral,
-                               const SI2CIntegrals& integrals) const;
+                               const SI2CIntegrals& integrals,
+                               const I2CIntegral&   ref_integral) const;
     
     /// Gets position of integral in integrals buffer.
     /// @param integral The base two center integral.
     /// @param integrals The set of inetrgals.
+    /// @param ref_integral The reference base two center integral.
     size_t _get_position(const I2CIntegral&   integral,
-                         const SI2CIntegrals& integrals) const;
+                         const SI2CIntegrals& integrals,
+                         const I2CIntegral&   ref_integral) const;
     
     /// Checks if coordinates of center P are required for integration.
     /// @param integral The base two center integral.
@@ -242,7 +172,7 @@ class T2CFuncBodyDriver
     
 public:
     /// Creates a two-center compute function body generator.
-    T2CFuncBodyDriver() = default;
+    G2CFuncBodyDriver() = default;
     
     /// Writes body of compute function.
     /// @param fstream the file stream.
@@ -250,15 +180,13 @@ public:
     /// @param vrr_integrals The set of inetrgals in vertical recursion.
     /// @param integral The base two center integral.
     /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
-    /// @param rec_form The recursion form for two center integrals (summation, convolution flags).
     /// @param use_rs The flag for use of range-separated Coulomb interactions.
     void write_func_body(      std::ofstream&         fstream,
                          const SI2CIntegrals&         geom_integrals,
                          const SI2CIntegrals&         vrr_integrals,
                          const I2CIntegral&           integral,
-                         const std::array<int, 3>& geom_drvs, 
-                         const std::pair<bool, bool>& rec_form,
+                         const std::array<int, 3>& geom_drvs,
                          const bool                   use_rs) const;
 };
 
-#endif /* t2c_body_hpp */
+#endif /* g2c_body_hpp */
