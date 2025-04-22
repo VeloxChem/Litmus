@@ -508,7 +508,11 @@ T3CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
                 }
                 else
                 {
-                    labels.insert(t3c::ket_geom_file_name(tint));
+                    std::cout << " *** " << t3c::ket_geom_file_name(tint)  << " : " << t3c::hrr_file_name(tint.base()) << std::endl;
+                    
+                    labels.insert(t3c::hrr_file_name(tint.base()));
+                    
+                    //labels.insert(t3c::ket_geom_file_name(tint));
                 }
             }
             else

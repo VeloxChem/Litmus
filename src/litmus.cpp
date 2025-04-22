@@ -39,9 +39,9 @@ int main(int argc, char **argv)
 
     //const auto run_type = std::pair<std::string, std::string>({"t3c_geom_hrr_cpu", "electron repulsion"});
     
-    const auto run_type = std::pair<std::string, std::string>({"t3c_cpu", "electron repulsion"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_geom_cpu", "electron repulsion"});
 
-    const int max_ang_mom = 5;
+    const int max_ang_mom = 7;
 
     // set up start timer
     
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
     
     if (run_type.first == "t2c_geom_cpu")
     {
-        std::array<int, 3> geom_drvs = {2, 0, 0};
+        std::array<int, 3> geom_drvs = {1, 0, 0};
         
         const auto t2c_geom_drv = T2CGeomDerivCPUGenerator();
             
@@ -137,29 +137,29 @@ int main(int argc, char **argv)
     
     if (run_type.first == "t3c_cpu")
     {
-        std::array<int, 3> geom_drvs = {0, 0, 0};
+        std::array<int, 3> geom_drvs = {1, 0, 0};
         
         if (geom_drvs == std::array<int, 3>({0, 0, 0}))
         {
             const auto t3c_drv = T3CCPUGenerator();
             
-            t3c_drv.generate(run_type.second, max_ang_mom, max_ang_mom);
+            t3c_drv.generate(run_type.second, max_ang_mom, max_ang_mom + 2);
         }
         else
         {
             const auto t3c_drv = T3CGeomCPUGenerator();
             
-            t3c_drv.generate(run_type.second, max_ang_mom, max_ang_mom, geom_drvs);
+            t3c_drv.generate(run_type.second, max_ang_mom, max_ang_mom + 2, geom_drvs);
         }
     }
     
     if (run_type.first == "t3c_geom_hrr_cpu")
     {
-        std::array<int, 3> geom_drvs = {0, 1, 0};
+        std::array<int, 3> geom_drvs = {1, 0, 0};
         
         const auto t3c_geom_drv = T3CGeomHrrCPUGenerator();
             
-        t3c_geom_drv.generate(run_type.second, max_ang_mom, geom_drvs);
+        t3c_geom_drv.generate(run_type.second, max_ang_mom + 2, geom_drvs);
     }
     
     // set up end timer & compute elapsed time

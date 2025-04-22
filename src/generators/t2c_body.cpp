@@ -479,13 +479,16 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&            lines,
         lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pc(factors, " +  label + ", 8, r_c);"});
     }
     
-    if (!rec_form.first)
+    if (_need_boys_func(integral))
     {
-        auto order = integral[0] + integral[1] + integral.integrand().shape().order();
-        
-        lines.push_back({4, 0, 2, "t2cfunc::comp_boys_args_with_rho(bf_data, " + std::to_string(order + 1) + ", factors, 5, a_exp);"});
-        
-        lines.push_back({4, 0, 2, "bf_table.compute(bf_data, 0, " + std::to_string(order + 1) + ");"});
+        if (!rec_form.first)
+        {
+            auto order = integral[0] + integral[1] + integral.integrand().shape().order();
+            
+            lines.push_back({4, 0, 2, "t2cfunc::comp_boys_args_with_rho(bf_data, " + std::to_string(order + 1) + ", factors, 5, a_exp);"});
+            
+            lines.push_back({4, 0, 2, "bf_table.compute(bf_data, 0, " + std::to_string(order + 1) + ");"});
+        }
     }
 }
 
