@@ -111,7 +111,7 @@ integral_label(const I2CIntegral& integral)
     
     if (integrand.name() == "G(r)")
     {
-        return "ThreeCenterOverlap";
+        return (prefixes.empty()) ? "ThreeCenterOverlap" : "ThreeCenterOverlap" + suffix;
     }
     
     if (integrand.name() == "GX(r)")

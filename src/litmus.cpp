@@ -38,9 +38,9 @@ int main(int argc, char **argv)
 {
     // run configuration
 
-    const auto run_type = std::pair<std::string, std::string>({"g2c_cpu", "nuclear potential"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "three center overlap"});
 
-    const int max_ang_mom = 3;
+    const int max_ang_mom = 5;
 
     // set up start timer
     
