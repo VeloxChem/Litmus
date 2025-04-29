@@ -116,7 +116,9 @@ integral_label(const I2CIntegral& integral)
     
     if (integrand.name() == "GX(r)")
     {
-        return "ThreeCenterOverlapGradient";
+        suffix = "Geom" + border + "0" + korder;
+        
+        return (prefixes.empty()) ? "ThreeCenterOverlapGradient" : "ThreeCenterOverlapGradient" + suffix;
     }
     
     if (integrand.name() == "1/|r-r'|")

@@ -27,6 +27,7 @@
 #include "v2i_el_field_driver.hpp"
 #include "v2i_eri_driver.hpp"
 #include "v3i_ovl_driver.hpp"
+#include "v3i_ovl_grad_driver.hpp"
 
 #include "string_formater.hpp"
 #include "file_stream.hpp"
@@ -60,14 +61,14 @@ T2CGeomCPUGenerator::generate(const std::string&           label,
                         
                         for (const auto& tint : geom_integrals)
                         {
-                            std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << std::endl;
+                            std::cout << " <>" << tint.prefix_label() << " | " << tint.label()  << " OP : " << tint.integrand().name() << std::endl;
                         }
                        
                         std::cout << " --- VRR --- " << std::endl;
                         
                         for (const auto& tint : vrr_integrals)
                         {
-                            std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << "_"  << tint.order() << std::endl;
+                            std::cout << " <>" << tint.prefix_label() << " | " << tint.label() << "_"  << tint.order() << " OP : " << tint.integrand().name() << std::endl;
                         }
             }
         }
@@ -267,6 +268,33 @@ T2CGeomCPUGenerator::_generate_vrr_integral_group(const I2CIntegral&   integral,
         V3IOverlapDriver ovl_drv;
         
         tints = ovl_drv.create_recursion(tints);
+    }
+    
+    if (integral.integrand() == Operator("G(r)"))
+    {
+        V3IOverlapDriver ovl_drv;
+        
+        tints = ovl_drv.create_recursion(tints);
+    }
+    
+    if (integral.integrand() == Operator("GX(r)", integral.integrand().shape()))
+    {
+        V3IOverlapGradientDriver ovl_grad_drv;
+        
+        SI2CIntegrals cints;
+        
+        for (const auto& tint : tints)
+        {
+            auto rints = ovl_grad_drv.aux_vrr(tint);
+            
+            cints.insert(tint); 
+            
+            cints.insert(rints.begin(), rints.end());
+        }
+    
+        V3IOverlapDriver ovl_drv;
+        
+        tints = ovl_drv.create_recursion(cints);
     }
     
     return tints;
