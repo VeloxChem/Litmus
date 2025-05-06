@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 
     if (run_type.first == "t2c_cpu")
     {
-        std::array<int, 3> geom_drvs = {1, 1, 0};
+        std::array<int, 3> geom_drvs = {0, 2, 0};
         
         const auto rec_form = std::pair<bool, bool>({true, false});
         

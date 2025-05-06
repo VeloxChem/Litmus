@@ -40,6 +40,7 @@
 #include "v2i_center_driver.hpp"
 #include "v3i_ovl_driver.hpp"
 #include "v3i_ovl_grad_driver.hpp"
+#include "v3i_ovl_hess_driver.hpp"
 
 void
 T2CCPUGenerator::generate(const std::string&           label,
@@ -176,6 +177,16 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
         if (geom_drvs[1] == 1)
         {
             return I2CIntegral(bra, ket, Operator("GX(r)", Tensor(1)), 0, {});
+        }
+        
+        if (geom_drvs[1] == 2)
+        {
+            return I2CIntegral(bra, ket, Operator("GX2(r)", Tensor(2)), 0, {});
+        }
+        
+        if (geom_drvs[1] == 3)
+        {
+            return I2CIntegral(bra, ket, Operator("GX3(r)", Tensor(3)), 0, {});
         }
     }
     
@@ -334,6 +345,19 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral&        integral,
         tints = ovl_grad_drv.aux_vrr(integral);
         
         tints.insert(integral); 
+        
+        V3IOverlapDriver ovl_drv;
+        
+        tints = ovl_drv.create_recursion(tints);
+    }
+    
+    if (integral.integrand() == Operator("GX2(r)", Tensor(2)))
+    {
+        V3IOverlapHessianDriver ovl_hess_drv;
+        
+        tints = ovl_hess_drv.aux_vrr(integral);
+        
+        tints.insert(integral);
         
         V3IOverlapDriver ovl_drv;
         
