@@ -14,17 +14,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "v3i_ovl_grad_driver.hpp"
+#include "v3i_r2_driver.hpp"
 
 bool
-V3IOverlapGradientDriver::is_overlap_gradient(const I2CIntegral& integral) const
+V3IR2Driver::is_r2(const I2CIntegral& integral) const
 {
     if (!(integral.prefixes()).empty())
     {
         return false;
     }
     
-    if (integral.integrand() != Operator("GX(r)", Tensor(1)))
+    if (integral.integrand() != Operator("GR2(r)"))
     {
         return false;
     }
@@ -35,11 +35,11 @@ V3IOverlapGradientDriver::is_overlap_gradient(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
-V3IOverlapGradientDriver::aux_vrr(const I2CIntegral& integral) const
+V3IR2Driver::aux_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
     
-    if (is_overlap_gradient(integral))
+    if (is_r2(integral))
     {
         auto rint = integral.replace(Operator("G(r)"));
         
@@ -51,6 +51,21 @@ V3IOverlapGradientDriver::aux_vrr(const I2CIntegral& integral) const
         }
         
         if (const auto tval = rint.shift(-1, 1))
+        {
+            tints.insert(*tval);
+            
+            if (const auto bkval = tval->shift(-1, 0))
+            {
+                tints.insert(*bkval);
+            }
+        }
+        
+        if (const auto tval = rint.shift(-2, 0))
+        {
+            tints.insert(*tval);
+        }
+        
+        if (const auto tval = rint.shift(-2, 1))
         {
             tints.insert(*tval);
         }

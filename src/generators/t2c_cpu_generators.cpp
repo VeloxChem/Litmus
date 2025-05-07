@@ -40,7 +40,7 @@
 #include "v2i_center_driver.hpp"
 #include "v3i_ovl_driver.hpp"
 #include "v3i_ovl_grad_driver.hpp"
-#include "v3i_ovl_hess_driver.hpp"
+#include "v3i_r2_driver.hpp"
 
 void
 T2CCPUGenerator::generate(const std::string&           label,
@@ -108,6 +108,8 @@ T2CCPUGenerator::_is_available(const std::string& label) const
     if (fstr::lowercase(label) == "three center overlap") return true;
     
     if (fstr::lowercase(label) == "electron repulsion") return true;
+    
+    if (fstr::lowercase(label) == "three center r2") return true;
         
     return false;
 }
@@ -178,16 +180,13 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
         {
             return I2CIntegral(bra, ket, Operator("GX(r)", Tensor(1)), 0, {});
         }
-        
-        if (geom_drvs[1] == 2)
-        {
-            return I2CIntegral(bra, ket, Operator("GX2(r)", Tensor(2)), 0, {});
-        }
-        
-        if (geom_drvs[1] == 3)
-        {
-            return I2CIntegral(bra, ket, Operator("GX3(r)", Tensor(3)), 0, {});
-        }
+    }
+    
+    // three center r2 integrals
+    
+    if (fstr::lowercase(label) == "three center r2")
+    {
+        return I2CIntegral(bra, ket, Operator("GR2(r)"), 0, {});
     }
     
     // electron repulsion integrals
@@ -351,19 +350,6 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral&        integral,
         tints = ovl_drv.create_recursion(tints);
     }
     
-    if (integral.integrand() == Operator("GX2(r)", Tensor(2)))
-    {
-        V3IOverlapHessianDriver ovl_hess_drv;
-        
-        tints = ovl_hess_drv.aux_vrr(integral);
-        
-        tints.insert(integral);
-        
-        V3IOverlapDriver ovl_drv;
-        
-        tints = ovl_drv.create_recursion(tints);
-    }
-    
     if (integral.integrand() == Operator("1/|r-r'|"))
     {
         V2IElectronRepulsionDriver eri_drv;
@@ -376,6 +362,19 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral&        integral,
         {
             tints = eri_drv.create_recursion(tints);
         }
+    }
+    
+    if (integral.integrand() == Operator("GR2(r)"))
+    {
+        V3IR2Driver r2_drv;
+        
+        tints = r2_drv.aux_vrr(integral);
+        
+        tints.insert(integral);
+        
+        V3IOverlapDriver ovl_drv;
+        
+        tints = ovl_drv.create_recursion(tints);
     }
     
     return tints;

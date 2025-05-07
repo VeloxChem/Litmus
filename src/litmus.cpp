@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 {
     // run configuration
 
-    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "three center overlap"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "three center r2"});
 
     const int max_ang_mom = 2;
 
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 
     if (run_type.first == "t2c_cpu")
     {
-        std::array<int, 3> geom_drvs = {0, 2, 0};
+        std::array<int, 3> geom_drvs = {0, 0, 0};
         
         const auto rec_form = std::pair<bool, bool>({true, false});
         

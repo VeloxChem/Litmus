@@ -31,6 +31,7 @@
 #include "t2c_center_driver.hpp"
 #include "v3i_ovl_driver.hpp"
 #include "v3i_ovl_grad_driver.hpp"
+#include "v3i_r2_driver.hpp"
 
 namespace t2c { // t2c namespace
 
@@ -126,6 +127,11 @@ integral_label(const I2CIntegral& integral)
         return (prefixes.empty()) ? "TwoCenterElectronRepulsion" : "TwoCenterElectronRepulsion" + suffix;
     }
     
+    if (integrand.name() == "GR2(r)")
+    {
+        return (prefixes.empty()) ? "ThreeCenterR2" : "ThreeCenterR2" + suffix;
+    }
+    
     return std::string();
 }
 
@@ -174,6 +180,11 @@ integral_split_label(const I2CIntegral& integral)
     if (integrand.name() == "GX(r)")
     {
         return "Overlap_Gradient";
+    }
+    
+    if (integrand.name() == "GR2(r)")
+    {
+        return "r2";
     }
 
     return std::string();
@@ -235,6 +246,11 @@ namespace_label(const I2CIntegral& integral)
     if (integrand.name() == "1/|r-r'|")
     {
         return "t2ceri";
+    }
+    
+    if (integrand.name() == "GR2(r)")
+    {
+        return "t3r2rec";
     }
     
     return std::string();
@@ -813,7 +829,6 @@ get_integrals(const I2CIntegral& integral)
         tints = ovl_grad_drv.aux_vrr(integral);
     }
     
-    
     if (integral.integrand().name() == "1/|r-r'|")
     {
         V2IElectronRepulsionDriver eri_drv;
@@ -826,6 +841,13 @@ get_integrals(const I2CIntegral& integral)
         {
             tints = eri_drv.ket_vrr(integral);
         }
+    }
+    
+    if (integral.integrand().name() == "GR2(r)")
+    {
+        V3IR2Driver r2_drv;
+
+        tints = r2_drv.aux_vrr(integral);
     }
 
     return tints;
