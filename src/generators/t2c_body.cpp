@@ -102,7 +102,10 @@ T2CFuncBodyDriver::_get_external_data_def(const I2CIntegral&           integral,
         }
     }
     
-    if ((integral.integrand().name() == "G(r)") || (integral.integrand().name() == "GX(r)"))
+    if ((integral.integrand().name() == "G(r)")  ||
+        (integral.integrand().name() == "GX(r)") ||
+        (integral.integrand().name() == "GR2(r)")
+        )
     {
         vstr.push_back("// intialize external Gaussian(s)");
         
@@ -537,7 +540,11 @@ T2CFuncBodyDriver::_add_sum_loop_start(      VCodeLines&            lines,
     {
         const auto integrand = integral.integrand();
         
-        if ((integrand.name() == "G(r)") || (integrand.name() == "GX(r)"))
+        if (
+            (integrand.name() == "G(r)")  ||
+            (integrand.name() == "GX(r)") ||
+            (integrand.name() == "GR2(r)") 
+            )
         {
             lines.push_back({4, 0, 2, "const size_t npoints = coords.size();"});
                 

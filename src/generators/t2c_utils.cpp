@@ -591,6 +591,8 @@ get_index_label(const I2CIntegral& integral)
     }
     
     if (integral.integrand().name() == "GX(r)") label += "g_";
+    
+    if (integral.integrand().name() == "GR2(r)") label += "g_";
         
     if (!geom_label.empty()) label += geom_label + "_";
     

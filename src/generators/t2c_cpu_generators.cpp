@@ -69,7 +69,7 @@ T2CCPUGenerator::generate(const std::string&           label,
 
                             _write_cpp_header(integrals, integral, rec_form, use_rs);
                             
-                            if (((i + j) > 0) && (!use_rs))
+                            if (((i + j) >= 0) && (!use_rs))
                             {
                                 _write_prim_cpp_header(integral, rec_form);
                                     

@@ -30,6 +30,7 @@
 #include "t2c_eri_driver.hpp"
 #include "t3c_ovl_driver.hpp"
 #include "t3c_ovl_grad_driver.hpp"
+#include "t3c_r2_driver.hpp"
 
 void
 T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
@@ -172,7 +173,10 @@ T2CPrimFuncBodyDriver::_get_factors_str(const I2CIntegral& integral) const
         vstr.push_back("auto pc_z = factors.data(idx_rpc + 2);");
     }
     
-    if (integral.integrand().name() == "GX(r)")
+    if (
+        (integral.integrand().name() == "GX(r)") ||
+        (integral.integrand().name() == "GR2(r)")
+        )
     {
         vstr.push_back("// Set up R(GC) distances");
 
@@ -320,6 +324,8 @@ T2CPrimFuncBodyDriver::_get_tensor_label(const T2CIntegral& integral) const
     if (integral.integrand().name() == "G(r)") label = "ts";
     
     if (integral.integrand().name() == "GX(r)") label = "gs";
+    
+    if (integral.integrand().name() == "GR2(r)") label = "gr";
 
     return label;
 }
@@ -390,6 +396,15 @@ T2CPrimFuncBodyDriver::_get_pragma_str(const I2CIntegral&          integral,
         }
     }
     
+    if (integral.integrand().name() == "GR2(r)")
+    {
+        tlabels.insert("gc_x");
+        
+        tlabels.insert("gc_y");
+        
+        tlabels.insert("gc_z");
+    }
+    
     std::string label;
     
     for (const auto& tlabel : tlabels)
@@ -452,6 +467,11 @@ T2CPrimFuncBodyDriver::_get_factor_lines(                VCodeLines& lines,
     {
         lines.push_back({2, 0, 2, "const double tce_0 = c_exp;"});
     }
+    
+    if (std::find(tlabels.begin(), tlabels.end(), "rgc2_0") !=  tlabels.end())
+    {
+        lines.push_back({2, 0, 2, "const double rgc2_0 = gc_x[i] * gc_x[i] + gc_y[i] * gc_y[i] + gc_z[i] * gc_z[i];"});
+    }
 
     if (std::find(tlabels.begin(), tlabels.end(), "fbe_0") !=  tlabels.end())
     {
@@ -490,6 +510,11 @@ T2CPrimFuncBodyDriver::_get_factor_lines(                VCodeLines& lines,
     if (std::find(tlabels.begin(), tlabels.end(), "gfe_0") !=  tlabels.end())
     {
         lines.push_back({2, 0, 2, "const double gfe_0 = 0.5 / (a_exp + b_exps[i] + c_exp);"});
+    }
+    
+    if (std::find(tlabels.begin(), tlabels.end(), "gfe2_0") !=  tlabels.end())
+    {
+        lines.push_back({2, 0, 2, "const double gfe2_0 = gfe_0 * gfe_0;"});
     }
 }
 
@@ -621,6 +646,12 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
         rdist = ovl_grad_drv.apply_aux_vrr(R2CTerm(integral));
     }
     
+    if (integral.integrand().name() == "GR2(r)")
+    {
+        T3CR2Driver r2_drv;
+
+        rdist = r2_drv.aux_vrr(R2CTerm(integral));
+    }
     
     if (integral.integrand().name() == "1/|r-r'|")
     {
@@ -731,6 +762,8 @@ T2CPrimFuncBodyDriver::_need_distances_pa(const I2CIntegral& integral) const
 {
     if (integral.integrand().name() == "GX(r)") return false;
     
+    if (integral.integrand().name() == "GR2(r)") return false;
+    
     return integral[0] > 0;
 }
 
@@ -738,6 +771,8 @@ bool
 T2CPrimFuncBodyDriver::_need_distances_pb(const I2CIntegral& integral) const
 {
     if (integral.integrand().name() == "GX(r)") return false;
+    
+    if (integral.integrand().name() == "GR2(r)") return false;
     
     return (integral[0] == 0) && (integral[1] > 0);
 }
@@ -760,6 +795,8 @@ T2CPrimFuncBodyDriver::_need_exponents(const I2CIntegral& integral) const
     if (integral.integrand().name() == "r") return true;
     
     if (integral.integrand().name() == "GX(r)") return true;
+    
+    if (integral.integrand().name() == "GR2(r)") return true;
     
     return (integral[0] + integral[1]) > 1;
 }
