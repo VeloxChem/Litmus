@@ -31,6 +31,7 @@
 #include "t3c_ovl_driver.hpp"
 #include "t3c_ovl_grad_driver.hpp"
 #include "t3c_r2_driver.hpp"
+#include "t3c_rr2_driver.hpp"
 
 void
 T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
@@ -174,8 +175,9 @@ T2CPrimFuncBodyDriver::_get_factors_str(const I2CIntegral& integral) const
     }
     
     if (
-        (integral.integrand().name() == "GX(r)") ||
-        (integral.integrand().name() == "GR2(r)")
+        (integral.integrand().name() == "GX(r)")  ||
+        (integral.integrand().name() == "GR2(r)") ||
+        (integral.integrand().name() == "GR.R2(r)")
         )
     {
         vstr.push_back("// Set up R(GC) distances");
@@ -326,6 +328,8 @@ T2CPrimFuncBodyDriver::_get_tensor_label(const T2CIntegral& integral) const
     if (integral.integrand().name() == "GX(r)") label = "gs";
     
     if (integral.integrand().name() == "GR2(r)") label = "gr";
+    
+    if (integral.integrand().name() == "GR.R2(r)") label = "grr";
 
     return label;
 }
@@ -396,7 +400,10 @@ T2CPrimFuncBodyDriver::_get_pragma_str(const I2CIntegral&          integral,
         }
     }
     
-    if (integral.integrand().name() == "GR2(r)")
+    if (
+        (integral.integrand().name() == "GR2(r)") ||
+        (integral.integrand().name() == "GR.R2(r)")
+        )
     {
         tlabels.insert("gc_x");
         
@@ -653,6 +660,13 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
         rdist = r2_drv.aux_vrr(R2CTerm(integral));
     }
     
+    if (integral.integrand().name() == "GR.R2(r)")
+    {
+        T3CRR2Driver rr2_drv;
+
+        rdist = rr2_drv.apply_aux_vrr(R2CTerm(integral));
+    }
+    
     if (integral.integrand().name() == "1/|r-r'|")
     {
         T2CElectronRepulsionDriver eri_drv;
@@ -764,6 +778,8 @@ T2CPrimFuncBodyDriver::_need_distances_pa(const I2CIntegral& integral) const
     
     if (integral.integrand().name() == "GR2(r)") return false;
     
+    if (integral.integrand().name() == "GR.R2(r)") return false;
+    
     return integral[0] > 0;
 }
 
@@ -773,6 +789,8 @@ T2CPrimFuncBodyDriver::_need_distances_pb(const I2CIntegral& integral) const
     if (integral.integrand().name() == "GX(r)") return false;
     
     if (integral.integrand().name() == "GR2(r)") return false;
+    
+    if (integral.integrand().name() == "GR.R2(r)") return false;
     
     return (integral[0] == 0) && (integral[1] > 0);
 }
@@ -797,6 +815,8 @@ T2CPrimFuncBodyDriver::_need_exponents(const I2CIntegral& integral) const
     if (integral.integrand().name() == "GX(r)") return true;
     
     if (integral.integrand().name() == "GR2(r)") return true;
+    
+    if (integral.integrand().name() == "GR.R2(r)") return true;
     
     return (integral[0] + integral[1]) > 1;
 }

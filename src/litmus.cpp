@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 {
     // run configuration
 
-    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "three center r2"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_cpu", "three center r.r2"});
 
     const int max_ang_mom = 4;
 

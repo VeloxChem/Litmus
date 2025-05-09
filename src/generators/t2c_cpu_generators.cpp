@@ -41,6 +41,7 @@
 #include "v3i_ovl_driver.hpp"
 #include "v3i_ovl_grad_driver.hpp"
 #include "v3i_r2_driver.hpp"
+#include "v3i_rr2_driver.hpp"
 
 void
 T2CCPUGenerator::generate(const std::string&           label,
@@ -110,6 +111,8 @@ T2CCPUGenerator::_is_available(const std::string& label) const
     if (fstr::lowercase(label) == "electron repulsion") return true;
     
     if (fstr::lowercase(label) == "three center r2") return true;
+    
+    if (fstr::lowercase(label) == "three center r.r2") return true;
         
     return false;
 }
@@ -187,6 +190,13 @@ T2CCPUGenerator::_get_integral(const std::string&        label,
     if (fstr::lowercase(label) == "three center r2")
     {
         return I2CIntegral(bra, ket, Operator("GR2(r)"), 0, {});
+    }
+    
+    // three center r.r2 integrals
+    
+    if (fstr::lowercase(label) == "three center r.r2")
+    {
+        return I2CIntegral(bra, ket, Operator("GR.R2(r)", Tensor(1)), 0, {});
     }
     
     // electron repulsion integrals
@@ -371,6 +381,38 @@ T2CCPUGenerator::_generate_integral_group(const I2CIntegral&        integral,
         tints = r2_drv.aux_vrr(integral);
         
         tints.insert(integral);
+        
+        V3IOverlapDriver ovl_drv;
+        
+        tints = ovl_drv.create_recursion(tints);
+    }
+    
+    if (integral.integrand() == Operator("GR.R2(r)", Tensor(1)))
+    {
+        V3IRR2Driver rr2_drv;
+        
+        tints = rr2_drv.aux_vrr(integral);
+        
+        tints.insert(integral);
+        
+        SI2CIntegrals cints;
+        
+        // add r2 terms
+        
+        V3IR2Driver r2_drv;
+        
+        for (const auto& tint : tints)
+        {
+            if (r2_drv.is_r2(tint))
+            {
+                for (const auto& cint : r2_drv.aux_vrr(tint))
+                {
+                    cints.insert(cint);
+                }
+            }
+        }
+        
+        tints.insert(cints.begin(), cints.end());
         
         V3IOverlapDriver ovl_drv;
         

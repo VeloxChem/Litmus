@@ -32,6 +32,7 @@
 #include "v3i_ovl_driver.hpp"
 #include "v3i_ovl_grad_driver.hpp"
 #include "v3i_r2_driver.hpp"
+#include "v3i_rr2_driver.hpp"
 
 namespace t2c { // t2c namespace
 
@@ -132,6 +133,11 @@ integral_label(const I2CIntegral& integral)
         return (prefixes.empty()) ? "ThreeCenterR2" : "ThreeCenterR2" + suffix;
     }
     
+    if (integrand.name() == "GR.R2(r)")
+    {
+        return (prefixes.empty()) ? "ThreeCenterRR2" : "ThreeCenterRR2" + suffix;
+    }
+    
     return std::string();
 }
 
@@ -185,6 +191,11 @@ integral_split_label(const I2CIntegral& integral)
     if (integrand.name() == "GR2(r)")
     {
         return "r2";
+    }
+    
+    if (integrand.name() == "GR.R2(r)")
+    {
+        return "r_r2";
     }
 
     return std::string();
@@ -251,6 +262,11 @@ namespace_label(const I2CIntegral& integral)
     if (integrand.name() == "GR2(r)")
     {
         return "t3r2rec";
+    }
+    
+    if (integrand.name() == "GR.R2(r)")
+    {
+        return "t3rr2rec";
     }
     
     return std::string();
@@ -593,6 +609,8 @@ get_index_label(const I2CIntegral& integral)
     if (integral.integrand().name() == "GX(r)") label += "g_";
     
     if (integral.integrand().name() == "GR2(r)") label += "g_";
+    
+    if (integral.integrand().name() == "GR.R2(r)") label += "gr_";
         
     if (!geom_label.empty()) label += geom_label + "_";
     
@@ -850,6 +868,13 @@ get_integrals(const I2CIntegral& integral)
         V3IR2Driver r2_drv;
 
         tints = r2_drv.aux_vrr(integral);
+    }
+    
+    if (integral.integrand().name() == "GR.R2(r)")
+    {
+        V3IRR2Driver rr2_drv;
+
+        tints = rr2_drv.aux_vrr(integral);
     }
 
     return tints;

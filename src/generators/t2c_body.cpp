@@ -102,9 +102,10 @@ T2CFuncBodyDriver::_get_external_data_def(const I2CIntegral&           integral,
         }
     }
     
-    if ((integral.integrand().name() == "G(r)")  ||
-        (integral.integrand().name() == "GX(r)") ||
-        (integral.integrand().name() == "GR2(r)")
+    if ((integral.integrand().name() == "G(r)")   ||
+        (integral.integrand().name() == "GX(r)")  ||
+        (integral.integrand().name() == "GR2(r)") ||
+        (integral.integrand().name() == "GR.R2(r)") 
         )
     {
         vstr.push_back("// intialize external Gaussian(s)");
@@ -448,7 +449,13 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&            lines,
         lines.push_back({4, 0, 2, "t2cfunc::comp_coordinates_p(factors, 8, 2, r_a, a_exp);"});
     }
 
-    if ((t2c::get_effective_order(integral, 0) > 0) && (integral.integrand().name() != "G(r)") && (integral.integrand().name() != "GX(r)"))
+    if (
+        (t2c::get_effective_order(integral, 0) > 0) &&
+        (integral.integrand().name() != "G(r)")     &&
+        (integral.integrand().name() != "GX(r)")    &&
+        (integral.integrand().name() != "GR2(r)")   &&
+        (integral.integrand().name() != "GR.R2(r)")   
+        )
     {
         const auto label = std::to_string(_get_index_pa(integral));
         
@@ -462,7 +469,13 @@ T2CFuncBodyDriver::_add_ket_loop_start(      VCodeLines&            lines,
         }
     }
 
-    if ((t2c::get_effective_order(integral, 1) > 0) && (integral.integrand().name() != "G(r)") && (integral.integrand().name() != "GX(r)"))
+    if (
+        (t2c::get_effective_order(integral, 1) > 0) &&
+        (integral.integrand().name() != "G(r)")     &&
+        (integral.integrand().name() != "GX(r)")    &&
+        (integral.integrand().name() != "GR2(r)")   &&
+        (integral.integrand().name() != "GR.R2(r)")
+        )
     {
         const auto label = std::to_string(_get_index_pb(integral));
         
@@ -541,9 +554,10 @@ T2CFuncBodyDriver::_add_sum_loop_start(      VCodeLines&            lines,
         const auto integrand = integral.integrand();
         
         if (
-            (integrand.name() == "G(r)")  ||
-            (integrand.name() == "GX(r)") ||
-            (integrand.name() == "GR2(r)") 
+            (integrand.name() == "G(r)")   ||
+            (integrand.name() == "GX(r)")  ||
+            (integrand.name() == "GR2(r)") ||
+            (integrand.name() == "GR.R2(r)")
             )
         {
             lines.push_back({4, 0, 2, "const size_t npoints = coords.size();"});
@@ -781,8 +795,31 @@ T2CFuncBodyDriver::_add_auxilary_integrals(      VCodeLines&            lines,
                     lines.push_back({spacer, 0, 2, "t3r2rec::comp_prim_r2_ss(pbuffer, " + label + ", factors, " + std::to_string(_get_index_gc(integral)) + ", a_exp, exgtos[l]);"});
                 }
             }
-            
+        
             // TODO: other integrals...
+        }
+    }
+    
+    for (const auto& tint : integrals)
+    {
+        if (!tint.is_simple()) continue;
+        
+        if ((tint[0] == 0) && (tint[1] == 0))
+        {
+            if ((tint.integrand().name() == "GR.R2(r)"))
+            {
+                const auto sint = tint.replace(Operator("G(r)"));
+                
+                const auto r2int = tint.replace(Operator("GR2(r)"));
+                
+                if (rec_form.first && in_sum_loop)
+                {
+                    const auto label = std::to_string(_get_position(tint, integrals))               + ", " + std::to_string(_get_position(sint, integrals))
+                               + ", " + std::to_string(_get_position(r2int, integrals));
+                    
+                    lines.push_back({spacer, 0, 2, "t3rr2rec::comp_prim_r_r2_ss(pbuffer, " + label + ", factors, " + std::to_string(_get_index_gc(integral)) + ", a_exp, exgtos[l]);"});
+                }
+            }
         }
     }
 }
@@ -799,6 +836,8 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&            lines,
     for (const auto& tint : integrals)
     {
         if (!tint.is_simple()) continue;
+        
+        if (tint.integrand().name() == "GR.R2(r)") continue;
         
         if ((tint[0] != 0) || (tint[1] != 0) || (tint.integrand().name() == "GX(r)"))
         {
@@ -880,6 +919,42 @@ T2CFuncBodyDriver::_add_call_tree(      VCodeLines&            lines,
             label += ");";
             
             lines.push_back({spacer, 0, 2, label});
+        }
+    }
+    
+    for (const auto& tint : integrals)
+    {
+        if (!tint.is_simple()) continue;
+        
+        if (tint.integrand().name() == "GR.R2(r)")
+        {
+            if ((tint[0] != 0) || (tint[1] != 0))
+            {
+                const auto name = t2c::prim_compute_func_name(tint);
+                
+                auto label = t2c::namespace_label(tint) + "::" + name + "(pbuffer, ";
+                
+                label += _get_arguments(tint, integrals);
+                
+                label += "factors, ";
+                
+                label += std::to_string(_get_index_gc(integral)) + ", ";
+                
+                if (_need_exponents(tint))
+                {
+                    label += "a_exp, exgtos[l]";
+                }
+                else
+                {
+                    label.pop_back();
+                    
+                    label.pop_back();
+                }
+
+                label += ");";
+                
+                lines.push_back({spacer, 0, 2, label});
+            }
         }
     }
 }
@@ -987,6 +1062,8 @@ T2CFuncBodyDriver::_need_center_p(const I2CIntegral& integral) const
     
     if (integrand.name() == "GR2(r)") return true;
     
+    if (integrand.name() == "GR.R2(r)") return true;
+    
     if (integrand.name() == "A") return true;
     
     if (integrand.name() == "AG") return true;
@@ -1006,6 +1083,8 @@ T2CFuncBodyDriver::_need_distances_pc(const I2CIntegral& integral) const
     if (integrand.name() == "GX(r)") return true;
     
     if (integrand.name() == "GR2(r)") return true;
+    
+    if (integrand.name() == "GR.R2(r)") return true;
     
     if (integrand.name() == "A") return true;
     
@@ -1065,9 +1144,10 @@ bool
 T2CFuncBodyDriver::_need_distances_ga(const I2CIntegral& integral) const
 {
     if (
-        (integral.integrand().name() != "G(r)")  &&
-        (integral.integrand().name() != "GX(r)") &&
-        (integral.integrand().name() != "GR2(r)")
+        (integral.integrand().name() != "G(r)")   &&
+        (integral.integrand().name() != "GX(r)")  &&
+        (integral.integrand().name() != "GR2(r)") &&
+        (integral.integrand().name() != "GR.R2(r)")
         )  return false;
     
     if (integral.is_simple())
@@ -1084,9 +1164,10 @@ bool
 T2CFuncBodyDriver::_need_distances_gb(const I2CIntegral& integral) const
 {
     if (
-        (integral.integrand().name() != "G(r)")  &&
-        (integral.integrand().name() != "GX(r)") &&
-        (integral.integrand().name() != "GR2(r)")
+        (integral.integrand().name() != "G(r)")   &&
+        (integral.integrand().name() != "GX(r)")  &&
+        (integral.integrand().name() != "GR2(r)") &&
+        (integral.integrand().name() != "GR.R2(r)")
         ) return false;
     
     if (integral.is_simple())
@@ -1113,6 +1194,8 @@ T2CFuncBodyDriver::_need_distances_gc(const I2CIntegral& integral) const
     
     if (integral.integrand().name() == "GR2(r)") return true;
     
+    if (integral.integrand().name() == "GR.R2(r)") return true;
+    
     return false;
 }
 
@@ -1124,6 +1207,8 @@ T2CFuncBodyDriver::_need_exponents(const I2CIntegral& integral) const
     if (integral.integrand().name() == "GX(r)") return true;
     
     if (integral.integrand().name() == "GR2(r)") return true;
+    
+    if (integral.integrand().name() == "GR.R2(r)") return true;
     
     if ((integral.integrand().name() == "r") && ((integral[0] + integral[1]) > 0)) return true; 
     
@@ -1167,6 +1252,8 @@ T2CFuncBodyDriver::_need_external_coords(const I2CIntegral& integral) const
     if (integrand.name() == "GX(r)") return true;
     
     if (integrand.name() == "GR2(r)") return true;
+    
+    if (integrand.name() == "GR.R2(r)") return true;
     
     return false;
 }

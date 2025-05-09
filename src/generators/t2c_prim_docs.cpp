@@ -100,8 +100,9 @@ T2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const
    
     if (
         (integral[0] > 0) &&
-        (integral.integrand().name() != "GX(r)") &&
-        (integral.integrand().name() != "GR2(r)")
+        (integral.integrand().name() != "GX(r)")  &&
+        (integral.integrand().name() != "GR2(r)") &&
+        (integral.integrand().name() != "GR.R2(r)")
         )
     {
         if (integral.integrand().name() == "G(r)")
@@ -116,9 +117,10 @@ T2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const
     }
    
     if (
-        (integral[0] == 0) && (integral[1] > 0)  &&
-        (integral.integrand().name() != "GX(r)") &&
-        (integral.integrand().name() != "GR2(r)")
+        (integral[0] == 0) && (integral[1] > 0)   &&
+        (integral.integrand().name() != "GX(r)")  &&
+        (integral.integrand().name() != "GR2(r)") &&
+        (integral.integrand().name() != "GR.R2(r)")
         )
     {
         if (integral.integrand().name() == "G(r)")
@@ -132,8 +134,9 @@ T2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const
     }
     
     if (
-        (integral.integrand().name() == "GX(r)") ||
-        (integral.integrand().name() == "GR2(r)")
+        (integral.integrand().name() == "GX(r)")  ||
+        (integral.integrand().name() == "GR2(r)") ||
+        (integral.integrand().name() == "GR.R2(r)")
         )
     {
         vstr.push_back("/// @param idx_rgc The vector of distances R(GC) = G - C.");
@@ -157,9 +160,10 @@ T2CPrimDocuDriver::_get_recursion_variables_str(const I2CIntegral& integral) con
         vstr.push_back("/// @param a_exp The primitive basis function exponent on center A.");
         
         if (
-            (integral.integrand().name() == "G(r)")  ||
-            (integral.integrand().name() == "GX(r)") ||
-            (integral.integrand().name() == "GR2(r)")
+            (integral.integrand().name() == "G(r)")   ||
+            (integral.integrand().name() == "GX(r)")  ||
+            (integral.integrand().name() == "GR2(r)") ||
+            (integral.integrand().name() == "GR.R2(r)")
             )
         {
             vstr.push_back("/// @param c_exp The primitive basis function exponent on center C.");
@@ -187,6 +191,8 @@ T2CPrimDocuDriver::_need_exponents(const I2CIntegral& integral) const
     if (integral.integrand().name() == "GX(r)") return true;
     
     if (integral.integrand().name() == "GR2(r)") return true;
+    
+    if (integral.integrand().name() == "GR.R2(r)") return true;
     
     if (integral.integrand().name() == "r") return true;
     
