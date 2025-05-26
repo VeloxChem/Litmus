@@ -54,7 +54,7 @@ T2CGeomDeclDriver::_get_buffers_str(const SI2CIntegrals&      geom_integrals,
     
     const auto spacer = std::string(name.size(), ' ');
 
-    vstr.push_back(name + "CSimdArray<double>& prim_buffer," );
+    vstr.push_back(name + "CSimdArray<double>& pbuffer," );
     
     auto label = t2c::get_index_label(integral);
 
@@ -92,7 +92,7 @@ T2CGeomDeclDriver::_get_recursion_variables_str(const I2CIntegral&        integr
         
         if (prefixes[1].shape().order() > 0)
         {
-            vstr.push_back(spacer + "const double* b_exps,");
+            vstr.push_back(spacer + "const CSimdArray<double>& factors,");
         }
         
         if (geom_drvs[2] == 0)

@@ -124,9 +124,5 @@ T2CGeomDocuDriver::_get_recursion_variables_str(const I2CIntegral& integral) con
         vstr.push_back("/// @param a_exp The exponent on center A.");
     }
     
-    vstr.push_back("/// - Parameter op_comps: the number of operator components.");
-    
-    vstr.push_back("/// - Parameter ket_comps: the number of ket components.");
-    
     return vstr;
 }

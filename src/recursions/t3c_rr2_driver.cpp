@@ -101,7 +101,7 @@ T3CRR2Driver::aux_vrr(const R2CTerm& rterm,
     
         x4val.add(Factor("GC", "gc", coord), Fraction(1));
         
-        x4val.add(Factor("1/geta", "gfe"), Fraction(1));
+        x4val.add(Factor("1/geta", "gfe"), Fraction(2));
                 
         t2crt.add(x4val);
         
@@ -113,7 +113,7 @@ T3CRR2Driver::aux_vrr(const R2CTerm& rterm,
             
             const auto na = x4val[0][axis];
             
-            x5val.add(Factor("1/geta2", "gfe2"), Fraction(na));
+            x5val.add(Factor("1/geta2", "gfe2"), Fraction(2 * na));
             
             t2crt.add(x5val);
         }
@@ -126,7 +126,7 @@ T3CRR2Driver::aux_vrr(const R2CTerm& rterm,
             
             const auto nb = x4val[1][axis];
             
-            x6val.add(Factor("1/geta2", "gfe2"), Fraction(nb));
+            x6val.add(Factor("1/geta2", "gfe2"), Fraction(2 * nb));
             
             t2crt.add(x6val);
         }

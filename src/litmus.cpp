@@ -111,7 +111,7 @@ int main(int argc, char **argv)
     
     if (run_type.first == "t2c_geom_cpu")
     {
-        std::array<int, 3> geom_drvs = {1, 0, 0};
+        std::array<int, 3> geom_drvs = {0, 0, 1};
         
         const auto t2c_geom_drv = T2CGeomDerivCPUGenerator();
             

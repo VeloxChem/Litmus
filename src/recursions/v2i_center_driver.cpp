@@ -129,6 +129,10 @@ V2ICenterDriver::apply_recursion(const SI2CIntegrals& integrals) const
                     
                     tints.insert(bintegral);
                 }
+                else
+                {
+                    tints.insert(bintegral);
+                }
             }
         }
         
