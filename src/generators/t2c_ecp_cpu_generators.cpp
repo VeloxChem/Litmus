@@ -144,25 +144,40 @@ T2CECPCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
         {
             // generate all VRR terms
             
-            for (int i = 0; i <= integral[0] + integral[1]; i++)
+            if (integral[0] > integral[1])
             {
-                tints.insert(_get_integral("local", {i, 0}));
+                for (int i = 0; i <= integral[0] + integral[1]; i++)
+                {
+                    tints.insert(_get_integral("local", {i, 0}));
+                }
+            } else {
+                for (int i = 0; i <= integral[0] + integral[1]; i++)
+                {
+                    tints.insert(_get_integral("local", {0, i}));
+                }
             }
             
             // generate all HRR terms
             
-            for (int i = 0; i <= integral[1]; i++)
+            if (integral[0] > integral[1])
             {
-                for (int j = integral[0]; j < integral[0] + integral[1] - i;  j++)
+                for (int i = 0; i <= integral[1]; i++)
                 {
-                    tints.insert(_get_integral("local", {i, j}));
+                    for (int j = integral[0]; j < integral[0] + integral[1] - i;  j++)
+                    {
+                        tints.insert(_get_integral("local", {j, i}));
+                    }
+                }
+            } else {
+                for (int i = 0; i <= integral[0]; i++)
+                {
+                    for (int j = integral[1]; j < integral[0] + integral[1] - i;  j++)
+                    {
+                        tints.insert(_get_integral("local", {i, j}));
+                    }
                 }
             }
-        }
-        
-        if ((integral[0] > 0) && (integral[1] == 0))
-        {
-            tints.insert(integral);
+            
         }
     }
     
