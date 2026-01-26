@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 
     const auto run_type = std::pair<std::string, std::string>({"t2c_ecp_cpu", "local"});
 
-    const int max_ang_mom = 4;
+    const int max_ang_mom = 2;
 
     // set up start timer
     

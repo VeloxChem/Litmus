@@ -138,6 +138,11 @@ integral_label(const I2CIntegral& integral)
         return (prefixes.empty()) ? "ThreeCenterRR2" : "ThreeCenterRR2" + suffix;
     }
     
+    if (integrand.name() == "U_L")
+    {
+        return (prefixes.empty()) ? "LocalCorePotential" : "LocalCorePotential" + suffix;
+    }
+    
     return std::string();
 }
 
@@ -197,6 +202,11 @@ integral_split_label(const I2CIntegral& integral)
     {
         return "r_r2";
     }
+    
+    if (integrand.name() == "U_L")
+    {
+        return "Local_Core_Potential";
+    }
 
     return std::string();
 }
@@ -228,7 +238,6 @@ namespace_label(const I2CIntegral& integral)
     {
         return "linmomrec";
     }
-
 
     if (integrand.name() == "A1")
     {
@@ -267,6 +276,11 @@ namespace_label(const I2CIntegral& integral)
     if (integrand.name() == "GR.R2(r)")
     {
         return "t3rr2rec";
+    }
+    
+    if (integrand.name() == "U_L")
+    {
+        return "t2lecp";
     }
     
     return std::string();
@@ -486,6 +500,12 @@ prim_file_name(const I2CIntegral& integral)
     }
 
     return t2c::integral_label(integral) + "PrimRec" + integral.label();
+}
+
+std::string
+hrr_file_name(const I2CIntegral& integral)
+{
+    return "T2CHrrABRec" + integral.label();
 }
 
 std::string

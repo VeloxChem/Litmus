@@ -47,17 +47,54 @@ class T2CECPCPUGenerator
     
     /// Filters integrals required for HRR recursion.
     /// @param integrals The set of integrals.
-    /// @param integral The reference integral.
     /// @return The set of integrals required by HRR recursion.
-    SI2CIntegrals _filter_hrr_integrals(const SI2CIntegrals& integrals,
-                                        const I2CIntegral&   integral) const;
+    SI2CIntegrals _filter_hrr_integrals(const SI2CIntegrals& integrals) const;
     
     /// Filters integrals required for VRR recursion.
     /// @param integrals The set of integrals.
-    /// @param integral The reference integral.
     /// @return The set of integrals required by VRR recursion.
-    SI2CIntegrals _filter_vrr_integrals(const SI2CIntegrals& integrals,
-                                        const I2CIntegral&   integral) const;
+    SI2CIntegrals _filter_vrr_integrals(const SI2CIntegrals& integrals) const;
+    
+    /// Writes header file for recursion.
+    /// @param hrr_integrals The set of unique HRR integrals.
+    /// @param vrr_integrals The set of unique VRR integrals.
+    /// @param integral The base two center integral.
+    void _write_cpp_header(const SI2CIntegrals& hrr_integrals,
+                           const SI2CIntegrals& vrr_integrals,
+                           const I2CIntegral&   integral) const;
+    
+    /// Gets file name of file with recursion functions for two center integral.
+    /// @param integral The base two center integral.
+    /// @return The file name.
+    std::string _file_name(const I2CIntegral& integral) const;
+    
+    /// Writes definitions of define for header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param is_prim_rec The flag to indicate primitive recurion.
+    /// @param start The flag to indicate position of define (start or end).
+    void _write_hpp_defines(      std::ofstream& fstream,
+                            const I2CIntegral&   integral,
+                            const bool           is_prim_rec,
+                            const bool           start) const;
+    
+    /// Writes definitions of includes for header file.
+    /// @param fstream the file stream.
+    /// @param hrr_integrals The set of unique HRR integrals.
+    /// @param vrr_integrals The set of unique VRR integrals.
+    /// @param integral The base two center integral.
+    void _write_hpp_includes(      std::ofstream& fstream,
+                             const SI2CIntegrals& hrr_integrals,
+                             const SI2CIntegrals& vrr_integrals,
+                             const I2CIntegral&   integral) const;
+    
+    /// Writes namespace definition to file stream.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param start The flag to indicate position of namespace definition (start or end).
+    void _write_namespace(      std::ofstream& fstream,
+                          const I2CIntegral&   integral,
+                          const bool           start) const;
     
 public:
     /// Creates a two-center integrals CPU code generator.

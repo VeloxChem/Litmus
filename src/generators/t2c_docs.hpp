@@ -61,6 +61,12 @@ public:
                        const std::pair<bool, bool>& rec_form,
                        const bool                   use_rs) const;
     
+    /// Writes documentation string for compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void write_ecp_doc_str(      std::ofstream& fstream,
+                           const I2CIntegral&   integral) const;
+    
 };
 
 #endif /* t2c_docs_hpp */

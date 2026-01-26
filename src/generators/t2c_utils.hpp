@@ -92,6 +92,11 @@ std::string geom_compute_func_name(const I2CIntegral&        integral,
 /// @return The primitive file name.
 std::string prim_file_name(const I2CIntegral& integral);
 
+/// Generates hrr file name.
+/// @param integral The base two center integral.
+/// @return The primitive file name.
+std::string hrr_file_name(const I2CIntegral& integral);
+
 /// Generates primitive file name.
 /// @param integral The base two center integral.
 /// @return The primitive file name.
