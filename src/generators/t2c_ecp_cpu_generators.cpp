@@ -23,6 +23,7 @@
 #include "t2c_utils.hpp"
 #include "t2c_docs.hpp"
 #include "t2c_decl.hpp"
+#include "t2c_ecp_body.hpp"
 
 void
 T2CECPCPUGenerator::generate(const std::string& label,
@@ -233,19 +234,17 @@ T2CECPCPUGenerator::_write_cpp_header(const SI2CIntegrals& hrr_integrals,
     T2CDocuDriver docs_drv;
     
     T2CDeclDriver decl_drv;
-//    
-//    T2CFuncBodyDriver func_drv;
-//
+    
+    T2CECPFuncBodyDriver func_drv;
+
     docs_drv.write_ecp_doc_str(fstream, integral);
     
     decl_drv.write_ecp_func_decl(fstream, integral, false);
-//
-//    auto geom_drvs = std::array<int, 3>{0, 0, 0};
-//    
-//    func_drv.write_func_body(fstream, {}, integrals, integral, geom_drvs, rec_form, use_rs);
-//    
-//    fstream << std::endl;
-//
+    
+    func_drv.write_func_body(fstream, hrr_integrals, vrr_integrals, integral);
+    
+    fstream << std::endl;
+
     _write_namespace(fstream, integral, false);
         
     _write_hpp_defines(fstream, integral, false, false);
