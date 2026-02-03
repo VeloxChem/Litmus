@@ -313,7 +313,14 @@ T2CECPFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
     
     lines.push_back({5, 0, 2, "t2cfunc::comp_coordinates_r(factors, 5, 2, r_a, a_exp, c_exp);"});
     
-    
+    if (_need_distances_ra(integral))
+    {
+        lines.push_back({5, 0, 2, "t2cfunc::comp_distances_ra(factors, 8, 5, r_a);"});
+    }
+    else
+    {
+        lines.push_back({5, 0, 2, "t2cfunc::comp_distances_rb(factors, 8, 5, 2);"});
+    }
     
 
 //    if (_need_center_p(integral))
