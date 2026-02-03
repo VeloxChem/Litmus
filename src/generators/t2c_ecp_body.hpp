@@ -79,6 +79,14 @@ class T2CECPFuncBodyDriver
                            const SI2CIntegrals& integrals,
                            const I2CIntegral&   integral) const;
     
+    /// Checks if distances of (R-A) are required for integration.
+    /// @param integral The base two center integral.
+    bool _need_distances_ra(const I2CIntegral& integral) const;
+    
+    /// Checks if distances of (R-B) are required for integration.
+    /// @param integral The base two center integral.
+    bool _need_distances_rb(const I2CIntegral& integral) const;
+    
 public:
     /// Creates a two-center ECP compute function body generator.
     T2CECPFuncBodyDriver() = default;

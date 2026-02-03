@@ -106,6 +106,14 @@ T2CECPFuncBodyDriver::_get_gtos_def() const
 
     vstr.push_back("const auto ket_npgtos = ket_gto_block.number_of_primitives();");
     
+    vstr.push_back("// intialize basic ECP data");
+    
+    vstr.push_back("const auto ecp_nppt = ecp_potential.number_of_primitive_potentials();");
+    
+    vstr.push_back("const auto ecp_exps = ecp_potential.get_exponents();");
+        
+    vstr.push_back("const auto ecp_facts = ecp_potential.get_factors();");
+    
     return vstr;
 }
 
@@ -118,15 +126,9 @@ T2CECPFuncBodyDriver::_get_ket_variables_def(const I2CIntegral& integral) const
     
     size_t nelems = 8;
     
-//    if (_need_center_p(integral)) nelems += 3;
-//    
-//    if (t2c::get_effective_order(integral, 0) > 0) nelems += 3;
-//    
-//    if (t2c::get_effective_order(integral, 1) > 0) nelems += 3;
-//    
-//    if (_need_distances_pc(integral)) nelems += 3;
-//    
-//    if (_need_distances_gc(integral)) nelems += 3;
+    if (_need_distances_ra(integral)) nelems += 3;
+    
+    if (_need_distances_rb(integral)) nelems += 3;
     
     vstr.push_back("CSimdArray<double> pfactors(" + std::to_string(nelems) +  ", ket_npgtos);");
     
@@ -300,6 +302,19 @@ T2CECPFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
     lines.push_back({4, 0, 2, "const auto a_exp = bra_gto_exps[k * bra_ncgtos + j];"});
 
     lines.push_back({4, 0, 2, "const auto a_norm = bra_gto_norms[k * bra_ncgtos + j];"});
+    
+    lines.push_back({4, 0, 1, "for (size_t l = 0; l < ecp_nppt; l++)"});
+    
+    lines.push_back({4, 0, 1, "{"});
+    
+    lines.push_back({5, 0, 2, "const auto c_exp = ecp_exps[l];"});
+
+    lines.push_back({5, 0, 2, "const auto c_norm = ecp_facts[l];"});
+    
+    lines.push_back({5, 0, 2, "t2cfunc::comp_coordinates_r(factors, 5, 2, r_a, a_exp, c_exp);"});
+    
+    
+    
 
 //    if (_need_center_p(integral))
 //    {
@@ -397,4 +412,16 @@ T2CECPFuncBodyDriver::_add_ket_loop_end(      VCodeLines&            lines,
 //    }
     
     lines.push_back({3, 0, 2, "}"});
+}
+
+bool
+T2CECPFuncBodyDriver::_need_distances_ra(const I2CIntegral& integral) const
+{
+    return (integral[0] > integral[1]) && ((integral[0] + integral[1]) > 0);
+}
+
+bool
+T2CECPFuncBodyDriver::_need_distances_rb(const I2CIntegral& integral) const
+{
+    return (integral[0] <= integral[1]) && ((integral[0] + integral[1]) > 0);
 }
