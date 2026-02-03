@@ -48,6 +48,32 @@ T2CDocuDriver::write_doc_str(      std::ofstream&         fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+void
+T2CDocuDriver::write_ecp_doc_str(      std::ofstream& fstream,
+                                 const I2CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, _get_compute_str(integral, false)});
+    
+    for (const auto& label : _get_distributor_str(false))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_gto_blocks_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_indices_str())
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
 std::string
 T2CDocuDriver::_get_compute_str(const I2CIntegral& integral,
                                 const bool         use_rs) const
@@ -102,6 +128,11 @@ T2CDocuDriver::_get_gto_blocks_str(const I2CIntegral& integral) const
     vstr.push_back("/// @param bra_gto_block The basis functions block on bra side.");
         
     vstr.push_back("/// @param ket_gto_block The basis functions block on ket side.");
+    
+    if (integral.integrand().name() == "U_L")
+    {
+        vstr.push_back("/// @param ecp_potential The local ECP potential.");
+    }
     
     return vstr;
 }

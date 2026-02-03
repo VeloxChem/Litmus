@@ -71,6 +71,14 @@ public:
                          const std::pair<bool, bool>& rec_form,
                          const bool                   use_rs,
                          const bool                   terminus) const;
+    
+    /// Writes declaration for compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param terminus The flag to add termination symbol.
+    void write_ecp_func_decl(      std::ofstream& fstream,
+                             const I2CIntegral&   integral,
+                             const bool           terminus) const;
 };
 
 #endif /* t2c_decl_hpp */

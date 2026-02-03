@@ -106,9 +106,9 @@ T4CGeomDerivCPUGenerator::_write_cpp_header(const SI4CIntegrals& geom_integrals,
     
     _write_namespace(fstream, true);
     
-    T4CGeomDocuDriver docs_drv;
+    //T4CGeomDocuDriver docs_drv;
 
-    T4CGeomDeclDriver decl_drv;
+   // T4CGeomDeclDriver decl_drv;
 
     //docs_drv.write_doc_str(fstream, geom_integrals, integral);
 
@@ -191,11 +191,11 @@ T4CGeomDerivCPUGenerator::_write_cpp_file(const SI4CIntegrals& geom_integrals,
 
     _write_namespace(fstream, true);
 
-    T4CGeomDeclDriver decl_drv;
+    ///T4CGeomDeclDriver decl_drv;
     
     //decl_drv.write_func_decl(fstream, geom_integrals, integral, false);
 
-    T4CGeomFuncBodyDriver func_drv;
+    //T4CGeomFuncBodyDriver func_drv;
 
     //func_drv.write_func_body(fstream, geom_integrals, integral);
     

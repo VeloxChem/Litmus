@@ -50,6 +50,36 @@ T2CDeclDriver::write_func_decl(      std::ofstream&         fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+
+void
+T2CDeclDriver::write_ecp_func_decl(      std::ofstream& fstream,
+                                   const I2CIntegral&   integral,
+                                   const bool           terminus) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "template <class T>"});
+    
+    lines.push_back({0, 0, 1, "auto"});
+    
+    for (const auto& label : _get_distributor_str(integral, {false, false}, false))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_gto_blocks_str(integral, {false, false}, false))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_indices_str(integral, {false, false}, false, terminus))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
 std::vector<std::string>
 T2CDeclDriver::_get_distributor_str(const I2CIntegral&           integral,
                                     const std::pair<bool, bool>& rec_form,
@@ -85,6 +115,11 @@ T2CDeclDriver::_get_gto_blocks_str(const I2CIntegral&           integral,
     vstr.push_back(spacer + "const CGtoBlock& bra_gto_block,");
         
     vstr.push_back(spacer + "const CGtoBlock& ket_gto_block,");
+    
+    if (integral.integrand().name() == "U_L")
+    {
+        vstr.push_back(spacer + "const CBaseCorePotential& ecp_potential,");
+    }
     
     return vstr;
 }
