@@ -119,10 +119,10 @@ T4CHrrDeclDriver::_get_ket_geom_buffers_str(const I4CIntegral& integral) const
     
     vstr.push_back(spacer + "const size_t " + label + "," );
     
-    // if (integral[2] == 0)
-    // {
-    vstr.push_back(spacer + "CSimdArray<double>& pbuffer," );
-    // }
+    if (integral[2] < 2)
+    {
+        vstr.push_back(spacer + "CSimdArray<double>& pbuffer," );
+    }
     
     if (integral[2] == 0)
     {

@@ -201,10 +201,10 @@ T4CHrrDocuDriver::_get_ket_geom_buffers_str(const I4CIntegral& integral) const
     
     vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
     
-    // if (integral[2] == 0)
-    // {
-    vstr.push_back("/// @param pbuffer The Cartesian integrals buffer.");
-    // }
+    if (integral[2] < 2)
+    {
+        vstr.push_back("/// @param pbuffer The Cartesian integrals buffer.");
+    }
        
     if (integral[2] == 0)
     {
@@ -371,14 +371,14 @@ T4CHrrDocuDriver::_get_bra_geom_buffers_str(const I4CIntegral& integral) const
     {
         for (const auto& tint : t4c::get_bra_geom_hrr_integrals(integral))
         {
-            if ((gorders[0] + gorders[1]) > 0)
-            {
-                label = t4c::get_full_hrr_index(tint, false);
-            }
-            else
-            {
+            //if ((gorders[0] + gorders[1]) > 0)
+            //{
+            //    label = t4c::get_full_hrr_index(tint, false);
+            //}
+            //else
+            //{
                 label = t4c::get_hrr_index(tint, false);
-            }
+            //}
             
             vstr.push_back("/// @param " + label + " The contracted integrals buffer.");
         }

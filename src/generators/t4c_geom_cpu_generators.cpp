@@ -966,6 +966,15 @@ T4CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
         {
             labels.insert(t4c::ket_hrr_file_name(tint));
         }
+        
+        if (tint.prefixes_order() == std::vector<int>({0, 0, 1, 0}))
+        {
+            if (tint[0] > 0) continue;
+            
+            if ((tint[2] == 1) && (tint[3] == 0)) continue;
+            
+            labels.insert(t4c::ket_geom_hrr_file_name(tint));
+        }
     }
     
     for (const auto& term : skterms)
@@ -982,6 +991,8 @@ T4CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
                 }
                 else
                 {
+                    if (tint.prefixes_order() == std::vector<int>({0, 0, 1, 0})) continue;
+                    
                     labels.insert(t4c::bra_geom_hrr_file_name(tint));
                 }
             }
@@ -1004,6 +1015,8 @@ T4CGeomCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
                 
                 if (tint.prefixes_order() == std::vector<int>({0, 0, 1, 0}))
                 {
+                    if (tint[0] > 0) continue;
+                    
                     labels.insert(t4c::ket_geom_hrr_file_name(tint));
                 }
                 

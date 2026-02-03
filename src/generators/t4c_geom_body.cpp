@@ -831,6 +831,12 @@ T4CGeomFuncBodyDriver::_get_boys_function_def(const I4CIntegral& integral) const
     vstr.push_back("const CBoysFunc<" + std::to_string(order) + "> bf_table;");
 
     vstr.push_back("CSimdArray<double> bf_data(" + std::to_string(order + 2) + ", ket_npgtos);");
+    
+    vstr.push_back("// set up range seperation factor");
+
+    vstr.push_back("const auto use_rs = distributor.need_omega();");
+
+    vstr.push_back("const auto omega = distributor.get_omega();");
        
     return vstr;
 }
@@ -1012,9 +1018,25 @@ T4CGeomFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
     
     border += geom_orders[0] + geom_orders[1] + geom_orders[2] + geom_orders[3]; 
     
-    lines.push_back({4, 0, 2, "t4cfunc::comp_boys_args(bf_data, " + std::to_string(border) + ", pfactors, 13, a_exp, b_exp);"});
+    lines.push_back({4, 0, 1, "if (use_rs)"});
     
-    lines.push_back({4, 0, 2, "bf_table.compute(bf_data, 0, " + std::to_string(border) + ");"});
+    lines.push_back({4, 0, 1, "{"});
+    
+    lines.push_back({5, 0, 2, "t4cfunc::comp_boys_args(bf_data, " + std::to_string(border) + ", pfactors, 13, a_exp, b_exp, omega);"});
+    
+    lines.push_back({5, 0, 1, "bf_table.compute(bf_data, 0, " + std::to_string(border) + ", pfactors, a_exp, b_exp, omega);"});
+    
+    lines.push_back({4, 0, 1, "}"});
+    
+    lines.push_back({4, 0, 1, "else"});
+    
+    lines.push_back({4, 0, 1, "{"});
+    
+    lines.push_back({5, 0, 2, "t4cfunc::comp_boys_args(bf_data, " + std::to_string(border) + ", pfactors, 13, a_exp, b_exp);"});
+    
+    lines.push_back({5, 0, 1, "bf_table.compute(bf_data, 0, " + std::to_string(border) + ");"});
+    
+    lines.push_back({4, 0, 2, "}"});
     
     lines.push_back({4, 0, 2, "t4cfunc::comp_ovl_factors(pfactors, 16, 2, 3, ab_ovl, ab_norm, a_exp, b_exp);"});
 }
@@ -1555,6 +1577,8 @@ T4CGeomFuncBodyDriver::_add_ket_trafo_call_tree(      VCodeLines&  lines,
         
         const auto tint = term.second;
         
+        if (tint[0] > 0) continue;
+        
         if (const auto gorders = tint.prefixes_order(); !gorders.empty())
         {
             if ((gorders[0] + gorders[1]) > 0) continue;
@@ -1632,6 +1656,30 @@ T4CGeomFuncBodyDriver::_add_bra_hrr_call_tree(      VCodeLines&  lines,
                 label += "r_ab, ";
                 
                 label += std::to_string(tint[2]) + ", " + std::to_string(tint[3]);
+                
+                label += ");";
+                
+                lines.push_back({spacer, 0, 2, label});
+            }
+        }
+        
+        if ((tint[0] > 0) && tint.prefixes_order() == std::vector<int>({0, 0, 1, 0}))
+        {
+            const auto gcomps = Tensor(tint.prefixes_order()[2]).components().size();
+            
+            std::cout << "Transform : " << tint.label()  << " : " << gcomps << std::endl;
+            
+            for (size_t i = 0; i < gcomps; i++)
+            {
+                const auto name = t4c::bra_hrr_compute_func_name(tint);
+                
+                auto label = t4c::namespace_label(tint) + "::" + name + "(skbuffer, ";
+                
+                label += _get_bra_hrr_arguments(i, term, skterms);
+                
+                label += "r_ab, ";
+                
+                label += std::to_string(tint[2] - term.first[2]) + ", " + std::to_string(tint[3]);
                 
                 label += ");";
                 
@@ -1725,7 +1773,10 @@ T4CGeomFuncBodyDriver::_add_bra_geom_hrr_call_tree(      VCodeLines&  lines,
             
             label += _get_bra_geom_hrr_arguments(term, skterms);
             
-            label += "r_ab, ";
+            if (tint[0] != 0)
+            {
+                label += "r_ab, ";
+            }
             
             if (tint[0] == 0)
             {
@@ -2005,7 +2056,15 @@ T4CGeomFuncBodyDriver::_get_ket_geom_hrr_arguments(const G4Term&  term,
         
         if (gorders.empty())
         {
-            label += std::to_string(_get_index(G4Term({efacts, tint}), cterms)) + ", ";
+            if ((term.second.prefixes_order() == std::vector<int>({0, 0, 1, 0})) &&
+                 (term.second[2] > 1))
+            {
+                label += std::to_string(_get_index(G4Term({efacts, tint}), ckterms)) + ", ";
+            }
+            else
+            {
+                label += std::to_string(_get_index(G4Term({efacts, tint}), cterms)) + ", ";
+            }
         }
         else
         {
@@ -2025,6 +2084,41 @@ T4CGeomFuncBodyDriver::_get_bra_hrr_arguments(const G4Term&  term,
     for (const auto& tint : t4c::get_bra_hrr_integrals(term.second))
     {
         label += std::to_string(_get_half_spher_index(G4Term({term.first, tint}), skterms))  + ", ";
+    }
+    
+    return label;
+}
+
+std::string
+T4CGeomFuncBodyDriver::_get_bra_hrr_arguments(const size_t    icomponent,
+                                              const G4Term&   term,
+                                              const SG4Terms& skterms) const
+{
+    auto angpair = std::array<int, 2>({term.second[0], term.second[1]});
+    
+    auto bcomps = t2c::number_of_cartesian_components(angpair);
+    
+    angpair = std::array<int, 2>({term.second[2], term.second[3]});
+    
+    auto kcomps = t2c::number_of_spherical_components(angpair);
+    
+    std::string label = std::to_string(_get_half_spher_index(term, skterms) + icomponent * bcomps * kcomps)  + ", ";
+    
+    for (const auto& tint : t4c::get_bra_hrr_integrals(term.second.base()))
+    {
+        auto angpair = std::array<int, 2>({tint[0], tint[1]});
+        
+        auto bcomps = t2c::number_of_cartesian_components(angpair);
+        
+        angpair = std::array<int, 2>({tint[2], tint[3]});
+        
+        auto kcomps = t2c::number_of_spherical_components(angpair);
+        
+        auto gint = tint;
+        
+        gint.set_prefixes(term.second.prefixes());
+        
+        label += std::to_string(_get_half_spher_index(G4Term({term.first, gint}), skterms) + icomponent * bcomps * kcomps)  + ", ";
     }
     
     return label;

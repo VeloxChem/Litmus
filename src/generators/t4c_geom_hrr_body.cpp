@@ -534,6 +534,8 @@ T4CGeomHrrFuncBodyDriver::_get_ket_geom_buffers_str(const std::vector<R4CDist>& 
             
             auto label = "pbuffer.data(";
             
+            //auto label = "cbuffer.data(";
+            
             vstr.push_back("/// Set up components of auxilary buffer : " + tint.label());
             
             vstr.push_back(_get_ket_offset_def(tint));
@@ -563,7 +565,7 @@ T4CGeomHrrFuncBodyDriver::_get_ket_geom_buffers_str(const std::vector<R4CDist>& 
             
             if (!gorders.empty())
             {
-                std::string label = "cbuffer.data(";
+                std::string label = (integral[2] < 1) ? "pbuffer.data(" : "cbuffer.data(";
                 
                 vstr.push_back("/// Set up components of auxilary buffer : " + tint.label());
                 
@@ -588,7 +590,7 @@ T4CGeomHrrFuncBodyDriver::_get_ket_geom_buffers_str(const std::vector<R4CDist>& 
             }
             else
             {
-                std::string label = "pbuffer.data(";
+                std::string label = (integral[2] < 2) ? "pbuffer.data(" : "cbuffer.data(";
                 
                 vstr.push_back("/// Set up components of auxilary buffer : " + tint.label());
                 

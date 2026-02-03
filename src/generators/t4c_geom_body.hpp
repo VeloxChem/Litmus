@@ -372,6 +372,14 @@ class T4CGeomFuncBodyDriver
                                        const SG4Terms& skterms) const;
     
     /// Gets arguments list for bra horizontal recursion function call.
+    /// @param icomponent The index of integral component.
+    /// @param term The recursion term.
+    /// @param skterms The set of filtered geometrical terms.
+    std::string _get_bra_hrr_arguments(const size_t    icomponent,
+                                       const G4Term&   term,
+                                       const SG4Terms& skterms) const;
+    
+    /// Gets arguments list for bra horizontal recursion function call.
     /// @param term The recursion term.
     /// @param skterms The set of filtered geometrical terms.
     std::string _get_bra_geom_hrr_arguments(const G4Term&  term,
