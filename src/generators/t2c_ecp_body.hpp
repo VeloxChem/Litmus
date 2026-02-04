@@ -87,6 +87,45 @@ class T2CECPFuncBodyDriver
     /// @param integral The base two center integral.
     bool _need_distances_rb(const I2CIntegral& integral) const;
     
+    /// Adds call tree for VRR recursion.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integrals The set of inetrgals.
+    /// @param integral The base two center integral.
+    void _add_vrr_call_tree(      VCodeLines&    lines,
+                            const SI2CIntegrals& integrals,
+                            const I2CIntegral&   integral) const;
+    
+    /// Gets arguments list for primitive function call.
+    /// @param integral The base two center integral.
+    /// @param integrals The set of inetrgals.
+    std::string _get_vrr_arguments(const I2CIntegral&   integral,
+                                   const SI2CIntegrals& integrals) const;
+    
+    /// Gets position of integral in integrals buffer.
+    /// @param integral The base two center integral.
+    /// @param integrals The set of inetrgals.
+    size_t _get_position(const I2CIntegral&   integral,
+                         const SI2CIntegrals& integrals) const;
+    
+    
+    /// Adds call tree for reduction call tree.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param vrr_integrals The set of VRR inetrgals.
+    /// @param hrr_integrals The set of HRR inetrgals.
+    /// @param integral The base two center integral.
+    void _add_reduce_call_tree(      VCodeLines&    lines,
+                               const SI2CIntegrals& vrr_integrals,
+                               const SI2CIntegrals& hrr_integrals,
+                               const I2CIntegral&   integral) const;
+    
+    /// Adds call tree for HRR recursion.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param integrals The set of inetrgals.
+    /// @param integral The base two center integral.
+    void _add_hrr_call_tree(      VCodeLines&    lines,
+                            const SI2CIntegrals& integrals,
+                            const I2CIntegral&   integral) const;
+    
 public:
     /// Creates a two-center ECP compute function body generator.
     T2CECPFuncBodyDriver() = default;

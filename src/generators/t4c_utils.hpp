@@ -75,7 +75,6 @@ std::string get_geom_buffer_label(const I4CIntegral& integral);
 /// @return The string with integral label.
 std::string get_hrr_buffer_label(const I4CIntegral& integral,
                                  const bool         use_ket);
-
 /// Generates primitive compute function name.
 /// @param integral The base two center integral.
 /// @return The primitive compute function name.

@@ -177,6 +177,11 @@ std::string get_index_label(const I2CIntegral& integral);
 /// @return The primitive compute function name.
 std::string prim_compute_func_name(const I2CIntegral& integral);
 
+/// Generates HRR compute function name.
+/// @param integral The base two center integral.
+/// @return The primitive compute function name.
+std::string hrr_compute_func_name(const I2CIntegral& integral);
+
 /// Generates primitive compute function name.
 /// @param integral The base two center integral.
 /// @return The primitive compute function name.

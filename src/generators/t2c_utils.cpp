@@ -27,6 +27,7 @@
 #include "v2i_linmom_driver.hpp"
 #include "v2i_el_field_driver.hpp"
 #include "v2i_eri_driver.hpp"
+#include "v2i_loc_ecp_driver.hpp"
 #include "v2i_center_driver.hpp"
 #include "t2c_center_driver.hpp"
 #include "v3i_ovl_driver.hpp"
@@ -673,6 +674,13 @@ prim_compute_func_name(const I2CIntegral& integral)
     return fstr::lowercase(label);
 }
 
+std::string
+hrr_compute_func_name(const I2CIntegral& integral)
+{
+    auto label =  "comp_hrr_" + integral.label();
+    
+    return fstr::lowercase(label);
+}
 
 std::string
 grid_prim_compute_func_name(const I2CIntegral& integral)
@@ -897,6 +905,22 @@ get_integrals(const I2CIntegral& integral)
         tints = rr2_drv.aux_vrr(integral);
     }
 
+    if (integral.integrand().name() == "U_L")
+    {
+        std::cout << " *** I AM HERE ***" << std::endl;
+        
+        V2ILocalECPDriver ecp_drv;
+        
+        if (integral[0] > 0)
+        {
+            tints = ecp_drv.bra_vrr(integral);
+        }
+        else
+        {
+            tints = ecp_drv.ket_vrr(integral);
+        }
+    }
+    
     return tints;
 }
 

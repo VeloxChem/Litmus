@@ -45,6 +45,13 @@ T2CECPFuncBodyDriver::write_func_body(      std::ofstream& fstream,
         ctints.insert(tint);
     }
     
+    std::cout << "CTINTS Integrals : " << std::endl;
+   
+    for (const auto& tint : ctints)
+    {
+        std::cout << " < > " << tint.label() << std::endl;
+    }
+    
     for (const auto& label : _get_buffers_def(ctints, vrr_integrals, integral))
     {
         lines.push_back({1, 0, 2, label});
@@ -53,20 +60,14 @@ T2CECPFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     _add_loop_start(lines, integral);
     
     _add_ket_loop_start(lines, integral);
-//    
-//    _add_auxilary_integrals(lines, vrr_integrals, integral, rec_form, false);
-//    
-//    _add_sum_loop_start(lines, integral, rec_form, use_rs);
-//    
-//    _add_auxilary_integrals(lines, vrr_integrals, integral, rec_form, true);
-//    
-//    _add_call_tree(lines, vrr_integrals, integral, rec_form);
-//    
-//    _add_geom_call_tree(lines, geom_integrals, vrr_integrals, integral, geom_drvs, rec_form);
-//    
-//    _add_sum_loop_end(lines, vrr_integrals, integral, rec_form);
-//    
+    
+    _add_vrr_call_tree(lines, vrr_integrals, integral);
+    
+    _add_reduce_call_tree(lines, vrr_integrals, ctints, integral);
+    
     _add_ket_loop_end(lines, vrr_integrals, integral);
+    
+    _add_hrr_call_tree(lines, ctints, integral);
     
     _add_loop_end(lines, integral);
     
@@ -129,6 +130,8 @@ T2CECPFuncBodyDriver::_get_ket_variables_def(const I2CIntegral& integral) const
     if (_need_distances_ra(integral)) nelems += 3;
     
     if (_need_distances_rb(integral)) nelems += 3;
+    
+    if ((integral[0] + integral[1]) > 0) nelems += 1;
     
     vstr.push_back("CSimdArray<double> pfactors(" + std::to_string(nelems) +  ", ket_npgtos);");
     
@@ -311,81 +314,21 @@ T2CECPFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
 
     lines.push_back({5, 0, 2, "const auto c_norm = ecp_facts[l];"});
     
-    lines.push_back({5, 0, 2, "t2cfunc::comp_coordinates_r(factors, 5, 2, r_a, a_exp, c_exp);"});
+    lines.push_back({5, 0, 2, "t2cfunc::comp_coordinates_r(pfactors, 5, 2, r_a, a_exp, c_exp);"});
     
     if (_need_distances_ra(integral))
     {
-        lines.push_back({5, 0, 2, "t2cfunc::comp_distances_ra(factors, 8, 5, r_a);"});
+        lines.push_back({5, 0, 2, "t2cfunc::comp_distances_ra(pfactors, 8, 5, r_a);"});
     }
     else
     {
-        lines.push_back({5, 0, 2, "t2cfunc::comp_distances_rb(factors, 8, 5, 2);"});
+        lines.push_back({5, 0, 2, "t2cfunc::comp_distances_rb(pfactors, 8, 5, 2);"});
     }
     
-
-//    if (_need_center_p(integral))
-//    {
-//        lines.push_back({4, 0, 2, "t2cfunc::comp_coordinates_p(factors, 8, 2, r_a, a_exp);"});
-//    }
-//
-//    if (
-//        (t2c::get_effective_order(integral, 0) > 0) &&
-//        (integral.integrand().name() != "G(r)")     &&
-//        (integral.integrand().name() != "GX(r)")    &&
-//        (integral.integrand().name() != "GR2(r)")   &&
-//        (integral.integrand().name() != "GR.R2(r)")
-//        )
-//    {
-//        const auto label = std::to_string(_get_index_pa(integral));
-//        
-//        if (_need_center_p(integral))
-//        {
-//            lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pa_from_p(factors, " + label + " , 8, r_a);"});
-//        }
-//        else
-//        {
-//            lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pa(factors, " + label +  ", 5, a_exp);"});
-//        }
-//    }
-//
-//    if (
-//        (t2c::get_effective_order(integral, 1) > 0) &&
-//        (integral.integrand().name() != "G(r)")     &&
-//        (integral.integrand().name() != "GX(r)")    &&
-//        (integral.integrand().name() != "GR2(r)")   &&
-//        (integral.integrand().name() != "GR.R2(r)")
-//        )
-//    {
-//        const auto label = std::to_string(_get_index_pb(integral));
-//        
-//        if (_need_center_p(integral))
-//        {
-//            lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pb_from_p(factors, " +  label + " , 8, 2);"});
-//        }
-//        else
-//        {
-//            lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pb(factors, " +  label + ", 5, a_exp);"});
-//        }
-//    }
-//
-//    if (_need_distances_pc(integral) && !rec_form.first)
-//    {
-//        const auto label = std::to_string(_get_index_pc(integral));
-//        
-//        lines.push_back({4, 0, 2, "t2cfunc::comp_distances_pc(factors, " +  label + ", 8, r_c);"});
-//    }
-//    
-//    if (_need_boys_func(integral))
-//    {
-//        if (!rec_form.first)
-//        {
-//            auto order = integral[0] + integral[1] + integral.integrand().shape().order();
-//            
-//            lines.push_back({4, 0, 2, "t2cfunc::comp_boys_args_with_rho(bf_data, " + std::to_string(order + 1) + ", factors, 5, a_exp);"});
-//            
-//            lines.push_back({4, 0, 2, "bf_table.compute(bf_data, 0, " + std::to_string(order + 1) + ");"});
-//        }
-//    }
+    if ((integral[0] + integral[1]) > 1)
+    {
+        lines.push_back({5, 0, 2, "t2cfunc::comp_inverted_zeta(pfactors, 11, a_exp, c_exp);"});
+    }
 }
 
 void
@@ -393,30 +336,7 @@ T2CECPFuncBodyDriver::_add_ket_loop_end(      VCodeLines&            lines,
                                         const SI2CIntegrals&         integrals,
                                         const I2CIntegral&           integral) const
 {
-//    if (!rec_form.first)
-//    {
-//        std::string label = "t2cfunc::reduce(cbuffer, pbuffer, ";
-//        
-//        if (integral.is_simple())
-//        {
-//            label += std::to_string(_get_position(integral, integrals)) + ", ";
-//        }
-//        else
-//        {
-//            size_t icomps = 0;
-//            
-//            for (const auto& tint : integrals)
-//            {
-//                icomps += tint.components<T1CPair, T1CPair>().size();
-//            }
-//            
-//            label += std::to_string(icomps)  + ", ";
-//        }
-//        
-//        label += "ket_width, ket_npgtos);";
-//        
-//        lines.push_back({4, 0, 1, label});
-//    }
+    lines.push_back({4, 0, 1, "}"});
     
     lines.push_back({3, 0, 2, "}"});
 }
@@ -432,3 +352,124 @@ T2CECPFuncBodyDriver::_need_distances_rb(const I2CIntegral& integral) const
 {
     return (integral[0] <= integral[1]) && ((integral[0] + integral[1]) > 0);
 }
+
+void
+T2CECPFuncBodyDriver::_add_vrr_call_tree(      VCodeLines&    lines,
+                                         const SI2CIntegrals& integrals,
+                                         const I2CIntegral&   integral) const
+{
+    const int spacer = 5;
+    
+    for (const auto& tint : integrals)
+    {
+        if (!tint.is_simple()) continue;
+        
+        const auto name = t2c::prim_compute_func_name(tint);
+        
+        auto label = t2c::namespace_label(tint) + "::" + name + "(pbuffer, ";
+        
+        label += _get_vrr_arguments(tint, integrals);
+        
+        if ((tint[0] + tint[1]) == 0)
+        {
+            label += "pfactors, r_a, a_exp, c_exp);";
+        }
+        else
+        {
+            label += "pfactors);";
+        }
+        
+        lines.push_back({spacer, 0, 2, label});
+    }
+}
+
+std::string
+T2CECPFuncBodyDriver::_get_vrr_arguments(const I2CIntegral&   integral,
+                                         const SI2CIntegrals& integrals) const
+{
+    auto label = std::to_string(_get_position(integral, integrals)) + ", ";
+    
+    for (const auto& tint : t2c::get_integrals(integral))
+    {
+        label += std::to_string(_get_position(tint, integrals)) + ", ";
+    }
+    
+    return label;
+}
+
+size_t
+T2CECPFuncBodyDriver::_get_position(const I2CIntegral&   integral,
+                                    const SI2CIntegrals& integrals) const
+{
+    size_t pos = 0;
+    
+    for (const auto& tint : integrals)
+    {
+        if (tint == integral) return pos;
+        
+        pos += tint.components<T1CPair, T1CPair>().size();
+    }
+    
+    return 0;
+}
+
+void
+T2CECPFuncBodyDriver::_add_reduce_call_tree(      VCodeLines&    lines,
+                                            const SI2CIntegrals& vrr_integrals,
+                                            const SI2CIntegrals& hrr_integrals,
+                                            const I2CIntegral&   integral) const
+{
+    const int spacer = 5;
+    
+    for (const auto& tint : hrr_integrals)
+    {
+        if ((tint[0] > 0) && (tint[1] > 0)) continue;
+        
+        std::string label = "t2cfunc::reduce(cbuffer, ";
+        
+        label +=  std::to_string(_get_position(tint, hrr_integrals)) + ", ";
+        
+        label += "pbuffer, ";
+        
+        label += std::to_string(_get_position(tint, vrr_integrals)) + ", ";
+        
+        label += std::to_string(tint.components<T1CPair, T1CPair>().size()) + ", ";
+        
+        label += "ket_width, ket_npgtos);";
+        
+        lines.push_back({spacer, 0, 2, label});
+    }
+}
+
+void
+T2CECPFuncBodyDriver::_add_hrr_call_tree(      VCodeLines&    lines,
+                                         const SI2CIntegrals& integrals,
+                                         const I2CIntegral&   integral) const
+{
+    const int spacer = 3;
+    
+    for (const auto& tint : integrals)
+    {
+        if (!tint.is_simple()) continue;
+        
+        if ((tint[0] > 0) && (tint[1] > 0))
+        {
+            const auto name = t2c::hrr_compute_func_name(tint);
+            
+            auto label = "t2chrr::" + name + "(cbuffer, ";
+            
+            label +=  std::to_string(_get_position(tint, integrals)) + ", ";
+            
+            for (const auto& rint : t2c::get_hrr_integrals(tint, integral))
+            {
+                label += std::to_string(_get_position(rint, integrals)) + ", ";
+            }
+            
+            label += "cfactors);";
+            
+            lines.push_back({spacer, 0, 2, label});
+        }
+    }
+}
+
+
