@@ -191,6 +191,12 @@ std::string grid_prim_compute_func_name(const I2CIntegral& integral);
 /// @param integral The base two center integral.
 SI2CIntegrals get_integrals(const I2CIntegral& integral);
 
+/// Gets arguments list for primitive function call.
+/// @param integral The base two center integral.
+/// @param ref_integral The reference two center integral.
+SI2CIntegrals get_hrr_integrals(const I2CIntegral& integral,
+                                const I2CIntegral& ref_integral);
+
 /// Gets arguments list for complete geometrical recursion function call.
 /// @param integral The base two center integral.
 SI2CIntegrals get_geom_integrals(const I2CIntegral& integral);

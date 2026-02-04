@@ -29,6 +29,7 @@
 #include "v2i_eri_driver.hpp"
 #include "v2i_loc_ecp_driver.hpp"
 #include "v2i_center_driver.hpp"
+#include "v2i_hrr_driver.hpp"
 #include "t2c_center_driver.hpp"
 #include "v3i_ovl_driver.hpp"
 #include "v3i_ovl_grad_driver.hpp"
@@ -907,8 +908,6 @@ get_integrals(const I2CIntegral& integral)
 
     if (integral.integrand().name() == "U_L")
     {
-        std::cout << " *** I AM HERE ***" << std::endl;
-        
         V2ILocalECPDriver ecp_drv;
         
         if (integral[0] > 0)
@@ -922,6 +921,22 @@ get_integrals(const I2CIntegral& integral)
     }
     
     return tints;
+}
+
+SI2CIntegrals
+get_hrr_integrals(const I2CIntegral& integral,
+                  const I2CIntegral& ref_integral)
+{
+    V2IHRRDriver hrr_drv;
+    
+    if (ref_integral[0] > ref_integral[1])
+    {
+        return hrr_drv.ket_hrr(integral);
+    }
+    else
+    {
+        return hrr_drv.bra_hrr(integral);
+    }
 }
 
 SI2CIntegrals

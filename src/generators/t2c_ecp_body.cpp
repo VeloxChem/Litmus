@@ -69,7 +69,7 @@ T2CECPFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     
     _add_hrr_call_tree(lines, ctints, integral);
     
-    _add_loop_end(lines, integral);
+    _add_loop_end(lines, ctints, integral);
     
     lines.push_back({0, 0, 1, "}"});
     
@@ -259,14 +259,17 @@ T2CECPFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
 }
 
 void
-T2CECPFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
-                                    const I2CIntegral& integral) const
+T2CECPFuncBodyDriver::_add_loop_end(      VCodeLines&    lines,
+                                    const SI2CIntegrals& integrals,
+                                    const I2CIntegral&   integral) const
 {
     std::string label;
 
     label = "t2cfunc::transform<"  + std::to_string(integral[0]);
             
-    label += ", " + std::to_string(integral[1]) + ">(sbuffer, cbuffer);";
+    label += ", " + std::to_string(integral[1]) + ">(sbuffer, cbuffer, ";
+   
+    label += std::to_string(_get_position(integral, integrals)) + ");";
             
     lines.push_back({3, 0, 2, label});
     
@@ -372,7 +375,7 @@ T2CECPFuncBodyDriver::_add_vrr_call_tree(      VCodeLines&    lines,
         
         if ((tint[0] + tint[1]) == 0)
         {
-            label += "pfactors, r_a, a_exp, c_exp);";
+            label += "pfactors, r_a, a_exp, c_exp, a_norm, c_norm);";
         }
         else
         {

@@ -61,9 +61,11 @@ class T2CECPFuncBodyDriver
     
     /// Adds loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
+    /// @param integrals The set of inetrgals.
     /// @param integral The base two center integral.
-    void _add_loop_end(      VCodeLines&  lines,
-                       const I2CIntegral& integral) const;
+    void _add_loop_end(      VCodeLines&    lines,
+                       const SI2CIntegrals& integrals,
+                       const I2CIntegral&   integral) const;
     
     /// Adds ket loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
