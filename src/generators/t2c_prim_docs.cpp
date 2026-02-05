@@ -98,6 +98,8 @@ T2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const
     
     vstr.push_back("/// @param factors The primitive factors buffer.");
    
+    if (integral.integrand().name() == "U_L") return vstr;
+    
     if (
         (integral[0] > 0) &&
         (integral.integrand().name() != "GX(r)")  &&

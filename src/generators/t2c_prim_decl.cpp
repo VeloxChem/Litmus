@@ -82,12 +82,23 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
 {
     std::vector<std::string> vstr;
     
+    const auto tsymbol = (terminus) ? ";" : "";
+    
     auto name = t2c::prim_compute_func_name(integral) + "(";
     
     const auto spacer = std::string(name.size(), ' ');
     
-    vstr.push_back(spacer + "const CSimdArray<double>& factors,");
-   
+    if (integral.integrand().name() == "U_L")
+    {
+        vstr.push_back(spacer + "const CSimdArray<double>& factors) -> void" + tsymbol);
+        
+        return vstr;
+    }
+    else
+    {
+        vstr.push_back(spacer + "const CSimdArray<double>& factors,");
+    }
+    
     if (
         (integral[0] > 0)                         &&
         (integral.integrand().name() != "GX(r)")  &&
@@ -141,8 +152,6 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
         const auto idx = vstr.size() - 1;
         
         vstr[idx].pop_back();
-        
-        const auto tsymbol = (terminus) ? ";" : "";
         
         vstr[idx] += std::string(") -> void") + std::string(tsymbol);
     }

@@ -22,8 +22,11 @@
 #include "file_stream.hpp"
 #include "t2c_utils.hpp"
 #include "t2c_docs.hpp"
+#include "t2c_prim_docs.hpp"
 #include "t2c_decl.hpp"
+#include "t2c_prim_decl.hpp"
 #include "t2c_ecp_body.hpp"
+#include "t2c_ecp_prim_body.hpp"
 
 void
 T2CECPCPUGenerator::generate(const std::string& label,
@@ -50,33 +53,25 @@ T2CECPCPUGenerator::generate(const std::string& label,
                             const auto vrr_integrals = _filter_vrr_integrals(integrals);
                             
                             _write_cpp_header(hrr_integrals, vrr_integrals, integral);
-                            
-                            std::cout << "*** BASE INTEGRAL : " << integral.label() << " *** " << std::endl;
-                            
-                            std::cout << "HRR Integrals : " << std::endl;
-                           
-                            for (const auto& tint : hrr_integrals)
-                            {
-                                std::cout << " < > " << tint.label() << std::endl;
-                            }
-                            
-                            std::cout << "VRR Integrals : " << std::endl;
-                            
-                            for (const auto& tint : vrr_integrals)
-                            {
-                                std::cout << " < > " << tint.label() << std::endl;
-                            }
-                            
-//
-//                            _write_cpp_header(integrals, integral, rec_form, use_rs);
-//                            
-//                            if (((i + j) >= 0) && (!use_rs))
-//                            {
-//                                _write_prim_cpp_header(integral, rec_form);
-//                                    
-//                                _write_prim_cpp_file(integral);
-//                            }
                         }
+                    }
+                }
+                
+                for (int i = 1; i <= 2 * max_ang_mom; i++)
+                {
+                   #pragma omp task firstprivate(i)
+                    {
+                        auto integral = _get_integral(label, {0, i});
+                        
+                        _write_prim_cpp_header(integral);
+                            
+                        _write_prim_cpp_file(integral);
+                        
+                        integral = _get_integral(label, {i, 0});
+                        
+                        _write_prim_cpp_header(integral);
+                            
+                        _write_prim_cpp_file(integral);
                     }
                 }
             }
@@ -346,6 +341,86 @@ T2CECPCPUGenerator::_write_namespace(      std::ofstream& fstream,
     {
         lines.push_back({0, 0, 2, "} // " + label + " namespace"});
     }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CECPCPUGenerator::_write_prim_cpp_header(const I2CIntegral& integral) const
+{
+    auto fname = t2c::prim_file_name(integral) + ".hpp";
+        
+    std::ofstream fstream;
+               
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_hpp_defines(fstream, integral, true, true);
+    
+    _write_prim_hpp_includes(fstream, integral);
+    
+    _write_namespace(fstream, integral, true);
+    
+    T2CPrimDocuDriver docs_drv;
+    
+    docs_drv.write_doc_str(fstream, integral);
+    
+    T2CPrimDeclDriver decl_drv;
+    
+    decl_drv.write_func_decl(fstream, integral, true);
+    
+    _write_namespace(fstream, integral, false);
+    
+    _write_hpp_defines(fstream, integral, true, false);
+    
+    fstream.close();
+}
+
+void
+T2CECPCPUGenerator::_write_prim_hpp_includes(      std::ofstream& fstream,
+                                             const I2CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"SimdArray.hpp\""});
+        
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CECPCPUGenerator::_write_prim_cpp_file(const I2CIntegral& integral) const
+{
+    auto fname = t2c::prim_file_name(integral) + ".cpp";
+        
+    std::ofstream fstream;
+        
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    _write_prim_cpp_includes(fstream, integral);
+
+    _write_namespace(fstream, integral, true);
+
+    T2CPrimDeclDriver decl_drv;
+    
+    decl_drv.write_func_decl(fstream, integral, false);
+
+    T2CECPPrimFuncBodyDriver func_drv;
+
+    func_drv.write_func_body(fstream, integral);
+    
+    fstream << std::endl;
+    
+    _write_namespace(fstream, integral, false);
+        
+    fstream.close();
+}
+
+void
+T2CECPCPUGenerator::_write_prim_cpp_includes(      std::ofstream& fstream,
+                                             const I2CIntegral&   integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + t2c::prim_file_name(integral) +  ".hpp\""});
     
     ost::write_code_lines(fstream, lines);
 }

@@ -96,6 +96,26 @@ class T2CECPCPUGenerator
                           const I2CIntegral&   integral,
                           const bool           start) const;
     
+    /// Writes primitive header file for recursion.
+    /// @param integral The base two center integral.
+    void _write_prim_cpp_header(const I2CIntegral& integral) const;
+    
+    /// Writes definitions of includes for primitive header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_prim_hpp_includes(      std::ofstream& fstream,
+                                  const I2CIntegral&   integral) const;
+    
+    /// Writes C++ code file for primtive recursion.
+    /// @param integral The base two center integral.
+    void _write_prim_cpp_file(const I2CIntegral& integral) const;
+    
+    /// Writes definitions of includes for primitive header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_prim_cpp_includes(      std::ofstream& fstream,
+                                  const I2CIntegral&  integral) const;
+    
 public:
     /// Creates a two-center integrals CPU code generator.
     T2CECPCPUGenerator() = default;
