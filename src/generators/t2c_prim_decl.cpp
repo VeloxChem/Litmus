@@ -165,6 +165,8 @@ T2CPrimDeclDriver::_get_recursion_variables_str(const I2CIntegral& integral,
 {
     std::vector<std::string> vstr;
     
+    if (integral.integrand().name() == "U_L") return vstr;
+    
     const auto tsymbol = (terminus) ? ";" : "";
     
     auto name = t2c::prim_compute_func_name(integral) + "(";

@@ -157,6 +157,8 @@ T2CPrimDocuDriver::_get_recursion_variables_str(const I2CIntegral& integral) con
 {
     std::vector<std::string> vstr;
     
+    if (integral.integrand().name() == "U_L") return vstr;
+    
     if (_need_exponents(integral))
     {
         vstr.push_back("/// @param a_exp The primitive basis function exponent on center A.");
