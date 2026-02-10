@@ -90,6 +90,8 @@ V2IProjectedECPDriver::bra_vrr(const M2Integral& integral) const
         
         const int l2p = (int)(std::floor(0.5 * (l - 2)));
         
+        std::cout << "Order: " << l << " , " << l1p << " , " << l2p << std::endl;
+        
         // (l - 1) / 2 terms
         
         for (int k = 0; k <= l1p; k++)
@@ -108,6 +110,8 @@ V2IProjectedECPDriver::bra_vrr(const M2Integral& integral) const
             
             if (const auto r3val = tval->shift_order(-2 * k - 1))
             {
+                std::cout << " ** First term (L1): " << r3val->label() << " : " << r3val->order() << std::endl;
+                
                 tints.insert({mpq_order, *r3val});
                 
                 if (const auto r4val = r3val->shift(-1, 1))
@@ -135,6 +139,8 @@ V2IProjectedECPDriver::bra_vrr(const M2Integral& integral) const
             
             if (const auto r3val = tval->shift_order(-2 * k - 2))
             {
+                std::cout << " ** First term (L2): " << r3val->label() << " : " << r3val->order() << std::endl;
+                
                 tints.insert({mpq_order, *r3val});
                 
                 if (const auto r4val = r3val->shift(-1, 0))

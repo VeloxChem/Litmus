@@ -380,7 +380,7 @@ template <class T, class U>
 std::optional<Integral<T, U>>
 Integral<T, U>::shift_order(const int value) const
 {
-    if (const int torder = _order + value; torder > 0)
+    if (const int torder = _order + value; torder >= 0)
     {
         return Integral<T, U>(_bra, _ket, _integrand, torder, _prefixes);
     }
