@@ -34,14 +34,16 @@
 #include "t3c_geom_hrr_cpu_generators.hpp"
 #include "g2c_cpu_generators.hpp"
 #include "t2c_ecp_cpu_generators.hpp"
+#include "t2c_hrr_cpu_generators.hpp"
+#include "t2c_proj_ecp_cpu_generators.hpp"
 
 int main(int argc, char **argv)
 {
     // run configuration
 
-    const auto run_type = std::pair<std::string, std::string>({"t2c_ecp_cpu", "local"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_proj_ecp_cpu", "projected"});
 
-    const int max_ang_mom = 4;
+    const int max_ang_mom = 2;
 
     // set up start timer
     
@@ -69,6 +71,15 @@ int main(int argc, char **argv)
             
             t2c_drv.generate(run_type.second, max_ang_mom, geom_drvs, rec_form, use_rs);
         }
+    }
+    
+    // case: two-center hrr
+    
+    if (run_type.first == "t2c_hrr_cpu")
+    {
+        const auto t2c_hrr_drv = T2CHRRCPUGenerator();
+            
+        t2c_hrr_drv.generate(max_ang_mom);
     }
     
     // case: four-center integrals
@@ -184,7 +195,7 @@ int main(int argc, char **argv)
         }
     }
     
-    // case: two-center ECP integrals
+    // case: two-center local ECP integrals
 
     if (run_type.first == "t2c_ecp_cpu")
     {
@@ -204,6 +215,28 @@ int main(int argc, char **argv)
         }
     }
     
+    
+    // case: two-center projected ECP integrals
+
+    if (run_type.first == "t2c_proj_ecp_cpu")
+    {
+        std::array<int, 3> geom_drvs = {0, 0, 0};
+        
+        const int proj_ang_mom = 2;
+        
+        if ((geom_drvs[0] + geom_drvs[2]) == 0)
+        {
+            const auto t2c_ecp_drv = T2CProjECPCPUGenerator();
+            
+            t2c_ecp_drv.generate(run_type.second, max_ang_mom, proj_ang_mom);
+        }
+        else
+        {
+            //const auto t2c_drv = T2CGeomCPUGenerator();
+            
+            //t2c_drv.generate(run_type.second, max_ang_mom, geom_drvs, rec_form, use_rs);
+        }
+    }
     
     // set up end timer & compute elapsed time
     

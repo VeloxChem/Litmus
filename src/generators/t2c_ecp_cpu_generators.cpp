@@ -91,8 +91,6 @@ bool
 T2CECPCPUGenerator::_is_available(const std::string& label) const
 {
     if (fstr::lowercase(label) == "local") return true;
-
-    if (fstr::lowercase(label) == "projected") return true;
     
     return false;
 }
@@ -112,13 +110,6 @@ T2CECPCPUGenerator::_get_integral(const std::string&        label,
     if (fstr::lowercase(label) == "local")
     {
         return I2CIntegral(bra, ket, Operator("U_L"), 0, {});
-    }
-    
-    // projected core potential
-    
-    if (fstr::lowercase(label) == "projected")
-    {
-        return I2CIntegral(bra, ket, Operator("U_l"), 0, {});
     }
     
     return I2CIntegral();
@@ -172,8 +163,6 @@ T2CECPCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
             }
         }
     }
-    
-    // Projected core potential 
 
     return tints;
 }

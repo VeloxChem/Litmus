@@ -232,5 +232,4 @@ public:
                              const I4CIntegral&   integral) const;
 };
 
-
 #endif /* t4c_geom_hrr_body_hpp */

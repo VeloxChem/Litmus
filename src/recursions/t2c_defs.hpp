@@ -17,6 +17,10 @@
 #ifndef t2c_defs_hpp
 #define t2c_defs_hpp
 
+#include <utility>
+#include <array>
+#include <set>
+
 #include "recursion_group.hpp"
 #include "recursion_expansion.hpp"
 #include "recursion_term.hpp"
@@ -50,5 +54,9 @@ using I2CIntegral = Integral<I1CPair, I1CPair>;
 using VI2CIntegrals = VIntegrals<I1CPair, I1CPair>;
 
 using SI2CIntegrals = SIntegrals<I1CPair, I1CPair>;
+
+using M2Integral = std::pair<std::array<int, 3>, I2CIntegral>;
+
+using SM2Integrals = std::set<std::pair<std::array<int, 3>, I2CIntegral>>;
 
 #endif /* t2c_defs_hpp */
