@@ -40,7 +40,7 @@ T2CProjECPCPUGenerator::generate(const std::string& label,
                     {
                         for (int j = 0; j <= max_ang_mom; j++)
                         {
-                            #pragma omp task firstprivate(i,j)
+                            #pragma omp task firstprivate(i,j,l)
                             {
                                 const auto integral = _get_integral(label, {i, j}, l);
                                 
@@ -56,6 +56,10 @@ T2CProjECPCPUGenerator::generate(const std::string& label,
                                     
                                     std::cout << order[1] << ","  << order[2] << ")" << std::endl;
                                 }
+                                
+                                _write_prim_cpp_header(integral);
+                                    
+                                _write_prim_cpp_file(integral);
                             }
                         }
                     }
@@ -128,4 +132,137 @@ T2CProjECPCPUGenerator::_generate_integral_group(const M2Integral& integral) con
     }
     
     return tints;
+}
+
+void
+T2CProjECPCPUGenerator::_write_prim_cpp_header(const M2Integral& integral) const
+{
+    auto fname = t2c::prim_file_name(integral) + ".hpp";
+        
+    std::ofstream fstream;
+               
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_hpp_defines(fstream, integral, true, true);
+    
+    _write_prim_hpp_includes(fstream, integral);
+    
+    _write_namespace(fstream, integral, true);
+    
+    T2CPrimDocuDriver docs_drv;
+    
+    docs_drv.write_doc_str(fstream, integral);
+//    
+//    T2CPrimDeclDriver decl_drv;
+//    
+//    decl_drv.write_func_decl(fstream, integral, true);
+//    
+    _write_namespace(fstream, integral, false);
+    
+    _write_hpp_defines(fstream, integral, true, false);
+    
+    fstream.close();
+}
+
+void
+T2CProjECPCPUGenerator::_write_prim_hpp_includes(      std::ofstream& fstream,
+                                                 const M2Integral&    integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"SimdArray.hpp\""});
+        
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CProjECPCPUGenerator::_write_prim_cpp_file(const M2Integral& integral) const
+{
+    auto fname = t2c::prim_file_name(integral) + ".cpp";
+        
+    std::ofstream fstream;
+        
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+        
+    _write_prim_cpp_includes(fstream, integral);
+
+    _write_namespace(fstream, integral, true);
+//
+//    T2CPrimDeclDriver decl_drv;
+//    
+//    decl_drv.write_func_decl(fstream, integral, false);
+//
+//    T2CECPPrimFuncBodyDriver func_drv;
+//
+//    func_drv.write_func_body(fstream, integral);
+//    
+//    fstream << std::endl;
+//    
+    _write_namespace(fstream, integral, false);
+        
+    fstream.close();
+}
+
+void
+T2CProjECPCPUGenerator::_write_prim_cpp_includes(      std::ofstream& fstream,
+                                                 const M2Integral&    integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 2, "#include \"" + t2c::prim_file_name(integral) +  ".hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
+T2CProjECPCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
+                                           const M2Integral&    integral,
+                                           const bool           is_prim_rec,
+                                           const bool           start) const
+{
+    auto fname = (is_prim_rec) ? t2c::prim_file_name(integral) : _file_name(integral) + "_hpp";
+    
+    auto lines = VCodeLines();
+ 
+    if (start)
+    {
+        lines.push_back({0, 0, 1, "#ifndef " + fname});
+        
+        lines.push_back({0, 0, 2, "#define " + fname});
+    }
+    else
+    {
+        lines.push_back({0, 0, 1, "#endif /* " + fname + " */"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+std::string
+T2CProjECPCPUGenerator::_file_name(const M2Integral& integral) const
+{
+    auto label = integral.second.label() + "For" + Tensor(integral.second.order()).label();
+    
+    return t2c::integral_label(integral.second) + label;
+}
+
+void
+T2CProjECPCPUGenerator::_write_namespace(      std::ofstream& fstream,
+                                         const M2Integral&    integral,
+                                         const bool           start) const
+{
+    const auto label = t2c::namespace_label(integral.second);
+    
+    auto lines = VCodeLines();
+    
+    if (start)
+    {
+        lines.push_back({0, 0, 2, "namespace " + label + " { // " + label + " namespace"});
+    }
+    else
+    {
+        lines.push_back({0, 0, 2, "} // " + label + " namespace"});
+    }
+    
+    ost::write_code_lines(fstream, lines);
 }

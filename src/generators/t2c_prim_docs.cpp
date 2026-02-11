@@ -47,6 +47,35 @@ T2CPrimDocuDriver::write_doc_str(      std::ofstream& fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+void
+T2CPrimDocuDriver::write_doc_str(      std::ofstream& fstream,
+                                 const M2Integral&    integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, _get_compute_str(integral.second)});
+    
+    // TODO: Add special variables here
+    
+    for (const auto& label : _get_buffers_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+//    for (const auto& label : _get_coordinates_str(integral))
+//    {
+//        lines.push_back({0, 0, 1, label});
+//    }
+//    
+//    for (const auto& label : _get_recursion_variables_str(integral))
+//    {
+//        lines.push_back({0, 0, 1, label});
+//    }
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+
 std::string
 T2CPrimDocuDriver::_get_compute_str(const I2CIntegral& integral) const
 {
@@ -65,7 +94,14 @@ T2CPrimDocuDriver::_get_compute_str(const I2CIntegral& integral) const
         label += t2c::integrand_label(integral.integrand()) + "|";
     }
     
-    label += ket_prefix + ket.label() + "]  integrals for set of data buffers.";
+    label += ket_prefix + ket.label() + "]";
+    
+    if (integral.integrand().name() == "U_l")
+    {
+        label += "_" + Tensor(integral.order()).label();
+    }
+    
+    label += " integrals for set of data buffers.";
     
     return label;
 }
@@ -90,6 +126,29 @@ T2CPrimDocuDriver::_get_buffers_str(const I2CIntegral& integral) const
 
     return vstr;
 }
+
+std::vector<std::string>
+T2CPrimDocuDriver::_get_buffers_str(const M2Integral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("/// @param pbuffer The primitive integrals buffer.");
+    
+    auto label = t2c::get_index_label(integral);
+    
+    vstr.push_back("/// @param " + label + " The index of integral in primitive integrals buffer.");
+    
+    for (const auto& tint : t2c::get_common_integrals(integral))
+    {
+        label = t2c::get_index_label(tint);
+        
+        vstr.push_back("/// @param " + label + " The index of integral in primitive integrals buffer.");
+    }
+
+    return vstr;
+}
+
+
 
 std::vector<std::string>
 T2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const

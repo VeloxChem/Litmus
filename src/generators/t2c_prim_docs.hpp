@@ -36,6 +36,11 @@ class T2CPrimDocuDriver
     /// @return The vector of buffer strings.
     std::vector<std::string> _get_buffers_str(const I2CIntegral& integral) const;
     
+    /// Generates vector of buffer strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffer strings.
+    std::vector<std::string> _get_buffers_str(const M2Integral& integral) const;
+    
     /// Generates vector of coordinates strings.
     /// @param integral The base two center integral.
     /// @return The vector of coordinates strings.
@@ -64,6 +69,12 @@ public:
     /// @param integral The base two center integral.
     void write_doc_str(      std::ofstream& fstream,
                        const I2CIntegral&   integral) const;
+    
+    /// Writes documentation string for primtive compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void write_doc_str(      std::ofstream& fstream,
+                       const M2Integral&    integral) const;
     
 };
 

@@ -28,6 +28,7 @@
 #include "v2i_el_field_driver.hpp"
 #include "v2i_eri_driver.hpp"
 #include "v2i_loc_ecp_driver.hpp"
+#include "v2i_proj_ecp_driver.hpp"
 #include "v2i_center_driver.hpp"
 #include "v2i_hrr_driver.hpp"
 #include "t2c_center_driver.hpp"
@@ -143,6 +144,11 @@ integral_label(const I2CIntegral& integral)
     if (integrand.name() == "U_L")
     {
         return (prefixes.empty()) ? "LocalCorePotential" : "LocalCorePotential" + suffix;
+    }
+    
+    if (integrand.name() == "U_l")
+    {
+        return (prefixes.empty()) ? "ProjectedCorePotential" : "ProjectedCorePotential" + suffix;
     }
     
     return std::string();
@@ -283,6 +289,11 @@ namespace_label(const I2CIntegral& integral)
     if (integrand.name() == "U_L")
     {
         return "t2lecp";
+    }
+    
+    if (integrand.name() == "U_l")
+    {
+        return "t2pecp";
     }
     
     return std::string();
@@ -505,6 +516,14 @@ prim_file_name(const I2CIntegral& integral)
 }
 
 std::string
+prim_file_name(const M2Integral& integral)
+{
+    const auto label = "For" + Tensor(integral.second.order()).label();
+    
+    return t2c::integral_label(integral.second) + "PrimRec" + integral.second.label() + label;
+}
+
+std::string
 hrr_file_name(const I2CIntegral& integral)
 {
     return "T2CHrrABRec" + integral.label();
@@ -637,6 +656,46 @@ get_index_label(const I2CIntegral& integral)
     if (!geom_label.empty()) label += geom_label + "_";
     
     label += fstr::lowercase(integral.label());
+
+    return label;
+}
+
+std::string
+get_index_label(const M2Integral& integral)
+{
+    const auto prefixes = integral.second.prefixes();
+    
+    std::string geom_label;
+    
+    if (prefixes.size() == 1)
+    {
+        geom_label = "geom_" + std::to_string(prefixes[0].shape().order());
+        
+        geom_label += std::to_string(integral.second.integrand().shape().order()) + "0";
+    }
+    
+    if (prefixes.size() == 2)
+    {
+        geom_label = "geom_" + std::to_string(prefixes[0].shape().order());
+        
+        geom_label += std::to_string(integral.second.integrand().shape().order());
+        
+        geom_label += std::to_string(prefixes[1].shape().order());
+    }
+    
+    std::string label = "idx_";
+    
+    if (!geom_label.empty()) label += geom_label + "_";
+    
+    label += fstr::lowercase(integral.second.label()) + "_";
+    
+    label += fstr::lowercase(Tensor(integral.second.order()).label());
+    
+    label += "_" + std::to_string(integral.first[0]);
+    
+    label += "_" + std::to_string(integral.first[1]);
+    
+    label += "_" + std::to_string(integral.first[2]);
 
     return label;
 }
@@ -955,6 +1014,28 @@ get_geom_integrals(const I2CIntegral& integral)
         for (size_t j = 0; j < rgroup[i].terms(); j++)
         {
             tints.insert(I2CIntegral(rgroup[i][j].integral().base()));
+        }
+    }
+    
+    return tints;
+}
+
+SM2Integrals
+get_common_integrals(const M2Integral& integral)
+{
+    SM2Integrals tints;
+    
+    if (integral.second.integrand().name() == "U_l")
+    {
+        V2IProjectedECPDriver ecp_drv;
+        
+        if (integral.second[0] > 0)
+        {
+            tints = ecp_drv.common_bra_vrr(integral);
+        }
+        else
+        {
+            tints = ecp_drv.common_ket_vrr(integral);
         }
     }
     

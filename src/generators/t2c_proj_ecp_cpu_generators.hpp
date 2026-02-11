@@ -25,6 +25,7 @@
 #include <utility>
 
 #include "t2c_defs.hpp"
+#include "t2c_prim_docs.hpp"
 
 // Two-center integrals code generator for CPU.
 class T2CProjECPCPUGenerator
@@ -46,6 +47,49 @@ class T2CProjECPCPUGenerator
     /// @param integral The base two center integral.
     /// @return The set of integrals.
     SM2Integrals _generate_integral_group(const M2Integral& integral) const;
+    
+    /// Writes primitive header file for recursion.
+    /// @param integral The base two center integral.
+    void _write_prim_cpp_header(const M2Integral& integral) const;
+    
+    /// Writes definitions of includes for primitive header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_prim_hpp_includes(      std::ofstream& fstream,
+                                  const M2Integral&    integral) const;
+    
+    /// Writes C++ code file for primtive recursion.
+    /// @param integral The base two center integral.
+    void _write_prim_cpp_file(const M2Integral& integral) const;
+    
+    /// Writes definitions of includes for primitive header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void _write_prim_cpp_includes(      std::ofstream& fstream,
+                                  const M2Integral&    integral) const;
+    
+    /// Writes definitions of define for header file.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param is_prim_rec The flag to indicate primitive recurion.
+    /// @param start The flag to indicate position of define (start or end).
+    void _write_hpp_defines(      std::ofstream& fstream,
+                            const M2Integral&    integral,
+                            const bool           is_prim_rec,
+                            const bool           start) const;
+    
+    /// Gets file name of file with recursion functions for two center integral.
+    /// @param integral The base two center integral.
+    /// @return The file name.
+    std::string _file_name(const M2Integral& integral) const;
+    
+    /// Writes namespace definition to file stream.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param start The flag to indicate position of namespace definition (start or end).
+    void _write_namespace(      std::ofstream& fstream,
+                          const M2Integral&    integral,
+                          const bool           start) const;
     
 public:
     /// Creates a two-center integrals CPU code generator.

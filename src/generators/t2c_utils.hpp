@@ -92,6 +92,11 @@ std::string geom_compute_func_name(const I2CIntegral&        integral,
 /// @return The primitive file name.
 std::string prim_file_name(const I2CIntegral& integral);
 
+/// Generates primitive file name.
+/// @param integral The base two center integral.
+/// @return The primitive file name.
+std::string prim_file_name(const M2Integral& integral);
+
 /// Generates hrr file name.
 /// @param integral The base two center integral.
 /// @return The primitive file name.
@@ -172,6 +177,11 @@ std::string get_buffer_label(const I2CIntegral& integral,
 /// @return The string with index label.
 std::string get_index_label(const I2CIntegral& integral);
 
+/// Generates integral index label.
+/// @param integral The base two center integral.
+/// @return The string with index label.
+std::string get_index_label(const M2Integral& integral);
+
 /// Generates primitive compute function name.
 /// @param integral The base two center integral.
 /// @return The primitive compute function name.
@@ -200,6 +210,10 @@ SI2CIntegrals get_hrr_integrals(const I2CIntegral& integral,
 /// Gets arguments list for complete geometrical recursion function call.
 /// @param integral The base two center integral.
 SI2CIntegrals get_geom_integrals(const I2CIntegral& integral);
+
+/// Gets arguments list for primitive function call.
+/// @param integral The base two center integral.
+SM2Integrals get_common_integrals(const M2Integral& integral);
 
 /// Gets effective order of integral along selected center.
 /// @param integral The base two center integral.
