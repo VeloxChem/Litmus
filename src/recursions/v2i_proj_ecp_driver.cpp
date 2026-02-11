@@ -90,8 +90,6 @@ V2IProjectedECPDriver::bra_vrr(const M2Integral& integral) const
         
         const int l2p = (int)(std::floor(0.5 * (l - 2)));
         
-        std::cout << "Order: " << l << " , " << l1p << " , " << l2p << std::endl;
-        
         // (l - 1) / 2 terms
         
         for (int k = 0; k <= l1p; k++)
@@ -110,8 +108,6 @@ V2IProjectedECPDriver::bra_vrr(const M2Integral& integral) const
             
             if (const auto r3val = tval->shift_order(-2 * k - 1))
             {
-                std::cout << " ** First term (L1): " << r3val->label() << " : " << r3val->order() << std::endl;
-                
                 tints.insert({mpq_order, *r3val});
                 
                 if (const auto r4val = r3val->shift(-1, 1))
@@ -139,8 +135,6 @@ V2IProjectedECPDriver::bra_vrr(const M2Integral& integral) const
             
             if (const auto r3val = tval->shift_order(-2 * k - 2))
             {
-                std::cout << " ** First term (L2): " << r3val->label() << " : " << r3val->order() << std::endl;
-                
                 tints.insert({mpq_order, *r3val});
                 
                 if (const auto r4val = r3val->shift(-1, 0))
@@ -167,9 +161,9 @@ V2IProjectedECPDriver::ket_vrr(const M2Integral& integral) const
     {
         // set up recursion orders
         
-        auto morder = order; morder[0] += 1;
+        auto morder = order; morder[1] += 1;
         
-        auto pq_order = order; pq_order[1] += 1; pq_order[2] -= 1;
+        auto pq_order = order; pq_order[0] -= 1; pq_order[2] += 1;
         
         // first recursion term
 
@@ -181,7 +175,7 @@ V2IProjectedECPDriver::ket_vrr(const M2Integral& integral) const
         
         // third recursion term
         
-        if (pq_order[2] > 0)
+        if (pq_order[0] > 0)
         {
             tints.insert({pq_order, *tval});
         }
@@ -194,7 +188,7 @@ V2IProjectedECPDriver::ket_vrr(const M2Integral& integral) const
             
             tints.insert({morder, *r2val});
             
-            if (pq_order[2] > 0)
+            if (pq_order[0] > 0)
             {
                 tints.insert({pq_order, *r2val});
             }
@@ -218,20 +212,15 @@ V2IProjectedECPDriver::ket_vrr(const M2Integral& integral) const
             
             mpq_order[0] += k;
             
-            mpq_order[1] += 1;
+            mpq_order[1] += k;
             
-            mpq_order[2] += k;
+            mpq_order[2] += 1;
             
             // first and second terms
             
             if (const auto r3val = tval->shift_order(-2 * k - 1))
             {
                 tints.insert({mpq_order, *r3val});
-                
-                if (const auto r4val = r3val->shift(-1, 0))
-                {
-                    tints.insert({mpq_order, *r4val});
-                }
             }
         }
         
@@ -243,11 +232,11 @@ V2IProjectedECPDriver::ket_vrr(const M2Integral& integral) const
             
             auto mpq_order = order;
             
-            mpq_order[0] += k + 1;
+            mpq_order[0] += k;
             
-            mpq_order[1] += 1;
+            mpq_order[1] += k + 1;
             
-            mpq_order[2] += k;
+            mpq_order[2] += 1;
             
             // first and second terms
             
