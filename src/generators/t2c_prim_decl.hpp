@@ -32,6 +32,11 @@ class T2CPrimDeclDriver
     /// @return The vector of buffer strings.
     std::vector<std::string> _get_buffers_str(const I2CIntegral& integral) const;
     
+    /// Generates vector of buffer strings.
+    /// @param integral The base two center integral.
+    /// @return The vector of buffer strings.
+    std::vector<std::string> _get_buffers_str(const M2Integral& integral) const;
+    
     /// Generates vector of coordinates strings.
     /// @param integral The base two center integral.
     /// @param terminus The flag to add termination symbol.
@@ -65,6 +70,14 @@ public:
     /// @param terminus The flag to add termination symbol.
     void write_func_decl(      std::ofstream& fstream,
                          const I2CIntegral&   integral,
+                         const bool           terminus) const;
+    
+    /// Writes declaration for primitive compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    /// @param terminus The flag to add termination symbol.
+    void write_func_decl(      std::ofstream& fstream,
+                         const M2Integral&    integral,
                          const bool           terminus) const;
 };
 

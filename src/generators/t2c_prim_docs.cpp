@@ -62,15 +62,15 @@ T2CPrimDocuDriver::write_doc_str(      std::ofstream& fstream,
         lines.push_back({0, 0, 1, label});
     }
     
-//    for (const auto& label : _get_coordinates_str(integral))
-//    {
-//        lines.push_back({0, 0, 1, label});
-//    }
-//    
-//    for (const auto& label : _get_recursion_variables_str(integral))
-//    {
-//        lines.push_back({0, 0, 1, label});
-//    }
+    for (const auto& label : _get_coordinates_str(integral.second))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    for (const auto& label : _get_recursion_variables_str(integral.second))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
     
     ost::write_code_lines(fstream, lines);
 }
@@ -99,9 +99,13 @@ T2CPrimDocuDriver::_get_compute_str(const I2CIntegral& integral) const
     if (integral.integrand().name() == "U_l")
     {
         label += "_" + Tensor(integral.order()).label();
+        
+        label += " integrals with " + Tensor(integral.order()).label() + " projectors for set of data buffers.";
     }
-    
-    label += " integrals for set of data buffers.";
+    else
+    {
+        label += " integrals for set of data buffers.";
+    }
     
     return label;
 }
@@ -144,11 +148,27 @@ T2CPrimDocuDriver::_get_buffers_str(const M2Integral& integral) const
         
         vstr.push_back("/// @param " + label + " The index of integral in primitive integrals buffer.");
     }
+    
+    if (integral.second[0] > 0)
+    {
+        vstr.push_back("/// @param p The special projector value.");
+    }
+    else
+    {
+        vstr.push_back("/// @param m The special projector value.");
+    }
 
+    const auto mrefint = (integral.second[0] > 0) ? M2Integral({0,1,0}, integral.second) : M2Integral({1,0,0}, integral.second);
+    
+    for (const auto& tint : t2c::get_special_integrals(mrefint))
+    {
+        label = t2c::get_index_label(tint);
+        
+        vstr.push_back("/// @param " + label + " The index of integral in primitive integrals buffer.");
+    }
+    
     return vstr;
 }
-
-
 
 std::vector<std::string>
 T2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const
@@ -159,6 +179,30 @@ T2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const
    
     if (integral.integrand().name() == "U_L") return vstr;
     
+    if (integral.integrand().name() == "U_l")
+    {
+        if (integral[0] > 0)
+        {
+            if (integral.order() > 0)
+            {
+                vstr.push_back("/// @param idx_b The vector of Cartesian B points coordinates.");
+            }
+            
+            vstr.push_back("/// @param r_a The Cartesian A point coordinates.");
+        }
+        else
+        {
+            vstr.push_back("/// @param idx_b The vector of Cartesian B points coordinates.");
+            
+            if (integral.order() > 0)
+            {
+                vstr.push_back("/// @param r_a The Cartesian A point coordinates.");
+            }
+        }
+        
+        return vstr;
+    }
+        
     if (
         (integral[0] > 0) &&
         (integral.integrand().name() != "GX(r)")  &&
@@ -217,6 +261,15 @@ T2CPrimDocuDriver::_get_recursion_variables_str(const I2CIntegral& integral) con
     std::vector<std::string> vstr;
     
     if (integral.integrand().name() == "U_L") return vstr;
+    
+    if (integral.integrand().name() == "U_l")
+    {
+        vstr.push_back("/// @param a_exp The primitive basis function exponent on center A.");
+        
+        vstr.push_back("/// @param c_exp The core potential exponent on center C.");
+        
+        return vstr; 
+    }
     
     if (_need_exponents(integral))
     {

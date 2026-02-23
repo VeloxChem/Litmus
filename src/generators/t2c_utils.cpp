@@ -215,6 +215,11 @@ integral_split_label(const I2CIntegral& integral)
     {
         return "Local_Core_Potential";
     }
+    
+    if (integrand.name() == "U_l")
+    {
+        return "Projected_Core_Potential";
+    }
 
     return std::string();
 }
@@ -436,6 +441,11 @@ compute_func_name(const I2CIntegral&           integral,
     }
         
     auto label = prefix  + t2c::integral_split_label(integral) + geom_label + "_" + integral.label();
+    
+    if (integral.integrand().name() == "U_l")
+    {
+        label += "_for_" + Tensor(integral.order()).label(); 
+    }
         
     return fstr::lowercase(label);
 }
@@ -730,6 +740,35 @@ prim_compute_func_name(const I2CIntegral& integral)
     {
         if (tint_prefixes[1].shape().order() == 0) label[label.size() - 1] = 'x';
     }
+    
+    return fstr::lowercase(label);
+}
+
+std::string
+prim_compute_func_name(const M2Integral& integral)
+{
+    std::string geom_label;
+    
+    auto tint_prefixes = integral.second.prefixes();
+    
+    if (!tint_prefixes.empty())
+    {
+        geom_label += "_geom_";
+        
+        for (const auto& tint_prefix : tint_prefixes)
+        {
+            geom_label += std::to_string(tint_prefix.shape().order());
+        }
+    }
+    
+    auto label =  "comp_prim_" + t2c::integral_split_label(integral.second) +  geom_label + "_" + integral.second.label();
+    
+    if (tint_prefixes.size() == 2)
+    {
+        if (tint_prefixes[1].shape().order() == 0) label[label.size() - 1] = 'x';
+    }
+    
+    label += "_" + Tensor(integral.second.order()).label(); 
     
     return fstr::lowercase(label);
 }
@@ -1036,6 +1075,28 @@ get_common_integrals(const M2Integral& integral)
         else
         {
             tints = ecp_drv.common_ket_vrr(integral);
+        }
+    }
+    
+    return tints;
+}
+
+SM2Integrals
+get_special_integrals(const M2Integral& integral)
+{
+    SM2Integrals tints;
+    
+    if (integral.second.integrand().name() == "U_l")
+    {
+        V2IProjectedECPDriver ecp_drv;
+        
+        if (integral.second[0] > 0)
+        {
+            tints = ecp_drv.special_bra_vrr(integral);
+        }
+        else
+        {
+            tints = ecp_drv.special_ket_vrr(integral);
         }
     }
     

@@ -187,6 +187,11 @@ std::string get_index_label(const M2Integral& integral);
 /// @return The primitive compute function name.
 std::string prim_compute_func_name(const I2CIntegral& integral);
 
+/// Generates primitive compute function name.
+/// @param integral The base two center integral.
+/// @return The primitive compute function name.
+std::string prim_compute_func_name(const M2Integral& integral);
+
 /// Generates HRR compute function name.
 /// @param integral The base two center integral.
 /// @return The primitive compute function name.
@@ -214,6 +219,10 @@ SI2CIntegrals get_geom_integrals(const I2CIntegral& integral);
 /// Gets arguments list for primitive function call.
 /// @param integral The base two center integral.
 SM2Integrals get_common_integrals(const M2Integral& integral);
+
+/// Gets arguments list for primitive function call.
+/// @param integral The base two center integral.
+SM2Integrals get_special_integrals(const M2Integral& integral);
 
 /// Gets effective order of integral along selected center.
 /// @param integral The base two center integral.

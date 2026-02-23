@@ -78,6 +78,8 @@ T2CProjectedECPDriver::bra_vrr(const R2CTerm& rterm,
         
         x2val.add(Factor("b/z", "fbzi"), Fraction(1));
         
+        x2val.add(Factor("m", "m"), Fraction(1));
+        
         t2crt.add(x2val);
         
         // third and fourth recursion term
@@ -97,6 +99,8 @@ T2CProjectedECPDriver::bra_vrr(const R2CTerm& rterm,
             x4val.add(Factor("b/z", "fbzi"), Fraction(na));
             
             x4val.add(Factor("b/z", "fbzi"), Fraction(1));
+            
+            x4val.add(Factor("m", "m"), Fraction(1));
             
             t2crt.add(x4val);
         }
@@ -126,6 +130,18 @@ T2CProjectedECPDriver::bra_vrr(const R2CTerm& rterm,
                     x5val.add(Factor("2ab/z", "f2abz"), Fraction(1));
                 }
                 
+                for (int m = 1; m <= k; m++)
+                {
+                    x5val.add(Factor("m", "m"), Fraction(1));
+                }
+                
+                for (int p = 1; p <= k; p++)
+                {
+                    x5val.add(Factor("p", "p"), Fraction(1));
+                }
+                
+                x5val.add(Factor("q", "q"), Fraction(1));
+                
                 t2crt.add(x5val);
                 
                 if (const auto rmval = rkval->shift(axis, -1, 1))
@@ -142,6 +158,18 @@ T2CProjectedECPDriver::bra_vrr(const R2CTerm& rterm,
                     {
                         x6val.add(Factor("2ab/z", "f2abz"), Fraction(1));
                     }
+                    
+                    for (int m = 1; m <= k; m++)
+                    {
+                        x6val.add(Factor("m", "m"), Fraction(1));
+                    }
+                    
+                    for (int p = 1; p <= k; p++)
+                    {
+                        x6val.add(Factor("p", "p"), Fraction(1));
+                    }
+                    
+                    x6val.add(Factor("q", "q"), Fraction(1));
                     
                     t2crt.add(x6val);
                 }
@@ -165,6 +193,18 @@ T2CProjectedECPDriver::bra_vrr(const R2CTerm& rterm,
                     x7val.add(Factor("2ab/z", "f2abz"), Fraction(1));
                 }
                 
+                for (int m = 1; m <= (k + 1); m++)
+                {
+                    x7val.add(Factor("m", "m"), Fraction(1));
+                }
+                
+                for (int p = 1; p <= k; p++)
+                {
+                    x7val.add(Factor("p", "p"), Fraction(1));
+                }
+                
+                x7val.add(Factor("q", "q"), Fraction(1));
+                
                 t2crt.add(x7val);
                 
                 if (const auto rmval = rkval->shift(axis, -1, 0))
@@ -182,6 +222,19 @@ T2CProjectedECPDriver::bra_vrr(const R2CTerm& rterm,
                         x8val.add(Factor("2ab/z", "f2abz"), Fraction(1));
                     }
                     
+                    for (int m = 1; m <= (k + 1); m++)
+                    {
+                        x8val.add(Factor("m", "m"), Fraction(1));
+                    }
+                    
+                    for (int p = 1; p <= k; p++)
+                    {
+                        x8val.add(Factor("p", "p"), Fraction(1));
+                    }
+                    
+                    x8val.add(Factor("q", "q"), Fraction(1));
+                    
+                    t2crt.add(x8val);
                 }
             }
         }
@@ -228,6 +281,8 @@ T2CProjectedECPDriver::ket_vrr(const R2CTerm& rterm,
         
         x2val.add(Factor("a/z", "fazi"), Fraction(1));
         
+        x2val.add(Factor("p", "p"), Fraction(1));
+        
         t2crt.add(x2val);
         
         // third and fourth recursion term
@@ -247,6 +302,8 @@ T2CProjectedECPDriver::ket_vrr(const R2CTerm& rterm,
             x4val.add(Factor("a/z", "fazi"), Fraction(nb));
             
             x4val.add(Factor("a/z", "fazi"), Fraction(1));
+            
+            x4val.add(Factor("p", "p"), Fraction(1));
             
             t2crt.add(x4val);
         }
@@ -276,6 +333,18 @@ T2CProjectedECPDriver::ket_vrr(const R2CTerm& rterm,
                     x5val.add(Factor("2ab/z", "f2abz"), Fraction(1));
                 }
                 
+                for (int m = 1; m <= k; m++)
+                {
+                    x5val.add(Factor("m", "m"), Fraction(1));
+                }
+                
+                for (int p = 1; p <= k; p++)
+                {
+                    x5val.add(Factor("p", "p"), Fraction(1));
+                }
+                
+                x5val.add(Factor("q", "q"), Fraction(1));
+                
                 t2crt.add(x5val);
             }
         }
@@ -297,6 +366,18 @@ T2CProjectedECPDriver::ket_vrr(const R2CTerm& rterm,
                     x6val.add(Factor("2ab/z", "f2abz"), Fraction(1));
                 }
                 
+                for (int m = 1; m <= k; m++)
+                {
+                    x6val.add(Factor("m", "m"), Fraction(1));
+                }
+                
+                for (int p = 1; p <= (k + 1); p++)
+                {
+                    x6val.add(Factor("p", "p"), Fraction(1));
+                }
+                
+                x6val.add(Factor("q", "q"), Fraction(1));
+                
                 t2crt.add(x6val);
                 
                 if (const auto rmval = rkval->shift(axis, -1, 0))
@@ -314,6 +395,19 @@ T2CProjectedECPDriver::ket_vrr(const R2CTerm& rterm,
                         x8val.add(Factor("2ab/z", "f2abz"), Fraction(1));
                     }
                     
+                    for (int m = 1; m <= k; m++)
+                    {
+                        x8val.add(Factor("m", "m"), Fraction(1));
+                    }
+                    
+                    for (int p = 1; p <= (k + 1); p++)
+                    {
+                        x8val.add(Factor("p", "p"), Fraction(1));
+                    }
+                    
+                    x8val.add(Factor("q", "q"), Fraction(1));
+                    
+                    t2crt.add(x8val);
                 }
             }
         }
@@ -346,7 +440,9 @@ T2CProjectedECPDriver::red_bra_vrr(const R2CTerm& rterm,
         
         x1val.add(Factor("1/a", "fai"), Fraction(1));
         
-        x1val.add(Factor("p", "fp"), Fraction(1));
+        x1val.add(Factor("fp", "fp"), Fraction(1));
+        
+        x1val.add(Factor("q", "q"), Fraction(1));
         
         t2crt.add(x1val);
         
@@ -362,7 +458,9 @@ T2CProjectedECPDriver::red_bra_vrr(const R2CTerm& rterm,
             
             x2val.add(Factor("1/a", "fai"), Fraction(1));
             
-            x2val.add(Factor("p", "fp"), Fraction(1));
+            x2val.add(Factor("fp", "fp"), Fraction(1));
+            
+            x2val.add(Factor("q", "q"), Fraction(1));
             
             t2crt.add(x2val);
         }
@@ -395,7 +493,9 @@ T2CProjectedECPDriver::red_ket_vrr(const R2CTerm& rterm,
         
         x1val.add(Factor("1/b", "fbi"), Fraction(1));
         
-        x1val.add(Factor("m", "fm"), Fraction(1));
+        x1val.add(Factor("fm", "fm"), Fraction(1));
+        
+        x1val.add(Factor("q", "q"), Fraction(1));
         
         t2crt.add(x1val);
         
@@ -411,7 +511,9 @@ T2CProjectedECPDriver::red_ket_vrr(const R2CTerm& rterm,
             
             x2val.add(Factor("1/b", "fbi"), Fraction(1));
             
-            x2val.add(Factor("m", "fm"), Fraction(1));
+            x2val.add(Factor("fm", "fm"), Fraction(1));
+            
+            x2val.add(Factor("q", "q"), Fraction(1));
             
             t2crt.add(x2val);
         }

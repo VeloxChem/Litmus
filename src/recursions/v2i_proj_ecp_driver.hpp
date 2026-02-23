@@ -44,6 +44,26 @@ public:
     /// @return The set of integrals.
     SM2Integrals ket_vrr(const M2Integral& integral) const;
     
+    /// Applies common vertical recursion to bra side of overlap integral.
+    /// @param integral The  overlap integral.
+    /// @return The set of integrals.
+    SM2Integrals common_bra_vrr(const M2Integral& integral) const;
+    
+    /// Applies common vertical recursion to ket side of overlap integral.
+    /// @param integral The  overlap integral.
+    /// @return The set of integrals.
+    SM2Integrals common_ket_vrr(const M2Integral& integral) const;
+    
+    /// Applies special vertical recursion to bra side of overlap integral.
+    /// @param integral The  overlap integral.
+    /// @return The set of integrals.
+    SM2Integrals special_bra_vrr(const M2Integral& integral) const;
+    
+    /// Applies special vertical recursion to ket side of overlap integral.
+    /// @param integral The  overlap integral.
+    /// @return The set of integrals.
+    SM2Integrals special_ket_vrr(const M2Integral& integral) const;
+    
     /// Applies vertical recursion to bra side of overlap integral.
     /// @param integral The  overlap integral.
     /// @return The recursion expansion of integral.

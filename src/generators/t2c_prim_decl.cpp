@@ -49,6 +49,37 @@ T2CPrimDeclDriver::write_func_decl(      std::ofstream&         fstream,
     ost::write_code_lines(fstream, lines);
 }
 
+
+void
+T2CPrimDeclDriver::write_func_decl(      std::ofstream& fstream,
+                                   const M2Integral&    integral,
+                                   const bool           terminus) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "auto"});
+    
+    for (const auto& label : _get_buffers_str(integral))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+    
+    if (integral.second.is_simple())
+    {
+        for (const auto& label : _get_coordinates_str(integral.second, terminus))
+        {
+            lines.push_back({0, 0, 1, label});
+        }
+    }
+    
+    for (const auto& label : _get_recursion_variables_str(integral.second, terminus))
+    {
+        lines.push_back({0, 0, 1, label});
+    }
+        
+    ost::write_code_lines(fstream, lines);
+}
+
 std::vector<std::string>
 T2CPrimDeclDriver::_get_buffers_str(const I2CIntegral& integral) const
 {
@@ -77,6 +108,49 @@ T2CPrimDeclDriver::_get_buffers_str(const I2CIntegral& integral) const
 }
 
 std::vector<std::string>
+T2CPrimDeclDriver::_get_buffers_str(const M2Integral& integral) const
+{
+    std::vector<std::string> vstr;
+    
+    auto name = t2c::prim_compute_func_name(integral) + "(";
+    
+    const auto spacer = std::string(name.size(), ' ');
+    
+    vstr.push_back(name + "CSimdArray<double>& pbuffer, " );
+    
+    auto label = t2c::get_index_label(integral);
+    
+    vstr.push_back(spacer + "const size_t " + label + "," );
+    
+    for (const auto& tint : t2c::get_common_integrals(integral))
+    {
+        label = t2c::get_index_label(tint);
+        
+        vstr.push_back(spacer + "const size_t " + label + "," );
+    }
+    
+    if (integral.second[0] > 0)
+    {
+        vstr.push_back(spacer + "const int p,");
+    }
+    else
+    {
+        vstr.push_back(spacer + "const int m,");
+    }
+    
+    const auto mrefint = (integral.second[0] > 0) ? M2Integral({0,1,0}, integral.second) : M2Integral({1,0,0}, integral.second);
+    
+    for (const auto& tint : t2c::get_special_integrals(mrefint))
+    {
+        label = t2c::get_index_label(tint);
+        
+        vstr.push_back(spacer + "const size_t " + label + "," );
+    }
+    
+    return vstr;
+}
+
+std::vector<std::string>
 T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
                                         const bool         terminus) const
 {
@@ -86,7 +160,9 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
     
     auto name = t2c::prim_compute_func_name(integral) + "(";
     
-    const auto spacer = std::string(name.size(), ' ');
+    auto spacer = std::string(name.size(), ' ');
+    
+    if (integral.integrand().name() == "U_l") spacer += std::string(2, ' ');
     
     if (integral.integrand().name() == "U_L")
     {
@@ -97,6 +173,30 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
     else
     {
         vstr.push_back(spacer + "const CSimdArray<double>& factors,");
+    }
+    
+    if (integral.integrand().name() == "U_l")
+    {
+        if (integral[0] > 0)
+        {
+            if (integral.order() > 0)
+            {
+                vstr.push_back(spacer + "const size_t idx_b,");
+            }
+            
+            vstr.push_back(spacer + "const TPoint<double>& r_a,");
+        }
+        else
+        {
+            vstr.push_back(spacer + "const size_t idx_b,");
+            
+            if (integral.order() > 0)
+            {
+                vstr.push_back(spacer + "const TPoint<double>& r_a,");
+            }
+        }
+        
+        return vstr;
     }
     
     if (
@@ -171,7 +271,18 @@ T2CPrimDeclDriver::_get_recursion_variables_str(const I2CIntegral& integral,
     
     auto name = t2c::prim_compute_func_name(integral) + "(";
     
-    const auto spacer = std::string(name.size(), ' ');
+    auto spacer = std::string(name.size(), ' ');
+    
+    if (integral.integrand().name() == "U_l")
+    {
+        spacer += std::string(2, ' ');
+        
+        vstr.push_back(spacer + "const double a_exp,");
+        
+        vstr.push_back(spacer + "const double c_exp) -> void" + tsymbol);
+        
+        return vstr;
+    }
     
     if (!integral.is_simple())
     {

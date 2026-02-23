@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 
     const auto run_type = std::pair<std::string, std::string>({"t2c_proj_ecp_cpu", "projected"});
 
-    const int max_ang_mom = 2;
+    const int max_ang_mom = 1;
 
     // set up start timer
     

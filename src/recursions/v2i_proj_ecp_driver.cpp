@@ -63,7 +63,7 @@ V2IProjectedECPDriver::bra_vrr(const M2Integral& integral) const
         
         // third recursion term
         
-        if (pq_order[1] > 0)
+        if (pq_order[1] >= 0)
         {
             tints.insert({pq_order, *tval});
         }
@@ -76,7 +76,7 @@ V2IProjectedECPDriver::bra_vrr(const M2Integral& integral) const
             
             tints.insert({morder, *r2val});
             
-            if (pq_order[1] > 0)
+            if (pq_order[1] >= 0)
             {
                 tints.insert({pq_order, *r2val});
             }
@@ -175,7 +175,7 @@ V2IProjectedECPDriver::ket_vrr(const M2Integral& integral) const
         
         // third recursion term
         
-        if (pq_order[0] > 0)
+        if (pq_order[0] >= 0)
         {
             tints.insert({pq_order, *tval});
         }
@@ -188,7 +188,7 @@ V2IProjectedECPDriver::ket_vrr(const M2Integral& integral) const
             
             tints.insert({morder, *r2val});
             
-            if (pq_order[0] > 0)
+            if (pq_order[0] >= 0)
             {
                 tints.insert({pq_order, *r2val});
             }
@@ -254,6 +254,270 @@ V2IProjectedECPDriver::ket_vrr(const M2Integral& integral) const
         
     return tints;
 }
+
+SM2Integrals
+V2IProjectedECPDriver::common_bra_vrr(const M2Integral& integral) const
+{
+    SM2Integrals tints;
+    
+    if (!is_projected_ecp(integral)) return tints;
+    
+    auto [order, rint] = integral;
+    
+    if (const auto tval = rint.shift(-1, 0))
+    {
+        // set up recursion orders
+        
+        auto morder = order; morder[0] += 1;
+        
+        // first recursion term
+
+        tints.insert({order, *tval});
+    
+        // second recursion term
+        
+        tints.insert({morder, *tval});
+        
+        // third and fourth recursion terms
+        
+        if (const auto r2val = tval->shift(-1, 0))
+        {
+            tints.insert({order, *r2val});
+            
+            tints.insert({morder, *r2val});
+        }
+        
+        // set up lower order projectors
+    
+        const auto l = rint.order();
+        
+        const int l1p = (int)(std::floor(0.5 * (l - 1)));
+        
+        const int l2p = (int)(std::floor(0.5 * (l - 2)));
+        
+        // (l - 1) / 2 terms
+        
+        for (int k = 0; k <= l1p; k++)
+        {
+            // set up adjusted order
+            
+            auto mpq_order = order;
+            
+            mpq_order[0] += k;
+            
+            mpq_order[1] += k;
+            
+            mpq_order[2] += 1;
+            
+            // first and second terms
+            
+            if (const auto r3val = tval->shift_order(-2 * k - 1))
+            {
+                tints.insert({mpq_order, *r3val});
+                
+                if (const auto r4val = r3val->shift(-1, 1))
+                {
+                    tints.insert({mpq_order, *r4val});
+                }
+            }
+        }
+        
+        // (l - 2) / 2 terms
+        
+        for (int k = 0; k <= l2p; k++)
+        {
+            // set up adjusted order
+            
+            auto mpq_order = order;
+            
+            mpq_order[0] += k + 1;
+            
+            mpq_order[1] += k;
+            
+            mpq_order[2] += 1;
+            
+            // first and second terms
+            
+            if (const auto r3val = tval->shift_order(-2 * k - 2))
+            {
+                tints.insert({mpq_order, *r3val});
+                
+                if (const auto r4val = r3val->shift(-1, 0))
+                {
+                    tints.insert({mpq_order, *r4val});
+                }
+            }
+        }
+    }
+        
+    return tints;
+}
+
+SM2Integrals
+V2IProjectedECPDriver::common_ket_vrr(const M2Integral& integral) const
+{
+    SM2Integrals tints;
+    
+    if (!is_projected_ecp(integral)) return tints;
+    
+    auto [order, rint] = integral;
+    
+    if (const auto tval = rint.shift(-1, 1))
+    {
+        // set up recursion orders
+        
+        auto morder = order; morder[1] += 1;
+        
+        // first recursion term
+
+        tints.insert({order, *tval});
+    
+        // second recursion term
+        
+        tints.insert({morder, *tval});
+        
+        // third and fourth recursion terms
+        
+        if (const auto r2val = tval->shift(-1, 1))
+        {
+            tints.insert({order, *r2val});
+            
+            tints.insert({morder, *r2val});
+        }
+        
+        // set up lower order projectors
+    
+        const auto l = rint.order();
+        
+        const int l1p = (int)(std::floor(0.5 * (l - 1)));
+        
+        const int l2p = (int)(std::floor(0.5 * (l - 2)));
+        
+        // (l - 1) / 2 terms
+        
+        for (int k = 0; k <= l1p; k++)
+        {
+            // set up adjusted order
+            
+            auto mpq_order = order;
+            
+            mpq_order[0] += k;
+            
+            mpq_order[1] += k;
+            
+            mpq_order[2] += 1;
+            
+            // first and second terms
+            
+            if (const auto r3val = tval->shift_order(-2 * k - 1))
+            {
+                tints.insert({mpq_order, *r3val});
+            }
+        }
+        
+        // (l - 2) / 2 terms
+        
+        for (int k = 0; k <= l2p; k++)
+        {
+            // set up adjusted order
+            
+            auto mpq_order = order;
+            
+            mpq_order[0] += k;
+            
+            mpq_order[1] += k + 1;
+            
+            mpq_order[2] += 1;
+            
+            // first and second terms
+            
+            if (const auto r3val = tval->shift_order(-2 * k - 2))
+            {
+                tints.insert({mpq_order, *r3val});
+                
+                if (const auto r4val = r3val->shift(-1, 1))
+                {
+                    tints.insert({mpq_order, *r4val});
+                }
+            }
+        }
+    }
+        
+    return tints;
+}
+
+SM2Integrals
+V2IProjectedECPDriver::special_bra_vrr(const M2Integral& integral) const
+{
+    SM2Integrals tints;
+    
+    if (!is_projected_ecp(integral)) return tints;
+    
+    auto [order, rint] = integral;
+    
+    if (const auto tval = rint.shift(-1, 0))
+    {
+        // set up recursion orders
+        
+        auto pq_order = order; pq_order[1] -= 1; pq_order[2] += 1;
+        
+        // third recursion term
+        
+        if (pq_order[1] >= 0)
+        {
+            tints.insert({pq_order, *tval});
+        }
+        
+        // fourth, fifth and sixth recursion terms
+        
+        if (const auto r2val = tval->shift(-1, 0))
+        {
+            if (pq_order[1] >= 0)
+            {
+                tints.insert({pq_order, *r2val});
+            }
+        }
+    }
+        
+    return tints;
+}
+
+SM2Integrals
+V2IProjectedECPDriver::special_ket_vrr(const M2Integral& integral) const
+{
+    SM2Integrals tints;
+    
+    if (!is_projected_ecp(integral)) return tints;
+    
+    auto [order, rint] = integral;
+    
+    if (const auto tval = rint.shift(-1, 1))
+    {
+        // set up recursion orders
+        
+        auto pq_order = order; pq_order[0] -= 1; pq_order[2] += 1;
+        
+        // third recursion term
+        
+        if (pq_order[0] >= 0)
+        {
+            tints.insert({pq_order, *tval});
+        }
+        
+        // fourth, fifth and sixth recursion terms
+        
+        if (const auto r2val = tval->shift(-1, 1))
+        {
+            if (pq_order[0] >= 0)
+            {
+                tints.insert({pq_order, *r2val});
+            }
+        }
+    }
+        
+    return tints;
+}
+
 
 SM2Integrals
 V2IProjectedECPDriver::apply_bra_vrr(const M2Integral& integral) const

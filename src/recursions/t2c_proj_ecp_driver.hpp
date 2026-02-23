@@ -56,6 +56,20 @@ public:
     /// @param rterm The recursion term.
     /// @param axis The axis of vertical recursion.
     /// @return The recursion expansion of given recursion term.
+    std::optional<R2CDist> common_bra_vrr(const R2CTerm& rterm,
+                                          const char     axis) const;
+    
+    /// Applies vertical recursion to ket side of given recursion term.
+    /// @param rterm The recursion term.
+    /// @param axis The axis of vertical recursion.
+    /// @return The recursion expansion of given recursion term.
+    std::optional<R2CDist> common_ket_vrr(const R2CTerm& rterm,
+                                          const char     axis) const;
+    
+    /// Applies vertical recursion to bra side of given recursion term.
+    /// @param rterm The recursion term.
+    /// @param axis The axis of vertical recursion.
+    /// @return The recursion expansion of given recursion term.
     std::optional<R2CDist> red_bra_vrr(const R2CTerm& rterm,
                                        const char     axis) const;
     

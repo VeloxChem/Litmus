@@ -22,6 +22,12 @@
 #include "file_stream.hpp"
 #include "t2c_utils.hpp"
 #include "v2i_proj_ecp_driver.hpp"
+#include "t2c_prim_docs.hpp"
+#include "t2c_prim_decl.hpp"
+#include "t2c_proj_prim_body.hpp"
+#include "t2c_docs.hpp"
+#include "t2c_decl.hpp"
+#include "t2c_proj_ecp_body.hpp"
 
 void
 T2CProjECPCPUGenerator::generate(const std::string& label,
@@ -57,9 +63,14 @@ T2CProjECPCPUGenerator::generate(const std::string& label,
                                     std::cout << order[1] << ","  << order[2] << ")" << std::endl;
                                 }
                                 
-                                _write_prim_cpp_header(integral);
+                                if ((i + j) > 0)
+                                {
+                                    _write_cpp_header(integrals, integral);
                                     
-                                _write_prim_cpp_file(integral);
+                                    //_write_prim_cpp_header(integral);
+                                    
+                                    //_write_prim_cpp_file(integral);
+                                }
                             }
                         }
                     }
@@ -135,6 +146,90 @@ T2CProjECPCPUGenerator::_generate_integral_group(const M2Integral& integral) con
 }
 
 void
+T2CProjECPCPUGenerator::_write_cpp_header(const SM2Integrals& integrals,
+                                          const M2Integral&   integral) const
+{
+    auto fname = _file_name(integral) + ".hpp";
+        
+    std::ofstream fstream;
+               
+    fstream.open(fname.c_str(), std::ios_base::trunc);
+    
+    _write_hpp_defines(fstream, integral, false, true);
+    
+    _write_hpp_includes(fstream, integrals, integral);
+    
+    _write_namespace(fstream, integral, true);
+   
+    T2CDocuDriver docs_drv;
+
+    T2CDeclDriver decl_drv;
+    
+    T2CProjECPFuncBodyDriver func_drv;
+
+    docs_drv.write_proj_ecp_doc_str(fstream, integral);
+
+    decl_drv.write_proj_ecp_func_decl(fstream, integral, false);
+
+    func_drv.write_func_body(fstream, integrals, integral);
+    
+    fstream << std::endl;
+
+    _write_namespace(fstream, integral, false);
+        
+    _write_hpp_defines(fstream, integral, false, false);
+    
+    fstream.close();
+}
+
+void
+T2CProjECPCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
+                                            const SM2Integrals&  integrals,
+                                            const M2Integral&    integral) const
+{
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "#include <cstddef>"});
+    
+    lines.push_back({0, 0, 1, "#include <array>"});
+    
+    lines.push_back({0, 0, 1, "#include <vector>"});
+
+    lines.push_back({0, 0, 2, "#include <utility>"});
+    
+    lines.push_back({0, 0, 1, "#include \"GtoBlock.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"BaseCorePotential.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"SimdArray.hpp\""});
+    
+    std::set<std::string> plabels;
+    
+    plabels.insert("ProjectedCorePotentialPrimRecSS");
+    
+    for (const auto& tint : integrals)
+    {
+        if ((tint.second[0] + tint.second[1]) > 0)
+        {
+            plabels.insert(t2c::prim_file_name(tint));
+        }
+    }
+    
+    for (const auto& plabel : plabels)
+    {
+        lines.push_back({0, 0, 1, "#include \"" + plabel + ".hpp\""});
+    }
+    
+    lines.push_back({0, 0, 1, "#include \"T2CUtils.hpp\""});
+    
+    lines.push_back({0, 0, 1, "#include \"T2CTransform.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"BatchFunc.hpp\""});
+    
+    ost::write_code_lines(fstream, lines);
+}
+
+void
 T2CProjECPCPUGenerator::_write_prim_cpp_header(const M2Integral& integral) const
 {
     auto fname = t2c::prim_file_name(integral) + ".hpp";
@@ -152,11 +247,11 @@ T2CProjECPCPUGenerator::_write_prim_cpp_header(const M2Integral& integral) const
     T2CPrimDocuDriver docs_drv;
     
     docs_drv.write_doc_str(fstream, integral);
-//    
-//    T2CPrimDeclDriver decl_drv;
-//    
-//    decl_drv.write_func_decl(fstream, integral, true);
-//    
+    
+    T2CPrimDeclDriver decl_drv;
+    
+    decl_drv.write_func_decl(fstream, integral, true);
+    
     _write_namespace(fstream, integral, false);
     
     _write_hpp_defines(fstream, integral, true, false);
@@ -170,7 +265,9 @@ T2CProjECPCPUGenerator::_write_prim_hpp_includes(      std::ofstream& fstream,
 {
     auto lines = VCodeLines();
     
-    lines.push_back({0, 0, 2, "#include \"SimdArray.hpp\""});
+    lines.push_back({0, 0, 1, "#include \"SimdArray.hpp\""});
+    
+    lines.push_back({0, 0, 2, "#include \"Point.hpp\""});
         
     ost::write_code_lines(fstream, lines);
 }
@@ -187,17 +284,17 @@ T2CProjECPCPUGenerator::_write_prim_cpp_file(const M2Integral& integral) const
     _write_prim_cpp_includes(fstream, integral);
 
     _write_namespace(fstream, integral, true);
-//
-//    T2CPrimDeclDriver decl_drv;
-//    
-//    decl_drv.write_func_decl(fstream, integral, false);
-//
-//    T2CECPPrimFuncBodyDriver func_drv;
-//
-//    func_drv.write_func_body(fstream, integral);
-//    
-//    fstream << std::endl;
-//    
+
+    T2CPrimDeclDriver decl_drv;
+    
+    decl_drv.write_func_decl(fstream, integral, false);
+
+    T2CProjECPPrimFuncBodyDriver func_drv;
+
+    func_drv.write_func_body(fstream, integral);
+    
+    fstream << std::endl;
+    
     _write_namespace(fstream, integral, false);
         
     fstream.close();

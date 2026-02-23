@@ -48,6 +48,20 @@ class T2CProjECPCPUGenerator
     /// @return The set of integrals.
     SM2Integrals _generate_integral_group(const M2Integral& integral) const;
     
+    /// Writes header file for recursion.
+    /// @param integrals The set of unique VRR integrals.
+    /// @param integral The base two center integral.
+    void _write_cpp_header(const SM2Integrals& integrals,
+                           const M2Integral&   integral) const;
+    
+    /// Writes definitions of includes for header file.
+    /// @param fstream the file stream.
+    /// @param integrals The set of unique VRR integrals.
+    /// @param integral The base two center integral.
+    void _write_hpp_includes(      std::ofstream& fstream,
+                             const SM2Integrals&  integrals,
+                             const M2Integral&    integral) const;
+    
     /// Writes primitive header file for recursion.
     /// @param integral The base two center integral.
     void _write_prim_cpp_header(const M2Integral& integral) const;

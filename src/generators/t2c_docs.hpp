@@ -67,6 +67,11 @@ public:
     void write_ecp_doc_str(      std::ofstream& fstream,
                            const I2CIntegral&   integral) const;
     
+    /// Writes documentation string for compute function.
+    /// @param fstream the file stream.
+    /// @param integral The base two center integral.
+    void write_proj_ecp_doc_str(      std::ofstream& fstream,
+                                const M2Integral&    integral) const;
 };
 
 #endif /* t2c_docs_hpp */
