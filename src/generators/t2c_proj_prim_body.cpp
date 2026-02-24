@@ -376,11 +376,11 @@ T2CProjECPPrimFuncBodyDriver::_add_recursion_loop(      VCodeLines&         line
     {
         if (i < (rec_dists.size() - 1))
         {
-            lines.push_back({2, 0, 2, _get_code_line(rec_dists[i])});
+            lines.push_back({2, 0, 2, _get_code_line(rec_dists[i], false)});
         }
         else
         {
-            lines.push_back({2, 0, 1, _get_code_line(rec_dists[i])});
+            lines.push_back({2, 0, 1, _get_code_line(rec_dists[i], false)});
         }
     }
     
@@ -416,11 +416,11 @@ T2CProjECPPrimFuncBodyDriver::_add_red_recursion_loop(      VCodeLines&         
     {
         if (i < (rec_dists.size() - 1))
         {
-            lines.push_back({3, 0, 2, _get_code_line(rec_dists[i])});
+            lines.push_back({3, 0, 2, _get_code_line(rec_dists[i], true)});
         }
         else
         {
-            lines.push_back({3, 0, 1, _get_code_line(rec_dists[i])});
+            lines.push_back({3, 0, 1, _get_code_line(rec_dists[i], true)});
         }
     }
     
@@ -567,12 +567,22 @@ T2CProjECPPrimFuncBodyDriver::_get_red_factor_lines(                VCodeLines& 
 }
 
 std::string
-T2CProjECPPrimFuncBodyDriver::_get_code_line(const R2CDist& rec_distribution) const
+T2CProjECPPrimFuncBodyDriver::_get_code_line(const R2CDist& rec_distribution,
+                                             const bool     sum_form) const
 {
     auto tint = rec_distribution.root().integral();
     
-    std::string line = _get_component_label(tint, _get_order(rec_distribution.root())) + "[i] = ";
-
+    std::string line = _get_component_label(tint, _get_order(rec_distribution.root()));
+    
+    if (sum_form)
+    {
+        line += "[i] += ";
+    }
+    else
+    {
+        line += "[i] = ";
+    }
+    
     for (size_t i = 0; i < rec_distribution.terms(); i++)
     {
         auto tint = rec_distribution[i].integral();

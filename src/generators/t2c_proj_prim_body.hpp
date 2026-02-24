@@ -130,9 +130,10 @@ class T2CProjECPPrimFuncBodyDriver
                                 const std::vector<R2CDist>& rec_distributions) const;
     
     /// Creates code line for recursion expansion.
-    /// @param rec_distribution The recursion distribution
+    /// @param rec_distribution The recursion distribution.
     /// @return The string with code line.
-    std::string _get_code_line(const R2CDist& rec_distribution) const;
+    std::string _get_code_line(const R2CDist& rec_distribution,
+                               const bool     sum_form) const;
     
     /// Creates code string for recursion term.
     /// @param rec_term The recursion distribution.
