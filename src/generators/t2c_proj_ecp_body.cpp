@@ -184,6 +184,10 @@ T2CProjECPFuncBodyDriver::_get_buffers_def(const SM2Integrals& integrals,
     
     vstr.push_back(label);
     
+    const auto angpair = std::array<int, 2>({integral.second[0], integral.second[1]});
+    
+    icomps = t2c::number_of_spherical_components(angpair);
+    
     label = "CSimdArray<double> sbuffer(" + std::to_string(icomps) + ", 1);";
     
     vstr.push_back(label);

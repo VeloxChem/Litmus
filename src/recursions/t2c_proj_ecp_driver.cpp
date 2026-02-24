@@ -146,7 +146,7 @@ T2CProjectedECPDriver::bra_vrr(const R2CTerm& rterm,
                 
                 if (const auto rmval = rkval->shift(axis, -1, 1))
                 {
-                    auto x6val = *rkval;
+                    auto x6val = *rmval;
                     
                     const auto nb = x1val[1][axis];
                     
@@ -209,7 +209,7 @@ T2CProjectedECPDriver::bra_vrr(const R2CTerm& rterm,
                 
                 if (const auto rmval = rkval->shift(axis, -1, 0))
                 {
-                    auto x8val = *rkval;
+                    auto x8val = *rmval;
                     
                     const auto na = x1val[0][axis];
                     
@@ -382,7 +382,7 @@ T2CProjectedECPDriver::ket_vrr(const R2CTerm& rterm,
                 
                 if (const auto rmval = rkval->shift(axis, -1, 0))
                 {
-                    auto x8val = *rkval;
+                    auto x8val = *rmval;
                     
                     const auto nb = x1val[1][axis];
                     
