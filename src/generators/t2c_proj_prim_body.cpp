@@ -157,7 +157,7 @@ T2CProjECPPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) co
             rdist = ecp_drv.apply_ket_vrr(R2CTerm(integral));
         }
     }
-   
+    
     rdist.simplify();
     
     return rdist;
@@ -181,7 +181,7 @@ T2CProjECPPrimFuncBodyDriver::_get_red_vrr_recursion(const T2CIntegral& integral
             rdist = ecp_drv.apply_red_ket_vrr(R2CTerm(integral));
         }
     }
-   
+    
     rdist.simplify();
     
     return rdist;

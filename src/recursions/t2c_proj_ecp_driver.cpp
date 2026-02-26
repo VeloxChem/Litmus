@@ -193,7 +193,7 @@ T2CProjectedECPDriver::bra_vrr(const R2CTerm& rterm,
                     x7val.add(Factor("2ab/z", "f2abz"), Fraction(1));
                 }
                 
-                for (int m = 1; m <= (k + 1); m++)
+                for (int m = 0; m < (k + 1); m++)
                 {
                     x7val.add(Factor("m", "m"), Fraction(1));
                 }
@@ -222,7 +222,7 @@ T2CProjectedECPDriver::bra_vrr(const R2CTerm& rterm,
                         x8val.add(Factor("2ab/z", "f2abz"), Fraction(1));
                     }
                     
-                    for (int m = 1; m <= (k + 1); m++)
+                    for (int m = 0; m < (k + 1); m++)
                     {
                         x8val.add(Factor("m", "m"), Fraction(1));
                     }
@@ -371,7 +371,7 @@ T2CProjectedECPDriver::ket_vrr(const R2CTerm& rterm,
                     x6val.add(Factor("m", "m"), Fraction(1));
                 }
                 
-                for (int p = 1; p <= (k + 1); p++)
+                for (int p = 0; p < (k + 1); p++)
                 {
                     x6val.add(Factor("p", "p"), Fraction(1));
                 }
@@ -380,7 +380,7 @@ T2CProjectedECPDriver::ket_vrr(const R2CTerm& rterm,
                 
                 t2crt.add(x6val);
                 
-                if (const auto rmval = rkval->shift(axis, -1, 0))
+                if (const auto rmval = rkval->shift(axis, -1, 1))
                 {
                     auto x8val = *rmval;
                     
@@ -400,7 +400,7 @@ T2CProjectedECPDriver::ket_vrr(const R2CTerm& rterm,
                         x8val.add(Factor("m", "m"), Fraction(1));
                     }
                     
-                    for (int p = 1; p <= (k + 1); p++)
+                    for (int p = 0; p < (k + 1); p++)
                     {
                         x8val.add(Factor("p", "p"), Fraction(1));
                     }
@@ -531,13 +531,7 @@ T2CProjectedECPDriver::apply_bra_vrr(const R2CTerm& rterm) const
 {
     R2CDist t2crt;
     
-    const auto l = rterm.order();
-    
-    size_t nints = 5;
-    
-    if (l > 0) nints += 4 * l - 2;
-    
-    if (l > 1) nints += 4 * l - 4;
+    size_t nints = 6 + 4 * rterm.order();
     
     for (const auto axis : "xyz")
     {
@@ -560,13 +554,7 @@ T2CProjectedECPDriver::apply_ket_vrr(const R2CTerm& rterm) const
 {
     R2CDist t2crt;
     
-    const auto l = rterm.order();
-    
-    size_t nints = 5;
-    
-    if (l > 0) nints += 2 * l - 1;
-    
-    if (l > 1) nints += 4 * l - 4;
+    size_t nints = 6 + 4 * rterm.order();
     
     for (const auto axis : "xyz")
     {
