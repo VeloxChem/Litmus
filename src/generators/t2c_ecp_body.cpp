@@ -20,8 +20,7 @@
 
 void
 T2CECPFuncBodyDriver::write_func_body(      std::ofstream& fstream,
-                                      const SI2CIntegrals& hrr_integrals,
-                                      const SI2CIntegrals& vrr_integrals,
+                                      const SI2CIntegrals& integrals,
                                       const I2CIntegral&   integral) const
 {
     auto lines = VCodeLines();
@@ -38,21 +37,7 @@ T2CECPFuncBodyDriver::write_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    auto ctints = _filter_contracted(vrr_integrals, integral);
-    
-    for (const auto& tint : hrr_integrals)
-    {
-        ctints.insert(tint);
-    }
-    
-    std::cout << "CTINTS Integrals : " << std::endl;
-   
-    for (const auto& tint : ctints)
-    {
-        std::cout << " < > " << tint.label() << std::endl;
-    }
-    
-    for (const auto& label : _get_buffers_def(ctints, vrr_integrals, integral))
+    for (const auto& label : _get_buffers_def(integrals, integral))
     {
         lines.push_back({1, 0, 2, label});
     }
@@ -61,15 +46,13 @@ T2CECPFuncBodyDriver::write_func_body(      std::ofstream& fstream,
     
     _add_ket_loop_start(lines, integral);
     
-    _add_vrr_call_tree(lines, vrr_integrals, integral);
+    _add_vrr_call_tree(lines, integrals, integral);
     
-    _add_reduce_call_tree(lines, vrr_integrals, ctints, integral);
+    _add_reduce_call_tree(lines, integrals, integral);
     
-    _add_ket_loop_end(lines, vrr_integrals, integral);
+    _add_ket_loop_end(lines, integrals, integral);
     
-    _add_hrr_call_tree(lines, ctints, integral);
-    
-    _add_loop_end(lines, ctints, integral);
+    _add_loop_end(lines, integral);
     
     lines.push_back({0, 0, 1, "}"});
     
@@ -125,24 +108,19 @@ T2CECPFuncBodyDriver::_get_ket_variables_def(const I2CIntegral& integral) const
     
     vstr.push_back("// allocate aligned 2D arrays for ket side");
     
-    size_t nelems = 8;
+    size_t nelems = 9;
     
     if (_need_distances_ra(integral)) nelems += 3;
     
     if (_need_distances_rb(integral)) nelems += 3;
     
-    if ((integral[0] + integral[1]) > 0) nelems += 1;
-    
     vstr.push_back("CSimdArray<double> pfactors(" + std::to_string(nelems) +  ", ket_npgtos);");
-    
-    vstr.push_back("CSimdArray<double> cfactors(6, 1);");
 
     return vstr;
 }
 
 std::vector<std::string>
-T2CECPFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& hrr_integrals,
-                                       const SI2CIntegrals& vrr_integrals,
+T2CECPFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
                                        const I2CIntegral&   integral) const
 {
     std::vector<std::string> vstr;
@@ -151,7 +129,7 @@ T2CECPFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& hrr_integrals,
     
     size_t icomps = 0;
     
-    for (const auto& tint : vrr_integrals)
+    for (const auto& tint : integrals)
     {
         icomps += tint.components<T1CPair, T1CPair>().size();
     }
@@ -162,13 +140,8 @@ T2CECPFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& hrr_integrals,
     
     vstr.push_back("// allocate aligned contracted integrals");
     
-    icomps = 0;
-    
-    for (const auto& tint : hrr_integrals)
-    {
-        icomps += tint.components<T1CPair, T1CPair>().size();
-    }
-    
+    icomps = integral.components<T1CPair, T1CPair>().size();
+        
     label = "CSimdArray<double> cbuffer(" + std::to_string(icomps) + ", 1);";
     
     vstr.push_back(label);
@@ -185,28 +158,6 @@ T2CECPFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& hrr_integrals,
     }
     
     return vstr;
-}
-
-SI2CIntegrals
-T2CECPFuncBodyDriver::_filter_contracted(const SI2CIntegrals& integrals,
-                                         const I2CIntegral&   integral) const
-{
-    SI2CIntegrals tints;
-    
-    if (integral[0] > integral[1])
-    {
-        for (const auto &tint : integrals)
-        {
-            if (tint[0] >= integral[0]) tints.insert(tint);
-        }
-    } else {
-        for (const auto &tint : integrals)
-        {
-            if (tint[1] >= integral[1]) tints.insert(tint);
-        }
-    }
-    
-    return tints;
 }
 
 void
@@ -231,14 +182,15 @@ T2CECPFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
 
     lines.push_back({2, 0, 2, "pfactors.replicate_points(ket_gto_coords, ket_range, 2, ket_npgtos);"});
     
-    lines.push_back({2, 0, 2, "cfactors.replicate_points(ket_gto_coords, ket_range, 0, 1);"});
-    
     lines.push_back({2, 0, 2, "// set up active SIMD width"});
     
     lines.push_back({2, 0, 2, "const auto ket_width = ket_range.second - ket_range.first;"});
     
-    lines.push_back({2, 0, 2, "sbuffer.set_active_width(ket_width);"});
-    
+    if ((integral[0] + integral[1]) > 0)
+    {
+        lines.push_back({2, 0, 2, "sbuffer.set_active_width(ket_width);"});
+    }
+   
     lines.push_back({2, 0, 2, "cbuffer.set_active_width(ket_width);"});
     
     lines.push_back({2, 0, 2, "pbuffer.set_active_width(ket_width);"});
@@ -251,27 +203,28 @@ T2CECPFuncBodyDriver::_add_loop_start(      VCodeLines&  lines,
         
     lines.push_back({3, 0, 2, "cbuffer.zero();"});
     
-    lines.push_back({3, 0, 2, "sbuffer.zero();"});
+    if ((integral[0] + integral[1]) > 0)
+    {
+        lines.push_back({3, 0, 2, "sbuffer.zero();"});
+    }
 
     lines.push_back({3, 0, 2, "const auto r_a = bra_gto_coords[j];"});
-
-    lines.push_back({3, 0, 2, "t2cfunc::comp_distances_ab(cfactors, 3, 0, r_a);"});
 }
 
 void
-T2CECPFuncBodyDriver::_add_loop_end(      VCodeLines&    lines,
-                                    const SI2CIntegrals& integrals,
-                                    const I2CIntegral&   integral) const
+T2CECPFuncBodyDriver::_add_loop_end(      VCodeLines&  lines,
+                                    const I2CIntegral& integral) const
 {
     std::string label;
-
-    label = "t2cfunc::transform<"  + std::to_string(integral[0]);
+    
+    if ((integral[0] + integral[1]) > 0)
+    {
+        label = "t2cfunc::transform<"  + std::to_string(integral[0]);
             
-    label += ", " + std::to_string(integral[1]) + ">(sbuffer, cbuffer, ";
-   
-    label += std::to_string(_get_position(integral, integrals)) + ");";
+        label += ", " + std::to_string(integral[1]) + ">(sbuffer, cbuffer);";
             
-    lines.push_back({3, 0, 2, label});
+        lines.push_back({3, 0, 2, label});
+    }
     
     if ((integral[0] + integral[1]) > 0)
     {
@@ -321,16 +274,30 @@ T2CECPFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
     
     if (_need_distances_ra(integral))
     {
-        lines.push_back({5, 0, 2, "t2cfunc::comp_distances_ra(pfactors, 8, 5, r_a);"});
+        auto label = std::to_string(_get_index_ra(integral));
+        
+        lines.push_back({5, 0, 2, "t2cfunc::comp_distances_ra(pfactors, " + label + " , 5, r_a);"});
     }
-    else
+   
+    if (_need_distances_rb(integral))
     {
-        lines.push_back({5, 0, 2, "t2cfunc::comp_distances_rb(pfactors, 8, 5, 2);"});
+        auto label = std::to_string(_get_index_rb(integral));
+        
+        lines.push_back({5, 0, 2, "t2cfunc::comp_distances_rb(pfactors, " + label + ", 5, 2);"});
     }
     
-    if ((integral[0] + integral[1]) > 1)
+    int torder = 0;
+    
+    for (const auto gorder : integral.prefixes_order())
     {
-        lines.push_back({5, 0, 2, "t2cfunc::comp_inverted_zeta(pfactors, 11, a_exp, c_exp);"});
+        torder += gorder;
+    }
+    
+    if ((integral[0] + integral[1] + torder) > 1)
+    {
+        auto label = std::to_string(_get_index_gamma(integral));
+        
+        lines.push_back({5, 0, 2, "t2cfunc::comp_inverted_zeta(pfactors, " + label + ", a_exp, c_exp);"});
     }
 }
 
@@ -347,13 +314,34 @@ T2CECPFuncBodyDriver::_add_ket_loop_end(      VCodeLines&            lines,
 bool
 T2CECPFuncBodyDriver::_need_distances_ra(const I2CIntegral& integral) const
 {
-    return (integral[0] > integral[1]) && ((integral[0] + integral[1]) > 0);
+    if (integral.is_simple())
+    {
+        return integral[0] > 0;
+    }
+    else
+    {
+        return (integral[0] + (integral.prefixes())[0].shape().order()) > 0;
+    }
 }
 
 bool
 T2CECPFuncBodyDriver::_need_distances_rb(const I2CIntegral& integral) const
 {
-    return (integral[0] <= integral[1]) && ((integral[0] + integral[1]) > 0);
+    if (integral.is_simple())
+    {
+        return integral[1] > 0;
+    }
+    else
+    {
+        if (auto prefixes = integral.prefixes(); prefixes.size() == 2)
+        {
+            return (integral[1] + prefixes[1].shape().order()) > 0;
+        }
+        else
+        {
+            return integral[1] > 0;
+        }
+    }
 }
 
 void
@@ -375,11 +363,26 @@ T2CECPFuncBodyDriver::_add_vrr_call_tree(      VCodeLines&    lines,
         
         if ((tint[0] + tint[1]) == 0)
         {
-            label += "pfactors, r_a, a_exp, c_exp, a_norm, c_norm);";
+            label += "pfactors, 5, ";
+            
+            label += std::to_string(_get_index_gamma(integral));
+            
+            label += ", r_a, a_exp, c_exp, a_norm, c_norm);";
         }
         else
         {
-            label += "pfactors);";
+            label += "pfactors, ";
+            
+            if (tint[0] > 0)
+            {
+                label += std::to_string(_get_index_ra(integral)) + ", ";
+            }
+            else
+            {
+                label += std::to_string(_get_index_rb(integral)) + ", ";
+            }
+            
+            label += std::to_string(_get_index_gamma(integral)) + ");";
         }
         
         lines.push_back({spacer, 0, 2, label});
@@ -418,61 +421,214 @@ T2CECPFuncBodyDriver::_get_position(const I2CIntegral&   integral,
 
 void
 T2CECPFuncBodyDriver::_add_reduce_call_tree(      VCodeLines&    lines,
-                                            const SI2CIntegrals& vrr_integrals,
-                                            const SI2CIntegrals& hrr_integrals,
+                                            const SI2CIntegrals& integrals,
                                             const I2CIntegral&   integral) const
 {
     const int spacer = 5;
     
-    for (const auto& tint : hrr_integrals)
+    std::string label = "t2cfunc::reduce(cbuffer, pbuffer, ";
+    
+    if (integral.is_simple())
     {
-        if ((tint[0] > 0) && (tint[1] > 0)) continue;
+        label += std::to_string(_get_position(integral, integrals)) + ", ";
+    }
+    else
+    {
+        size_t icomps = 0;
         
-        std::string label = "t2cfunc::reduce(cbuffer, ";
+        for (const auto& tint : integrals)
+        {
+            icomps += tint.components<T1CPair, T1CPair>().size();
+        }
         
-        label +=  std::to_string(_get_position(tint, hrr_integrals)) + ", ";
-        
-        label += "pbuffer, ";
-        
-        label += std::to_string(_get_position(tint, vrr_integrals)) + ", ";
-        
-        label += std::to_string(tint.components<T1CPair, T1CPair>().size()) + ", ";
-        
-        label += "ket_width, ket_npgtos);";
-        
-        lines.push_back({spacer, 0, 2, label});
+        label += std::to_string(icomps)  + ", ";
+    }
+    
+    label += "ket_width, ket_npgtos);";
+    
+    lines.push_back({spacer, 0, 1, label});
+}
+
+int
+T2CECPFuncBodyDriver::_get_index_ra(const I2CIntegral& integral) const
+{
+    return 8;
+}
+
+int
+T2CECPFuncBodyDriver::_get_index_rb(const I2CIntegral& integral) const
+{
+    if (_need_distances_ra(integral))
+    {
+       return _get_index_ra(integral) + 3;
+    }
+    else
+    {
+        return _get_index_ra(integral);
+    }
+}
+
+int
+T2CECPFuncBodyDriver::_get_index_gamma(const I2CIntegral& integral) const
+{
+    if (_need_distances_rb(integral))
+    {
+       return _get_index_rb(integral) + 3;
+    }
+    else
+    {
+        return _get_index_rb(integral);
     }
 }
 
 void
-T2CECPFuncBodyDriver::_add_hrr_call_tree(      VCodeLines&    lines,
-                                         const SI2CIntegrals& integrals,
-                                         const I2CIntegral&   integral) const
+T2CECPFuncBodyDriver::write_func_body(      std::ofstream&      fstream,
+                                      const SI2CIntegrals&      geom_integrals,
+                                      const SI2CIntegrals&      vrr_integrals,
+                                      const I2CIntegral&        integral,
+                                      const std::array<int, 3>& geom_drvs) const
 {
-    const int spacer = 3;
+    auto lines = VCodeLines();
+    
+    lines.push_back({0, 0, 1, "{"});
+    
+    for (const auto& label : _get_gtos_def())
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    for (const auto& label : _get_ket_variables_def(integral))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    for (const auto& label : _get_buffers_def(vrr_integrals, integral, geom_drvs))
+    {
+        lines.push_back({1, 0, 2, label});
+    }
+    
+    _add_loop_start(lines, integral);
+    
+    _add_ket_loop_start(lines, integral);
+    
+    _add_vrr_call_tree(lines, vrr_integrals, integral);
+    
+    _add_geom_call_tree(lines, geom_integrals, vrr_integrals, integral, geom_drvs);
+    
+    _add_reduce_call_tree(lines, vrr_integrals, integral);
+    
+    _add_ket_loop_end(lines, vrr_integrals, integral);
+    
+    _add_loop_end(lines, integral);
+    
+    lines.push_back({0, 0, 1, "}"});
+    
+    ost::write_code_lines(fstream, lines);
+    
+}
+
+std::vector<std::string>
+T2CECPFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
+                                       const I2CIntegral&   integral,
+                                       const std::array<int, 3>& geom_drvs) const
+{
+    std::vector<std::string> vstr;
+    
+    vstr.push_back("// allocate aligned primitive integrals");
+    
+    size_t icomps = 0;
     
     for (const auto& tint : integrals)
     {
-        if (!tint.is_simple()) continue;
-        
-        if ((tint[0] > 0) && (tint[1] > 0))
-        {
-            const auto name = t2c::hrr_compute_func_name(tint);
-            
-            auto label = "t2chrr::" + name + "(cbuffer, ";
-            
-            label +=  std::to_string(_get_position(tint, integrals)) + ", ";
-            
-            for (const auto& rint : t2c::get_hrr_integrals(tint, integral))
-            {
-                label += std::to_string(_get_position(rint, integrals)) + ", ";
-            }
-            
-            label += "cfactors);";
-            
-            lines.push_back({spacer, 0, 2, label});
-        }
+        icomps += tint.components<T1CPair, T1CPair>().size();
     }
+    
+    if (_need_geom_drvs(geom_drvs))
+    {
+        icomps += integral.components<T1CPair, T1CPair>().size();
+    }
+    
+    auto label = "CSimdArray<double> pbuffer(" + std::to_string(icomps) + ", ket_npgtos);";
+    
+    vstr.push_back(label);
+    
+    vstr.push_back("// allocate aligned contracted integrals");
+    
+    icomps = integral.components<T1CPair, T1CPair>().size();
+    
+    label = "CSimdArray<double> cbuffer(" + std::to_string(icomps) + ", 1);";
+    
+    vstr.push_back(label);
+    
+    if ((integral[0] + integral[1]) > 0)
+    {
+        const auto angpair = std::array<int, 2>({integral[0], integral[1]});
+        
+        icomps = t2c::number_of_spherical_components(angpair);
+        
+        icomps *= integral.integrand().components().size();
+        
+        if (const auto prefixes = integral.prefixes(); !prefixes.empty())
+        {
+            icomps *= make_components<OperatorComponent>(prefixes).size();
+        }
+        
+        label = "CSimdArray<double> sbuffer(" + std::to_string(icomps) + ", 1);";
+        
+        vstr.push_back(label);
+    }
+    
+    return vstr;
 }
 
+bool
+T2CECPFuncBodyDriver::_need_geom_drvs(const std::array<int, 3>& geom_drvs) const
+{
+    return (geom_drvs[0] + geom_drvs[2]) > 0;
+}
 
+void
+T2CECPFuncBodyDriver::_add_geom_call_tree(      VCodeLines&         lines,
+                                          const SI2CIntegrals&      geom_integrals,
+                                          const SI2CIntegrals&      vrr_integrals,
+                                          const I2CIntegral&        integral,
+                                          const std::array<int, 3>& geom_drvs) const
+{
+    if (_need_geom_drvs(geom_drvs))
+    {
+        const int spacer = 5;
+        
+        const auto tint = integral.replace(Operator("R"));
+        
+        const auto name = t2c::prim_compute_func_name(tint);
+        
+        auto label = "t2cgeom::" + name + "(pbuffer, ";
+        
+        size_t icomps = 0;
+        
+        for (const auto& tint : vrr_integrals)
+        {
+            icomps += tint.components<T1CPair, T1CPair>().size();
+        }
+        
+        label += std::to_string(icomps)  + ", ";
+        
+        for (auto cint : geom_integrals)
+        {
+            label += std::to_string(_get_position(cint, vrr_integrals)) + ", ";
+        }
+        
+        label += std::to_string(integral.integrand().shape().components().size()) + ", ";
+        
+        if (geom_drvs[2] == 0)
+        {
+            label += std::to_string(Tensor(integral[1]).components().size()) + ", ";
+        }
+        
+        if (geom_drvs[2] > 0) label += "pfactors, ";
+        
+        label += "a_exp);";
+        
+        lines.push_back({spacer, 0, 2, label});
+    }
+}

@@ -19,9 +19,11 @@
 #include "t2c_utils.hpp"
 
 void
-T2CProjECPFuncBodyDriver::write_func_body(      std::ofstream& fstream,
-                                          const SM2Integrals&  integrals,
-                                          const M2Integral&    integral) const
+T2CProjECPFuncBodyDriver::write_func_body(      std::ofstream&      fstream,
+                                          const SM2Integrals&       geom_integrals,
+                                          const SM2Integrals&       vrr_integrals,
+                                          const M2Integral&         integral,
+                                          const std::array<int, 3>& geom_drvs) const
 {
     auto lines = VCodeLines();
     
@@ -32,27 +34,29 @@ T2CProjECPFuncBodyDriver::write_func_body(      std::ofstream& fstream,
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_ket_variables_def(integrals))
+    for (const auto& label : _get_ket_variables_def(vrr_integrals))
     {
         lines.push_back({1, 0, 2, label});
     }
     
-    for (const auto& label : _get_buffers_def(integrals, integral))
+    for (const auto& label : _get_buffers_def(vrr_integrals, integral))
     {
         lines.push_back({1, 0, 2, label});
     }
-    
+        
     _add_loop_start(lines, integral);
     
-    _add_ket_loop_start(lines, integrals, integral);
+    _add_ket_loop_start(lines, vrr_integrals, integral);
     
-    _add_aux_call_tree(lines, integrals, integral);
+    _add_aux_call_tree(lines, vrr_integrals, integral);
 
-    _add_vrr_call_tree(lines, integrals, integral);
+    _add_vrr_call_tree(lines, vrr_integrals, integral);
     
-    _add_reduce_call_tree(lines, integrals, integral);
+    _add_geom_call_tree(lines, geom_integrals, vrr_integrals, integral, geom_drvs);
     
-    _add_ket_loop_end(lines, integrals, integral);
+    _add_reduce_call_tree(lines, vrr_integrals, integral);
+    
+    _add_ket_loop_end(lines, vrr_integrals, integral);
   
     _add_loop_end(lines, integral);
     
@@ -187,6 +191,14 @@ T2CProjECPFuncBodyDriver::_get_buffers_def(const SM2Integrals& integrals,
     const auto angpair = std::array<int, 2>({integral.second[0], integral.second[1]});
     
     icomps = t2c::number_of_spherical_components(angpair);
+    
+    if (const auto prefixes = integral.second.prefixes(); !prefixes.empty())
+    {
+        for (const auto& prefix : prefixes)
+        {
+            icomps *= prefix.components().size();
+        }
+    }
     
     label = "CSimdArray<double> sbuffer(" + std::to_string(icomps) + ", 1);";
     
@@ -396,6 +408,8 @@ T2CProjECPFuncBodyDriver::_add_vrr_call_tree(      VCodeLines&   lines,
     
     for (const auto& [pref, tint] : integrals)
     {
+        if (!tint.prefixes().empty()) continue;
+        
         if ((tint[0] + tint[1]) > 0)
         {
             rints.insert(tint);
@@ -486,4 +500,56 @@ T2CProjECPFuncBodyDriver::_get_vrr_arguments(const M2Integral&   integral,
     }
     
     return label;
+}
+
+void
+T2CProjECPFuncBodyDriver::_add_geom_call_tree(      VCodeLines&         lines,
+                                              const SM2Integrals&       geom_integrals,
+                                              const SM2Integrals&       vrr_integrals,
+                                              const M2Integral&         integral,
+                                              const std::array<int, 3>& geom_drvs) const
+{
+    if (_need_geom_drvs(geom_drvs))
+    {
+        const int spacer = 5;
+        
+        const auto tint = M2Integral(integral.first, integral.second.replace(Operator("R")));
+        
+        const auto name = t2c::prim_compute_func_name(tint.second);
+        
+        auto label = "t2cgeom::" + name + "(pbuffer, ";
+        
+        label += std::to_string(_get_position(integral, vrr_integrals)) + ", ";
+        
+        SI2CIntegrals tints;
+        
+        for (auto tint : geom_integrals)
+        {
+            if (tint.second.prefixes().empty()) tints.insert(tint.second);
+        }
+        
+        for (auto cint : tints)
+        {
+            label += std::to_string(_get_position({integral.first, cint}, vrr_integrals)) + ", ";
+        }
+        
+        label += std::to_string(integral.second.integrand().shape().components().size()) + ", ";
+        
+        if (geom_drvs[2] == 0)
+        {
+            label += std::to_string(Tensor(integral.second[1]).components().size()) + ", ";
+        }
+        
+        if (geom_drvs[2] > 0) label += "factors, ";
+        
+        label += "a_exp);";
+        
+        lines.push_back({spacer, 0, 2, label});
+    }
+}
+
+bool
+T2CProjECPFuncBodyDriver::_need_geom_drvs(const std::array<int, 3>& geom_drvs) const
+{
+    return (geom_drvs[0] + geom_drvs[2]) > 0;
 }

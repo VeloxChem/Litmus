@@ -38,20 +38,11 @@ class T2CECPFuncBodyDriver
     std::vector<std::string> _get_ket_variables_def(const I2CIntegral& integral) const;
     
     /// Generates vector of buffers in compute function.
-    /// @param hrr_integrals The set of inetrgals in horizontal recursion.
-    /// @param vrr_integrals The set of inetrgals in vertical recursion.
-    /// @param integral The base two center integral.
-    /// @return The vector of buffers in compute function.
-    std::vector<std::string> _get_buffers_def(const SI2CIntegrals& hrr_integrals,
-                                              const SI2CIntegrals& vrr_integrals,
-                                              const I2CIntegral&   integral) const;
-    
-    /// Filters set of VRR integrals requiring contraction.
     /// @param integrals The set of inetrgals in vertical recursion.
     /// @param integral The base two center integral.
-    /// @return The set of VRR integrals requiring contraction.
-    SI2CIntegrals _filter_contracted(const SI2CIntegrals& integrals,
-                                     const I2CIntegral&   integral) const;
+    /// @return The vector of buffers in compute function.
+    std::vector<std::string> _get_buffers_def(const SI2CIntegrals& integrals,
+                                              const I2CIntegral&   integral) const;
     
     /// Adds loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
@@ -61,11 +52,9 @@ class T2CECPFuncBodyDriver
     
     /// Adds loop end definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
-    /// @param integrals The set of inetrgals.
     /// @param integral The base two center integral.
-    void _add_loop_end(      VCodeLines&    lines,
-                       const SI2CIntegrals& integrals,
-                       const I2CIntegral&   integral) const;
+    void _add_loop_end(      VCodeLines&  lines,
+                       const I2CIntegral& integral) const;
     
     /// Adds ket loop start definitions to code lines container.
     /// @param lines The code lines container to which loop start definition are added.
@@ -112,21 +101,51 @@ class T2CECPFuncBodyDriver
     
     /// Adds call tree for reduction call tree.
     /// @param lines The code lines container to which loop start definition are added.
-    /// @param vrr_integrals The set of VRR inetrgals.
-    /// @param hrr_integrals The set of HRR inetrgals.
+    /// @param integrals The set of VRR inetrgals.
     /// @param integral The base two center integral.
     void _add_reduce_call_tree(      VCodeLines&    lines,
-                               const SI2CIntegrals& vrr_integrals,
-                               const SI2CIntegrals& hrr_integrals,
+                               const SI2CIntegrals& integrals,
                                const I2CIntegral&   integral) const;
     
-    /// Adds call tree for HRR recursion.
-    /// @param lines The code lines container to which loop start definition are added.
+    /// Gets index of R(RA) distances in factors list.
+    /// @param integral The base two center integral.
+    /// @return The string with index label.
+    int _get_index_ra(const I2CIntegral& integral) const;
+    
+    /// Gets index of R(RB) distances in factors list.
+    /// @param integral The base two center integral.
+    /// @return The string with index label.
+    int _get_index_rb(const I2CIntegral& integral) const;
+    
+    /// Gets index of gamma factors in factors list.
+    /// @param integral The base two center integral.
+    /// @return The string with index label.
+    int _get_index_gamma(const I2CIntegral& integral) const;
+    
+    /// Generates vector of buffers in compute function.
     /// @param integrals The set of inetrgals.
     /// @param integral The base two center integral.
-    void _add_hrr_call_tree(      VCodeLines&    lines,
-                            const SI2CIntegrals& integrals,
-                            const I2CIntegral&   integral) const;
+    /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
+    /// @return The vector of buffers in compute function.
+    std::vector<std::string> _get_buffers_def(const SI2CIntegrals&      integrals,
+                                              const I2CIntegral&        integral,
+                                              const std::array<int, 3>& geom_drvs) const;
+    
+    /// Checks if geometrical derivatives are needed.
+    /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
+    bool _need_geom_drvs(const std::array<int, 3>& geom_drvs) const;
+    
+    /// Adds call tree for recursion.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param geom_integrals The set of inetrgals in geometrical recursion.
+    /// @param vrr_integrals The set of inetrgals in vertical recursion.
+    /// @param integral The base two center integral.
+    /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
+    void _add_geom_call_tree(      VCodeLines&            lines,
+                             const SI2CIntegrals&         geom_integrals,
+                             const SI2CIntegrals&         vrr_integrals,
+                             const I2CIntegral&           integral,
+                             const std::array<int, 3>&    geom_drvs) const;
     
 public:
     /// Creates a two-center ECP compute function body generator.
@@ -134,13 +153,23 @@ public:
     
     /// Writes body of local ECP compute function.
     /// @param fstream the file stream.
-    /// @param hrr_integrals The set of inetrgals in horizontal recursion.
+    /// @param integrals The set of inetrgals in vertical recursion.
+    /// @param integral The base two center integral.
+    void write_func_body(      std::ofstream& fstream,
+                         const SI2CIntegrals& integrals,
+                         const I2CIntegral&   integral) const;
+    
+    /// Writes body of compute function.
+    /// @param fstream the file stream.
+    /// @param geom_integrals The set of inetrgals in geometrical recursion.
     /// @param vrr_integrals The set of inetrgals in vertical recursion.
     /// @param integral The base two center integral.
-    void write_func_body(      std::ofstream&         fstream,
-                         const SI2CIntegrals&         hrr_integrals,
-                         const SI2CIntegrals&         vrr_integrals,
-                         const I2CIntegral&           integral) const;
+    /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
+    void write_func_body(      std::ofstream&      fstream,
+                         const SI2CIntegrals&      geom_integrals,
+                         const SI2CIntegrals&      vrr_integrals,
+                         const I2CIntegral&        integral,
+                         const std::array<int, 3>& geom_drvs) const;
 };
 
 #endif /* t2c_ecp_body_hpp */

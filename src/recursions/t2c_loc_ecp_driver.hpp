@@ -42,6 +42,13 @@ public:
     /// @param rterm The recursion term.
     /// @param axis The axis of vertical recursion.
     /// @return The recursion expansion of given recursion term.
+    std::optional<R2CDist> full_bra_vrr(const R2CTerm& rterm,
+                                        const char     axis) const;
+    
+    /// Applies vertical recursion to bra side of given recursion term.
+    /// @param rterm The recursion term.
+    /// @param axis The axis of vertical recursion.
+    /// @return The recursion expansion of given recursion term.
     std::optional<R2CDist> bra_vrr(const R2CTerm& rterm,
                                    const char     axis) const;
     
@@ -56,6 +63,12 @@ public:
     /// integral.
     /// @param rterm The recursion term with overlap integral.
     /// @return The recursion expansion of given recursion term.
+    R2CDist apply_full_bra_vrr(const R2CTerm& rterm) const;
+    
+    /// Applies vertical recursion to bra side recursion term containing overlap
+    /// integral.
+    /// @param rterm The recursion term with overlap integral.
+    /// @return The recursion expansion of given recursion term.
     R2CDist apply_bra_vrr(const R2CTerm& rterm) const;
     
     /// Applies vertical recursion to ket side recursion term containing overlap
@@ -66,7 +79,15 @@ public:
         
     /// Recursively applies Obara-Saika recursion to recursion expansion.
     /// @param rdist The recursion expansion.
+    void apply_full_recursion(R2CDist& rdist) const;
+    
+    /// Recursively applies Obara-Saika recursion to recursion expansion.
+    /// @param rdist The recursion expansion.
     void apply_recursion(R2CDist& rdist) const;
+    
+    /// Recursively applies vertical recursion to bra side of given recursion expansion.
+    /// @param rdist The recursion expansion.
+    void apply_full_bra_vrr(R2CDist& rdist) const;
     
     /// Recursively applies vertical recursion to bra side of given recursion expansion.
     /// @param rdist The recursion expansion.
@@ -79,7 +100,16 @@ public:
     /// Creates recursion group from vector of overlap integral components.
     /// @param vints The  vector of overlap integral components.
     /// @return The recursion group.
+    R2Group create_full_recursion(const VT2CIntegrals& vints) const;
+    
+    /// Creates recursion group from vector of overlap integral components.
+    /// @param vints The  vector of overlap integral components.
+    /// @return The recursion group.
     R2Group create_recursion(const VT2CIntegrals& vints) const;
+    
+    /// Recursively applies Obara-Saika recursion to recursion group.
+    /// @param rgroup The recursion group.
+    void apply_full_recursion(R2Group& rgroup) const;
     
     /// Recursively applies Obara-Saika recursion to recursion group.
     /// @param rgroup The recursion group.

@@ -27,6 +27,7 @@
 #include "t2c_prim_decl.hpp"
 #include "t2c_ecp_body.hpp"
 #include "t2c_ecp_prim_body.hpp"
+#include "v2i_loc_ecp_driver.hpp"
 
 void
 T2CECPCPUGenerator::generate(const std::string& label,
@@ -48,30 +49,15 @@ T2CECPCPUGenerator::generate(const std::string& label,
                             
                             const auto integrals = _generate_integral_group(integral);
                             
-                            const auto hrr_integrals = _filter_hrr_integrals(integrals);
+                            _write_cpp_header(integrals, integral);
                             
-                            const auto vrr_integrals = _filter_vrr_integrals(integrals);
-                            
-                            _write_cpp_header(hrr_integrals, vrr_integrals, integral);
+                            if ((i + j) > 0)
+                            {
+                                _write_prim_cpp_header(integral);
+                                    
+                                _write_prim_cpp_file(integral);
+                            }
                         }
-                    }
-                }
-                
-                for (int i = 1; i <= 2 * max_ang_mom; i++)
-                {
-                   #pragma omp task firstprivate(i)
-                    {
-                        auto integral = _get_integral(label, {0, i});
-                        
-                        _write_prim_cpp_header(integral);
-                            
-                        _write_prim_cpp_file(integral);
-                        
-                        integral = _get_integral(label, {i, 0});
-                        
-                        _write_prim_cpp_header(integral);
-                            
-                        _write_prim_cpp_file(integral);
                     }
                 }
             }
@@ -120,78 +106,19 @@ T2CECPCPUGenerator::_generate_integral_group(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
 
-    // Local core potential integrals
+    // Local ECP integrals
     
     if (integral.integrand() == Operator("U_L"))
     {
-        // set up VRR recursions
+        V2ILocalECPDriver ecp_drv;
         
-        if (integral[0] > integral[1])
+        if (integral.is_simple())
         {
-            for (int i = 0; i <= integral[0] + integral[1]; i++)
-            {
-                tints.insert(_get_integral("local", {i, 0}));
-            }
-        } else {
-            for (int i = 0; i <= integral[0] + integral[1]; i++)
-            {
-                tints.insert(_get_integral("local", {0, i}));
-            }
+            tints = ecp_drv.create_full_recursion({integral,});
         }
-        
-        // set up HRR recursions
-        
-        if ((integral[0] > 0) && (integral[1] > 0))
+        else
         {
-            if (integral[0] > integral[1])
-            {
-                for (int i = 1; i <= integral[1]; i++)
-                {
-                    for (int j = integral[0]; j <= integral[0] + integral[1] - i; j++)
-                    {
-                        tints.insert(_get_integral("local", {j, i}));
-                    }
-                }
-            } else {
-                for (int i = 1; i <= integral[0]; i++)
-                {
-                    for (int j = integral[1]; j <= integral[0] + integral[1] - i; j++)
-                    {
-                        tints.insert(_get_integral("local", {i, j}));
-                    }
-                }
-            }
-        }
-    }
-
-    return tints;
-}
-
-SI2CIntegrals
-T2CECPCPUGenerator::_filter_hrr_integrals(const SI2CIntegrals& integrals) const
-{
-    SI2CIntegrals tints;
-    
-    for (const auto& tint : integrals)
-    {
-        if ((tint[0] > 0) && (tint[1] > 0))
-        {
-            tints.insert(tint);
-        }
-    }
-    return tints;
-}
-
-SI2CIntegrals
-T2CECPCPUGenerator::_filter_vrr_integrals(const SI2CIntegrals& integrals) const
-{
-    SI2CIntegrals tints;
-    
-    for (const auto& tint : integrals)
-    {
-        if ((tint[0] == 0) || (tint[1] == 0))
-        {
-            tints.insert(tint);
+            tints = ecp_drv.create_full_recursion(tints);
         }
     }
     
@@ -199,8 +126,7 @@ T2CECPCPUGenerator::_filter_vrr_integrals(const SI2CIntegrals& integrals) const
 }
 
 void
-T2CECPCPUGenerator::_write_cpp_header(const SI2CIntegrals& hrr_integrals,
-                                      const SI2CIntegrals& vrr_integrals,
+T2CECPCPUGenerator::_write_cpp_header(const SI2CIntegrals& integrals,
                                       const I2CIntegral&   integral) const
 {
     auto fname = _file_name(integral) + ".hpp";
@@ -211,7 +137,7 @@ T2CECPCPUGenerator::_write_cpp_header(const SI2CIntegrals& hrr_integrals,
     
     _write_hpp_defines(fstream, integral, false, true);
     
-    _write_hpp_includes(fstream, hrr_integrals, vrr_integrals, integral);
+    _write_hpp_includes(fstream, integrals, integral);
     
     _write_namespace(fstream, integral, true);
    
@@ -225,7 +151,7 @@ T2CECPCPUGenerator::_write_cpp_header(const SI2CIntegrals& hrr_integrals,
     
     decl_drv.write_ecp_func_decl(fstream, integral, false);
     
-    func_drv.write_func_body(fstream, hrr_integrals, vrr_integrals, integral);
+    func_drv.write_func_body(fstream, integrals, integral);
     
     fstream << std::endl;
 
@@ -270,8 +196,7 @@ T2CECPCPUGenerator::_write_hpp_defines(      std::ofstream& fstream,
 
 void
 T2CECPCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
-                                        const SI2CIntegrals& hrr_integrals,
-                                        const SI2CIntegrals& vrr_integrals,
+                                        const SI2CIntegrals& integrals,
                                         const I2CIntegral&   integral) const
 {
     auto lines = VCodeLines();
@@ -292,16 +217,9 @@ T2CECPCPUGenerator::_write_hpp_includes(      std::ofstream& fstream,
     
     SI2CIntegrals rints;
     
-    for (const auto& tint : vrr_integrals)
+    for (const auto& tint : integrals)
     {
         lines.push_back({0, 0, 1, "#include \"" + t2c::prim_file_name(tint) + ".hpp\""});
-    }
-    
-    // need hrr recursion fixing 
-    
-    for (const auto& tint : hrr_integrals)
-    {
-       lines.push_back({0, 0, 1, "#include \"" + t2c::hrr_file_name(tint) + ".hpp\""});
     }
     
     lines.push_back({0, 0, 1, "#include \"T2CUtils.hpp\""});

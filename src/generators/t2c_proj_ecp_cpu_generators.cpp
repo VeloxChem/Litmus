@@ -171,7 +171,7 @@ T2CProjECPCPUGenerator::_write_cpp_header(const SM2Integrals& integrals,
 
     decl_drv.write_proj_ecp_func_decl(fstream, integral, false);
 
-    func_drv.write_func_body(fstream, integrals, integral);
+    func_drv.write_func_body(fstream, {}, integrals, integral, {0, 0, 0});
     
     fstream << std::endl;
 

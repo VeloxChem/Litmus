@@ -119,6 +119,20 @@ class T2CProjECPFuncBodyDriver
     void _add_reduce_call_tree(      VCodeLines&   lines,
                                const SM2Integrals& integrals,
                                const M2Integral&   integral) const;
+    
+    /// Adds call tree for recursion.
+    /// @param lines The code lines container to which loop start definition are added.
+    /// @param geom_integrals The set of inetrgals in geometrical recursion.
+    /// @param vrr_integrals The set of inetrgals in vertical recursion.
+    void _add_geom_call_tree(      VCodeLines&         lines,
+                             const SM2Integrals&       geom_integrals,
+                             const SM2Integrals&       vrr_integrals,
+                             const M2Integral&         integral,
+                             const std::array<int, 3>& geom_drvs) const;
+    
+    /// Checks if geometrical derivatives are needed.
+    /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
+    bool _need_geom_drvs(const std::array<int, 3>& geom_drvs) const;
         
 public:
     /// Creates a two-center ECP compute function body generator.
@@ -126,11 +140,14 @@ public:
     
     /// Writes body of local ECP compute function.
     /// @param fstream the file stream.
-    /// @param integrals The set of inetrgals in vertical recursion.
+    /// @param geom_integrals The set of inetrgals in geometrical recursion.
+    /// @param vrr_integrals The set of inetrgals in vertical recursion.
     /// @param integral The base two center integral.
-    void write_func_body(      std::ofstream& fstream,
-                         const SM2Integrals&  integrals,
-                         const M2Integral&    integral) const;
+    void write_func_body(      std::ofstream&      fstream,
+                         const SM2Integrals&       geom_integrals,
+                         const SM2Integrals&       vrr_integrals,
+                         const M2Integral&         integral,
+                         const std::array<int, 3>& geom_drvs) const;
 };
 
 #endif /* t2c_proj_ecp_body_hpp */

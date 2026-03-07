@@ -177,8 +177,23 @@ T2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const
     
     vstr.push_back("/// @param factors The primitive factors buffer.");
    
-    if (integral.integrand().name() == "U_L") return vstr;
-    
+    if (integral.integrand().name() == "U_L")
+    {
+        if (integral[0] > 0)
+        {
+            vstr.push_back("/// @param idx_ra The vector of distances R(RA) = R - A.");
+        }
+        
+        if ((integral[0] == 0) && (integral[1] > 0))
+        {
+            vstr.push_back("/// @param idx_rb The vector of distances R(RB) = R - B.");
+        }
+        
+        vstr.push_back("/// @param idx_zeta The inverted zeta.");
+        
+        return vstr;
+    }
+        
     if (integral.integrand().name() == "U_l")
     {
         if (integral[0] > 0)
@@ -187,13 +202,13 @@ T2CPrimDocuDriver::_get_coordinates_str(const I2CIntegral& integral) const
             {
                 vstr.push_back("/// @param idx_b The vector of Cartesian B points coordinates.");
             }
-            
+                    
             vstr.push_back("/// @param r_a The Cartesian A point coordinates.");
         }
         else
         {
             vstr.push_back("/// @param idx_b The vector of Cartesian B points coordinates.");
-            
+                    
             if (integral.order() > 0)
             {
                 vstr.push_back("/// @param r_a The Cartesian A point coordinates.");

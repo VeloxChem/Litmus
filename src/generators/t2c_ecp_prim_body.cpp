@@ -76,29 +76,28 @@ T2CECPPrimFuncBodyDriver::_get_factors_str(const I2CIntegral& integral) const
     {
         vstr.push_back("// Set up R(RA) distances");
 
-        vstr.push_back("auto ra_x = factors.data(8);");
+        vstr.push_back("auto ra_x = factors.data(idx_ra);");
         
-        vstr.push_back("auto ra_y = factors.data(9);");
+        vstr.push_back("auto ra_y = factors.data(idx_ra + 1);");
 
-        vstr.push_back("auto ra_z = factors.data(10);");
+        vstr.push_back("auto ra_z = factors.data(idx_ra + 2);");
     }
-    
-    if (integral[1] > 0)
+    else
     {
         vstr.push_back("// Set up R(RB) distances");
 
-        vstr.push_back("auto rb_x = factors.data(8);");
+        vstr.push_back("auto rb_x = factors.data(idx_rb);");
         
-        vstr.push_back("auto rb_y = factors.data(9);");
+        vstr.push_back("auto rb_y = factors.data(idx_rb + 1);");
 
-        vstr.push_back("auto rb_z = factors.data(10);");
+        vstr.push_back("auto rb_z = factors.data(idx_rb + 2);");
     }
     
     if ((integral[0] + integral[1]) > 1)
     {
         vstr.push_back("// Set up inverted 1/2xi");
 
-        vstr.push_back("auto fxi = factors.data(11);");
+        vstr.push_back("auto fxi = factors.data(idx_zeta);");
     }
             
     return vstr;
@@ -115,7 +114,7 @@ T2CECPPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
         
         if (integral[0].order() > 0)
         {
-            rdist = ecp_drv.apply_bra_vrr(R2CTerm(integral));
+            rdist = ecp_drv.apply_full_bra_vrr(R2CTerm(integral));
         }
         else
         {
@@ -317,8 +316,7 @@ T2CECPPrimFuncBodyDriver::_get_pragma_str(const I2CIntegral&          integral,
         
         tlabels.insert("ra_z");
     }
-    
-    if (integral[1] > 0)
+    else
     {
         tlabels.insert("rb_x");
         

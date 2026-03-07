@@ -132,7 +132,6 @@ class T2CFuncBodyDriver
                         const I2CIntegral&           integral,
                         const std::pair<bool, bool>& rec_form) const;
     
-    
     /// Adds call tree for recursion.
     /// @param lines The code lines container to which loop start definition are added.
     /// @param geom_integrals The set of inetrgals in geometrical recursion.

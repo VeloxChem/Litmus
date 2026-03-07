@@ -357,7 +357,6 @@ T2CGeomCPUGenerator::_file_name(const I2CIntegral&           integral,
     return t2c::integral_label(integral) + label;
 }
 
-
 void
 T2CGeomCPUGenerator::_write_hpp_defines(      std::ofstream&         fstream,
                                         const I2CIntegral&           integral,

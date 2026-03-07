@@ -431,6 +431,22 @@ compute_func_name(const I2CIntegral&           integral,
                 geom_label += std::to_string(tint_prefixes[2].shape().order());
             }
         }
+        else if (integral.integrand().name() == "U_l")
+        {
+            geom_label += std::to_string(tint_prefixes[0].shape().order());
+            
+            geom_label += std::to_string(integral.integrand().shape().order());
+            
+            geom_label += std::to_string(tint_prefixes[1].shape().order());
+        }
+        else if (integral.integrand().name() == "U_L")
+        {
+            geom_label += std::to_string(tint_prefixes[0].shape().order());
+            
+            geom_label += std::to_string(integral.integrand().shape().order());
+            
+            geom_label += std::to_string(tint_prefixes[1].shape().order());
+        }
         else
         {
             for (const auto& tint_prefix : tint_prefixes)
@@ -1010,7 +1026,7 @@ get_integrals(const I2CIntegral& integral)
         
         if (integral[0] > 0)
         {
-            tints = ecp_drv.bra_vrr(integral);
+            tints = ecp_drv.full_bra_vrr(integral);
         }
         else
         {

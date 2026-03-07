@@ -37,12 +37,22 @@ public:
     /// Applies vertical recursion to bra side of overlap integral.
     /// @param integral The  overlap integral.
     /// @return The set of integrals.
+    SI2CIntegrals full_bra_vrr(const I2CIntegral& integral) const;
+    
+    /// Applies vertical recursion to bra side of overlap integral.
+    /// @param integral The  overlap integral.
+    /// @return The set of integrals.
     SI2CIntegrals bra_vrr(const I2CIntegral& integral) const;
     
     /// Applies vertical recursion to ket side of overlap integral.
     /// @param integral The  overlap integral.
     /// @return The set of integrals.
     SI2CIntegrals ket_vrr(const I2CIntegral& integral) const;
+    
+    /// Applies vertical recursion to bra side of overlap integral.
+    /// @param integral The  overlap integral.
+    /// @return The recursion expansion of integral.
+    SI2CIntegrals apply_full_bra_vrr(const I2CIntegral& integral) const;
     
     /// Applies vertical recursion to bra side of overlap integral.
     /// @param integral The  overlap integral.
@@ -57,7 +67,17 @@ public:
     /// Recursively applies Obara-Saika recursion to recursion expansion.
     /// @param integrals The  integral to apply recursion.
     /// @return The set of integrals.
+    SI2CIntegrals apply_full_recursion(const SI2CIntegrals& integrals) const;
+    
+    /// Recursively applies Obara-Saika recursion to recursion expansion.
+    /// @param integrals The  integral to apply recursion.
+    /// @return The set of integrals.
     SI2CIntegrals apply_recursion(const SI2CIntegrals& integrals) const;
+    
+    /// Creates recursion expansion for set of integral.
+    /// @param integrals The set of integrals to apply recursion.
+    /// @return The set of integrals.
+    SI2CIntegrals create_full_recursion(const SI2CIntegrals& integrals) const;
     
     /// Creates recursion expansion for set of integral.
     /// @param integrals The set of integrals to apply recursion.

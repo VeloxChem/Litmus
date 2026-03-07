@@ -166,8 +166,20 @@ T2CPrimDeclDriver::_get_coordinates_str(const I2CIntegral& integral,
     
     if (integral.integrand().name() == "U_L")
     {
-        vstr.push_back(spacer + "const CSimdArray<double>& factors) -> void" + tsymbol);
+        vstr.push_back(spacer + "const CSimdArray<double>& factors,");
         
+        if (integral[0] > 0)
+        {
+            vstr.push_back(spacer + "const size_t idx_ra,");
+        }
+        
+        if ((integral[0] == 0) && (integral[1] > 0))
+        {
+            vstr.push_back(spacer + "const size_t idx_rb,");
+        }
+        
+        vstr.push_back(spacer + "const size_t idx_zeta) -> void" + std::string(tsymbol));
+    
         return vstr;
     }
     else

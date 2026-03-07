@@ -35,6 +35,38 @@ V2ILocalECPDriver::is_local_ecp(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
+V2ILocalECPDriver::full_bra_vrr(const I2CIntegral& integral) const
+{
+    SI2CIntegrals tints;
+    
+    if (!is_local_ecp(integral)) return tints;
+    
+    if (const auto tval = integral.shift(-1, 0))
+    {
+        // first recursion term
+
+        tints.insert(*tval);
+        
+        // second recursion term
+        
+        if (const auto r2val = tval->shift(-1, 0))
+        {
+            tints.insert(*r2val);
+        }
+        
+        // third recursion term
+        
+        if (const auto r3val = tval->shift(-1, 1))
+        {
+            tints.insert(*r3val);
+        }
+    }
+        
+    return tints;
+}
+
+
+SI2CIntegrals
 V2ILocalECPDriver::bra_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
@@ -79,6 +111,51 @@ V2ILocalECPDriver::ket_vrr(const I2CIntegral& integral) const
     
     return tints;
 }
+
+SI2CIntegrals
+V2ILocalECPDriver::apply_full_bra_vrr(const I2CIntegral& integral) const
+{
+    SI2CIntegrals tints;
+    
+    if (integral[0] > 0)
+    {
+        SI2CIntegrals rtints({integral, });
+                
+        while (!rtints.empty())
+        {
+            SI2CIntegrals new_rtints;
+                
+            for (const auto& rtint : rtints)
+            {
+                if (rtint[0] != 0)
+                {
+                   const auto ctints = full_bra_vrr(rtint);
+                    
+                   for (const auto& ctint : ctints)
+                   {
+                       tints.insert(ctint);
+                       
+                       if (ctint[0] != 0)
+                       {
+                           new_rtints.insert(ctint);
+                       }
+                   }
+                }
+                else
+                {
+                    tints.insert(rtint);
+                }
+            }
+            
+            rtints = new_rtints;
+        }
+    }
+   
+    tints.insert(integral);
+    
+    return tints;
+}
+
 
 SI2CIntegrals
 V2ILocalECPDriver::apply_bra_vrr(const I2CIntegral& integral) const
@@ -169,6 +246,33 @@ V2ILocalECPDriver::apply_ket_vrr(const I2CIntegral& integral) const
 }
 
 SI2CIntegrals
+V2ILocalECPDriver::apply_full_recursion(const SI2CIntegrals& integrals) const
+{
+    SI2CIntegrals tints;
+    
+    for (const auto& integral : integrals)
+    {
+        tints.insert(integral);
+        
+        for (const auto& bintegral : apply_full_bra_vrr(integral))
+        {
+            if (bintegral[0] == 0)
+            {
+                const auto ctints = apply_ket_vrr(bintegral);
+
+                tints.insert(ctints.cbegin(), ctints.cend());
+            }
+            else
+            {
+                tints.insert(bintegral);
+            }
+        }
+    }
+    
+    return tints;
+}
+
+SI2CIntegrals
 V2ILocalECPDriver::apply_recursion(const SI2CIntegrals& integrals) const
 {
     SI2CIntegrals tints;
@@ -189,6 +293,28 @@ V2ILocalECPDriver::apply_recursion(const SI2CIntegrals& integrals) const
             {
                 tints.insert(bintegral);
             }
+        }
+    }
+    
+    return tints;
+}
+
+SI2CIntegrals
+V2ILocalECPDriver::create_full_recursion(const SI2CIntegrals& integrals) const
+{
+    SI2CIntegrals tints;
+    
+    for (const auto& integral : integrals)
+    {
+        if (is_local_ecp(integral))
+        {
+            const auto ctints = apply_full_recursion({integral, });
+            
+            tints.insert(ctints.cbegin(), ctints.cend());
+        }
+        else
+        {
+            tints.insert(integral);
         }
     }
     

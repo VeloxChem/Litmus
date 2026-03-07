@@ -14,8 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef t2c_ecp_cpu_generators_hpp
-#define t2c_ecp_cpu_generators_hpp
+#ifndef t2c_geom_ecp_generators_hpp
+#define t2c_geom_ecp_generators_hpp
 
 #include <string>
 #include <fstream>
@@ -26,30 +26,43 @@
 
 #include "t2c_defs.hpp"
 
-// Two-center integrals code generator for CPU.
-class T2CECPCPUGenerator
+// Geometrical derivatives of four-center integrals code generator for CPU.
+class T2CECPGeomCPUGenerator
 {
-    /// Checks if recursion is available for two-center inetgral with given label.
-    /// @param label The label of requested two-center integral.
+    /// Checks if recursion is available for four-center inetgral with given label.
+    /// @param label The label of requested four-center integral.
     bool _is_available(const std::string& label) const;
     
     /// Gets two-center inetgral with requested label.
     /// @param label The label of requested two-center integral.
     /// @param ang_moms The angular momentum of  A and B centers.
+    /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
     /// @return The two-center integral.
     I2CIntegral _get_integral(const std::string&        label,
-                              const std::array<int, 2>& ang_moms) const;
+                              const std::array<int, 2>& ang_moms,
+                              const std::array<int, 3>& geom_drvs) const;
     
-    /// Generates set of integrals required for vertical Obara-Saika recursion.
-    /// @param integral The base two center integral.
+    /// Generates set of integrals required for geometrical derivatives.
+    /// @param integral The base four center integral.
     /// @return The set of integrals.
-    SI2CIntegrals _generate_integral_group(const I2CIntegral& integral) const;
+    SI2CIntegrals _generate_geom_integral_group(const I2CIntegral& integral) const;
+    
+    /// Generates set of integrals required for geometrical derivatives.
+    /// @param integral The base four center integral.
+    /// @param integrals The set of geometrical derivative integrals.
+    /// @return The set of integrals.
+    SI2CIntegrals _generate_vrr_integral_group(const I2CIntegral&   integral,
+                                               const SI2CIntegrals& integrals) const;
     
     /// Writes header file for recursion.
-    /// @param integrals The set of unique VRR integrals.
+    /// @param geom_integrals The set of unique integrals for geometrical recursion.
+    /// @param vrr_integrals The set of unique integrals for vertical recursion.
     /// @param integral The base two center integral.
-    void _write_cpp_header(const SI2CIntegrals& integrals,
-                           const I2CIntegral&   integral) const;
+    /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
+    void _write_cpp_header(const SI2CIntegrals&      geom_integrals,
+                           const SI2CIntegrals&      vrr_integrals,
+                           const I2CIntegral&        integral,
+                           const std::array<int, 3>& geom_drvs) const;
     
     /// Gets file name of file with recursion functions for two center integral.
     /// @param integral The base two center integral.
@@ -59,20 +72,19 @@ class T2CECPCPUGenerator
     /// Writes definitions of define for header file.
     /// @param fstream the file stream.
     /// @param integral The base two center integral.
-    /// @param is_prim_rec The flag to indicate primitive recurion.
     /// @param start The flag to indicate position of define (start or end).
     void _write_hpp_defines(      std::ofstream& fstream,
                             const I2CIntegral&   integral,
-                            const bool           is_prim_rec,
                             const bool           start) const;
     
     /// Writes definitions of includes for header file.
     /// @param fstream the file stream.
-    /// @param integrals The set of unique VRR integrals.
+    /// @param integrals The set of unique integrals.
     /// @param integral The base two center integral.
-    void _write_hpp_includes(      std::ofstream& fstream,
-                             const SI2CIntegrals& integrals,
-                             const I2CIntegral&   integral) const;
+    void _write_hpp_includes(      std::ofstream&         fstream,
+                             const SI2CIntegrals&         integrals,
+                             const I2CIntegral&           integral,
+                             const std::array<int, 3>&    geom_drvs) const;
     
     /// Writes namespace definition to file stream.
     /// @param fstream the file stream.
@@ -82,35 +94,17 @@ class T2CECPCPUGenerator
                           const I2CIntegral&   integral,
                           const bool           start) const;
     
-    /// Writes primitive header file for recursion.
-    /// @param integral The base two center integral.
-    void _write_prim_cpp_header(const I2CIntegral& integral) const;
-    
-    /// Writes definitions of includes for primitive header file.
-    /// @param fstream the file stream.
-    /// @param integral The base two center integral.
-    void _write_prim_hpp_includes(      std::ofstream& fstream,
-                                  const I2CIntegral&   integral) const;
-    
-    /// Writes C++ code file for primtive recursion.
-    /// @param integral The base two center integral.
-    void _write_prim_cpp_file(const I2CIntegral& integral) const;
-    
-    /// Writes definitions of includes for primitive header file.
-    /// @param fstream the file stream.
-    /// @param integral The base two center integral.
-    void _write_prim_cpp_includes(      std::ofstream& fstream,
-                                  const I2CIntegral&  integral) const;
-    
 public:
-    /// Creates a two-center integrals CPU code generator.
-    T2CECPCPUGenerator() = default;
+    /// Creates a geometrical derivatives of two-center integrals CPU code generator.
+    T2CECPGeomCPUGenerator() = default;
      
     /// Generates selected two-center integrals up to given angular momentum (inclusive)  on A and B centers.
     /// @param label The label of requested two-center integral.
     /// @param max_ang_mom The maximum angular momentum of A and B centers.
-    void generate(const std::string& label,
-                  const int          max_ang_mom) const;
+    /// @param geom_drvs The geometrical derivative of bra side, integrand, and  ket side.
+    void generate(const std::string&        label,
+                  const int                 max_ang_mom,
+                  const std::array<int, 3>& geom_drvs) const;
 };
 
-#endif /* t2c_ecp_cpu_generators_hpp */
+#endif /* t2c_geom_ecp_generators_hpp */
