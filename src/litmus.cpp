@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 {
     // run configuration
 
-    const auto run_type = std::pair<std::string, std::string>({"t2c_geom_cpu", "None"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_ecp_cpu", "local"});
 
     const int max_ang_mom = 4;
 

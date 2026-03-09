@@ -293,7 +293,7 @@ T2CECPFuncBodyDriver::_add_ket_loop_start(      VCodeLines&  lines,
         torder += gorder;
     }
     
-    if ((integral[0] + integral[1] + torder) > 1)
+    if (((integral[0] + integral[1] + torder) > 1) || (integral.integrand().shape().order() > 0))
     {
         auto label = std::to_string(_get_index_gamma(integral));
         
@@ -314,6 +314,11 @@ T2CECPFuncBodyDriver::_add_ket_loop_end(      VCodeLines&            lines,
 bool
 T2CECPFuncBodyDriver::_need_distances_ra(const I2CIntegral& integral) const
 {
+    if (integral.integrand().shape().order() > 0)
+    {
+        return true;
+    }
+    
     if (integral.is_simple())
     {
         return integral[0] > 0;
@@ -327,6 +332,11 @@ T2CECPFuncBodyDriver::_need_distances_ra(const I2CIntegral& integral) const
 bool
 T2CECPFuncBodyDriver::_need_distances_rb(const I2CIntegral& integral) const
 {
+    if (integral.integrand().shape().order() > 0)
+    {
+        return true;
+    }
+    
     if (integral.is_simple())
     {
         return integral[1] > 0;
@@ -618,16 +628,24 @@ T2CECPFuncBodyDriver::_add_geom_call_tree(      VCodeLines&         lines,
             label += std::to_string(_get_position(cint, vrr_integrals)) + ", ";
         }
         
-        label += std::to_string(integral.integrand().shape().components().size()) + ", ";
-        
-        if (geom_drvs[2] == 0)
+        if (integral.integrand().shape().order() > 0)
         {
-            label += std::to_string(Tensor(integral[1]).components().size()) + ", ";
+           label += "pfactors, a_exp);";
+        }
+        else
+        {
+            label += std::to_string(integral.integrand().shape().components().size()) + ", ";
+            
+            if (geom_drvs[2] == 0)
+            {
+                label += std::to_string(Tensor(integral[1]).components().size()) + ", ";
+            }
+            
+            if (geom_drvs[2] > 0) label += "pfactors, ";
+            
+            label += "a_exp);";
         }
         
-        if (geom_drvs[2] > 0) label += "pfactors, ";
-        
-        label += "a_exp);";
         
         lines.push_back({spacer, 0, 2, label});
     }
