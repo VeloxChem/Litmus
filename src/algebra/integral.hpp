@@ -163,6 +163,10 @@ public:
     /// @return The vector of prefix operator orders.
     std::vector<int> prefixes_order() const;
     
+    /// Gets total order of prefix operators.
+    /// @return The total order of prefix operators.
+    int prefixes_sum_order() const;
+    
     /// Creates a vector with integral components of this integral.
     /// @return The vector of integral components.
     template <class V, class W>
@@ -430,7 +434,6 @@ Integral<T, U>::shift_operator(const int value) const
 {
     if (const auto op = _integrand.shift(value))
     {
-    // MR: I changed this from IntegralComponent - is that right? Otherwise I didn't find a matching func call
         return Integral<T, U>(_bra, _ket, *op, _order, _prefixes);
     }
     else
@@ -526,6 +529,20 @@ Integral<T, U>::prefixes_order() const
     }
     
     return orders;
+}
+
+template <class T, class U>
+int
+Integral<T, U>::prefixes_sum_order() const
+{
+    int order = 0;
+    
+    for (const auto& prefix : _prefixes)
+    {
+        order += prefix.shape().order();
+    }
+    
+    return order;
 }
 
 template <class T, class U>

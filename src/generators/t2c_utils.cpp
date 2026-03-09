@@ -36,6 +36,7 @@
 #include "v3i_ovl_grad_driver.hpp"
 #include "v3i_r2_driver.hpp"
 #include "v3i_rr2_driver.hpp"
+#include "v2i_translation_driver.hpp"
 
 namespace t2c { // t2c namespace
 
@@ -567,6 +568,13 @@ geom_file_name(const I2CIntegral& integral,
 {
     std::string label = "GeometricalDerivatives";
     
+    if (geom_drvs[1] > 0)
+    {
+        label += std::to_string(geom_drvs[0]) + std::to_string(geom_drvs[1]) + std::to_string(geom_drvs[2]);
+        
+        return label + "For" + Tensor(integral[0]).label() + Tensor(integral[1]).label();
+    }
+    
     if (geom_drvs[2] == 0)
     {
         label += std::to_string(geom_drvs[0]) + "X0For" + Tensor(integral[0]).label() + "Y";
@@ -741,6 +749,10 @@ prim_compute_func_name(const I2CIntegral& integral)
         {
             geom_label += "0" + std::to_string(integral.integrand().shape().order()) + "0";
         }
+        else if ((integral.integrand().name() == "R") && (integral.integrand().shape().order() > 0))
+        {
+            geom_label += "0" + std::to_string(integral.integrand().shape().order()) + "0";
+        }
         else
         {
             for (const auto& tint_prefix : tint_prefixes)
@@ -752,7 +764,7 @@ prim_compute_func_name(const I2CIntegral& integral)
     
     auto label =  "comp_prim_" + t2c::integral_split_label(integral) +  geom_label + "_" + integral.label();
     
-    if (tint_prefixes.size() == 2)
+    if ((tint_prefixes.size() == 2) && (integral.integrand().shape().order() == 0))
     {
         if (tint_prefixes[1].shape().order() == 0) label[label.size() - 1] = 'x';
     }
@@ -836,6 +848,13 @@ SI2CIntegrals
 get_integrals(const I2CIntegral& integral)
 {
     SI2CIntegrals tints;
+    
+    if ((integral.integrand().shape().order() > 0) && (integral.integrand().name() == "R"))
+    {
+        V2ITranslationDriver t2c_geom_drv;
+        
+        return t2c_geom_drv.operator_vrr(integral);
+    }
     
     if (!integral.is_simple())
     {
@@ -1056,6 +1075,13 @@ get_hrr_integrals(const I2CIntegral& integral,
 SI2CIntegrals
 get_geom_integrals(const I2CIntegral& integral)
 {
+    if (integral.integrand().shape().order() > 0)
+    {
+        V2ITranslationDriver t2c_geom_drv;
+        
+        return t2c_geom_drv.operator_vrr(integral); 
+    }
+    
     R2Group rgroup;
         
     T2CCenterDriver t2c_geom_drv;

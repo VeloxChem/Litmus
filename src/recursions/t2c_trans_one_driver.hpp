@@ -14,8 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef t2c_center_driver_hpp
-#define t2c_center_driver_hpp
+#ifndef t2c_trans_one_driver_hpp
+#define t2c_trans_one_driver_hpp
 
 #include <optional>
 #include <array>
@@ -24,30 +24,24 @@
 #include "t2c_defs.hpp"
 
 /// Two center geometrical prefix operator driver class.
-class T2CCenterDriver
+class T2CTransOneDriver
 {
     /// Cartesian coordinate tensor components.
     std::array<TensorComponent, 3> _rxyz;
     
 public:
     /// Creates a two center geometrical prefix operator driver.
-    T2CCenterDriver();
+    T2CTransOneDriver();
     
     /// Check if recursion term is auxilary with respect of geometrical prefix operator.
     /// @param rterm The recursion term.
-    /// @param index The index of prefix operator.
     /// @return True if reccursion term is auxilary, False otherwise.
-    bool is_auxilary(const R2CTerm& rterm,
-                     const int      index) const;
+    bool is_auxilary(const R2CTerm& rterm) const;
     
     /// Applies vertical recursion to geometrical prefix operator acting bra or ket side of given recursion term.
     /// @param rterm The recursion term.
-    /// @param axis The axis of vertical recursion.
-    /// @param index The index of prefix operator.
     /// @return The recursion expansion of given recursion term.
-    std::optional<R2CDist> bra_ket_vrr(const R2CTerm& rterm,
-                                       const char     axis,
-                                       const int      index) const;
+    std::optional<R2CDist> bra_ket_vrr(const R2CTerm& rterm) const;
     
     /// Applies vertical recursion to geometrical prefix operator acting bra or ket side of given recursion term.
     /// @param rterm The recursion term with overlap integral.
@@ -73,4 +67,4 @@ public:
     R2Group create_recursion(const VT2CIntegrals& vints) const;
 };
 
-#endif /* t2c_center_driver_hpp */
+#endif /* t2c_trans_one_driver_hpp */

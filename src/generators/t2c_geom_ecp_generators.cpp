@@ -19,6 +19,7 @@
 
 #include "string_formater.hpp"
 #include "v2i_center_driver.hpp"
+#include "v2i_translation_driver.hpp"
 #include "v2i_loc_ecp_driver.hpp"
 #include "t2c_utils.hpp"
 #include "file_stream.hpp"
@@ -102,7 +103,14 @@ T2CECPGeomCPUGenerator::_get_integral(const std::string&        label,
     
     if (fstr::lowercase(label) == "local")
     {
-        return I2CIntegral(bra, ket, Operator("U_L"), 0, prefixes);
+        if (geom_drvs[1] > 0)
+        {
+            return I2CIntegral(bra, ket, Operator("U_L", Tensor(geom_drvs[1])), 0, prefixes);
+        }
+        else
+        {
+            return I2CIntegral(bra, ket, Operator("U_L"), 0, prefixes);
+        }
     }
     
     return I2CIntegral();
@@ -112,8 +120,15 @@ SI2CIntegrals
 T2CECPGeomCPUGenerator::_generate_geom_integral_group(const I2CIntegral& integral) const
 {
     V2ICenterDriver geom_drv;
+    
+    V2ITranslationDriver trans_drv;
 
     SI2CIntegrals tints;
+    
+    if (integral.integrand().shape().order() > 0)
+    {
+        return trans_drv.operator_vrr(integral);
+    }
     
     for (auto tint : geom_drv.apply_recursion({integral,}))
     {
@@ -131,7 +146,7 @@ T2CECPGeomCPUGenerator::_generate_vrr_integral_group(const I2CIntegral&   integr
 
     // Local ECP integrals
     
-    if (integral.integrand() == Operator("U_L"))
+    if (integral.integrand().name() == "U_L")
     {
         V2ILocalECPDriver ecp_drv;
         

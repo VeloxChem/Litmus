@@ -58,11 +58,20 @@ T2CGeomDocuDriver::_get_compute_str(const I2CIntegral&        integral,
 
     if (geom_drvs[0] > 0)
     {
-        label += "[" + pref_labels.first + bra.label() + "|R|";
+        label += "[" + pref_labels.first + bra.label();
     }
     else
     {
-        label += "[" + bra.label() + "|R|";
+        label += "[" + bra.label();
+    }
+    
+    if (geom_drvs[1] > 0)
+    {
+        label += "|d^(" + std::to_string(geom_drvs[1]) + ")R/dX^(" + std::to_string(geom_drvs[1]) +")|";
+    }
+    else
+    {
+        label += "|R|";
     }
     
     if (geom_drvs[2] > 0)
@@ -97,6 +106,15 @@ T2CGeomDocuDriver::_get_buffers_str(const SI2CIntegrals&      geom_integrals,
         vstr.push_back("/// @param " + label + " The index of integral in primitive integrals buffer.");
     }
     
+    if (geom_drvs[1] > 0)
+    {
+        vstr.push_back("/// @param factors The primitive factors buffer.");
+        
+        vstr.push_back("/// @param a_exp The primitive basis function exponent on center A.");
+        
+        return vstr;
+    }
+    
     vstr.push_back("/// @param op_comps The number of operator components.");
     
     if (geom_drvs[2] == 0)
@@ -111,6 +129,8 @@ std::vector<std::string>
 T2CGeomDocuDriver::_get_recursion_variables_str(const I2CIntegral& integral) const
 {
     std::vector<std::string> vstr;
+    
+    if (integral.integrand().shape().order() > 0) return vstr;
     
     const auto prefixes = integral.prefixes();
    

@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 {
     // run configuration
 
-    const auto run_type = std::pair<std::string, std::string>({"t2c_ecp_cpu", "local"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_geom_cpu", "None"});
 
     const int max_ang_mom = 4;
 
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
     
     if (run_type.first == "t2c_geom_cpu")
     {
-        std::array<int, 3> geom_drvs = {0, 0, 1};
+        std::array<int, 3> geom_drvs = {0, 1, 0};
         
         const auto t2c_geom_drv = T2CGeomDerivCPUGenerator();
             
@@ -201,9 +201,9 @@ int main(int argc, char **argv)
 
     if (run_type.first == "t2c_ecp_cpu")
     {
-        std::array<int, 3> geom_drvs = {1, 0, 1};
+        std::array<int, 3> geom_drvs = {0, 1, 0};
         
-        if ((geom_drvs[0] + geom_drvs[2]) == 0)
+        if ((geom_drvs[0] + geom_drvs[1] + geom_drvs[2]) == 0)
         {
             const auto t2c_ecp_drv = T2CECPCPUGenerator();
             

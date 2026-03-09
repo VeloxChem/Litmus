@@ -52,6 +52,11 @@ T2CGeomDeclDriver::_get_buffers_str(const SI2CIntegrals&      geom_integrals,
     
     auto name = t2c::geom_compute_func_name(integral, geom_drvs) + "(";
     
+    if (integral.integrand().shape().order() > 0)
+    {
+        name = t2c::prim_compute_func_name(integral) + "(";
+    }
+    
     const auto spacer = std::string(name.size(), ' ');
 
     vstr.push_back(name + "CSimdArray<double>& pbuffer," );
@@ -81,7 +86,21 @@ T2CGeomDeclDriver::_get_recursion_variables_str(const I2CIntegral&        integr
     
     auto name = t2c::geom_compute_func_name(integral, geom_drvs) + "(";
     
+    if (integral.integrand().shape().order() > 0)
+    {
+        name = t2c::prim_compute_func_name(integral) + "(";
+    }
+    
     const auto spacer = std::string(name.size(), ' ');
+    
+    if (integral.integrand().shape().order() > 0)
+    {
+        vstr.push_back(spacer + "const CSimdArray<double>& factors,");
+        
+        vstr.push_back(spacer + "const double a_exp) -> void" + tsymbol);
+        
+        return vstr;
+    }
     
     if (const auto prefixes = integral.prefixes(); !prefixes.empty())
     {

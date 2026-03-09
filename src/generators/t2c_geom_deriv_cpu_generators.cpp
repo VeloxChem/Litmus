@@ -25,12 +25,13 @@
 #include "t2c_geom_docs.hpp"
 #include "t2c_geom_decl.hpp"
 #include "t2c_geom_body.hpp"
+#include "t2c_prim_body.hpp"
 
 void
 T2CGeomDerivCPUGenerator::generate(const int                 max_ang_mom,
                                    const std::array<int, 3>& geom_drvs) const
 {
-    if (geom_drvs[2] == 0)
+    if ((geom_drvs[2] == 0) && (geom_drvs[1] == 0))
     {
         for (int i = 0; i <= max_ang_mom; i++)
         {
@@ -91,7 +92,7 @@ T2CGeomDerivCPUGenerator::_get_integral(const std::array<int, 2>& ang_moms,
     
     prefixes.push_back(Operator("d/dR", Tensor(geom_drvs[2])));
 
-    return I2CIntegral(bra, ket, Operator("R"), 0, prefixes);
+    return I2CIntegral(bra, ket, Operator("R", Tensor(geom_drvs[1])), 0, prefixes);
 }
 
 void
@@ -204,10 +205,19 @@ T2CGeomDerivCPUGenerator::_write_cpp_file(const SI2CIntegrals&      geom_integra
 
     decl_drv.write_func_decl(fstream, geom_integrals, integral, geom_drvs, false);
 
-    T2CGeomFuncBodyDriver func_drv;
+    if (geom_drvs[1] > 0)
+    {
+        T2CPrimFuncBodyDriver func_drv;
+        
+        func_drv.write_func_body(fstream, integral); 
+    }
+    else
+    {
+        T2CGeomFuncBodyDriver func_drv;
 
-    func_drv.write_func_body(fstream, geom_integrals, integral);
-
+        func_drv.write_func_body(fstream, geom_integrals, integral);
+    }
+    
     fstream << std::endl;
 
     _write_namespace(fstream, false);

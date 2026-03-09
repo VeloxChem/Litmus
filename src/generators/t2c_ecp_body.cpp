@@ -584,7 +584,7 @@ T2CECPFuncBodyDriver::_get_buffers_def(const SI2CIntegrals& integrals,
 bool
 T2CECPFuncBodyDriver::_need_geom_drvs(const std::array<int, 3>& geom_drvs) const
 {
-    return (geom_drvs[0] + geom_drvs[2]) > 0;
+    return (geom_drvs[0] + geom_drvs[1] + geom_drvs[2]) > 0;
 }
 
 void
@@ -598,9 +598,9 @@ T2CECPFuncBodyDriver::_add_geom_call_tree(      VCodeLines&         lines,
     {
         const int spacer = 5;
         
-        const auto tint = integral.replace(Operator("R"));
-        
-        const auto name = t2c::prim_compute_func_name(tint);
+        const auto rint = integral.replace(Operator("R", Tensor(geom_drvs[1])));
+            
+        const auto name = t2c::prim_compute_func_name(rint);
         
         auto label = "t2cgeom::" + name + "(pbuffer, ";
         
