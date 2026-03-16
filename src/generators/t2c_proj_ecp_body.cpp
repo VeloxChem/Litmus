@@ -192,6 +192,8 @@ T2CProjECPFuncBodyDriver::_get_buffers_def(const SM2Integrals& integrals,
     
     icomps = t2c::number_of_spherical_components(angpair);
     
+    icomps *= integral.second.integrand().components().size();
+    
     if (const auto prefixes = integral.second.prefixes(); !prefixes.empty())
     {
         for (const auto& prefix : prefixes)
@@ -200,9 +202,12 @@ T2CProjECPFuncBodyDriver::_get_buffers_def(const SM2Integrals& integrals,
         }
     }
     
-    label = "CSimdArray<double> sbuffer(" + std::to_string(icomps) + ", 1);";
-    
-    vstr.push_back(label);
+    if ((integral.second[0] + integral.second[1]) > 0)
+    {
+        label = "CSimdArray<double> sbuffer(" + std::to_string(icomps) + ", 1);";
+        
+        vstr.push_back(label);
+    }
         
     return vstr;
 }
@@ -237,7 +242,10 @@ T2CProjECPFuncBodyDriver::_add_loop_start(      VCodeLines& lines,
     
     lines.push_back({2, 0, 2, "l_values.set_active_width(ket_width);"});
     
-    lines.push_back({2, 0, 2, "sbuffer.set_active_width(ket_width);"});
+    if ((integral.second[0] + integral.second[1]) > 0)
+    {
+        lines.push_back({2, 0, 2, "sbuffer.set_active_width(ket_width);"});
+    }
     
     lines.push_back({2, 0, 2, "cbuffer.set_active_width(ket_width);"});
     
@@ -251,7 +259,10 @@ T2CProjECPFuncBodyDriver::_add_loop_start(      VCodeLines& lines,
         
     lines.push_back({3, 0, 2, "cbuffer.zero();"});
     
-    lines.push_back({3, 0, 2, "sbuffer.zero();"});
+    if ((integral.second[0] + integral.second[1]) > 0)
+    {
+        lines.push_back({3, 0, 2, "sbuffer.zero();"});
+    }
 
     lines.push_back({3, 0, 2, "const auto r_a = bra_gto_coords[j];"});
 }
@@ -261,14 +272,24 @@ T2CProjECPFuncBodyDriver::_add_loop_end(      VCodeLines& lines,
                                         const M2Integral& integral) const
 {
     std::string label;
-
-    label = "t2cfunc::transform<"  + std::to_string(integral.second[0]);
-            
-    label += ", " + std::to_string(integral.second[1]) + ">(sbuffer, cbuffer);";
-            
-    lines.push_back({3, 0, 2, label});
     
-    label = "distributor.distribute(sbuffer, ";
+    if ((integral.second[0] + integral.second[1]) > 0)
+    {
+        label = "t2cfunc::transform<"  + std::to_string(integral.second[0]);
+                
+        label += ", " + std::to_string(integral.second[1]) + ">(sbuffer, cbuffer);";
+                
+        lines.push_back({3, 0, 2, label});
+    }
+    
+    if ((integral.second[0] + integral.second[1]) > 0)
+    {
+        label = "distributor.distribute(sbuffer, ";
+    }
+    else
+    {
+        label = "distributor.distribute(cbuffer, ";
+    }
     
     label += "bra_gto_indices, ket_gto_indices, ";
             
@@ -513,7 +534,7 @@ T2CProjECPFuncBodyDriver::_add_geom_call_tree(      VCodeLines&         lines,
     {
         const int spacer = 5;
         
-        const auto tint = M2Integral(integral.first, integral.second.replace(Operator("R")));
+        const auto tint = M2Integral(integral.first, integral.second.replace(Operator("R", Tensor(geom_drvs[1]))));
         
         const auto name = t2c::prim_compute_func_name(tint.second);
         
@@ -533,16 +554,23 @@ T2CProjECPFuncBodyDriver::_add_geom_call_tree(      VCodeLines&         lines,
             label += std::to_string(_get_position({integral.first, cint}, vrr_integrals)) + ", ";
         }
         
-        label += std::to_string(integral.second.integrand().shape().components().size()) + ", ";
-        
-        if (geom_drvs[2] == 0)
+        if (integral.second.integrand().shape().order() > 0)
         {
-            label += std::to_string(Tensor(integral.second[1]).components().size()) + ", ";
+            label += "pfactors, a_exp);";
         }
-        
-        if (geom_drvs[2] > 0) label += "factors, ";
-        
-        label += "a_exp);";
+        else
+        {
+            label += std::to_string(integral.second.integrand().shape().components().size()) + ", ";
+            
+            if (geom_drvs[2] == 0)
+            {
+                label += std::to_string(Tensor(integral.second[1]).components().size()) + ", ";
+            }
+            
+            if (geom_drvs[2] > 0) label += "factors, ";
+            
+            label += "a_exp);";
+        }
         
         lines.push_back({spacer, 0, 2, label});
     }
@@ -551,5 +579,5 @@ T2CProjECPFuncBodyDriver::_add_geom_call_tree(      VCodeLines&         lines,
 bool
 T2CProjECPFuncBodyDriver::_need_geom_drvs(const std::array<int, 3>& geom_drvs) const
 {
-    return (geom_drvs[0] + geom_drvs[2]) > 0;
+    return (geom_drvs[0] + geom_drvs[1] + geom_drvs[2]) > 0;
 }

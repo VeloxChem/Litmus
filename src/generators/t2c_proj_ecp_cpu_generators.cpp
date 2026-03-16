@@ -65,7 +65,7 @@ T2CProjECPCPUGenerator::generate(const std::string& label,
                                 
                                 if ((i + j) > 0)
                                 {
-                                    _write_cpp_header(integrals, integral);
+                                    //_write_cpp_header(integrals, integral);
                                     
                                     _write_prim_cpp_header(integral);
                                     

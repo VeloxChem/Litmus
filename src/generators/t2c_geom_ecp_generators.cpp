@@ -121,12 +121,12 @@ T2CECPGeomCPUGenerator::_generate_geom_integral_group(const I2CIntegral& integra
 {
     V2ICenterDriver geom_drv;
     
-    V2ITranslationDriver trans_drv;
-
     SI2CIntegrals tints;
     
     if (integral.integrand().shape().order() > 0)
     {
+        V2ITranslationDriver trans_drv;
+        
         return trans_drv.operator_vrr(integral);
     }
     

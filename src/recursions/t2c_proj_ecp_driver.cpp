@@ -90,7 +90,7 @@ T2CProjectedECPDriver::bra_vrr(const R2CTerm& rterm,
             
             const auto na = x1val[0][axis];
             
-            x3val.add(Factor("1/2z", "fzi"), Fraction(na));
+            x3val.add(Factor("1/z", "fzi"), Fraction(na, 2));
             
             t2crt.add(x3val);
             
@@ -293,7 +293,7 @@ T2CProjectedECPDriver::ket_vrr(const R2CTerm& rterm,
             
             const auto nb = x1val[1][axis];
             
-            x3val.add(Factor("1/2z", "fzi"), Fraction(nb));
+            x3val.add(Factor("1/z", "fzi"), Fraction(nb, 2));
             
             t2crt.add(x3val);
             

@@ -88,7 +88,6 @@ integral_label(const I2CIntegral& integral)
         return (prefixes.empty()) ? "LinearMomentum" : "LinearMomentum" + suffix;
     }
 
-
     if (integrand.name() == "A1")
     {
         return (prefixes.empty()) ? "ElectricField" : "ElectricField" + suffix;

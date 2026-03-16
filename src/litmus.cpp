@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 {
     // run configuration
 
-    const auto run_type = std::pair<std::string, std::string>({"t2c_geom_cpu", "None"});
+    const auto run_type = std::pair<std::string, std::string>({"t2c_proj_ecp_cpu", "projected"});
 
     const int max_ang_mom = 4;
 
@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 
     if (run_type.first == "t2c_proj_ecp_cpu")
     {
-        std::array<int, 3> geom_drvs = {0, 0, 0};
+        std::array<int, 3> geom_drvs = {0, 1, 0};
         
         const int proj_ang_mom = 4;
         

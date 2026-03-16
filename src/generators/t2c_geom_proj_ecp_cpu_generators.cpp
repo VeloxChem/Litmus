@@ -21,6 +21,7 @@
 #include "string_formater.hpp"
 #include "v2i_center_driver.hpp"
 #include "v2i_proj_ecp_driver.hpp"
+#include "v2i_translation_driver.hpp"
 #include "t2c_utils.hpp"
 #include "t2c_docs.hpp"
 #include "t2c_decl.hpp"
@@ -120,7 +121,7 @@ T2CGeomProjECPCPUGenerator::_get_integral(const std::string&        label,
     
     if (fstr::lowercase(label) == "projected")
     {
-        M2Integral tint = {{0, 0, 0}, I2CIntegral(bra, ket, Operator("U_l"), proj_ang_mom, prefixes)};
+        M2Integral tint = {{0, 0, 0}, I2CIntegral(bra, ket, Operator("U_l", Tensor(geom_drvs[1])), proj_ang_mom, prefixes)};
         
         return tint;
     }
@@ -137,9 +138,18 @@ T2CGeomProjECPCPUGenerator::_generate_geom_integral_group(const M2Integral& inte
 
     SI2CIntegrals tints;
     
-    for (auto tint : geom_drv.apply_recursion({integral.second,}))
+    if (integral.second.integrand().shape().order() > 0)
     {
-        if (tint.prefixes().empty()) tints.insert(tint);
+        V2ITranslationDriver trans_drv;
+        
+        tints = trans_drv.operator_vrr(integral.second);
+    }
+    else
+    {
+        for (auto tint : geom_drv.apply_recursion({integral.second,}))
+        {
+            if (tint.prefixes().empty()) tints.insert(tint);
+        }
     }
     
     SM2Integrals mtints;
@@ -162,7 +172,7 @@ T2CGeomProjECPCPUGenerator::_generate_vrr_integral_group(const M2Integral&   int
 
     // Projected potential integrals
     
-    if (integral.second.integrand() == Operator("U_l"))
+    if (integral.second.integrand().name() == "U_l")
     {
         V2IProjectedECPDriver ecp_drv;
         
