@@ -38,6 +38,8 @@ V2ITranslationDriver::operator_vrr(const I2CIntegral& integral) const
     
     const auto gorder = integral.prefixes_sum_order();
     
+    const auto gorders = integral.prefixes_order();
+    
     // simple translation : first derivative of operator
     
     if ((gorder == 0) && (integral.integrand().shape() == Tensor(1)))
@@ -66,6 +68,53 @@ V2ITranslationDriver::operator_vrr(const I2CIntegral& integral) const
         }
         
         return tints; 
+    }
+    
+    // simple translation : second derivative of operator
+    
+    if ((gorder == 0) && (integral.integrand().shape() == Tensor(2)))
+    {
+        if (auto rint = integral.shift_operator(-2))
+        {
+            if (const auto r1val = rint->shift_prefix(2, 0, false))
+            {
+                tints.insert(*r1val);
+            }
+            
+            if (const auto r2val = rint->shift_prefix(1, 1, false))
+            {
+                if (const auto t2val = r2val->shift_prefix(1, 0, false))
+                {
+                    tints.insert(*t2val); 
+                }
+            }
+            
+            if (const auto r3val = rint->shift_prefix(2, 1, false))
+            {
+                tints.insert(*r3val);
+            }
+        }
+        
+        return tints;
+    }
+    
+    // mixed translation : first derivatives of operator and bra side
+    if ((gorders == std::vector<int>({1, 0})) && (integral.integrand().shape() == Tensor(1)))
+    {
+        if (auto rint = integral.shift_operator(-1))
+        {
+            if (const auto r1val = rint->shift_prefix(1, 0, false))
+            {
+                tints.insert(*r1val);
+            }
+            
+            if (const auto r2val = rint->shift_prefix(1, 1, false))
+            {
+                tints.insert(*r2val);
+            }
+        }
+        
+        return tints;
     }
     
     return tints;

@@ -33,6 +33,7 @@
 #include "t3c_r2_driver.hpp"
 #include "t3c_rr2_driver.hpp"
 #include "t2c_trans_one_driver.hpp"
+#include "t2c_trans_gen_driver.hpp"
 
 void
 T2CPrimFuncBodyDriver::write_func_body(      std::ofstream& fstream,
@@ -199,7 +200,20 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const std::vector<R2CDist>& rec_dists,
 {
     std::vector<std::string> vstr;
     
-    for (const auto& tint : t2c::get_integrals(integral))
+    SI2CIntegrals tints;
+    
+    const auto gorder = integral.prefixes_sum_order() + integral.integrand().shape().order();
+    
+    if ((integral.integrand().name() == "R") && (gorder > 1))
+    {
+        tints = t2c::get_geom_integrals(integral);
+    }
+    else
+    {
+        tints = t2c::get_integrals(integral);
+    }
+    
+    for (const auto& tint : tints)
     {
         vstr.push_back("// Set up components of auxiliary buffer : " + tint.label());
 
@@ -209,7 +223,7 @@ T2CPrimFuncBodyDriver::_get_buffers_str(const std::vector<R2CDist>& rec_dists,
         
         for (const auto& tcomp : tint.components<T1CPair, T1CPair>())
         {
-            if (_find_integral(rec_dists, tcomp))
+            //if (_find_integral(rec_dists, tcomp))
             {
                 const auto line = "auto " + _get_component_label(tcomp) + " = pbuffer.data(";
                 
@@ -542,9 +556,28 @@ T2CPrimFuncBodyDriver::_get_vrr_recursion(const T2CIntegral& integral) const
     
     if (integral.integrand().name() == "R")
     {
-        T2CTransOneDriver geom_drv;
+        const auto gorders = integral.prefixes_order();
         
-        return *geom_drv.bra_ket_vrr(R2CTerm(integral));
+        if ((gorders == std::vector<int>({0, 0})) && (integral.integrand().shape().order() == 1))
+        {
+            T2CTransOneDriver tran_drv;
+            
+            return *tran_drv.bra_ket_vrr(R2CTerm(integral));
+        }
+        else
+        {
+            T2CTransGenDriver tran_drv;
+            
+            auto rdist = *tran_drv.operator_vrr(R2CTerm(integral));
+
+            T2CCenterDriver geom_drv;
+
+            geom_drv.apply_recursion(rdist);
+                        
+            //rdist.simplify();
+            
+            return rdist; 
+        }
     }
 
     if (!integral.prefixes().empty())
@@ -742,9 +775,14 @@ T2CPrimFuncBodyDriver::_get_rterm_code(const R2CTerm& rec_term,
 
     for (const auto& fact : rec_term.factors())
     {
-        plabel+= " * " + fact.label();
+        const auto nfact = rec_term.factor_order(fact);
+        
+        for (int n = 0; n < nfact; n++)
+        {
+            plabel+= " * " + fact.label();
             
-        if (fact.order() > 0) plabel += "[i]";
+            if (fact.order() > 0) plabel += "[i]";
+        }
     }
     
     if (!is_first)

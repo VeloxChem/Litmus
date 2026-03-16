@@ -750,7 +750,18 @@ prim_compute_func_name(const I2CIntegral& integral)
         }
         else if ((integral.integrand().name() == "R") && (integral.integrand().shape().order() > 0))
         {
-            geom_label += "0" + std::to_string(integral.integrand().shape().order()) + "0";
+            if (tint_prefixes.empty())
+            {
+                geom_label += "0" + std::to_string(integral.integrand().shape().order()) + "0";
+            }
+            else
+            {
+                geom_label += std::to_string(tint_prefixes[0].shape().order());
+                
+                geom_label += std::to_string(integral.integrand().shape().order());
+                
+                geom_label += std::to_string(tint_prefixes[1].shape().order());
+            }
         }
         else
         {
@@ -1074,26 +1085,36 @@ get_hrr_integrals(const I2CIntegral& integral,
 SI2CIntegrals
 get_geom_integrals(const I2CIntegral& integral)
 {
+    SI2CIntegrals tints, rints;
+    
     if (integral.integrand().shape().order() > 0)
     {
-        V2ITranslationDriver t2c_geom_drv;
+        V2ITranslationDriver t2c_tran_drv;
         
-        return t2c_geom_drv.operator_vrr(integral); 
+        const auto gorder = integral.prefixes_sum_order();
+        
+        rints = t2c_tran_drv.operator_vrr(integral);
+        
+        if ((gorder == 0) && (integral.integrand().shape().order() == 1))
+        {
+            return rints;
+        }
     }
     
     R2Group rgroup;
         
     T2CCenterDriver t2c_geom_drv;
-        
-    rgroup = t2c_geom_drv.create_recursion(integral.components<T1CPair, T1CPair>());
     
-    SI2CIntegrals tints;
-    
-    for (size_t i = 0; i < rgroup.expansions(); i++)
+    for (const auto& rint : rints)
     {
-        for (size_t j = 0; j < rgroup[i].terms(); j++)
+        rgroup = t2c_geom_drv.create_recursion(rint.components<T1CPair, T1CPair>());
+        
+        for (size_t i = 0; i < rgroup.expansions(); i++)
         {
-            tints.insert(I2CIntegral(rgroup[i][j].integral().base()));
+            for (size_t j = 0; j < rgroup[i].terms(); j++)
+            {
+                tints.insert(I2CIntegral(rgroup[i][j].integral().base()));
+            }
         }
     }
     

@@ -121,18 +121,29 @@ T2CECPGeomCPUGenerator::_generate_geom_integral_group(const I2CIntegral& integra
 {
     V2ICenterDriver geom_drv;
     
-    SI2CIntegrals tints;
+    SI2CIntegrals tints, rints;
+    
+    const auto gorder = integral.prefixes_sum_order();
     
     if (integral.integrand().shape().order() > 0)
     {
         V2ITranslationDriver trans_drv;
         
-        return trans_drv.operator_vrr(integral);
+        rints = trans_drv.operator_vrr(integral);
+        
+        if ((integral.integrand().shape().order() == 1) && (gorder == 0))
+        {
+            return rints;
+        }
+        
+        rints = geom_drv.apply_recursion(rints);
     }
     
-    for (auto tint : geom_drv.apply_recursion({integral,}))
+    if (rints.empty()) rints = geom_drv.apply_recursion({integral,});
+    
+    for (auto rint : rints)
     {
-        if (tint.prefixes().empty()) tints.insert(tint);
+        if (rint.prefixes().empty()) tints.insert(rint);
     }
     
     return tints;

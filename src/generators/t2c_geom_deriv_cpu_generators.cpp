@@ -205,7 +205,7 @@ T2CGeomDerivCPUGenerator::_write_cpp_file(const SI2CIntegrals&      geom_integra
 
     decl_drv.write_func_decl(fstream, geom_integrals, integral, geom_drvs, false);
 
-    if (geom_drvs[1] > 0)
+    if (geom_drvs[1] > 0) 
     {
         T2CPrimFuncBodyDriver func_drv;
         

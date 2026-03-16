@@ -123,8 +123,8 @@ void
 T2CCenterDriver::apply_bra_ket_vrr(      R2CDist& rdist,
                                    const int      index) const
 {
-    if (!is_auxilary(rdist.root(), index))
-    {
+    //if (!is_auxilary(rdist.root(), index))
+    //{
         R2CDist new_dist(rdist.root());
         
         V2CTerms rec_terms;
@@ -185,7 +185,7 @@ T2CCenterDriver::apply_bra_ket_vrr(      R2CDist& rdist,
         // update recursion distribution
         
         rdist = new_dist;
-    }
+    //}
 }
 
 R2Group
