@@ -198,7 +198,7 @@ RecursionGroup<T>::similar(const RecursionGroup<T>& other) const
 {
     for (const auto& rhsrt : _expansions)
     {
-        for (const auto lhsrt : other._expansions)
+        for (const auto& lhsrt : other._expansions)
         {
             if (!lhsrt.similar(rhsrt))
             {

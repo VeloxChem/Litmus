@@ -320,7 +320,7 @@ template <class T, class U>
 void
 Integral<T, U>::reduce_prefixes()
 {
-    for (const auto prefix : _prefixes)
+    for (const auto& prefix : _prefixes)
     {
         if (prefix.shape() != Tensor(0)) return;
     }

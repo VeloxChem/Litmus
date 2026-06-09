@@ -73,7 +73,7 @@ Factor::operator<(const Factor& other) const
     }
     else if (_label != other._label)
     {
-        return _shape < other._shape;
+        return _label < other._label;
     }
     else
     {

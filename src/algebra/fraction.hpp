@@ -106,7 +106,7 @@ public:
     
     /// Creates label of this fraction.
     /// @return The string with label of fraction.
-    std::string label(std::string spacer = "") const;
+    std::string label(const std::string& spacer = "") const;
 };
 
 #endif /* Fraction_hpp */

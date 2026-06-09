@@ -22,8 +22,6 @@
 
 #include <string>
 
-#include "tensor.hpp"
-
 /// One center expansion.
 class OneCenter
 {

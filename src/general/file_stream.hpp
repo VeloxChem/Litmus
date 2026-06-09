@@ -36,23 +36,11 @@ namespace ost { // ost namespace
 
     /// Writes VeloxChem copyright titler to file stream.
     /// @param fstream the file stream.
-    void write_copyright(std::ofstream& fstream);
-
-    /// Writes VeloxChem copyright titler to file stream.
-    /// @param fstream the file stream.
     /// @param label the namespace label
     /// @param start the flag to write name space start or end.
     void write_namespace(      std::ofstream& fstream,
                          const std::string&   label,
                          const bool           start);
-
-    /// Writes HRR/VRR  includes to file stream.
-    /// @param fstream the file stream.
-    void write_hvrr_includes(std::ofstream& fstream);
-
-    /// Writes recursion dimensions to file stream.
-    /// @param fstream the file stream.
-    void write_dimensions(std::ofstream& fstream);
 
 } // ost namespace
 
