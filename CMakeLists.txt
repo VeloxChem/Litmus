@@ -28,3 +28,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 add_subdirectory(src)
+
+# Unit tests (GoogleTest, fetched at configure time). Disable with
+# -DLITMUS_BUILD_TESTS=OFF (e.g. for offline or packaging builds).
+option(LITMUS_BUILD_TESTS "Build the Litmus unit tests" ON)
+if(LITMUS_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()

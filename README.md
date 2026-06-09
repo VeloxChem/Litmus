@@ -24,3 +24,16 @@ momentum, geometrical-derivative orders). Adjust it, rebuild, then run:
 ```
 
 Generated integral source files are written to the current working directory.
+
+## Testing
+
+Unit tests use [GoogleTest](https://github.com/google/googletest), fetched
+automatically at configure time (requires network access on the first
+configure). After building, run the suite with CTest:
+
+```bash
+ctest --test-dir build --output-on-failure
+```
+
+Tests live under `tests/`. Pass `-DLITMUS_BUILD_TESTS=OFF` at configure time to
+skip building them (e.g. for offline or packaging builds).
