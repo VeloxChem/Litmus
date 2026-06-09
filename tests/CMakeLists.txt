@@ -23,7 +23,8 @@ add_executable(algebra_tests
     algebra/test_tensor_component.cpp
     algebra/test_tensor.cpp
     algebra/test_factor.cpp
-    algebra/test_operator.cpp)
+    algebra/test_operator.cpp
+    algebra/test_integral_component.cpp)
 
 target_link_libraries(algebra_tests PRIVATE
     GTest::gtest_main
