@@ -590,8 +590,13 @@ template <class V, class W>
 VIntegralComponents<V, W>
 Integral<T, U>::diag_components() const
 {
+    // Diagonal components pair the i-th bra component with the i-th ket
+    // component, so this is only well-defined when the bra and ket share the
+    // same angular structure (identical component counts). That invariant holds
+    // by construction for diagonal integrals; kcomps[i] below is deliberately
+    // indexed by bcomps.size().
     VIntegralComponents<V, W> vcomps;
-    
+
     if (!_prefixes.empty())
     {
         for (const auto& prefix : make_components<OperatorComponent>(_prefixes))
