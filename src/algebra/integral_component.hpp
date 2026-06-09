@@ -226,7 +226,7 @@ IntegralComponent<T,U>::operator==(const IntegralComponent<T, U>& other) const
     {
         return false;
     }
-    if (_order != other._order)
+    else if (_order != other._order)
     {
         return false;
     }
@@ -259,7 +259,7 @@ IntegralComponent<T,U>::operator<(const IntegralComponent<T, U>& other) const
     {
         return _integrand < other._integrand;
     }
-    if (_order != other._order)
+    else if (_order != other._order)
     {
         return _order < other._order;
     }
@@ -429,6 +429,11 @@ IntegralComponent<T,U>::shift_prefix(const char axis,
                                      const int  index,
                                      const bool noscalar) const
 {
+    if ((index < 0) || (static_cast<size_t>(index) >= _prefixes.size()))
+    {
+        return std::nullopt;
+    }
+
     if (const auto opcomp = _prefixes[index].shift(axis, value, noscalar))
     {
         auto new_prefixes = _prefixes;

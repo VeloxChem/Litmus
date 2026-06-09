@@ -196,6 +196,11 @@ template <class T>
 bool
 RecursionGroup<T>::similar(const RecursionGroup<T>& other) const
 {
+    if (_expansions.size() != other._expansions.size())
+    {
+        return false;
+    }
+
     for (const auto& rhsrt : _expansions)
     {
         for (const auto& lhsrt : other._expansions)

@@ -252,11 +252,17 @@ template <class T>
 void
 RecursionExpansion<T>::reduce(const int32_t order)
 {
-    _root = *(_root.shift_order(-order));
-    
+    if (const auto root = _root.shift_order(-order))
+    {
+        _root = *root;
+    }
+
     for (size_t i = 0; i < _expansion.size(); i++)
     {
-        _expansion[i] = *(_expansion[i].shift_order(-order)); 
+        if (const auto term = _expansion[i].shift_order(-order))
+        {
+            _expansion[i] = *term;
+        }
     }
 }
 

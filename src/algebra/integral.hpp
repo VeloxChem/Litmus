@@ -266,7 +266,7 @@ Integral<T, U>::operator==(const Integral<T, U>& other) const
     {
         return false;
     }
-    if (_order != other._order)
+    else if (_order != other._order)
     {
         return false;
     }
@@ -299,7 +299,7 @@ Integral<T, U>::operator<(const Integral<T, U>& other) const
     {
         return _integrand < other._integrand;
     }
-    if (_order != other._order)
+    else if (_order != other._order)
     {
         return _order < other._order;
     }
@@ -400,7 +400,7 @@ Integral<T, U>::shift_prefix(const int  value,
                              const int  index,
                              const bool noscalar) const
 {
-    if (index < _prefixes.size())
+    if ((index >= 0) && (static_cast<size_t>(index) < _prefixes.size()))
     {
         auto new_prefixes = _prefixes;
         
