@@ -16,6 +16,8 @@
 
 #include "t2c_proj_ecp_driver.hpp"
 
+#include <cmath>
+
 #include "axes.hpp"
 #include "t2c_utils.hpp"
 
