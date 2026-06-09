@@ -1,7 +1,13 @@
 Litmus.xcodeproj/
 .DS_Store
 build/
-CMakeLists.txt
+
+# CMake artifacts (out-of-source builds live in build/)
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+
 *~
 *.d
 *.o
