@@ -61,6 +61,9 @@ add_executable(recursion_tests
     recursions/test_t2c_ovl_driver.cpp
     recursions/test_t2c_kin_driver.cpp
     recursions/test_t2c_npot_driver.cpp
+    recursions/test_t3c_ovl_driver.cpp
+    recursions/test_t3c_hrr_eri_driver.cpp
+    recursions/test_t4c_hrr_eri_driver.cpp
     recursions/test_v2i_ovl_driver.cpp
     recursions/test_v2i_linmom_driver.cpp
     recursions/test_v2i_el_field_driver.cpp)
