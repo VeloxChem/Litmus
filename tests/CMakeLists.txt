@@ -17,14 +17,25 @@ FetchContent_MakeAvailable(googletest)
 
 include(GoogleTest)
 
-# Tests for the symbolic algebra core (concrete value types).
+# Tests for the symbolic algebra core (concrete value types and templates).
 add_executable(algebra_tests
+    algebra/test_axes.cpp
+    algebra/test_components.cpp
     algebra/test_fraction.cpp
     algebra/test_tensor_component.cpp
     algebra/test_tensor.cpp
     algebra/test_factor.cpp
     algebra/test_operator.cpp
-    algebra/test_integral_component.cpp)
+    algebra/test_operator_component.cpp
+    algebra/test_one_center.cpp
+    algebra/test_one_center_component.cpp
+    algebra/test_two_center_pair.cpp
+    algebra/test_two_center_pair_component.cpp
+    algebra/test_integral.cpp
+    algebra/test_integral_component.cpp
+    algebra/test_recursion_term.cpp
+    algebra/test_recursion_expansion.cpp
+    algebra/test_recursion_group.cpp)
 
 target_link_libraries(algebra_tests PRIVATE
     GTest::gtest_main
