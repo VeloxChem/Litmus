@@ -70,6 +70,9 @@ add_executable(recursion_tests
     recursions/test_t2c_loc_ecp_driver.cpp
     recursions/test_t2c_center_driver.cpp
     recursions/test_t2c_trans_one_driver.cpp
+    recursions/test_t2c_proj_ecp_driver.cpp
+    recursions/test_t3c_geom_100_eri_driver.cpp
+    recursions/test_t4c_geom_10_hrr_eri_driver.cpp
     recursions/test_v2i_ovl_driver.cpp
     recursions/test_v2i_linmom_driver.cpp
     recursions/test_v2i_el_field_driver.cpp
