@@ -299,10 +299,10 @@ T4CVrrElectronRepulsionDriver::ket_vrr_c(const R4CTerm& rterm,
             if (const auto r4val = r3val->shift_order(1))
             {
                 auto x4val = *r4val;
-                
-                x3val.add(Factor("rho/nu", "fti_cd"), Fraction(-nc));
-                
-                t4crt.add(x3val);
+
+                x4val.add(Factor("rho/nu", "fti_cd"), Fraction(-nc));
+
+                t4crt.add(x4val);
             }
         }
         

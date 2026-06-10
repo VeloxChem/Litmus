@@ -165,29 +165,20 @@ V2IElectricFieldDriver::aux_vrr(const I2CIntegral& integral) const
     {
         const auto iorder = integral.order();
         
-        if (integral.integrand().shape() == Tensor(1))
+        // An electric-field operator of tensorial rank N requires the Boys
+        // auxiliaries at orders iorder+1 .. iorder+N. The rank-1 and rank-2
+        // cases generalize directly to arbitrary order.
+        if (const auto norder = integral.integrand().shape().order(); norder > 0)
         {
             auto xint = integral.replace(Operator("A"));
-            
-            xint.set_order(iorder + 1);
-            
-            tints.insert(xint);
+
+            for (int o = 1; o <= norder; o++)
+            {
+                xint.set_order(iorder + o);
+
+                tints.insert(xint);
+            }
         }
-        
-        if (integral.integrand().shape() == Tensor(2))
-        {
-            auto xint = integral.replace(Operator("A"));
-            
-            xint.set_order(iorder + 1);
-            
-            tints.insert(xint);
-            
-            xint.set_order(iorder + 2);
-            
-            tints.insert(xint);
-        }
-        
-        // TODO: Add higher orders here
     }
     
     return tints;

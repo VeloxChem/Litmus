@@ -101,9 +101,10 @@ T2CTransOneDriver::create_recursion(const VT2CIntegrals& vints) const
     
     for (const auto& tcomp : vints)
     {
-        auto rdist = bra_ket_vrr(R2CTerm(tcomp));
-                
-        r2group.add(*rdist);
+        if (const auto rdist = bra_ket_vrr(R2CTerm(tcomp)))
+        {
+            r2group.add(*rdist);
+        }
     }
     
     r2group.simplify();

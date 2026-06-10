@@ -40,23 +40,19 @@ V2ILinearMomentumDriver::op_vrr(const I2CIntegral& integral) const
 
     if (!is_linmom(integral)) return tints;
 
-    integral.replace(Operator("1"));
-
-    // This is a template recursion to generate the overall recursion steps (non-axis-specific recursion steps)
+    // The linear-momentum operator p lowers to the overlap operator "1" on the
+    // ket-shifted integrals. Integral::replace is const and returns a new value,
+    // so the replacement must be applied to each shifted term.
     if (const auto tval = integral.shift(1, 1))
     {
         // first recursion term
-        auto x1val = *tval;
-
-        // Stores a representation of an unique integral (insert only actually registers a new entry if one like it wast not there from before)
-        tints.insert(x1val);
+        tints.insert(tval->replace(Operator("1")));
 
         // second recursion term
         if (const auto r2val = integral.shift(-1, 1))
         {
-            tints.insert(*r2val);
+            tints.insert(r2val->replace(Operator("1")));
         }
-
     }
 
     return tints;
@@ -68,7 +64,7 @@ V2ILinearMomentumDriver::apply_op_vrr(const I2CIntegral& integral) const
 {
     SI2CIntegrals tints;
 
-    if (integral[0] > 0)
+    if (is_linmom(integral))
     {
         SI2CIntegrals rtints({integral, });
 
@@ -78,7 +74,7 @@ V2ILinearMomentumDriver::apply_op_vrr(const I2CIntegral& integral) const
 
             for (const auto& rtint : rtints)
             {
-                if ((rtint[0] != 0) && is_linmom(rtint))
+                if (is_linmom(rtint))
                 {
                    const auto ctints = op_vrr(rtint);
 
@@ -86,7 +82,7 @@ V2ILinearMomentumDriver::apply_op_vrr(const I2CIntegral& integral) const
                    {
                        tints.insert(ctint);
 
-                       if (ctint[0] != 0)
+                       if (is_linmom(ctint))
                        {
                            new_rtints.insert(ctint);
                        }
