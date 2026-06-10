@@ -55,3 +55,18 @@ target_link_libraries(general_tests PRIVATE
     ltm_general)
 
 gtest_discover_tests(general_tests)
+
+# Tests for the Obara-Saika recursion drivers.
+add_executable(recursion_tests
+    recursions/test_v2i_ovl_driver.cpp
+    recursions/test_v2i_linmom_driver.cpp
+    recursions/test_v2i_el_field_driver.cpp)
+
+target_link_libraries(recursion_tests PRIVATE
+    GTest::gtest_main
+    litmus_headers
+    ltm_recursions
+    ltm_algebra
+    ltm_general)
+
+gtest_discover_tests(recursion_tests)
