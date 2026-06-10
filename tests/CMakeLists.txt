@@ -64,9 +64,13 @@ add_executable(recursion_tests
     recursions/test_t3c_ovl_driver.cpp
     recursions/test_t3c_hrr_eri_driver.cpp
     recursions/test_t4c_hrr_eri_driver.cpp
+    recursions/test_t3c_vrr_eri_driver.cpp
+    recursions/test_t4c_vrr_eri_driver.cpp
     recursions/test_v2i_ovl_driver.cpp
     recursions/test_v2i_linmom_driver.cpp
-    recursions/test_v2i_el_field_driver.cpp)
+    recursions/test_v2i_el_field_driver.cpp
+    recursions/test_v3i_ovl_driver.cpp
+    recursions/test_v4i_eri_driver.cpp)
 
 target_link_libraries(recursion_tests PRIVATE
     GTest::gtest_main
