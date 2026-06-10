@@ -58,6 +58,9 @@ gtest_discover_tests(general_tests)
 
 # Tests for the Obara-Saika recursion drivers.
 add_executable(recursion_tests
+    recursions/test_t2c_ovl_driver.cpp
+    recursions/test_t2c_kin_driver.cpp
+    recursions/test_t2c_npot_driver.cpp
     recursions/test_v2i_ovl_driver.cpp
     recursions/test_v2i_linmom_driver.cpp
     recursions/test_v2i_el_field_driver.cpp)
