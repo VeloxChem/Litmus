@@ -43,3 +43,15 @@ target_link_libraries(algebra_tests PRIVATE
     ltm_algebra)
 
 gtest_discover_tests(algebra_tests)
+
+# Tests for the general-purpose utilities (file streams, string formatting).
+add_executable(general_tests
+    general/test_string_formater.cpp
+    general/test_file_stream.cpp)
+
+target_link_libraries(general_tests PRIVATE
+    GTest::gtest_main
+    litmus_headers
+    ltm_general)
+
+gtest_discover_tests(general_tests)

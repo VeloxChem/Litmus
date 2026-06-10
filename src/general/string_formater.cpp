@@ -24,19 +24,6 @@
 namespace fstr {  // fstr namespace
 
 std::string
-upcase(const std::string& source)
-{
-    std::string str;
-    
-    std::transform(source.cbegin(),
-                   source.cend(),
-                   std::back_inserter(str),
-                   [] (unsigned char c) { return std::toupper(c); });
-    
-    return str;
-}
-
-std::string
 lowercase(const std::string& source)
 {
     std::string str;

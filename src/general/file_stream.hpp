@@ -34,14 +34,6 @@ namespace ost { // ost namespace
     void write_code_lines(      std::ofstream& fstream,
                           const VCodeLines&    lines);
 
-    /// Writes VeloxChem copyright titler to file stream.
-    /// @param fstream the file stream.
-    /// @param label the namespace label
-    /// @param start the flag to write name space start or end.
-    void write_namespace(      std::ofstream& fstream,
-                         const std::string&   label,
-                         const bool           start);
-
 } // ost namespace
 
 #endif /* file_stream_hpp */

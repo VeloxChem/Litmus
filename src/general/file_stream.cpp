@@ -29,24 +29,5 @@ namespace ost { // ost namespace
         }
     }
 
-    void
-    write_namespace(      std::ofstream& fstream,
-                    const std::string&   label,
-                    const bool           start)
-    {
-        if (start)
-        {
-            fstream << "namespace "  << label << " { // " << label << " namespace" << std::endl;
-            
-            fstream << std::endl;
-        }
-        else
-        {
-            fstream << std::endl;
-            
-            fstream << "} // " << label << " namespace" << std::endl;
-        }
-    }
-
 } // ost namespace
 

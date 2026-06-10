@@ -17,21 +17,9 @@
 #ifndef string_formater_hpp
 #define string_formater_hpp
 
-#include <cstdint>
-
 #include <string>
-#include <vector>
 
 namespace fstr {  // fstr namespace
-
-/**
- Creates uppercased string from string.
- 
- @param source the string.
- @return the uppercased string.
- */
-std::string
-upcase(const std::string& source);
 
 /**
  Creates lowercased string from string.
