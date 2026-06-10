@@ -1,0 +1,11 @@
+# Example Litmus run: second-order geometric derivatives of two-center
+# overlap integrals up to d functions.
+#
+#   litmus run examples/t2c_geom.toml
+#
+# Generated source files are written to the current working directory.
+
+type     = "t2c_geom_cpu"   # run-type family
+lmax     = 2                # maximum angular momentum on A and B
+integral = "none"           # operator label ("none" = overlap)
+geom     = [0, 2, 0]        # geometric-derivative orders (bra, operator, ket)

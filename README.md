@@ -19,11 +19,24 @@ To make a debug build instead, configure with
 
 ## Running
 
-The run is configured in `src/litmus.cpp` (integral type, maximum angular
-momentum, geometrical-derivative orders). Adjust it, rebuild, then run:
+A run is described by a config file (a minimal TOML subset) and launched with
+the `run` subcommand:
 
 ```bash
-./build/litmus.x
+./build/litmus.x run examples/t2c_geom.toml
+```
+
+The config selects the integral family (`type`), the maximum angular momentum
+(`lmax`), the operator label (`integral`), the geometric-derivative orders
+(`geom`), and a few family-specific keys. See `litmus.x --help` for the full
+schema and the ready-to-run samples under [`examples/`](examples). A minimal
+config looks like:
+
+```toml
+type     = "t2c_geom_cpu"   # run-type family
+lmax     = 2                # maximum angular momentum
+integral = "none"           # operator label
+geom     = [0, 2, 0]        # geometric-derivative orders
 ```
 
 Generated integral source files are written to the current working directory.

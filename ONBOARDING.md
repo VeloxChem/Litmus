@@ -30,7 +30,7 @@ src/
   algebra/      symbolic value types and templates (the vocabulary)
   recursions/   Obara–Saika "drivers": apply recurrence rules to build graphs
   generators/   emit C++ source from recursion graphs
-  litmus.cpp    the entry point; edit it to choose what to generate
+  litmus.cpp    the CLI entry point; parses a config file and dispatches
 tests/
   algebra/      unit tests for the value types/templates
   general/      unit tests for the utilities
@@ -117,9 +117,18 @@ ctest --test-dir build --output-on-failure   # run all 447 tests
   (`CONFIGURE_DEPENDS`), so a new `test_<driver>.cpp` is picked up on the next
   configure. The algebra/general targets list files explicitly.
 
-To change what gets generated, edit `src/litmus.cpp` (it constructs generator
-objects and calls them), rebuild, and run `./build/litmus.x`. Output files land
-in the current working directory.
+To change what gets generated, write a config file and run
+`./build/litmus.x run <config>` — no recompile needed. `src/litmus.cpp` parses
+the config (via `cfg::` in `src/general/config.{hpp,cpp}`) and dispatches on the
+`type` key to the matching generator; an unknown `type` is a hard error listing
+the valid families. See `litmus.x --help` and the samples in `examples/`. Output
+files land in the current working directory.
+
+The config format is a minimal TOML subset parsed by hand (zero dependencies):
+`key = value` lines, `#` comments, and values that are quoted/bare strings,
+integers, booleans, or `[1, 2, 3]` integer arrays. Keys: `type` (required),
+`lmax`, `integral`, `geom` (arity 3/4/5 per family), `aux_lmax` (t3c),
+`proj_lmax` (proj-ecp), `rec_form` (t2c, `[1, 0]`), `use_rs` (t2c/g2c).
 
 ## Conventions & pitfalls (read before editing)
 

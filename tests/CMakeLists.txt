@@ -47,7 +47,8 @@ gtest_discover_tests(algebra_tests)
 # Tests for the general-purpose utilities (file streams, string formatting).
 add_executable(general_tests
     general/test_string_formater.cpp
-    general/test_file_stream.cpp)
+    general/test_file_stream.cpp
+    general/test_config.cpp)
 
 target_link_libraries(general_tests PRIVATE
     GTest::gtest_main

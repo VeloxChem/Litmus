@@ -1,0 +1,11 @@
+# Example Litmus run: plain four-center electron-repulsion integrals up to
+# d functions.
+#
+#   litmus run examples/t4c_eri.toml
+#
+# Generated source files are written to the current working directory.
+
+type     = "t4c_cpu"          # run-type family
+lmax     = 2                  # maximum angular momentum on A, B, C, D
+integral = "electron repulsion"   # operator label
+geom     = [0, 0, 0, 0, 0]    # geometric-derivative orders (A, B, operator, C, D)
