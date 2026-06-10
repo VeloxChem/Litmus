@@ -56,39 +56,11 @@ target_link_libraries(general_tests PRIVATE
 
 gtest_discover_tests(general_tests)
 
-# Tests for the Obara-Saika recursion drivers.
-add_executable(recursion_tests
-    recursions/test_t2c_ovl_driver.cpp
-    recursions/test_t2c_kin_driver.cpp
-    recursions/test_t2c_npot_driver.cpp
-    recursions/test_t2c_eri_driver.cpp
-    recursions/test_t2c_hrr_driver.cpp
-    recursions/test_t2c_linmom_driver.cpp
-    recursions/test_t3c_ovl_driver.cpp
-    recursions/test_t3c_ovl_grad_driver.cpp
-    recursions/test_t3c_r2_driver.cpp
-    recursions/test_t3c_rr2_driver.cpp
-    recursions/test_t3c_hrr_eri_driver.cpp
-    recursions/test_t4c_hrr_eri_driver.cpp
-    recursions/test_t3c_vrr_eri_driver.cpp
-    recursions/test_t4c_vrr_eri_driver.cpp
-    recursions/test_t2c_dip_driver.cpp
-    recursions/test_t2c_loc_ecp_driver.cpp
-    recursions/test_t2c_center_driver.cpp
-    recursions/test_t2c_trans_one_driver.cpp
-    recursions/test_t2c_proj_ecp_driver.cpp
-    recursions/test_t3c_geom_100_eri_driver.cpp
-    recursions/test_t3c_geom_010_eri_driver.cpp
-    recursions/test_t4c_geom_10_hrr_eri_driver.cpp
-    recursions/test_t4c_geom_11_hrr_eri_driver.cpp
-    recursions/test_t4c_geom_20_hrr_eri_driver.cpp
-    recursions/test_v2i_ovl_driver.cpp
-    recursions/test_v2i_linmom_driver.cpp
-    recursions/test_v2i_el_field_driver.cpp
-    recursions/test_v2i_npot_driver.cpp
-    recursions/test_v2i_proj_ecp_driver.cpp
-    recursions/test_v3i_ovl_driver.cpp
-    recursions/test_v4i_eri_driver.cpp)
+# Tests for the Obara-Saika recursion drivers. One test file per driver; globbed
+# so new driver tests are picked up automatically on reconfigure.
+file(GLOB RECURSION_TEST_SOURCES CONFIGURE_DEPENDS recursions/*.cpp)
+
+add_executable(recursion_tests ${RECURSION_TEST_SOURCES})
 
 target_link_libraries(recursion_tests PRIVATE
     GTest::gtest_main

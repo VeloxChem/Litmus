@@ -1,0 +1,80 @@
+// LITMUS: An Automated Molecular Integrals Generator
+// Copyright 2022 Z. Rinkevicius, KTH, Sweden.
+
+#include <gtest/gtest.h>
+
+#include "v4i_geom20_eri_driver.hpp"
+#include "t4c_defs.hpp"
+
+namespace {
+
+// Four-center ERI with geometrical-derivative prefixes of orders {pa,pb,pc,pd}.
+I4CIntegral geom(int a, int b, int c, int d, int pa, int pb, int pc, int pd,
+                 const std::string& integrand = "1/|r-r'|")
+{
+    const VOperators prefixes({Operator("d/dA", Tensor(pa)),
+                               Operator("d/dB", Tensor(pb)),
+                               Operator("d/dC", Tensor(pc)),
+                               Operator("d/dD", Tensor(pd))});
+
+    return I4CIntegral(TwoCenterPair("a", a, "b", b),
+                       TwoCenterPair("c", c, "d", d),
+                       Operator(integrand), 0, prefixes);
+}
+
+}  // namespace
+
+TEST(V4IGeom20ElectronRepulsionDriverTest, IsElectronRepulsion)
+{
+    const V4IGeom20ElectronRepulsionDriver drv;
+
+    // Required prefix order is {2, 0, 0, 0}.
+    EXPECT_TRUE(drv.is_electron_repulsion(geom(1, 0, 0, 0, 2, 0, 0, 0)));
+
+    // Wrong prefix order.
+    EXPECT_FALSE(drv.is_electron_repulsion(geom(1, 0, 0, 0, 1, 0, 0, 0)));
+
+    // Wrong operator.
+    EXPECT_FALSE(drv.is_electron_repulsion(geom(1, 0, 0, 0, 2, 0, 0, 0, "1")));
+}
+
+TEST(V4IGeom20ElectronRepulsionDriverTest, BraHrrProducesThreeTerms)
+{
+    const V4IGeom20ElectronRepulsionDriver drv;
+
+    // (P,S|S,S) with prefix {2,0,0,0}: lower A, lower prefix A (-> {1,0,0,0}),
+    // raise B -> three distinct terms.
+    const auto tints = drv.bra_hrr(geom(1, 0, 0, 0, 2, 0, 0, 0));
+
+    EXPECT_EQ(tints.size(), 3u);
+
+    // Lowered-prefix term has prefix order {1,0,0,0}.
+    EXPECT_TRUE(tints.find(geom(0, 0, 0, 0, 1, 0, 0, 0)) != tints.cend());
+
+    // Raised-B term keeps prefix {2,0,0,0}.
+    EXPECT_TRUE(tints.find(geom(0, 1, 0, 0, 2, 0, 0, 0)) != tints.cend());
+}
+
+TEST(V4IGeom20ElectronRepulsionDriverTest, BraHrrRejectsNonEri)
+{
+    const V4IGeom20ElectronRepulsionDriver drv;
+
+    EXPECT_TRUE(drv.bra_hrr(geom(1, 0, 0, 0, 1, 0, 0, 0)).empty());
+}
+
+TEST(V4IGeom20ElectronRepulsionDriverTest, ApplyBraHrrRecursionExpands)
+{
+    const V4IGeom20ElectronRepulsionDriver drv;
+
+    const auto tints = drv.apply_bra_hrr_recursion(geom(1, 0, 0, 0, 2, 0, 0, 0));
+
+    EXPECT_FALSE(tints.empty());
+    EXPECT_GE(tints.size(), 2u);
+}
+
+TEST(V4IGeom20ElectronRepulsionDriverTest, ApplyBraHrrRecursionOnScalarAIsEmpty)
+{
+    const V4IGeom20ElectronRepulsionDriver drv;
+
+    EXPECT_TRUE(drv.apply_bra_hrr_recursion(geom(0, 0, 0, 0, 2, 0, 0, 0)).empty());
+}
