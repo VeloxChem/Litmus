@@ -38,21 +38,12 @@ public:
     /// @param integral The  electron repulsion integral.
     /// @return The set of integrals.
     SI3CIntegrals bra_hrr(const I3CIntegral& integral) const;
-    
-    /// Applies horizontal recursion to bra side of electron repulsion integral.
-    /// @param integral The  electron repulsion integral.
-    /// @return The set of integrals.
-    SI3CIntegrals bra_aux_hrr(const I3CIntegral& integral) const;
-        
+
     /// Applies bra hrr recursion expansion for set of integral.
     /// @param integral The  integral to apply recursion.
     /// @return The set of integrals.
     SI3CIntegrals apply_bra_hrr_recursion(const I3CIntegral& integral) const;
     
-    /// Creates bra hrr recursion expansion for set of integral.
-    /// @param integrals The  set of integrals to apply recursion.
-    /// @return The set of integrals.
-    SI3CIntegrals create_bra_hrr_recursion(const SI3CIntegrals& integrals) const;
 };
 
 #endif /* v3i_geom100_eri_driver_hpp */

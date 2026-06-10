@@ -63,11 +63,6 @@ public:
     /// @param integral The  integral to apply recursion.
     /// @return The set of integrals.
     SI4CIntegrals apply_ket_hrr_recursion(const I4CIntegral& integral) const;
-    
-    /// Creates bra hrr recursion expansion for set of integral.
-    /// @param integrals The  set of integrals to apply recursion.
-    /// @return The set of integrals.
-    SI4CIntegrals create_bra_hrr_recursion(const SI4CIntegrals& integrals) const;
 };
 
 #endif /* v4i_geom10_eri_driver_hpp */
