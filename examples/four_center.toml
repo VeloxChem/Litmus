@@ -1,0 +1,16 @@
+# Example Litmus run (new-style configuration): four-center integrals on CPU
+# in C++, for angular momenta 0..2, stored sparsely with screened signatures.
+#
+#   litmus run examples/four_center.toml
+#
+# Required keys: integral_type, max_ang_mom. Everything below is optional and
+# shown at its default value.
+
+integral_type = "four_center"        # two_center | three_center | four_center
+operator_type = "electron_repulsion" # integrand operator (default: overlap)
+hardware      = "cpu"                # default: cpu
+language      = "C++"                # default: C++
+min_ang_mom   = 0                    # default: 0
+max_ang_mom   = 2                    # required
+storage_form  = "VeloxChemSparse"    # default: VeloxChemSparse
+signature     = "VeloxChemScreened"  # default: VeloxChemScreened

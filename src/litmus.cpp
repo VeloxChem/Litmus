@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "config.hpp"
+#include "run_configuration.hpp"
 
 #include "t2c_cpu_generators.hpp"
 #include "t2c_geom_cpu_generators.hpp"
@@ -127,12 +128,41 @@ is_plain(const std::array<int, N>& geom)
     return true;
 }
 
+/// Reports a validated run configuration to stdout.
+/// @param run_config The validated run configuration.
+void
+describe(const cfg::RunConfiguration& run_config)
+{
+    std::cout << "Run configuration:\n"
+              << "  integral_type = " << cfg::to_string(run_config.integral_type) << "\n"
+              << "  operator_type = " << cfg::to_string(run_config.operator_type) << "\n"
+              << "  hardware      = " << cfg::to_string(run_config.hardware) << "\n"
+              << "  language      = " << cfg::to_string(run_config.language) << "\n"
+              << "  ang_mom       = [" << run_config.min_ang_mom << ", "
+              << run_config.max_ang_mom << "]\n"
+              << "  storage_form  = " << cfg::to_string(run_config.storage_form) << "\n"
+              << "  signature     = " << cfg::to_string(run_config.signature) << "\n";
+}
+
 /// Dispatches a parsed configuration to the matching code generator.
 /// @param config The parsed configuration.
 /// @return The process exit code (0 on success, 1 on an unknown run type).
 int
 run(const cfg::Config& config)
 {
+    // new-style configuration (orthogonal integral_type/hardware/language fields).
+    // The generators that consume it are not wired in yet; validate and report.
+
+    if (config.has("integral_type"))
+    {
+        describe(cfg::make_run_configuration(config));
+
+        std::cout << "litmus: configuration is valid; new-style generators are not wired in yet."
+                  << std::endl;
+
+        return 0;
+    }
+
     const auto type = config.get_string("type");
 
     const auto integral = config.get_string("integral", "none");

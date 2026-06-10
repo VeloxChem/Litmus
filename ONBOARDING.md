@@ -126,9 +126,28 @@ files land in the current working directory.
 
 The config format is a minimal TOML subset parsed by hand (zero dependencies):
 `key = value` lines, `#` comments, and values that are quoted/bare strings,
-integers, booleans, or `[1, 2, 3]` integer arrays. Keys: `type` (required),
+integers, booleans, or `[1, 2, 3]` integer arrays. The raw parser is generic
+(`cfg::Config`, typed getters with fallbacks); two schemas sit on top of it.
+
+**Legacy schema** (the original 13 generator families). Keys: `type` (required),
 `lmax`, `integral`, `geom` (arity 3/4/5 per family), `aux_lmax` (t3c),
 `proj_lmax` (proj-ecp), `rec_form` (t2c, `[1, 0]`), `use_rs` (t2c/g2c).
+
+**New-style schema** (`cfg::RunConfiguration` in
+`src/general/run_configuration.{hpp,cpp}`) decomposes the monolithic `type` into
+orthogonal, typed dimensions for the next generation of generators. Keys:
+`integral_type` (required: `two_center`/`three_center`/`four_center`, also
+`2c`/`3c`/`4c`), `max_ang_mom` (required), `min_ang_mom` (default 0),
+`operator_type` (default `overlap`; the integrand — `overlap`, `kinetic_energy`,
+`nuclear_potential`, `electron_repulsion`, `dipole_momentum`, `linear_momentum`,
+`local_ecp`, `projected_ecp`, `three_center_overlap`, `three_center_r2`,
+`three_center_r_dot_r2`, with `to_string` round-tripping to the generator label),
+`hardware` (default `cpu`), `language` (default `C++`), `storage_form` (default
+`VeloxChemSparse`), `signature` (default `VeloxChemScreened`). Each enumerated
+field is validated against its allowed spellings (case/`_`/`-` insensitive) and
+the angular-momentum range is checked. `litmus run` recognizes a config as
+new-style when it carries an `integral_type` key; the generators that consume
+`RunConfiguration` are the next thing to build. See `examples/four_center.toml`.
 
 ## Conventions & pitfalls (read before editing)
 

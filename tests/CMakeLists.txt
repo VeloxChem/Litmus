@@ -48,7 +48,8 @@ gtest_discover_tests(algebra_tests)
 add_executable(general_tests
     general/test_string_formater.cpp
     general/test_file_stream.cpp
-    general/test_config.cpp)
+    general/test_config.cpp
+    general/test_run_configuration.cpp)
 
 target_link_libraries(general_tests PRIVATE
     GTest::gtest_main
