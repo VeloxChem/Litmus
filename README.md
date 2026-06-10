@@ -2,6 +2,9 @@
 
 Litmus is an automated molecular integrals generator.
 
+New to the codebase? Start with [ONBOARDING.md](ONBOARDING.md) for an
+architecture map, conventions, and pitfalls.
+
 ## Building
 
 Litmus uses CMake (>= 3.16) and a C++17 compiler. To build:
