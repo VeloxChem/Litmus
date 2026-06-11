@@ -38,6 +38,35 @@ class TwoCenterGenerator
     I2CIntegral _get_integral(const cfg::RunConfiguration& run_config,
                               const std::array<int, 2>&    ang_moms) const;
 
+    /// Builds the HRR integrals for a target two-center integral (a|o|b): the
+    /// momentum-transfer triangle that grows the smaller side from the VRR seeds
+    /// up to the target (the seed row itself belongs to the VRR base group).
+    /// @param run_config The run configuration (selects the integrand operator).
+    /// @param integral The target two-center integral (a|o|b).
+    /// @return The set of HRR transfer integrals.
+    SI2CIntegrals _generate_hrr_integral_group(const cfg::RunConfiguration& run_config,
+                                               const I2CIntegral&           integral) const;
+
+    /// Builds the VRR base integrals consumed by HRR for a target (a|o|b): the
+    /// seed ladder that keeps the smaller side at zero. (0|o|b)...(0|o|a+b) when
+    /// a <= b, and (a|o|0)...(a+b|o|0) otherwise. These are the integrals output
+    /// from HRR and fed into the VRR recursion.
+    /// @param run_config The run configuration (selects the integrand operator).
+    /// @param integral The target two-center integral (a|o|b).
+    /// @return The set of VRR base integrals needed by HRR.
+    SI2CIntegrals _generate_vrr_base_integral_group(const cfg::RunConfiguration& run_config,
+                                                    const I2CIntegral&           integral) const;
+
+    /// Runs the vertical recursion down from the given VRR base integrals,
+    /// enumerating every VRR integral required to evaluate them. The returned set
+    /// is the union of the base group and the remaining VRR integrals generated to
+    /// produce it.
+    /// @param run_config The run configuration (selects the recursion drivers).
+    /// @param base The VRR base integrals (output from HRR) to recurse down from.
+    /// @return The complete set of VRR integrals.
+    SI2CIntegrals _generate_vrr_integral_group(const cfg::RunConfiguration& run_config,
+                                               const SI2CIntegrals&         base) const;
+
 public:
     /// Creates a two-center integrals code generator.
     TwoCenterGenerator() = default;
