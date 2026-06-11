@@ -44,6 +44,8 @@
 #include "t2c_proj_ecp_cpu_generators.hpp"
 #include "t2c_geom_proj_ecp_cpu_generators.hpp"
 
+#include "two_center_generators.hpp"
+
 namespace {  // run-driver helpers
 
 /// The run-type families understood by the dispatcher (for help and errors).
@@ -155,12 +157,23 @@ run(const cfg::Config& config)
 
     if (config.has("integral_type"))
     {
-        describe(cfg::make_run_configuration(config));
+        const auto run_config = cfg::make_run_configuration(config);
 
-        std::cout << "litmus: configuration is valid; new-style generators are not wired in yet."
-                  << std::endl;
+        describe(run_config);
 
-        return 0;
+        switch (run_config.integral_type)
+        {
+            case cfg::IntegralType::two_center:
+                TwoCenterGenerator().generate(run_config);
+                return 0;
+
+            case cfg::IntegralType::three_center:
+            case cfg::IntegralType::four_center:
+                std::cout << "litmus: configuration is valid; "
+                          << cfg::to_string(run_config.integral_type)
+                          << " generators are not wired in yet." << std::endl;
+                return 0;
+        }
     }
 
     const auto type = config.get_string("type");
