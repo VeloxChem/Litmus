@@ -32,14 +32,23 @@ namespace {  // diagnostic helpers
 
 /// Formats a two-center integral as bra[operator]ket, e.g. "S[T]P", so that
 /// integrals sharing angular momenta but differing in their integrand (overlap
-/// vs kinetic energy) print as distinct terms.
+/// vs kinetic energy) print as distinct terms. A non-zero recursion order is
+/// appended as "^n" (the Boys order of electron-repulsion auxiliaries), so that
+/// auxiliaries differing only in that order also print distinctly.
 /// @param integral The two-center integral.
 /// @return The formatted label.
 std::string
 format_integral(const I2CIntegral& integral)
 {
-    return Tensor(integral[0]).label() + "[" + integral.integrand().name() + "]" +
-           Tensor(integral[1]).label();
+    auto text = Tensor(integral[0]).label() + "[" + integral.integrand().name() + "]" +
+                Tensor(integral[1]).label();
+
+    if (const auto order = integral.order(); order != 0)
+    {
+        text += "^" + std::to_string(order);
+    }
+
+    return text;
 }
 
 }  // namespace
