@@ -146,8 +146,60 @@ orthogonal, typed dimensions for the next generation of generators. Keys:
 `VeloxChemSparse`), `signature` (default `VeloxChemScreened`). Each enumerated
 field is validated against its allowed spellings (case/`_`/`-` insensitive) and
 the angular-momentum range is checked. `litmus run` recognizes a config as
-new-style when it carries an `integral_type` key; the generators that consume
-`RunConfiguration` are the next thing to build. See `examples/four_center.toml`.
+new-style when it carries an `integral_type` key; the first generator that
+consumes `RunConfiguration` now exists — see *The new-style two-center
+generator* below. See also `examples/four_center.toml`.
+
+## The new-style two-center generator (work in progress)
+
+`TwoCenterGenerator` (`src/generators/two_center_generators.{hpp,cpp}`) is the
+first generator built on `cfg::RunConfiguration`. `litmus run` dispatches a
+new-style config with `integral_type = two_center` to it (three/four-center
+still print a "not wired in yet" notice). It currently supports the operators
+`overlap`, `kinetic_energy`, and `electron_repulsion`; every other
+`OperatorType` raises a `cfg::ConfigError`. The operator `switch`es deliberately
+carry no `default`, so adding an `OperatorType` enumerator trips `-Wswitch` at
+each dispatch site that needs updating.
+
+`generate()` loops the bra (A) and ket (B) over `[min_ang_mom, max_ang_mom]` and,
+for each target `(a|o|b)`, splits the work into three integral sets:
+
+- **HRR transfer group** (`_generate_hrr_integral_group`) — the momentum-transfer
+  triangle that grows the *smaller* side up to the target. For `a <= b` it grows
+  the bra (bra `i = 1..a`, ket `j = b .. a+b-i`); for `a > b` it grows the ket
+  symmetrically.
+- **VRR base group** (`_generate_vrr_base_integral_group`) — the seed ladder HRR
+  consumes, keeping the smaller side at 0: `(0|o|b)...(0|o|a+b)` when `a <= b`,
+  else `(a|o|0)...(a+b|o|0)`. These are "the integrals output from HRR", fed into
+  the VRR recursion.
+- **Full VRR group** (`_generate_vrr_integral_group`) — the base fed into the real
+  vertical-recursion drivers (`V2IOverlapDriver`; `V2IKineticEnergyDriver` then a
+  `V2IOverlapDriver` closure; `V2IElectronRepulsionDriver`). This is the
+  recursion closure of the base, so the base is a subset of it; the *remaining*
+  VRR integrals (full minus base) are what VRR generates to evaluate the seeds.
+
+The drivers and their chaining mirror `T2CCPUGenerator::_generate_integral_group`
+(check that method when adding an operator). Angular momentum is read off an
+integral with `integral[0]` (bra) and `integral[1]` (ket); the integrand is
+`integral.integrand()`.
+
+Right now `generate()` only **prints** the three groups for inspection — no C++
+is emitted yet. This is the seam where emission plugs in next. The diagnostic
+format is `bra[operator]ket`, with a non-zero recursion order appended as `^n`,
+so integrals that share angular momenta but differ in integrand (kinetic `S[T]S`
+vs its overlap closure `S[1]S`) or in Boys order (electron-repulsion auxiliaries
+`S[1/|r-r'|]S^2`) print as distinct terms. Try:
+
+```bash
+printf 'integral_type="two_center"\noperator_type="kinetic_energy"\nmax_ang_mom=2\n' > /tmp/t2c.toml
+./build/litmus.x run /tmp/t2c.toml
+```
+
+**Next step — C++ emission.** The three groups are the inputs; what remains is to
+turn them into generated source. `storage_form` (`VeloxChemSparse`) and
+`signature` (`VeloxChemScreened`) are validated and carried on the config but do
+**not** yet affect output — they are the dimensions the emitted code path will
+branch on. `TwoCenterGenerator` is not yet covered by unit tests.
 
 ## Conventions & pitfalls (read before editing)
 
@@ -214,3 +266,5 @@ and on PRs. The ubuntu job is the one that catches missing standard includes.
 3. `tests/recursions/test_t2c_ovl_driver.cpp` — how a driver is exercised.
 4. `src/recursions/t2c_defs.hpp` — the type aliases everything else uses.
 5. `src/litmus.cpp` — the top-level wiring into the generators.
+6. `src/generators/two_center_generators.cpp` — the new-style generator and the
+   HRR/VRR integral-group split (the active work; C++ emission is the next step).
