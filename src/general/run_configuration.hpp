@@ -17,6 +17,7 @@
 #ifndef run_configuration_hpp
 #define run_configuration_hpp
 
+#include <optional>
 #include <string>
 
 #include "config.hpp"
@@ -41,6 +42,15 @@ enum class IntegralType
     two_center,
     three_center,
     four_center
+};
+
+/// The horizontal-recurrence transfer a recursion-type run generates: the
+/// momentum transfer to both centers, to the bra only, or to the ket only.
+enum class RecursionType
+{
+    hrr_bra_ket,
+    hrr_bra,
+    hrr_ket
 };
 
 /// The integrand operator of an integral. The spellings mirror the labels the
@@ -79,8 +89,13 @@ enum class Signature
 /// momentum range. Once constructed every field is trusted.
 struct RunConfiguration
 {
-    /// The number of integral centers (required; no default).
-    IntegralType integral_type = IntegralType::two_center;
+    /// The number of integral centers. Exactly one of integral_type and
+    /// recursion_type is set (they are mutually exclusive alternatives).
+    std::optional<IntegralType> integral_type;
+
+    /// The horizontal-recurrence transfer to generate. Exactly one of
+    /// integral_type and recursion_type is set.
+    std::optional<RecursionType> recursion_type;
 
     /// The integrand operator (default: overlap).
     OperatorType operator_type = OperatorType::overlap;
@@ -122,6 +137,10 @@ std::string to_string(Language value);
 /// @param value The integral-type value.
 /// @return The canonical string spelling of an integral-type value.
 std::string to_string(IntegralType value);
+
+/// @param value The recursion-type value.
+/// @return The canonical string spelling of a recursion-type value.
+std::string to_string(RecursionType value);
 
 /// @param value The operator-type value.
 /// @return The canonical string spelling of an operator-type value (the label

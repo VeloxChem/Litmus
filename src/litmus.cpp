@@ -63,7 +63,10 @@ print_usage(std::ostream& os)
        << "  litmus run <config-file>   Generate integrals described by the config file.\n"
        << "  litmus --help              Show this help.\n\n"
        << "Generated source files are written to the current working directory.\n\n"
-       << "Config file (minimal TOML subset: 'key = value', '#' comments):\n"
+       << "Config file (minimal TOML subset: 'key = value', '#' comments). The\n"
+       << "schema is chosen per config: an 'integral_type' or 'recursion_type' key\n"
+       << "selects the new-style schema, otherwise the legacy 'type' schema is used.\n\n"
+       << "Legacy schema (key 'type'):\n"
        << "  type       run-type family (required). One of:\n"
        << "             " << valid_types << "\n"
        << "  lmax       maximum angular momentum (int, default 0).\n"
@@ -73,7 +76,26 @@ print_usage(std::ostream& os)
        << "  aux_lmax   auxiliary angular momentum for t3c types (int, default lmax+2).\n"
        << "  proj_lmax  projector angular momentum for t2c_proj_ecp (int, default 0).\n"
        << "  rec_form   recursion form for t2c types (2-entry int array, default [1, 0]).\n"
-       << "  use_rs     range-separation flag for t2c/g2c types (bool, default false).\n";
+       << "  use_rs     range-separation flag for t2c/g2c types (bool, default false).\n\n"
+       << "New-style schema (key 'integral_type' or 'recursion_type'; spellings are\n"
+       << "case- and separator-insensitive, e.g. 'two_center' == 'TwoCenter'):\n"
+       << "  integral_type  integral arity: two_center|2c, three_center|3c,\n"
+       << "                 four_center|4c. Only two_center is wired in so far.\n"
+       << "  recursion_type horizontal-recurrence transfer: hrr_bra_ket, hrr_bra,\n"
+       << "                 hrr_ket. Not wired in yet.\n"
+       << "                 (exactly one of integral_type / recursion_type required.)\n"
+       << "  max_ang_mom    maximum angular momentum (int, required).\n"
+       << "  min_ang_mom    minimum angular momentum (int, default 0).\n"
+       << "  operator_type  integrand (default overlap): overlap, kinetic_energy,\n"
+       << "                 nuclear_potential, electron_repulsion, dipole_momentum,\n"
+       << "                 linear_momentum, local_ecp, projected_ecp,\n"
+       << "                 three_center_overlap, three_center_r2,\n"
+       << "                 three_center_r_dot_r2. two_center supports overlap,\n"
+       << "                 kinetic_energy, electron_repulsion.\n"
+       << "  hardware       target hardware (default cpu): cpu.\n"
+       << "  language       target language (default C++): C++.\n"
+       << "  storage_form   result container (default VeloxChemSparse).\n"
+       << "  signature      kernel signature (default VeloxChemScreened).\n";
 }
 
 /// Reads the 'geom' key as a fixed-arity array, validating its length.
@@ -135,9 +157,18 @@ is_plain(const std::array<int, N>& geom)
 void
 describe(const cfg::RunConfiguration& run_config)
 {
-    std::cout << "Run configuration:\n"
-              << "  integral_type = " << cfg::to_string(run_config.integral_type) << "\n"
-              << "  operator_type = " << cfg::to_string(run_config.operator_type) << "\n"
+    std::cout << "Run configuration:\n";
+
+    if (run_config.integral_type)
+    {
+        std::cout << "  integral_type = " << cfg::to_string(*run_config.integral_type) << "\n";
+    }
+    else
+    {
+        std::cout << "  recursion_type = " << cfg::to_string(*run_config.recursion_type) << "\n";
+    }
+
+    std::cout << "  operator_type = " << cfg::to_string(run_config.operator_type) << "\n"
               << "  hardware      = " << cfg::to_string(run_config.hardware) << "\n"
               << "  language      = " << cfg::to_string(run_config.language) << "\n"
               << "  ang_mom       = [" << run_config.min_ang_mom << ", "
@@ -152,16 +183,25 @@ describe(const cfg::RunConfiguration& run_config)
 int
 run(const cfg::Config& config)
 {
-    // new-style configuration (orthogonal integral_type/hardware/language fields).
-    // The generators that consume it are not wired in yet; validate and report.
+    // new-style configuration: an integral_type or recursion_type key selects the
+    // orthogonal-field schema. Not every generator is wired in yet; validate and
+    // report.
 
-    if (config.has("integral_type"))
+    if (config.has("integral_type") || config.has("recursion_type"))
     {
         const auto run_config = cfg::make_run_configuration(config);
 
         describe(run_config);
 
-        switch (run_config.integral_type)
+        if (run_config.recursion_type)
+        {
+            std::cout << "litmus: configuration is valid; "
+                      << cfg::to_string(*run_config.recursion_type)
+                      << " recursion generators are not wired in yet." << std::endl;
+            return 0;
+        }
+
+        switch (*run_config.integral_type)
         {
             case cfg::IntegralType::two_center:
                 TwoCenterGenerator().generate(run_config);
@@ -170,7 +210,7 @@ run(const cfg::Config& config)
             case cfg::IntegralType::three_center:
             case cfg::IntegralType::four_center:
                 std::cout << "litmus: configuration is valid; "
-                          << cfg::to_string(run_config.integral_type)
+                          << cfg::to_string(*run_config.integral_type)
                           << " generators are not wired in yet." << std::endl;
                 return 0;
         }

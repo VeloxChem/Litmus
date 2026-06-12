@@ -78,6 +78,21 @@ parse_integral_type(const std::string& value)
                       "'; valid: two_center, three_center, four_center");
 }
 
+RecursionType
+parse_recursion_type(const std::string& value)
+{
+    const auto key = normalize(value);
+
+    if (key == "hrrbraket") return RecursionType::hrr_bra_ket;
+
+    if (key == "hrrbra") return RecursionType::hrr_bra;
+
+    if (key == "hrrket") return RecursionType::hrr_ket;
+
+    throw ConfigError("config: unknown recursion_type '" + value +
+                      "'; valid: hrr_bra_ket, hrr_bra, hrr_ket");
+}
+
 OperatorType
 parse_operator_type(const std::string& value)
 {
@@ -132,9 +147,31 @@ make_run_configuration(const Config& config)
 {
     RunConfiguration run_config;
 
-    // required: integral_type and max_ang_mom (get_* throws if absent)
+    // required: exactly one of integral_type / recursion_type, and max_ang_mom
 
-    run_config.integral_type = parse_integral_type(config.get_string("integral_type"));
+    const auto has_integral  = config.has("integral_type");
+    const auto has_recursion = config.has("recursion_type");
+
+    if (has_integral && has_recursion)
+    {
+        throw ConfigError("config: 'integral_type' and 'recursion_type' are mutually "
+                          "exclusive; specify exactly one");
+    }
+
+    if (!has_integral && !has_recursion)
+    {
+        throw ConfigError("config: exactly one of 'integral_type' or 'recursion_type' "
+                          "is required");
+    }
+
+    if (has_integral)
+    {
+        run_config.integral_type = parse_integral_type(config.get_string("integral_type"));
+    }
+    else
+    {
+        run_config.recursion_type = parse_recursion_type(config.get_string("recursion_type"));
+    }
 
     run_config.max_ang_mom = config.get_int("max_ang_mom");
 
@@ -217,6 +254,19 @@ to_string(IntegralType value)
     }
 
     return "two_center";
+}
+
+std::string
+to_string(RecursionType value)
+{
+    switch (value)
+    {
+        case RecursionType::hrr_bra_ket: return "hrr_bra_ket";
+        case RecursionType::hrr_bra:     return "hrr_bra";
+        case RecursionType::hrr_ket:     return "hrr_ket";
+    }
+
+    return "hrr_bra_ket";
 }
 
 std::string

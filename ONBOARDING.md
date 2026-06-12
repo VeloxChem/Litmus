@@ -137,8 +137,12 @@ integers, booleans, or `[1, 2, 3]` integer arrays. The raw parser is generic
 **New-style schema** (`cfg::RunConfiguration` in
 `src/general/run_configuration.{hpp,cpp}`) decomposes the monolithic `type` into
 orthogonal, typed dimensions for the next generation of generators. Keys:
-`integral_type` (required: `two_center`/`three_center`/`four_center`, also
-`2c`/`3c`/`4c`), `max_ang_mom` (required), `min_ang_mom` (default 0),
+`integral_type` (`two_center`/`three_center`/`four_center`, also `2c`/`3c`/`4c`)
+**or** `recursion_type` (`hrr_bra_ket`/`hrr_bra`/`hrr_ket`, the horizontal-
+recurrence transfer to generate) — **exactly one of the two is required**, and
+supplying both is a `ConfigError`; they are stored as `std::optional` fields so a
+consumer tests which one is set. `max_ang_mom` (required), `min_ang_mom`
+(default 0),
 `operator_type` (default `overlap`; the integrand — `overlap`, `kinetic_energy`,
 `nuclear_potential`, `electron_repulsion`, `dipole_momentum`, `linear_momentum`,
 `local_ecp`, `projected_ecp`, `three_center_overlap`, `three_center_r2`,
@@ -147,9 +151,10 @@ orthogonal, typed dimensions for the next generation of generators. Keys:
 `VeloxChemSparse`), `signature` (default `VeloxChemScreened`). Each enumerated
 field is validated against its allowed spellings (case/`_`/`-` insensitive) and
 the angular-momentum range is checked. `litmus run` recognizes a config as
-new-style when it carries an `integral_type` key; the first generator that
-consumes `RunConfiguration` now exists — see *The new-style two-center
-generator* below. See also `examples/four_center.toml`.
+new-style when it carries an `integral_type` *or* `recursion_type` key; the first
+generator that consumes `RunConfiguration` now exists — see *The new-style
+two-center generator* below (a `recursion_type` config validates but its
+generators are not wired in yet). See also `examples/four_center.toml`.
 
 ## The new-style two-center generator (work in progress)
 

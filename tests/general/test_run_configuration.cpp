@@ -28,6 +28,7 @@ using cfg::Hardware;
 using cfg::IntegralType;
 using cfg::Language;
 using cfg::OperatorType;
+using cfg::RecursionType;
 using cfg::Signature;
 using cfg::StorageForm;
 
@@ -104,6 +105,46 @@ TEST(RunConfigurationTest, ShortIntegralTypeAliases)
 
         EXPECT_EQ(cfg::make_run_configuration(config).integral_type, expected);
     }
+}
+
+TEST(RunConfigurationTest, ParsesRecursionTypeAsIntegralTypeAlternative)
+{
+    // recursion_type stands in for integral_type; each spelling (case- and
+    // separator-insensitive) maps to the right enum and leaves integral_type unset
+    for (const auto& [text, expected] : std::vector<std::pair<std::string, RecursionType>>{
+             {"hrr_bra_ket", RecursionType::hrr_bra_ket},
+             {"HRR-BRA-KET", RecursionType::hrr_bra_ket},
+             {"hrr_bra", RecursionType::hrr_bra},
+             {"hrr_ket", RecursionType::hrr_ket}})
+    {
+        const auto config = cfg::parse_string("recursion_type = \"" + text + "\"\nmax_ang_mom = 2");
+
+        const auto run_config = cfg::make_run_configuration(config);
+
+        EXPECT_EQ(run_config.recursion_type, expected) << text;
+        EXPECT_FALSE(run_config.integral_type.has_value()) << text;
+    }
+}
+
+TEST(RunConfigurationTest, IntegralTypeAndRecursionTypeAreMutuallyExclusive)
+{
+    // exactly one of the two run-selector keys is allowed: both present is an error
+    EXPECT_THROW(cfg::make_run_configuration(cfg::parse_string(R"(
+                     integral_type  = "two_center"
+                     recursion_type = "hrr_bra_ket"
+                     max_ang_mom    = 1
+                 )")),
+                 ConfigError);
+
+    // ... and so is neither (only the angular momentum given)
+    EXPECT_THROW(cfg::make_run_configuration(cfg::parse_string("max_ang_mom = 1")), ConfigError);
+}
+
+TEST(RunConfigurationTest, UnknownRecursionTypeThrows)
+{
+    EXPECT_THROW(cfg::make_run_configuration(
+                     cfg::parse_string("recursion_type = \"vrr_bra\"\nmax_ang_mom = 1")),
+                 ConfigError);
 }
 
 TEST(RunConfigurationTest, ParsesEveryOperatorType)
@@ -195,6 +236,9 @@ TEST(RunConfigurationTest, ToStringRoundTrips)
     EXPECT_EQ(cfg::to_string(IntegralType::two_center), "two_center");
     EXPECT_EQ(cfg::to_string(IntegralType::three_center), "three_center");
     EXPECT_EQ(cfg::to_string(IntegralType::four_center), "four_center");
+    EXPECT_EQ(cfg::to_string(RecursionType::hrr_bra_ket), "hrr_bra_ket");
+    EXPECT_EQ(cfg::to_string(RecursionType::hrr_bra), "hrr_bra");
+    EXPECT_EQ(cfg::to_string(RecursionType::hrr_ket), "hrr_ket");
     EXPECT_EQ(cfg::to_string(StorageForm::veloxchem_sparse), "VeloxChemSparse");
     EXPECT_EQ(cfg::to_string(Signature::veloxchem_screened), "VeloxChemScreened");
 }
