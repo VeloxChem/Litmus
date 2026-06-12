@@ -24,34 +24,11 @@
 #include "operator.hpp"
 #include "tensor.hpp"
 
+#include "two_center_emitters.hpp"
+
 #include "v2i_ovl_driver.hpp"
 #include "v2i_kin_driver.hpp"
 #include "v2i_eri_driver.hpp"
-
-namespace {  // diagnostic helpers
-
-/// Formats a two-center integral as bra[operator]ket, e.g. "S[T]P", so that
-/// integrals sharing angular momenta but differing in their integrand (overlap
-/// vs kinetic energy) print as distinct terms. A non-zero recursion order is
-/// appended as "^n" (the Boys order of electron-repulsion auxiliaries), so that
-/// auxiliaries differing only in that order also print distinctly.
-/// @param integral The two-center integral.
-/// @return The formatted label.
-std::string
-format_integral(const I2CIntegral& integral)
-{
-    auto text = Tensor(integral[0]).label() + "[" + integral.integrand().name() + "]" +
-                Tensor(integral[1]).label();
-
-    if (const auto order = integral.order(); order != 0)
-    {
-        text += "^" + std::to_string(order);
-    }
-
-    return text;
-}
-
-}  // namespace
 
 I2CIntegral
 TwoCenterGenerator::_get_integral(const cfg::RunConfiguration& run_config,
@@ -217,7 +194,10 @@ TwoCenterGenerator::generate(const cfg::RunConfiguration& run_config) const
     // loop over the angular-momentum range on the bra (A) and ket (B) sides; for
     // each target integral split the work into three groups: the HRR transfer
     // integrals, the VRR base integrals consumed by HRR, and the remaining VRR
-    // integrals produced to evaluate that base. The C++ emission is wired in later.
+    // integrals produced to evaluate that base. The emitter (selected by the
+    // configured hardware/language) turns each target and its groups into source.
+
+    const auto emitter = make_two_center_emitter(run_config);
 
     for (int i = run_config.min_ang_mom; i <= run_config.max_ang_mom; i++)
     {
@@ -241,19 +221,11 @@ TwoCenterGenerator::generate(const cfg::RunConfiguration& run_config) const
                 if (vrr_base_ints.count(tint) == 0) vrr_rest_ints.insert(tint);
             }
 
-            std::cout << "(" << format_integral(integral) << ") : HRR {";
+            emitter->emit(run_config, integral, hrr_ints, vrr_base_ints, vrr_rest_ints);
 
-            for (const auto& tint : hrr_ints) std::cout << " " << format_integral(tint);
-
-            std::cout << " } VRR-by-HRR {";
-
-            for (const auto& tint : vrr_base_ints) std::cout << " " << format_integral(tint);
-
-            std::cout << " } VRR-rest {";
-
-            for (const auto& tint : vrr_rest_ints) std::cout << " " << format_integral(tint);
-
-            std::cout << " }" << std::endl;
+            std::cout << "Generated " << integral.label() << " kernel ("
+                      << hrr_ints.size() << " HRR, " << vrr_base_ints.size() << " VRR base, "
+                      << vrr_rest_ints.size() << " VRR rest)" << std::endl;
         }
     }
 }

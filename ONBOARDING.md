@@ -35,12 +35,13 @@ tests/
   algebra/      unit tests for the value types/templates
   general/      unit tests for the utilities
   recursions/   one test file per driver
+  generators/   unit tests for the code generators/emitters
 CMakeLists.txt  root build; src/* and tests/* have their own
 .github/workflows/ci.yml   CI: build + test on ubuntu-latest and macos-latest
 ```
 
 Rough sizes: `algebra` ~27 files, `recursions` ~111 files (54 drivers + headers
-+ defs), `generators` ~138 files, plus a test suite of **447 tests**.
++ defs), `generators` ~138 files, plus a test suite of **472 tests**.
 
 ## The algebra module — the vocabulary
 
@@ -104,7 +105,7 @@ R2Group create_recursion(const VT2CIntegrals&) const;   // whole reduction
 ```bash
 cmake -S . -B build               # configure (Release by default)
 cmake --build build -j            # build → build/litmus.x
-ctest --test-dir build --output-on-failure   # run all 447 tests
+ctest --test-dir build --output-on-failure   # run all 472 tests
 ```
 
 - C++17, CMake ≥ 3.16. GoogleTest is fetched via FetchContent on first configure
@@ -113,9 +114,9 @@ ctest --test-dir build --output-on-failure   # run all 447 tests
   `ltm_recursions`, `ltm_generators`); this layout breaks a recursions↔generators
   include cycle. `litmus_headers` is an INTERFACE target exposing the include
   dirs.
-- The recursion test target globs `tests/recursions/*.cpp`
-  (`CONFIGURE_DEPENDS`), so a new `test_<driver>.cpp` is picked up on the next
-  configure. The algebra/general targets list files explicitly.
+- The recursion and generator test targets glob `tests/recursions/*.cpp` and
+  `tests/generators/*.cpp` (`CONFIGURE_DEPENDS`), so a new test file is picked up
+  on the next configure. The algebra/general targets list files explicitly.
 
 To change what gets generated, write a config file and run
 `./build/litmus.x run <config>` — no recompile needed. `src/litmus.cpp` parses
@@ -183,23 +184,73 @@ The drivers and their chaining mirror `T2CCPUGenerator::_generate_integral_group
 integral with `integral[0]` (bra) and `integral[1]` (ket); the integrand is
 `integral.integrand()`.
 
-Right now `generate()` only **prints** the three groups for inspection — no C++
-is emitted yet. This is the seam where emission plugs in next. The diagnostic
-format is `bra[operator]ket`, with a non-zero recursion order appended as `^n`,
-so integrals that share angular momenta but differ in integrand (kinetic `S[T]S`
-vs its overlap closure `S[1]S`) or in Boys order (electron-repulsion auxiliaries
-`S[1/|r-r'|]S^2`) print as distinct terms. Try:
+For each target `generate()` hands the three groups to a **two-center emitter**
+(`src/generators/two_center_emitters.{hpp,cpp}`) which writes a `.hpp`/`.cpp`
+pair per integral. The emitter is selected by `make_two_center_emitter()`, a
+factory that dispatches on the config's `hardware` × `language` (nested `switch`es
+with no `default`, so an unsupported target trips `-Wswitch` and is otherwise
+rejected with a `cfg::ConfigError`). The only emitter today is
+`CppCpuTwoCenterEmitter` (C++ on CPU). `generate()` still prints a one-line
+summary per target to stdout (`Generated SP kernel (0 HRR, 1 VRR base, 3 VRR
+rest)`). Try:
 
 ```bash
 printf 'integral_type="two_center"\noperator_type="kinetic_energy"\nmax_ang_mom=2\n' > /tmp/t2c.toml
-./build/litmus.x run /tmp/t2c.toml
+cd /tmp && /path/to/litmus.x run /tmp/t2c.toml   # writes ObaraSaikaTwoCenter*.{hpp,cpp} into the cwd
 ```
 
-**Next step — C++ emission.** The three groups are the inputs; what remains is to
-turn them into generated source. `storage_form` (`VeloxChemSparse`) and
-`signature` (`VeloxChemScreened`) are validated and carried on the config but do
-**not** yet affect output — they are the dimensions the emitted code path will
-branch on. `TwoCenterGenerator` is not yet covered by unit tests.
+**What the emitter produces.** Files are named
+`ObaraSaikaTwoCenter<Operator><BraKet>.{hpp,cpp}` (e.g.
+`ObaraSaikaTwoCenterKineticEnergyPP`). Each `.hpp` is a guarded declaration in the operator's
+namespace — `os2c::ovl` (overlap), `os2c::kin` (kinetic energy), `os2c::eri`
+(electron repulsion) — of a `compute_<la>_<lb>` kernel (lowercase shell labels,
+e.g. `compute_p_p`); the `(bra|op|ket)^order` caption is used for the `@brief`
+doc line. The `.cpp` carries the matching definition whose body now emits the
+integral computation **workflow** as real C++ calls (not comment placeholders),
+in order:
+
+- `npairs = pair.number_of_pairs()` and a zeroed result buffer
+  `CDenseMatrix((2*la+1)*(2*lb+1), npairs)`.
+- the Obara–Saika distances for the side the VRR builds —
+  `osfunc::compute_pb` when the seeds grow the ket (`(0|o|b)`), `compute_pa` when
+  they grow the bra (`(b|o|0)`); a pure `(0|o|0)` target needs neither. The build
+  side is read off the integral set by `vrr_build_side`.
+- the primitive-overlap seed `povl_ss = osfunc::compute_overlap(pair)` (overlap
+  and kinetic only — see `seeds_with_primitive_overlap`).
+- one VRR step per non-seed VRR integral, lowest total momentum first:
+  `p<abbr>_<shells> = os2c::vrr::<abbr>::compute_<L>(pair, pa|pb, <two lower
+  integrals>)`, where `<abbr>` keys off each integral's *own* integrand
+  (`integrand_abbrev`: `ovl`/`kin`/`eri`) and `L` is the built-side momentum.
+- contraction of the VRR **base** integrals HRR consumes:
+  `c<abbr>_<shells> = CDenseMatrix(...); osfunc::contract(c..., p...)`.
+- the HRR transfer to the target (only when both sides carry momentum):
+  `c<abbr>_<shells> = os2c::hrr::compute_<la>_<lb>(pair, <contracted base>)`. HRR
+  is operator-independent, so its namespace carries no operator abbreviation.
+- the Cartesian→spherical store: `osfunc::transform<la, lb>(buffer, <target>)`,
+  then `return buffer`.
+
+The `(s|s)` target is special-cased: the contracted primitive overlaps are
+already the spherical result, so it emits `osfunc::contract(buffer, povl_ss)` and
+returns, skipping the transform. `ObaraSaikaFunc.hpp` is always included;
+`CartesianToSphericalFunc.hpp` only when a transform is actually emitted.
+
+The `osfunc::*`, `os2c::vrr::*`, and `os2c::hrr::*` functions the body calls are
+**not themselves generated yet** — emitting those primitive recurrence kernels is
+the next plug-in point. Note also that the VRR/HRR/transform workflow currently
+only fires for primitive-overlap-seeded operators; `electron_repulsion` (Boys-
+seeded) falls through to an allocate-and-return stub for now. The
+namespace/file/operator tags are derived freshly in the emitter (not via the
+legacy `t2c::` helpers).
+
+**Signature/storage awareness.** The parameter list is the cross-product of two
+dimensions, each behind a no-`default` `switch`: `signature`
+(`VeloxChemScreened`) selects the **inputs** — `const CScreenedBasisFunctionPair&
+pair` — and `storage_form` (`VeloxChemSparse`) selects the **return type** —
+`CDenseMatrix`. The matching VeloxChem headers (`ScreenedBasisFunctionPair.hpp`,
+`DenseMatrix.hpp`) are included from the chosen types. The emitter is covered by
+`tests/generators/test_two_center_emitters.cpp` (a new `generator_tests` target;
+generator tests are globbed like the recursion tests). The tests chdir into a temp
+directory because the emitter writes relative to the working directory.
 
 ## Conventions & pitfalls (read before editing)
 
@@ -267,4 +318,8 @@ and on PRs. The ubuntu job is the one that catches missing standard includes.
 4. `src/recursions/t2c_defs.hpp` — the type aliases everything else uses.
 5. `src/litmus.cpp` — the top-level wiring into the generators.
 6. `src/generators/two_center_generators.cpp` — the new-style generator and the
-   HRR/VRR integral-group split (the active work; C++ emission is the next step).
+   HRR/VRR integral-group split.
+7. `src/generators/two_center_emitters.cpp` — the C++/CPU emitter that turns those
+   groups into a `.hpp`/`.cpp` kernel pair, wiring the VRR/HRR/transform workflow
+   as `osfunc::`/`os2c::vrr`/`os2c::hrr` calls (the active work; generating those
+   primitive recurrence kernels themselves is the next step).

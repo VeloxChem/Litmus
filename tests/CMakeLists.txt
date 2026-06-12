@@ -58,6 +58,22 @@ target_link_libraries(general_tests PRIVATE
 
 gtest_discover_tests(general_tests)
 
+# Tests for the code generators (file-emitting kernels). Globbed so new
+# generator tests are picked up automatically on reconfigure.
+file(GLOB GENERATOR_TEST_SOURCES CONFIGURE_DEPENDS generators/*.cpp)
+
+add_executable(generator_tests ${GENERATOR_TEST_SOURCES})
+
+target_link_libraries(generator_tests PRIVATE
+    GTest::gtest_main
+    litmus_headers
+    ltm_generators
+    ltm_recursions
+    ltm_algebra
+    ltm_general)
+
+gtest_discover_tests(generator_tests)
+
 # Tests for the Obara-Saika recursion drivers. One test file per driver; globbed
 # so new driver tests are picked up automatically on reconfigure.
 file(GLOB RECURSION_TEST_SOURCES CONFIGURE_DEPENDS recursions/*.cpp)
