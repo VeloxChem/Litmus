@@ -2,6 +2,9 @@ Litmus.xcodeproj/
 .DS_Store
 build/
 
+# clangd / tooling index
+.cache/
+
 # CMake artifacts (out-of-source builds live in build/)
 CMakeCache.txt
 CMakeFiles/
