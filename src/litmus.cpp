@@ -45,6 +45,7 @@
 #include "t2c_geom_proj_ecp_cpu_generators.hpp"
 
 #include "two_center_generators.hpp"
+#include "spherical_momentum_generators.hpp"
 
 namespace {  // run-driver helpers
 
@@ -52,7 +53,7 @@ namespace {  // run-driver helpers
 const char* const valid_types =
     "t2c_cpu, t2c_hrr_cpu, t2c_geom_cpu, t4c_cpu, t4c_geom_cpu, t4c_geom_hrr_cpu, "
     "t4c_diag_cpu, t4c_call_tree, t3c_cpu, t3c_geom_hrr_cpu, g2c_cpu, t2c_ecp_cpu, "
-    "t2c_proj_ecp_cpu";
+    "t2c_proj_ecp_cpu, spherical_momentum";
 
 /// Prints command-line usage and the configuration schema.
 void
@@ -69,7 +70,8 @@ print_usage(std::ostream& os)
        << "Legacy schema (key 'type'):\n"
        << "  type       run-type family (required). One of:\n"
        << "             " << valid_types << "\n"
-       << "  lmax       maximum angular momentum (int, default 0).\n"
+       << "  lmax       maximum angular momentum (int, default 0). For the\n"
+       << "             spherical_momentum type this is the highest shell tabulated.\n"
        << "  integral   integral/operator label (string, default \"none\").\n"
        << "  geom       geometric-derivative orders (int array; arity depends on type:\n"
        << "             3 for t2c/t3c/ecp, 4 for t4c_geom, 5 for t4c).\n"
@@ -383,6 +385,15 @@ run(const cfg::Config& config)
         {
             T2CGeomProjECPCPUGenerator().generate(integral, lmax, proj_lmax, geom);
         }
+
+        return 0;
+    }
+
+    // Cartesian-to-spherical transformation factors (VeloxChem SphericalMomentum.hpp)
+
+    if (type == "spherical_momentum")
+    {
+        SphericalMomentumGenerator().generate(lmax);
 
         return 0;
     }

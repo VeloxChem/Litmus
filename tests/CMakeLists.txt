@@ -22,6 +22,7 @@ add_executable(algebra_tests
     algebra/test_axes.cpp
     algebra/test_components.cpp
     algebra/test_fraction.cpp
+    algebra/test_spherical_harmonics.cpp
     algebra/test_tensor_component.cpp
     algebra/test_tensor.cpp
     algebra/test_factor.cpp
