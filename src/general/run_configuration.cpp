@@ -89,8 +89,12 @@ parse_recursion_type(const std::string& value)
 
     if (key == "hrrket") return RecursionType::hrr_ket;
 
+    if (key == "vrrcartesian") return RecursionType::vrr_cartesian;
+
+    if (key == "vrrspherical") return RecursionType::vrr_spherical;
+
     throw ConfigError("config: unknown recursion_type '" + value +
-                      "'; valid: hrr_bra_ket, hrr_bra, hrr_ket");
+                      "'; valid: hrr_bra_ket, hrr_bra, hrr_ket, vrr_cartesian, vrr_spherical");
 }
 
 OperatorType
@@ -261,9 +265,11 @@ to_string(RecursionType value)
 {
     switch (value)
     {
-        case RecursionType::hrr_bra_ket: return "hrr_bra_ket";
-        case RecursionType::hrr_bra:     return "hrr_bra";
-        case RecursionType::hrr_ket:     return "hrr_ket";
+        case RecursionType::hrr_bra_ket:   return "hrr_bra_ket";
+        case RecursionType::hrr_bra:       return "hrr_bra";
+        case RecursionType::hrr_ket:       return "hrr_ket";
+        case RecursionType::vrr_cartesian: return "vrr_cartesian";
+        case RecursionType::vrr_spherical: return "vrr_spherical";
     }
 
     return "hrr_bra_ket";

@@ -50,6 +50,11 @@ selected(const cfg::RecursionType type, const int la, const int lb)
 
         case cfg::RecursionType::hrr_ket:
             return la > lb;
+
+        // VRR recursion types are handled by the VRR generator, not here.
+        case cfg::RecursionType::vrr_cartesian:
+        case cfg::RecursionType::vrr_spherical:
+            return false;
     }
 
     return false;  // unreachable: every RecursionType is handled above

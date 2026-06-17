@@ -46,6 +46,7 @@
 
 #include "two_center_generators.hpp"
 #include "two_center_hrr_generators.hpp"
+#include "two_center_vrr_generators.hpp"
 #include "spherical_momentum_generators.hpp"
 
 namespace {  // run-driver helpers
@@ -84,8 +85,9 @@ print_usage(std::ostream& os)
        << "case- and separator-insensitive, e.g. 'two_center' == 'TwoCenter'):\n"
        << "  integral_type  integral arity: two_center|2c, three_center|3c,\n"
        << "                 four_center|4c. Only two_center is wired in so far.\n"
-       << "  recursion_type horizontal-recurrence transfer: hrr_bra_ket, hrr_bra,\n"
-       << "                 hrr_ket (emits os2c::hrr two-center kernels).\n"
+       << "  recursion_type two-center recurrence kernels: hrr_bra_ket, hrr_bra,\n"
+       << "                 hrr_ket (os2c::hrr), vrr_cartesian, vrr_spherical\n"
+       << "                 (os2c::vrr::ovl / os2c::ovl overlap VRR).\n"
        << "                 (exactly one of integral_type / recursion_type required.)\n"
        << "  max_ang_mom    maximum angular momentum (int, required).\n"
        << "  min_ang_mom    minimum angular momentum (int, default 0).\n"
@@ -198,8 +200,19 @@ run(const cfg::Config& config)
 
         if (run_config.recursion_type)
         {
-            TwoCenterHrrGenerator().generate(run_config);
-            return 0;
+            switch (*run_config.recursion_type)
+            {
+                case cfg::RecursionType::hrr_bra_ket:
+                case cfg::RecursionType::hrr_bra:
+                case cfg::RecursionType::hrr_ket:
+                    TwoCenterHrrGenerator().generate(run_config);
+                    return 0;
+
+                case cfg::RecursionType::vrr_cartesian:
+                case cfg::RecursionType::vrr_spherical:
+                    TwoCenterVrrGenerator().generate(run_config);
+                    return 0;
+            }
         }
 
         switch (*run_config.integral_type)

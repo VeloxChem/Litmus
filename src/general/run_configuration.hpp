@@ -50,7 +50,9 @@ enum class RecursionType
 {
     hrr_bra_ket,
     hrr_bra,
-    hrr_ket
+    hrr_ket,
+    vrr_cartesian,
+    vrr_spherical
 };
 
 /// The integrand operator of an integral. The spellings mirror the labels the
