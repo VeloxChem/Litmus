@@ -199,3 +199,88 @@ TEST(SphericalHarmonicsTest, OutOfRangeOrdersAreEmpty)
     EXPECT_TRUE(spherical_factors(2, 3).empty());
     EXPECT_TRUE(spherical_factors(2, -3).empty());
 }
+
+TEST(SphericalHarmonicsTest, FactorProductReducesRadical)
+{
+    // sqrt(3) * sqrt(3) = 3
+    EXPECT_EQ(SphericalFactor(Fraction(1), 3) * SphericalFactor(Fraction(1), 3),
+              SphericalFactor(Fraction(3), 1));
+
+    // sqrt(2) * sqrt(6) = sqrt(12) = 2 sqrt(3)
+    EXPECT_EQ(SphericalFactor(Fraction(1), 2) * SphericalFactor(Fraction(1), 6),
+              SphericalFactor(Fraction(2), 3));
+
+    // (1/2 sqrt(3)) * (-1/3 sqrt(3)) = -1/2
+    EXPECT_EQ(SphericalFactor(Fraction(1, 2), 3) * SphericalFactor(Fraction(-1, 3), 3),
+              SphericalFactor(Fraction(-1, 2), 1));
+
+    // pure rationals keep radicand 1
+    EXPECT_EQ(SphericalFactor(Fraction(-1, 2), 1) * SphericalFactor(Fraction(2, 3), 1),
+              SphericalFactor(Fraction(-1, 3), 1));
+}
+
+TEST(SphericalHarmonicsTest, TwoCenterTransformIsTensorProduct)
+{
+    // term count is the product of the per-shell term counts.
+    for (int la = 0; la <= 3; la++)
+    {
+        for (int lb = 0; lb <= 3; lb++)
+        {
+            for (int ca = 0; ca <= 2 * la; ca++)
+            {
+                for (int cb = 0; cb <= 2 * lb; cb++)
+                {
+                    const auto nbra = spherical_component_factors(la, ca).size();
+                    const auto nket = spherical_component_factors(lb, cb).size();
+
+                    EXPECT_EQ(two_center_spherical_factors(la, lb, ca, cb).size(), nbra * nket);
+                }
+            }
+        }
+    }
+}
+
+TEST(SphericalHarmonicsTest, TwoCenterTransformBraIsIdentityForS)
+{
+    // (s|d): the bra is the unit s harmonic, so the two-center transform reproduces
+    // the ket d harmonic, with an s (0,0,0) bra component on every term.
+    for (int cb = 0; cb <= 4; cb++)
+    {
+        const auto pair = two_center_spherical_factors(0, 2, 0, cb);
+        const auto ket  = spherical_component_factors(2, cb);
+
+        ASSERT_EQ(pair.size(), ket.size());
+
+        for (std::size_t i = 0; i < pair.size(); i++)
+        {
+            EXPECT_EQ(pair[i].bra, TensorComponent(0, 0, 0));
+            EXPECT_EQ(pair[i].ket, ket[i].first);
+            EXPECT_EQ(pair[i].factor, ket[i].second);
+        }
+    }
+}
+
+TEST(SphericalHarmonicsTest, TwoCenterTransformDDCombinesRadicals)
+{
+    // (d,m=-2 | d,m=-2): S(2,-2) = sqrt(3) xy on each side, so the single pair term
+    // is (xy, xy) with coefficient sqrt(3) * sqrt(3) = 3.
+    const auto pair = two_center_spherical_factors(2, 2, 0, 0);
+
+    ASSERT_EQ(pair.size(), 1u);
+    EXPECT_EQ(pair[0].bra, TensorComponent(1, 1, 0));
+    EXPECT_EQ(pair[0].ket, TensorComponent(1, 1, 0));
+    EXPECT_EQ(pair[0].factor, SphericalFactor(Fraction(3), 1));
+
+    // (d,m=0 | d,m=2): a 3 x 2 product, all rational x sqrt(3) -> sqrt(3) terms.
+    const auto mixed = two_center_spherical_factors(2, 2, 2, 4);
+
+    EXPECT_EQ(mixed.size(), 6u);
+    for (const auto& term : mixed) EXPECT_EQ(term.factor.radicand, 3);
+}
+
+TEST(SphericalHarmonicsTest, TwoCenterTransformOutOfRangeIsEmpty)
+{
+    EXPECT_TRUE(two_center_spherical_factors(1, 2, 3, 0).empty());  // bra index > 2*la
+    EXPECT_TRUE(two_center_spherical_factors(1, 2, 0, 5).empty());  // ket index > 2*lb
+    EXPECT_TRUE(two_center_spherical_factors(-1, 2, 0, 0).empty());
+}

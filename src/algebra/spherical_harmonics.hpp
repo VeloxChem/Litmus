@@ -69,6 +69,15 @@ struct SphericalFactor
     std::string to_string() const;
 };
 
+/// Multiplies two transformation coefficients, reducing the combined radical back
+/// to square-free form, e.g. sqrt(3) * sqrt(3) -> 3 and sqrt(2) * sqrt(6) ->
+/// 2 * sqrt(3). This is the coefficient algebra a two-center transform needs, as
+/// the bra and ket factors multiply per Cartesian term.
+/// @param lhs The left coefficient.
+/// @param rhs The right coefficient.
+/// @return The product factor_l * factor_r * sqrt(radicand_l * radicand_r).
+SphericalFactor operator*(const SphericalFactor& lhs, const SphericalFactor& rhs);
+
 /// The non-zero Cartesian terms of a real solid harmonic: each entry pairs a
 /// Cartesian component x^i y^j z^k with its transformation coefficient, in
 /// canonical tensor order.
@@ -90,6 +99,47 @@ VSphericalTerms spherical_factors(const int l, const int m);
 /// @return The non-zero (Cartesian component, coefficient) pairs in canonical
 ///         tensor order, or an empty vector when the index is out of range.
 VSphericalTerms spherical_component_factors(const int l, const int component);
+
+/// One term of a two-center Cartesian-to-spherical transform: the bra (center A)
+/// and ket (center B) Cartesian components and the combined exact coefficient.
+struct SphericalPairTerm
+{
+    /// The bra (center A) Cartesian component.
+    TensorComponent bra;
+
+    /// The ket (center B) Cartesian component.
+    TensorComponent ket;
+
+    /// The combined transformation coefficient (bra coefficient * ket coefficient).
+    SphericalFactor factor;
+
+    /// Compares this pair term with another for equality.
+    /// @param other The other pair term to compare.
+    /// @return True if the components and coefficient are equal, false otherwise.
+    bool operator==(const SphericalPairTerm& other) const;
+};
+
+/// The non-zero Cartesian terms of a two-center spherical component pair, in
+/// canonical (bra, ket) tensor order.
+using VSphericalPairTerms = std::vector<SphericalPairTerm>;
+
+/// Computes the exact Cartesian-to-spherical transform of one (la|lb) two-center
+/// block component: a spherical bra/ket component pair expanded into its non-zero
+/// Cartesian (bra, ket) terms, each carrying the combined coefficient
+/// bra_coefficient * ket_coefficient. The transform is the tensor product of the
+/// per-shell real solid harmonics, so it is identical for every two-center
+/// integral operator (overlap, kinetic energy, nuclear potential, ...). The
+/// terms run in canonical order: ket fastest within each bra component.
+/// @param la The bra (center A) angular momentum.
+/// @param lb The ket (center B) angular momentum.
+/// @param bra_component The bra spherical component index, 0 <= . <= 2 * la.
+/// @param ket_component The ket spherical component index, 0 <= . <= 2 * lb.
+/// @return The non-zero (bra, ket, coefficient) terms, or an empty vector when
+///         either component index is out of range.
+VSphericalPairTerms two_center_spherical_factors(const int la,
+                                                 const int lb,
+                                                 const int bra_component,
+                                                 const int ket_component);
 
 }  // namespace sphar
 

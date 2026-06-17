@@ -45,6 +45,7 @@
 #include "t2c_geom_proj_ecp_cpu_generators.hpp"
 
 #include "two_center_generators.hpp"
+#include "two_center_hrr_generators.hpp"
 #include "spherical_momentum_generators.hpp"
 
 namespace {  // run-driver helpers
@@ -84,7 +85,7 @@ print_usage(std::ostream& os)
        << "  integral_type  integral arity: two_center|2c, three_center|3c,\n"
        << "                 four_center|4c. Only two_center is wired in so far.\n"
        << "  recursion_type horizontal-recurrence transfer: hrr_bra_ket, hrr_bra,\n"
-       << "                 hrr_ket. Not wired in yet.\n"
+       << "                 hrr_ket (emits os2c::hrr two-center kernels).\n"
        << "                 (exactly one of integral_type / recursion_type required.)\n"
        << "  max_ang_mom    maximum angular momentum (int, required).\n"
        << "  min_ang_mom    minimum angular momentum (int, default 0).\n"
@@ -197,9 +198,7 @@ run(const cfg::Config& config)
 
         if (run_config.recursion_type)
         {
-            std::cout << "litmus: configuration is valid; "
-                      << cfg::to_string(*run_config.recursion_type)
-                      << " recursion generators are not wired in yet." << std::endl;
+            TwoCenterHrrGenerator().generate(run_config);
             return 0;
         }
 

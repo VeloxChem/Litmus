@@ -442,4 +442,43 @@ spherical_component_factors(const int l, const int component)
     return spherical_factors(l, component - l);
 }
 
+SphericalFactor
+operator*(const SphericalFactor& lhs, const SphericalFactor& rhs)
+{
+    // sqrt(r_l) * sqrt(r_r) = sqrt(r_l * r_r) = g * sqrt(s), with r_l * r_r = g^2 s.
+
+    const auto [g, s] = reduce_radical(static_cast<long long>(lhs.radicand) * rhs.radicand);
+
+    return SphericalFactor(lhs.factor * rhs.factor * Fraction(static_cast<int>(g)),
+                           static_cast<int>(s));
+}
+
+bool
+SphericalPairTerm::operator==(const SphericalPairTerm& other) const
+{
+    return (bra == other.bra) && (ket == other.ket) && (factor == other.factor);
+}
+
+VSphericalPairTerms
+two_center_spherical_factors(const int la,
+                             const int lb,
+                             const int bra_component,
+                             const int ket_component)
+{
+    VSphericalPairTerms terms;
+
+    // the two-center transform is the tensor product of the bra and ket shell
+    // transforms: every (bra term) x (ket term) pair, coefficients multiplied.
+
+    for (const auto& [bra, bfact] : spherical_component_factors(la, bra_component))
+    {
+        for (const auto& [ket, kfact] : spherical_component_factors(lb, ket_component))
+        {
+            terms.push_back({bra, ket, bfact * kfact});
+        }
+    }
+
+    return terms;
+}
+
 }  // namespace sphar
