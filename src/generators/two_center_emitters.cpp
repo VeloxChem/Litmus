@@ -79,38 +79,6 @@ operator_tags(cfg::OperatorType op)
                            "' has no two-center kernel naming");
 }
 
-/// The namespace abbreviation for a VRR integral's integrand, as used in the
-/// os2c::vrr::<abbrev> kernel namespace and the p<abbrev>_<shells> result name.
-/// Matches the operator_tags abbreviations but keys off the algebra integrand of
-/// an individual VRR integral (kinetic recurrences also produce overlap
-/// auxiliaries, so the integrand can differ from the kernel's operator).
-/// @param integrand The integrand operator of the VRR integral.
-/// @return The abbreviation ("ovl", "kin", "eri").
-std::string
-integrand_abbrev(const Operator& integrand)
-{
-    const auto name = integrand.name();
-
-    if (name == "1") return "ovl";
-
-    if (name == "T") return "kin";
-
-    if (name == "1/|r-r'|") return "eri";
-
-    throw cfg::ConfigError("two-center emitter: no VRR namespace for integrand '" + name + "'");
-}
-
-/// Whether a VRR integral is the elementary primitive-overlap seed, i.e. the
-/// (s|1|s) overlap already produced by osfunc::compute_overlap (povl_ss). Such an
-/// integral is not re-computed by a VRR kernel.
-/// @param integral The VRR integral.
-/// @return True if it is the primitive-overlap seed.
-bool
-is_primitive_overlap_seed(const I2CIntegral& integral)
-{
-    return (integral.integrand().name() == "1") && (integral[0] == 0) && (integral[1] == 0);
-}
-
 /// The lowercase spectroscopic shell label (s, p, d, f, ...) of an angular
 /// momentum, as used in the compute_<la>_<lb> function name.
 /// @param ang_mom The angular momentum.
@@ -164,62 +132,10 @@ return_type(cfg::StorageForm form)
     switch (form)
     {
         case cfg::StorageForm::veloxchem_sparse:
-            return "CDenseMatrix";
+            return "osfunc::CArray<double>";
     }
 
     return std::string();  // unreachable: every StorageForm is handled above
-}
-
-/// The body statements that allocate and zero the result buffer for a storage
-/// form. The buffer is sized (2*la+1)*(2*lb+1) rows (spherical components of the
-/// bra/ket shells) by one column per screened atom pair (the local `npairs`).
-/// The switch carries no default, so a new StorageForm trips -Wswitch here.
-/// @param form The storage form.
-/// @param nrows The number of result rows, (2*la+1)*(2*lb+1).
-/// @return The buffer-allocation statements.
-std::vector<std::string>
-result_buffer_lines(cfg::StorageForm form, int nrows)
-{
-    switch (form)
-    {
-        case cfg::StorageForm::veloxchem_sparse:
-            return {"// result buffer: (2*la+1)*(2*lb+1) spherical components per row,",
-                    "// one screened atom pair per column (zero-initialized by construction)",
-                    "auto buffer = CDenseMatrix(" + std::to_string(nrows) +
-                        ", static_cast<int>(npairs));"};
-    }
-
-    return {};  // unreachable: every StorageForm is handled above
-}
-
-/// Whether an operator's vertical recurrence is seeded by the elementary
-/// primitive overlaps (osfunc::compute_overlap). True for overlap and kinetic
-/// energy; electron repulsion seeds from the Boys function instead. The switch
-/// carries no default, so a new OperatorType trips -Wswitch here.
-/// @param op The integrand operator type.
-/// @return True if the recurrence seeds from the primitive overlaps.
-bool
-seeds_with_primitive_overlap(cfg::OperatorType op)
-{
-    switch (op)
-    {
-        case cfg::OperatorType::overlap:
-        case cfg::OperatorType::kinetic_energy:
-            return true;
-
-        case cfg::OperatorType::electron_repulsion:
-        case cfg::OperatorType::nuclear_potential:
-        case cfg::OperatorType::dipole_momentum:
-        case cfg::OperatorType::linear_momentum:
-        case cfg::OperatorType::three_center_overlap:
-        case cfg::OperatorType::three_center_r2:
-        case cfg::OperatorType::three_center_r_dot_r2:
-        case cfg::OperatorType::local_ecp:
-        case cfg::OperatorType::projected_ecp:
-            return false;
-    }
-
-    return false;  // unreachable: every OperatorType is handled above
 }
 
 /// The input parameters of a kernel for a signature, as "type name" fragments.
@@ -233,7 +149,7 @@ input_params(cfg::Signature signature)
     switch (signature)
     {
         case cfg::Signature::veloxchem_screened:
-            return {"const CScreenedBasisFunctionPair& pair"};
+            return {"const osfunc::CBasisFunctionPair& pair"};
     }
 
     return {};  // unreachable: every Signature is handled above
@@ -250,14 +166,14 @@ kernel_includes(const cfg::RunConfiguration& run_config)
     switch (run_config.storage_form)
     {
         case cfg::StorageForm::veloxchem_sparse:
-            vstr.push_back("#include \"DenseMatrix.hpp\"");
+            vstr.push_back("#include \"Array.hpp\"");
             break;
     }
 
     switch (run_config.signature)
     {
         case cfg::Signature::veloxchem_screened:
-            vstr.push_back("#include \"ScreenedBasisFunctionPair.hpp\"");
+            vstr.push_back("#include \"BasisFunctionPair.hpp\"");
             break;
     }
 
@@ -280,34 +196,6 @@ integral_caption(const I2CIntegral& integral)
     }
 
     return text;
-}
-
-/// Which side the vertical recurrence builds up. The VRR seeds keep the smaller
-/// side at zero and ladder the other: (0|o|b) seeds grow the ket, (b|o|0) seeds
-/// grow the bra. A pure (0|o|0) target grows neither.
-enum class VrrBuildSide
-{
-    none,
-    bra,
-    ket
-};
-
-/// Reads the VRR build side off a set of VRR integrals: the ket side if any
-/// integral is (0|o|b) with b > 0, the bra side if any is (b|o|0) with b > 0, and
-/// neither otherwise (a (0|o|0)-only target).
-/// @param vrr_ints The VRR integrals (base seeds and their closure).
-/// @return The side the recurrence builds up.
-VrrBuildSide
-vrr_build_side(const SI2CIntegrals& vrr_ints)
-{
-    for (const auto& tint : vrr_ints)
-    {
-        if ((tint[0] == 0) && (tint[1] > 0)) return VrrBuildSide::ket;
-
-        if ((tint[0] > 0) && (tint[1] == 0)) return VrrBuildSide::bra;
-    }
-
-    return VrrBuildSide::none;
 }
 
 /// The two-center emitter for the C++ language on CPU hardware. Produces a
@@ -433,25 +321,173 @@ CppCpuTwoCenterEmitter::_write_cpp(const cfg::RunConfiguration& run_config,
 
     const auto base = kernel_file_name(run_config.operator_type, integral);
 
+    const int la = integral[0];
+
+    const int lb = integral[1];
+
+    const int nspher = (2 * la + 1) * (2 * lb + 1);
+
+    const bool has_hrr = (la > 0) && (lb > 0);
+
+    // the vertical recurrence builds the smaller side; PB grows the ket (la <= lb),
+    // PA grows the bra. The generic Pc kernel argument is fed the matching array.
+    const bool ket_built = (la <= lb);
+
+    const auto dist = ket_built ? std::string("pb") : std::string("pa");
+
+    // order the VRR ladder (all built integrals) and the HRR-consumed base by total
+    // angular momentum, lowest first.
+    const auto by_l = [](const I2CIntegral& a, const I2CIntegral& b) {
+        if ((a[0] + a[1]) != (b[0] + b[1])) return (a[0] + a[1]) < (b[0] + b[1]);
+
+        return a < b;
+    };
+
+    std::vector<I2CIntegral> vrr_ordered(vrr_base_ints.begin(), vrr_base_ints.end());
+
+    vrr_ordered.insert(vrr_ordered.end(), vrr_rest_ints.begin(), vrr_rest_ints.end());
+
+    std::sort(vrr_ordered.begin(), vrr_ordered.end(), by_l);
+
+    std::vector<I2CIntegral> base_ordered(vrr_base_ints.begin(), vrr_base_ints.end());
+
+    std::sort(base_ordered.begin(), base_ordered.end(), by_l);
+
+    // build the body and the set of os2c kernel headers it calls.
+    auto body = VCodeLines();
+
+    std::set<std::string> headers;
+
+    body.push_back({1, 0, 1, "// number of screened atom pairs"});
+    body.push_back({1, 0, 1, "const auto npairs = pair.number_of_pairs();"});
+    body.push_back({0, 0, 1, ""});
+
+    body.push_back({1, 0, 1, "// spherical (2*la+1) x (2*lb+1) result, one atom pair per column"});
+    body.push_back({1, 0, 1, "osfunc::CArray<double> buffer(" + std::to_string(nspher) +
+                                 ", npairs);"});
+    body.push_back({0, 0, 1, ""});
+
+    if (run_config.operator_type != cfg::OperatorType::overlap)
+    {
+        // only the overlap VRR/HRR kernels are generated so far; other operators
+        // return the zeroed buffer until their kernels exist.
+        body.push_back({1, 0, 1, "// TODO: " + tags.caption + " two-center kernels not generated yet"});
+    }
+    else if (la == 0 && lb == 0)
+    {
+        // (s|s): the contracted primitive overlaps are the spherical result.
+        body.push_back({1, 0, 1, "// (s|s): the contracted primitive overlaps are the result"});
+        body.push_back({1, 0, 1, "osfunc::contract(buffer, osfunc::compute_overlap(pair));"});
+    }
+    else
+    {
+        body.push_back({1, 0, 1, "// primitive (s|s) seed and Pc (" + dist + ") distances"});
+        body.push_back({1, 0, 1, "const auto ss = osfunc::compute_overlap(pair);"});
+        body.push_back({1, 0, 1, "const auto " + dist + " = osfunc::compute_" + dist + "(pair);"});
+        body.push_back({0, 0, 1, ""});
+
+        if (!has_hrr)
+        {
+            // (s|lb) or (la|s): the spherical VRR fuses the recurrence, contraction
+            // and Cartesian-to-spherical transform.
+            const auto lval = la + lb;
+
+            body.push_back({1, 0, 1, "// vertical recurrence with the Cartesian-to-spherical transform"});
+            body.push_back({1, 0, 1, tags.ns + "::compute_" + shell_label(lval) + "_sph(pair, ss, " +
+                                         dist + ", buffer);"});
+
+            headers.insert("ObaraSaikaTwoCenterOverlapVrrSph" + Tensor(lval).label() + ".hpp");
+        }
+        else
+        {
+            body.push_back({1, 0, 1, "// number of primitive pairs"});
+            body.push_back({1, 0, 1, "const auto nprims = pair.number_of_primitive_pairs();"});
+            body.push_back({0, 0, 1, ""});
+
+            // vertical recurrence: build the primitive Cartesian ladder up to the
+            // HRR base, each step from the two below it.
+            body.push_back({1, 0, 1, "// vertical recurrence: primitive Cartesian base integrals"});
+
+            for (const auto& tint : vrr_ordered)
+            {
+                const auto lval = tint[0] + tint[1];
+
+                if (lval == 0) continue;  // the (s|s) seed is "ss"
+
+                const auto kb = (tint[0] == 0);
+
+                const auto name = shell_label(tint[0]) + shell_label(tint[1]);
+
+                const auto rows = cartesian_count(lval);
+
+                std::string args = "pair, ";
+
+                for (int m = lval - 1; (m >= 0) && (m >= lval - 2); m--)
+                {
+                    args += (kb ? ("s" + shell_label(m)) : (shell_label(m) + "s")) + ", ";
+                }
+
+                body.push_back({1, 0, 1, "osfunc::CArray<double> " + name + "(nprims * " +
+                                             std::to_string(rows) + ", npairs);"});
+                body.push_back({1, 0, 1, "os2c::vrr::ovl::compute_" + shell_label(lval) + "(" + args +
+                                             dist + ", " + name + ");"});
+
+                headers.insert("ObaraSaikaTwoCenterOverlapVrrCart" + Tensor(lval).label() + ".hpp");
+            }
+
+            body.push_back({0, 0, 1, ""});
+
+            // contract the base integrals the HRR consumes.
+            body.push_back({1, 0, 1, "// contract the base integrals consumed by the horizontal recurrence"});
+
+            for (const auto& tint : base_ordered)
+            {
+                const auto name = shell_label(tint[0]) + shell_label(tint[1]);
+
+                const auto rows = cartesian_count(tint[0]) * cartesian_count(tint[1]);
+
+                body.push_back({1, 0, 1, "osfunc::CArray<double> c" + name + "(" +
+                                             std::to_string(rows) + ", npairs);"});
+                body.push_back({1, 0, 1, "osfunc::contract(c" + name + ", " + name + ");"});
+            }
+
+            body.push_back({0, 0, 1, ""});
+
+            // horizontal recurrence with the transform fused; it transfers momentum
+            // between the centers using the AB distances.
+            std::string args = "";
+
+            for (const auto& tint : base_ordered)
+            {
+                args += "c" + shell_label(tint[0]) + shell_label(tint[1]) + ", ";
+            }
+
+            body.push_back({1, 0, 1, "// horizontal recurrence (Cartesian-to-spherical transform fused)"});
+            body.push_back({1, 0, 1, "const auto ab = osfunc::compute_ab(pair);"});
+            body.push_back({1, 0, 1, "os2c::hrr::compute_" + shell_label(la) + "_" + shell_label(lb) +
+                                         "(" + args + "ab, buffer);"});
+
+            headers.insert("ObaraSaikaTwoCenterHrr" + Tensor(la).label() + Tensor(lb).label() + ".hpp");
+        }
+    }
+
+    body.push_back({0, 0, 1, ""});
+    body.push_back({1, 0, 1, "return buffer;"});
+
+    // assemble the file: includes, namespace, signature, body.
     std::ofstream fstream;
 
     fstream.open((base + ".cpp").c_str(), std::ios_base::trunc);
 
     auto lines = VCodeLines();
 
-    lines.push_back({0, 0, 1, "#include \"" + base + ".hpp\""});
+    lines.push_back({0, 0, 2, "#include \"" + base + ".hpp\""});
 
-    // the Cartesian-to-spherical transform is only emitted off the (s|s) special
-    // case, so its header is only included when a transform call is generated.
-    const auto emits_transform = seeds_with_primitive_overlap(run_config.operator_type) &&
-                                 !is_primitive_overlap_seed(integral);
+    lines.push_back({0, 0, 1, "#include \"ObaraSaikaFunc.hpp\""});
 
-    lines.push_back({0, 0, emits_transform ? 1 : 2, "#include \"ObaraSaikaFunc.hpp\""});
+    for (const auto& header : headers) lines.push_back({0, 0, 1, "#include \"" + header + "\""});
 
-    if (emits_transform)
-    {
-        lines.push_back({0, 0, 2, "#include \"CartesianToSphericalFunc.hpp\""});
-    }
+    lines.push_back({0, 0, 1, ""});
 
     lines.push_back({0, 0, 2, "namespace " + tags.ns + " {  // " + tags.caption +
                                   " two-center integrals"});
@@ -465,191 +501,7 @@ CppCpuTwoCenterEmitter::_write_cpp(const cfg::RunConfiguration& run_config,
 
     lines.push_back({0, 0, 1, "{"});
 
-    // the screened pair carries the bra/ket basis functions and the surviving
-    // atom pairs.
-    lines.push_back({1, 0, 1, "// number of screened atom pairs to evaluate"});
-    lines.push_back({1, 0, 1, "const auto npairs = pair.number_of_pairs();"});
-    lines.push_back({0, 0, 1, ""});
-
-    const auto nrows = (2 * integral[0] + 1) * (2 * integral[1] + 1);
-
-    for (const auto& label : result_buffer_lines(run_config.storage_form, nrows))
-    {
-        lines.push_back({1, 0, 1, label});
-    }
-    lines.push_back({0, 0, 1, ""});
-
-    // Obara-Saika PA/PB distances seed the vertical recurrence: PB when it builds
-    // up the ket ((0|o|b) seeds), PA when it builds up the bra ((b|o|0) seeds).
-    // A pure (0|o|0) target needs neither.
-    SI2CIntegrals vrr_ints = vrr_base_ints;
-
-    vrr_ints.insert(vrr_rest_ints.begin(), vrr_rest_ints.end());
-
-    if (const auto side = vrr_build_side(vrr_ints); side == VrrBuildSide::ket)
-    {
-        lines.push_back({1, 0, 1, "// Obara-Saika PB distances (vertical recurrence builds the ket)"});
-        lines.push_back({1, 0, 1, "const auto pb = osfunc::compute_pb(pair);"});
-        lines.push_back({0, 0, 1, ""});
-    }
-    else if (side == VrrBuildSide::bra)
-    {
-        lines.push_back({1, 0, 1, "// Obara-Saika PA distances (vertical recurrence builds the bra)"});
-        lines.push_back({1, 0, 1, "const auto pa = osfunc::compute_pa(pair);"});
-        lines.push_back({0, 0, 1, ""});
-    }
-
-    // elementary primitive overlaps seed the vertical recurrence for overlap and
-    // kinetic-energy integrals.
-    if (seeds_with_primitive_overlap(run_config.operator_type))
-    {
-        if (is_primitive_overlap_seed(integral))
-        {
-            // (s|s) overlap: the contracted primitive overlaps are already the
-            // spherical result (one component per side), so contract them straight
-            // into the buffer and skip the Cartesian-to-spherical transform. The
-            // seed is folded into the contract since nothing else consumes it here.
-            lines.push_back({1, 0, 1, "// (s|s): contract the primitive overlaps into the buffer"});
-            lines.push_back({1, 0, 1, "osfunc::contract(buffer, osfunc::compute_overlap(pair));"});
-            lines.push_back({0, 0, 1, ""});
-
-            lines.push_back({1, 0, 1, "return buffer;"});
-            lines.push_back({0, 0, 2, "}"});
-            lines.push_back({0, 0, 1, "}  // namespace " + tags.ns});
-
-            ost::write_code_lines(fstream, lines);
-
-            fstream.close();
-
-            return;
-        }
-
-        // every other target consumes the seed in its VRR steps, so name it.
-        lines.push_back({1, 0, 1, "// elementary primitive overlaps seed the vertical recurrence"});
-        lines.push_back({1, 0, 1, "const auto povl_ss = osfunc::compute_overlap(pair);"});
-        lines.push_back({0, 0, 1, ""});
-
-        // each remaining VRR integral is produced by its own single-step VRR kernel
-        // (os2c::vrr::<abbrev>::compute_<L>, L the built-side angular momentum);
-        // those kernels are placeholders added separately. Emit lowest angular
-        // momentum first so the lower integrals a step consumes precede it.
-        std::vector<I2CIntegral> ordered(vrr_ints.begin(), vrr_ints.end());
-
-        std::sort(ordered.begin(), ordered.end(), [](const I2CIntegral& a, const I2CIntegral& b) {
-            if ((a[0] + a[1]) != (b[0] + b[1])) return (a[0] + a[1]) < (b[0] + b[1]);
-
-            return a < b;
-        });
-
-        for (const auto& tint : ordered)
-        {
-            if (is_primitive_overlap_seed(tint)) continue;
-
-            const auto abbr = integrand_abbrev(tint.integrand());
-
-            // exactly one side is zero in a VRR integral; the other carries the
-            // built angular momentum L. The kernel is labelled by L alone.
-            const auto lval = tint[0] + tint[1];
-
-            const auto ket_built = (tint[0] == 0);
-
-            const auto var = "p" + abbr + "_" + shell_label(tint[0]) + shell_label(tint[1]);
-
-            // a single VRR step for built momentum L takes the pair, the PA/PB
-            // distances of the side it builds, and the two lower integrals it
-            // recurs from (built momentum L-1 and L-2, highest first).
-            std::string args = "pair";
-
-            if (lval >= 1)
-            {
-                args += ket_built ? ", pb" : ", pa";
-
-                for (int m = lval - 1; (m >= 0) && (m >= lval - 2); m--)
-                {
-                    const auto lower = ket_built ? ("s" + shell_label(m)) : (shell_label(m) + "s");
-
-                    args += ", p" + abbr + "_" + lower;
-                }
-            }
-
-            lines.push_back({1, 0, 1, "const auto " + var + " = os2c::vrr::" + abbr + "::compute_" +
-                                          shell_label(lval) + "(" + args + ");"});
-        }
-
-        lines.push_back({0, 0, 1, ""});
-
-        // contract the VRR base integrals (those HRR consumes) from primitive to
-        // contracted form via osfunc::contract: each contracted block is sized to
-        // its Cartesian component count and accumulated into from the primitives.
-        std::vector<I2CIntegral> base_ordered(vrr_base_ints.begin(), vrr_base_ints.end());
-
-        std::sort(base_ordered.begin(), base_ordered.end(),
-                  [](const I2CIntegral& a, const I2CIntegral& b) {
-                      if ((a[0] + a[1]) != (b[0] + b[1])) return (a[0] + a[1]) < (b[0] + b[1]);
-
-                      return a < b;
-                  });
-
-        lines.push_back({1, 0, 1, "// contract the VRR base integrals consumed by HRR"});
-
-        for (const auto& tint : base_ordered)
-        {
-            const auto abbr = integrand_abbrev(tint.integrand());
-
-            const auto shells = shell_label(tint[0]) + shell_label(tint[1]);
-
-            const auto rows = cartesian_count(tint[0]) * cartesian_count(tint[1]);
-
-            lines.push_back({1, 0, 1, "auto c" + abbr + "_" + shells + " = CDenseMatrix(" +
-                                          std::to_string(rows) + ", static_cast<int>(npairs));"});
-
-            lines.push_back({1, 0, 1, "osfunc::contract(c" + abbr + "_" + shells + ", p" + abbr +
-                                          "_" + shells + ");"});
-        }
-
-        lines.push_back({0, 0, 1, ""});
-
-        // horizontal recurrence: when both sides carry angular momentum, transfer
-        // momentum from one center to the other to reach the target, consuming the
-        // contracted base integrals. HRR is operator-independent (a pure A-B
-        // transfer), so its namespace carries no operator abbreviation.
-        if (!hrr_ints.empty())
-        {
-            const auto abbr = integrand_abbrev(integral.integrand());
-
-            const auto shells = shell_label(integral[0]) + shell_label(integral[1]);
-
-            std::string args = "pair";
-
-            for (const auto& tint : base_ordered)
-            {
-                args += ", c" + integrand_abbrev(tint.integrand()) + "_" + shell_label(tint[0]) +
-                        shell_label(tint[1]);
-            }
-
-            lines.push_back({1, 0, 1, "// horizontal recurrence to the target integral"});
-
-            lines.push_back({1, 0, 1, "const auto c" + abbr + "_" + shells + " = os2c::hrr::compute_" +
-                                          shell_label(integral[0]) + "_" + shell_label(integral[1]) +
-                                          "(" + args + ");"});
-
-            lines.push_back({0, 0, 1, ""});
-        }
-
-        // transform the contracted Cartesian target to the spherical (real solid
-        // harmonic) result, accumulating it into the return buffer.
-        const auto target = "c" + integrand_abbrev(integral.integrand()) + "_" +
-                            shell_label(integral[0]) + shell_label(integral[1]);
-
-        lines.push_back({1, 0, 1, "// transform the Cartesian target to spherical and distribute"});
-
-        lines.push_back({1, 0, 1, "osfunc::transform<" + std::to_string(integral[0]) + ", " +
-                                      std::to_string(integral[1]) + ">(buffer, " + target + ");"});
-
-        lines.push_back({0, 0, 1, ""});
-    }
-
-    lines.push_back({1, 0, 1, "return buffer;"});
+    for (const auto& line : body) lines.push_back(line);
 
     lines.push_back({0, 0, 2, "}"});
 
