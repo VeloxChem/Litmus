@@ -40,8 +40,8 @@ CMakeLists.txt  root build; src/* and tests/* have their own
 .github/workflows/ci.yml   CI: build + test on ubuntu-latest and macos-latest
 ```
 
-Rough sizes: `algebra` ~27 files, `recursions` ~111 files (54 drivers + headers
-+ defs), `generators` ~138 files, plus a test suite of **472 tests**.
+Rough sizes: `algebra` ~29 files, `recursions` ~111 files (54 drivers + headers
++ defs), `generators` ~152 files, plus a test suite of **518 tests**.
 
 ## The algebra module — the vocabulary
 
@@ -66,6 +66,16 @@ Everything is built from small immutable symbolic value types. Read these first
 - **`RecursionTerm` / `RecursionExpansion` (a.k.a. *dist*) / `RecursionGroup`** —
   a term is `prefactor · factors · integral`; an expansion is a root term plus
   the terms it expands into; a group is a set of expansions.
+- **`sphar::`** (`spherical_harmonics.{hpp,cpp}`) — exact Cartesian-to-spherical
+  transformation coefficients. A `SphericalFactor` is a `Fraction` times
+  `sqrt(square-free radicand)`, the closed form every real solid-harmonic
+  coefficient takes in the Helgaker–Jørgensen–Olsen convention; `operator*`
+  reduces the combined radical (`sqrt(3) * sqrt(3) -> 3`). `spherical_factors(l,
+  m)` / `spherical_component_factors(l, component)` give one shell's expansion,
+  and `two_center_spherical_factors(la, lb, ...)` their tensor product — the
+  two-center transform, which is **operator-independent**. This is what lets the
+  emitters fuse the transform into the recurrence kernels instead of emitting a
+  separate transform pass.
 
 These types live in `std::set`/`std::map`, so every `operator<` **must be a
 strict weak ordering** — this is load-bearing, not cosmetic.
@@ -105,7 +115,7 @@ R2Group create_recursion(const VT2CIntegrals&) const;   // whole reduction
 ```bash
 cmake -S . -B build               # configure (Release by default)
 cmake --build build -j            # build → build/litmus.x
-ctest --test-dir build --output-on-failure   # run all 472 tests
+ctest --test-dir build --output-on-failure   # run all 518 tests
 ```
 
 - C++17, CMake ≥ 3.16. GoogleTest is fetched via FetchContent on first configure
@@ -130,16 +140,21 @@ The config format is a minimal TOML subset parsed by hand (zero dependencies):
 integers, booleans, or `[1, 2, 3]` integer arrays. The raw parser is generic
 (`cfg::Config`, typed getters with fallbacks); two schemas sit on top of it.
 
-**Legacy schema** (the original 13 generator families). Keys: `type` (required),
+**Legacy schema** (14 generator families). Keys: `type` (required),
 `lmax`, `integral`, `geom` (arity 3/4/5 per family), `aux_lmax` (t3c),
-`proj_lmax` (proj-ecp), `rec_form` (t2c, `[1, 0]`), `use_rs` (t2c/g2c).
+`proj_lmax` (proj-ecp), `rec_form` (t2c, `[1, 0]`), `use_rs` (t2c/g2c). The
+`spherical_momentum` family is the odd one out: it emits VeloxChem's
+`SphericalMomentum.hpp` from `sphar::` and reads `lmax` as the highest shell to
+tabulate.
 
 **New-style schema** (`cfg::RunConfiguration` in
 `src/general/run_configuration.{hpp,cpp}`) decomposes the monolithic `type` into
 orthogonal, typed dimensions for the next generation of generators. Keys:
 `integral_type` (`two_center`/`three_center`/`four_center`, also `2c`/`3c`/`4c`)
-**or** `recursion_type` (`hrr_bra_ket`/`hrr_bra`/`hrr_ket`, the horizontal-
-recurrence transfer to generate) — **exactly one of the two is required**, and
+**or** `recursion_type` (`hrr_bra_ket`/`hrr_bra`/`hrr_ket` for the horizontal-
+recurrence transfer, `vrr_cartesian`/`vrr_spherical` for the vertical one — i.e.
+which *recurrence kernel* to emit rather than a whole integral) — **exactly one
+of the two is required**, and
 supplying both is a `ConfigError`; they are stored as `std::optional` fields so a
 consumer tests which one is set. `max_ang_mom` (required), `min_ang_mom`
 (default 0),
@@ -151,21 +166,54 @@ consumer tests which one is set. `max_ang_mom` (required), `min_ang_mom`
 `VeloxChemSparse`), `signature` (default `VeloxChemScreened`). Each enumerated
 field is validated against its allowed spellings (case/`_`/`-` insensitive) and
 the angular-momentum range is checked. `litmus run` recognizes a config as
-new-style when it carries an `integral_type` *or* `recursion_type` key; the first
-generator that consumes `RunConfiguration` now exists — see *The new-style
-two-center generator* below (a `recursion_type` config validates but its
-generators are not wired in yet). See also `examples/four_center.toml`.
+new-style when it carries an `integral_type` *or* `recursion_type` key, and
+dispatches it to one of the three generators described below. See also
+`examples/four_center.toml`.
 
-## The new-style two-center generator (work in progress)
+## The new-style two-center generators (work in progress)
 
-`TwoCenterGenerator` (`src/generators/two_center_generators.{hpp,cpp}`) is the
-first generator built on `cfg::RunConfiguration`. `litmus run` dispatches a
-new-style config with `integral_type = two_center` to it (three/four-center
-still print a "not wired in yet" notice). It currently supports the operators
-`overlap`, `kinetic_energy`, and `electron_repulsion`; every other
-`OperatorType` raises a `cfg::ConfigError`. The operator `switch`es deliberately
-carry no `default`, so adding an `OperatorType` enumerator trips `-Wswitch` at
-each dispatch site that needs updating.
+Three generators are built on `cfg::RunConfiguration`. Each writes its
+`.hpp`/`.cpp` output into the current working directory and prints one line per
+kernel to stdout:
+
+| config key | generator | emits |
+| --- | --- | --- |
+| `integral_type = two_center` | `TwoCenterGenerator` | orchestration kernels — `os2c::<op>::compute_<la>_<lb>` |
+| `recursion_type = hrr_bra_ket`/`hrr_bra`/`hrr_ket` | `TwoCenterHrrGenerator` | `os2c::hrr::compute_<la>_<lb>` |
+| `recursion_type = vrr_cartesian` | `TwoCenterVrrGenerator` | `os2c::vrr::ovl::compute_<l>` |
+| `recursion_type = vrr_spherical` | `TwoCenterVrrGenerator` | `os2c::ovl::compute_<l>_sph` |
+
+`integral_type = three_center`/`four_center` still print a "not wired in yet"
+notice. The enumerated `switch`es throughout deliberately carry no `default`, so
+adding an `OperatorType` / `RecursionType` / `Hardware` / … enumerator trips
+`-Wswitch` at every dispatch site that needs updating.
+
+### The osfunc ABI
+
+Everything these three emit speaks VeloxChem's `osfunc::` data structures. This is
+the single most important thing to know before editing an emitter:
+
+- **All data is `osfunc::CArray<double>`** — an `(nrows × npairs)` buffer with one
+  screened atom pair per column. `.row(i)` yields the pointer the SIMD loops walk;
+  `.nrows()`/`.ncols()` give the extents. Contracted Cartesian blocks pack their
+  components into the rows; primitive blocks pack `nprims * ncomponents` rows.
+- **The pair is `osfunc::CBasisFunctionPair`** — `.bra()`, `.ket()`,
+  `.number_of_pairs()`, `.number_of_primitive_pairs()`.
+- **Recurrence kernels return `void`** and write through a trailing out-parameter
+  (`osfunc::CArray<double>& out`). Only the orchestration kernel returns a value,
+  `-> osfunc::CArray<double>`.
+- **There is no standalone Cartesian→spherical transform call.** The transform is
+  *fused* into the HRR kernel and into the spherical VRR kernel using the exact
+  `sphar::` coefficients; nothing emits an `osfunc::transform` any more.
+- Generated headers include `Array.hpp`, plus `BasisFunctionPair.hpp` when the
+  kernel takes a pair. The orchestration `.cpp` also includes `ObaraSaikaFunc.hpp`
+  and the header of every `os2c` kernel it calls.
+
+### The orchestration generator (`integral_type = two_center`)
+
+`TwoCenterGenerator` (`src/generators/two_center_generators.{hpp,cpp}`) supports
+the operators `overlap`, `kinetic_energy`, and `electron_repulsion`; every other
+`OperatorType` raises a `cfg::ConfigError`.
 
 `generate()` loops the bra (A) and ket (B) over `[min_ang_mom, max_ang_mom]` and,
 for each target `(a|o|b)`, splits the work into three integral sets:
@@ -195,67 +243,108 @@ pair per integral. The emitter is selected by `make_two_center_emitter()`, a
 factory that dispatches on the config's `hardware` × `language` (nested `switch`es
 with no `default`, so an unsupported target trips `-Wswitch` and is otherwise
 rejected with a `cfg::ConfigError`). The only emitter today is
-`CppCpuTwoCenterEmitter` (C++ on CPU). `generate()` still prints a one-line
-summary per target to stdout (`Generated SP kernel (0 HRR, 1 VRR base, 3 VRR
-rest)`). Try:
+`CppCpuTwoCenterEmitter` (C++ on CPU). `generate()` prints a one-line summary per
+target to stdout (`Generated PP kernel (1 HRR, 2 VRR base, 1 VRR rest)`). Try:
 
 ```bash
-printf 'integral_type="two_center"\noperator_type="kinetic_energy"\nmax_ang_mom=2\n' > /tmp/t2c.toml
+printf 'integral_type="two_center"\nmax_ang_mom=2\n' > /tmp/t2c.toml
 cd /tmp && /path/to/litmus.x run /tmp/t2c.toml   # writes ObaraSaikaTwoCenter*.{hpp,cpp} into the cwd
 ```
 
 **What the emitter produces.** Files are named
 `ObaraSaikaTwoCenter<Operator><BraKet>.{hpp,cpp}` (e.g.
-`ObaraSaikaTwoCenterKineticEnergyPP`). Each `.hpp` is a guarded declaration in the operator's
-namespace — `os2c::ovl` (overlap), `os2c::kin` (kinetic energy), `os2c::eri`
-(electron repulsion) — of a `compute_<la>_<lb>` kernel (lowercase shell labels,
-e.g. `compute_p_p`); the `(bra|op|ket)^order` caption is used for the `@brief`
-doc line. The `.cpp` carries the matching definition whose body now emits the
-integral computation **workflow** as real C++ calls (not comment placeholders),
-in order:
+`ObaraSaikaTwoCenterOverlapPP`). Each `.hpp` is a guarded declaration in the
+operator's namespace — `os2c::ovl` (overlap), `os2c::kin` (kinetic energy),
+`os2c::eri` (electron repulsion) — of a `compute_<la>_<lb>` kernel (lowercase
+shell labels, e.g. `compute_p_p`); the `(bra|op|ket)^order` caption is used for
+the `@brief` doc line. The `.cpp` carries the matching definition. Every body
+opens with `npairs = pair.number_of_pairs()` and a zeroed spherical result buffer
+`osfunc::CArray<double> buffer((2*la+1)*(2*lb+1), npairs)`, and closes with
+`return buffer`. In between it takes one of four shapes:
 
-- `npairs = pair.number_of_pairs()` and a zeroed result buffer
-  `CDenseMatrix((2*la+1)*(2*lb+1), npairs)`.
-- the Obara–Saika distances for the side the VRR builds —
-  `osfunc::compute_pb` when the seeds grow the ket (`(0|o|b)`), `compute_pa` when
-  they grow the bra (`(b|o|0)`); a pure `(0|o|0)` target needs neither. The build
-  side is read off the integral set by `vrr_build_side`.
-- the primitive-overlap seed `povl_ss = osfunc::compute_overlap(pair)` (overlap
-  and kinetic only — see `seeds_with_primitive_overlap`).
-- one VRR step per non-seed VRR integral, lowest total momentum first:
-  `p<abbr>_<shells> = os2c::vrr::<abbr>::compute_<L>(pair, pa|pb, <two lower
-  integrals>)`, where `<abbr>` keys off each integral's *own* integrand
-  (`integrand_abbrev`: `ovl`/`kin`/`eri`) and `L` is the built-side momentum.
-- contraction of the VRR **base** integrals HRR consumes:
-  `c<abbr>_<shells> = CDenseMatrix(...); osfunc::contract(c..., p...)`.
-- the HRR transfer to the target (only when both sides carry momentum):
-  `c<abbr>_<shells> = os2c::hrr::compute_<la>_<lb>(pair, <contracted base>)`. HRR
-  is operator-independent, so its namespace carries no operator abbreviation.
-- the Cartesian→spherical store: `osfunc::transform<la, lb>(buffer, <target>)`,
-  then `return buffer`.
+- **a non-overlap operator** — nothing but a `TODO` comment. Only the overlap
+  recurrence kernels are generated so far, so `kinetic_energy` and
+  `electron_repulsion` return the zeroed buffer.
+- **`(s|s)`** — the contracted primitive overlaps *are* the spherical result:
+  `osfunc::contract(buffer, osfunc::compute_overlap(pair));`.
+- **`(s|lb)` or `(la|s)`** — one fused spherical VRR call. The seed is
+  `ss = osfunc::compute_overlap(pair)`; the distances are `osfunc::compute_pb(pair)`
+  when the recurrence grows the ket (`la <= lb`) and `compute_pa` when it grows the
+  bra. Then `os2c::ovl::compute_<l>_sph(pair, ss, pb, buffer)` does the recurrence,
+  the contraction and the transform in a single pass.
+- **`(la|lb)` with both sides > 0** — the full ladder. After
+  `nprims = pair.number_of_primitive_pairs()`, one
+  `os2c::vrr::ovl::compute_<l>(pair, <two lower>, pb, <out>)` per VRR integral
+  (lowest total momentum first, into `nprims * ncart` row buffers), then
+  `osfunc::contract` of each base integral the HRR consumes, then
+  `ab = osfunc::compute_ab(pair)` and
+  `os2c::hrr::compute_<la>_<lb>(<contracted base…>, ab, buffer)`, which transfers
+  the momentum with the transform fused. HRR is operator-independent, so its
+  namespace carries no operator abbreviation.
 
-The `(s|s)` target is special-cased: the contracted primitive overlaps are
-already the spherical result, so it emits `osfunc::contract(buffer, povl_ss)` and
-returns, skipping the transform. `ObaraSaikaFunc.hpp` is always included;
-`CartesianToSphericalFunc.hpp` only when a transform is actually emitted.
+The tail of a generated `(d|d)` overlap kernel, for orientation:
 
-The `osfunc::*`, `os2c::vrr::*`, and `os2c::hrr::*` functions the body calls are
-**not themselves generated yet** — emitting those primitive recurrence kernels is
-the next plug-in point. Note also that the VRR/HRR/transform workflow currently
-only fires for primitive-overlap-seeded operators; `electron_repulsion` (Boys-
-seeded) falls through to an allocate-and-return stub for now. The
-namespace/file/operator tags are derived freshly in the emitter (not via the
+```cpp
+osfunc::CArray<double> sg(nprims * 15, npairs);
+os2c::vrr::ovl::compute_g(pair, sf, sd, pb, sg);
+
+osfunc::CArray<double> csg(15, npairs);
+osfunc::contract(csg, sg);
+
+const auto ab = osfunc::compute_ab(pair);
+os2c::hrr::compute_d_d(csd, csf, csg, ab, buffer);
+```
+
+The namespace/file/operator tags are derived freshly in the emitter (not via the
 legacy `t2c::` helpers).
 
 **Signature/storage awareness.** The parameter list is the cross-product of two
 dimensions, each behind a no-`default` `switch`: `signature`
-(`VeloxChemScreened`) selects the **inputs** — `const CScreenedBasisFunctionPair&
+(`VeloxChemScreened`) selects the **inputs** — `const osfunc::CBasisFunctionPair&
 pair` — and `storage_form` (`VeloxChemSparse`) selects the **return type** —
-`CDenseMatrix`. The matching VeloxChem headers (`ScreenedBasisFunctionPair.hpp`,
-`DenseMatrix.hpp`) are included from the chosen types. The emitter is covered by
-`tests/generators/test_two_center_emitters.cpp` (a new `generator_tests` target;
-generator tests are globbed like the recursion tests). The tests chdir into a temp
-directory because the emitter writes relative to the working directory.
+`osfunc::CArray<double>`. The matching VeloxChem headers
+(`BasisFunctionPair.hpp`, `Array.hpp`) are included from the chosen types.
+
+### The HRR kernel generator (`recursion_type = hrr_*`)
+
+`TwoCenterHrrGenerator` and `format_hrr_kernel(la, lb)`
+(`two_center_hrr_generators.{hpp,cpp}`, `two_center_hrr_emitter.{hpp,cpp}`) emit
+`ObaraSaikaTwoCenterHrr<AB>.{hpp,cpp}` in `os2c::hrr`. The emitter runs
+`T2CHRRDriver` to reduce the bra (or ket) fully down to `s`, folds in the exact
+`sphar::two_center_spherical_factors` coefficients, and emits one SIMD loop per
+spherical component over the atom-pair columns. Irrational and non-terminating
+factors (`sqrt(3)`, `1/3`) are hoisted into `const double` locals, and terms are
+grouped by AB product with the common rational coefficient factored out.
+
+The kernel takes one contracted Cartesian `CArray` per base integral, the AB
+distances, and the spherical target as an out-parameter; it loops over
+`out.nrows() / ncomps` integral blocks, so one call transfers a whole batch.
+Both sides must carry momentum (`la, lb >= 1`): `hrr_bra` keeps the
+bra-incremented targets (`la <= lb`), `hrr_ket` the ket-incremented ones
+(`la > lb`), and `hrr_bra_ket` all of them.
+
+### The VRR kernel generator (`recursion_type = vrr_*`)
+
+`TwoCenterVrrGenerator` and `two_center_vrr_emitter.{hpp,cpp}` emit
+`ObaraSaikaTwoCenterOverlapVrr{Cart,Sph}<L>.{hpp,cpp}`, one pair per ket shell
+`lb >= 1`; a `VrrFlavor` table selects the namespace, file tag and emitter
+functions per recursion type. Both flavors build `(s|lb)` from the `(s|s)` seed:
+
+- **`vrr_cartesian`** → `os2c::vrr::ovl::compute_<l>(pair, <two lower>, pc, out)`:
+  a *single* Obara–Saika ket step, per-primitive, retaining the `fe = 1/(2 eta)`
+  term. Its output feeds the HRR and is contracted downstream.
+- **`vrr_spherical`** → `os2c::ovl::compute_<l>_sph(pair, ss, pc, out)`: the fully
+  reduced recurrence with the contraction *and* the Cartesian→spherical transform
+  folded in. Worth knowing why this is cheap: the traceless real solid harmonics
+  cancel every `fe` (trace) term, so the spherical kernels come out as pure `pc`
+  polynomials — no `fe`, no exponents (verified through `l = 6`). They GCD-factor
+  the common rational and radical and wrap long inner sums one term per line.
+
+All three emitters are covered by `tests/generators/` —
+`test_two_center_emitters.cpp`, `test_two_center_hrr_emitter.cpp`,
+`test_two_center_vrr_emitter.cpp` (target `generator_tests`; generator tests are
+globbed like the recursion tests). The tests chdir into a temp directory because
+the generators write relative to the working directory.
 
 ## Conventions & pitfalls (read before editing)
 
@@ -325,6 +414,17 @@ and on PRs. The ubuntu job is the one that catches missing standard includes.
 6. `src/generators/two_center_generators.cpp` — the new-style generator and the
    HRR/VRR integral-group split.
 7. `src/generators/two_center_emitters.cpp` — the C++/CPU emitter that turns those
-   groups into a `.hpp`/`.cpp` kernel pair, wiring the VRR/HRR/transform workflow
-   as `osfunc::`/`os2c::vrr`/`os2c::hrr` calls (the active work; generating those
-   primitive recurrence kernels themselves is the next step).
+   groups into a `.hpp`/`.cpp` orchestration kernel, wiring the VRR/HRR workflow
+   as `osfunc::`/`os2c::vrr`/`os2c::hrr` calls over the `CArray` ABI.
+8. `src/generators/two_center_vrr_emitter.cpp` and
+   `two_center_hrr_emitter.cpp` — the recurrence kernels themselves, where the
+   symbolic recursion and the `sphar::` transform coefficients are turned into
+   SIMD loops (the active work).
+
+**Current frontier.** The overlap VRR and HRR kernels are generated and compile
+clean against VeloxChem's `osfunc::CArray`. Still open: `kinetic_energy` and
+`electron_repulsion` are accepted by the config and by the orchestration
+generator's group split, but their recurrence kernels do not exist, so the
+orchestration emitter falls through to a zeroed-buffer stub for them — ERI
+additionally needs a Boys-function seed rather than a primitive overlap. The
+three- and four-center `integral_type` values validate but have no generators.
