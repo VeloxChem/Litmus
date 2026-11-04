@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "provenance.hpp"
 #include "spherical_momentum_generators.hpp"
 
 #include <algorithm>
@@ -296,7 +297,7 @@ SphericalMomentumGenerator::generate(const int max_ang_mom) const
 {
     std::ofstream fstream;
 
-    fstream.open("SphericalMomentum.hpp", std::ios_base::trunc);
+    ost::open_generated_file(fstream, "SphericalMomentum.hpp");
 
     fstream << format_spherical_momentum(max_ang_mom);
 

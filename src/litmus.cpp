@@ -17,7 +17,9 @@
 #include <array>
 #include <chrono>
 #include <cstddef>
+#include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -48,6 +50,7 @@
 #include "two_center_hrr_generators.hpp"
 #include "two_center_vrr_generators.hpp"
 #include "spherical_momentum_generators.hpp"
+#include "provenance.hpp"
 
 namespace {  // run-driver helpers
 
@@ -442,6 +445,18 @@ main(int argc, char** argv)
     try
     {
         const auto config = cfg::parse_file(args[1]);
+
+        // Stamp the config into every generated file so it can be regenerated.
+
+        {
+            std::ifstream stream(args[1]);
+
+            std::stringstream text;
+
+            text << stream.rdbuf();
+
+            ost::set_generation_config(text.str());
+        }
 
         const auto stime = std::chrono::high_resolution_clock::now();
 

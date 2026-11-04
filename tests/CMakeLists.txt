@@ -50,7 +50,8 @@ add_executable(general_tests
     general/test_string_formater.cpp
     general/test_file_stream.cpp
     general/test_config.cpp
-    general/test_run_configuration.cpp)
+    general/test_run_configuration.cpp
+    general/test_provenance.cpp)
 
 target_link_libraries(general_tests PRIVATE
     GTest::gtest_main

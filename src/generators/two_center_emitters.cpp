@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "provenance.hpp"
 #include "two_center_emitters.hpp"
 
 #include <algorithm>
@@ -273,7 +274,7 @@ CppCpuTwoCenterEmitter::_write_hpp(const cfg::RunConfiguration& run_config,
 
     std::ofstream fstream;
 
-    fstream.open((base + ".hpp").c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, (base + ".hpp"));
 
     auto lines = VCodeLines();
 
@@ -477,7 +478,7 @@ CppCpuTwoCenterEmitter::_write_cpp(const cfg::RunConfiguration& run_config,
     // assemble the file: includes, namespace, signature, body.
     std::ofstream fstream;
 
-    fstream.open((base + ".cpp").c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, (base + ".cpp"));
 
     auto lines = VCodeLines();
 

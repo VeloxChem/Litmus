@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "provenance.hpp"
 #include "two_center_vrr_generators.hpp"
 
 #include <fstream>
@@ -85,7 +86,7 @@ write_hpp(const VrrFlavor& flv, const int lb)
 
     std::ofstream fstream;
 
-    fstream.open((base + ".hpp").c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, (base + ".hpp"));
 
     fstream << "#ifndef " << guard << "\n";
     fstream << "#define " << guard << "\n\n";
@@ -107,7 +108,7 @@ write_cpp(const VrrFlavor& flv, const int lb)
 
     std::ofstream fstream;
 
-    fstream.open((base + ".cpp").c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, (base + ".cpp"));
 
     fstream << "#include \"" << base << ".hpp\"\n\n";
 

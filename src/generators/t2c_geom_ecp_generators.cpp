@@ -15,6 +15,7 @@
 // limitations under the License.
 
 
+#include "provenance.hpp"
 #include "t2c_geom_ecp_generators.hpp"
 
 #include "string_formater.hpp"
@@ -177,7 +178,7 @@ T2CECPGeomCPUGenerator::_write_cpp_header(const SI2CIntegrals&      geom_integra
         
     std::ofstream fstream;
                
-    fstream.open(fname.c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, fname);
     
     _write_hpp_defines(fstream, integral, true);
 

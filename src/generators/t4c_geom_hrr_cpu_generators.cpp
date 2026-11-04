@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "provenance.hpp"
 #include "t4c_geom_hrr_cpu_generators.hpp"
 
 #include "string_formater.hpp"
@@ -160,7 +161,7 @@ T4CGeomHrrCPUGenerator::_write_bra_hrr_cpp_header(const I4CIntegral& integral) c
         
     std::ofstream fstream;
                
-    fstream.open(fname.c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, fname);
     
     _write_bra_hrr_hpp_defines(fstream, integral, true);
     
@@ -190,7 +191,7 @@ T4CGeomHrrCPUGenerator::_write_ket_hrr_cpp_header(const I4CIntegral& integral) c
         
     std::ofstream fstream;
                
-    fstream.open(fname.c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, fname);
     
     _write_ket_hrr_hpp_defines(fstream, integral, true);
     
@@ -220,7 +221,7 @@ T4CGeomHrrCPUGenerator::_write_bra_hrr_cpp_file(const I4CIntegral& integral) con
         
     std::ofstream fstream;
         
-    fstream.open(fname.c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, fname);
         
     _write_bra_hrr_cpp_includes(fstream, integral);
 
@@ -248,7 +249,7 @@ T4CGeomHrrCPUGenerator::_write_ket_hrr_cpp_file(const I4CIntegral& integral) con
         
     std::ofstream fstream;
         
-    fstream.open(fname.c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, fname);
         
     _write_ket_hrr_cpp_includes(fstream, integral);
 
