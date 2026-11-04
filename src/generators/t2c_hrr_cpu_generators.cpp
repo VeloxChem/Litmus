@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "provenance.hpp"
 #include "t2c_hrr_cpu_generators.hpp"
 
 #include "t2c_utils.hpp"
@@ -69,7 +70,7 @@ T2CHRRCPUGenerator::_write_hrr_cpp_header(const I2CIntegral& integral) const
         
     std::ofstream fstream;
                
-    fstream.open(fname.c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, fname);
     
     _write_hpp_defines(fstream, integral, true);
     
@@ -101,7 +102,7 @@ T2CHRRCPUGenerator::_write_hrr_cpp_file(const I2CIntegral& integral) const
         
     std::ofstream fstream;
         
-    fstream.open(fname.c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, fname);
         
     _write_hrr_cpp_includes(fstream, integral);
 

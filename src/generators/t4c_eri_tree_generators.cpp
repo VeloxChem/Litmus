@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "provenance.hpp"
 #include "t4c_eri_tree_generators.hpp"
 
 #include <iostream>
@@ -31,7 +32,7 @@ T4CCallTreeGenerator::generate(const std::string& label,
         
     std::ofstream fstream;
                
-    fstream.open(fname.c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, fname);
     
     SI4CIntegrals integrals;
     

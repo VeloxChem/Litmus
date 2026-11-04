@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "provenance.hpp"
 #include "t2c_geom_deriv_cpu_generators.hpp"
 
 #include <iostream>
@@ -104,7 +105,7 @@ T2CGeomDerivCPUGenerator::_write_cpp_header(const SI2CIntegrals&      geom_integ
         
     std::ofstream fstream;
                
-    fstream.open(fname.c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, fname);
     
     _write_hpp_defines(fstream, integral, geom_drvs, true);
 
@@ -195,7 +196,7 @@ T2CGeomDerivCPUGenerator::_write_cpp_file(const SI2CIntegrals&      geom_integra
         
     std::ofstream fstream;
         
-    fstream.open(fname.c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, fname);
         
     _write_cpp_includes(fstream, integral, geom_drvs);
     

@@ -1,3 +1,4 @@
+#include "provenance.hpp"
 #include "t3c_geom_cpu_generators.hpp"
 
 #include <iostream>
@@ -386,7 +387,7 @@ T3CGeomCPUGenerator::_write_cpp_header(const SG3Terms&      cterms,
         
     std::ofstream fstream;
                
-    fstream.open(fname.c_str(), std::ios_base::trunc);
+    ost::open_generated_file(fstream, fname);
     
     _write_hpp_defines(fstream, integral, true);
     
